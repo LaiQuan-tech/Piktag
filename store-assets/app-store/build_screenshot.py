@@ -30,7 +30,7 @@ DARK = (255, 255, 255)        # title color on gradient
 
 # ── Layout ─────────────────────────────────────────────────────────────
 PAD_X = 90
-TITLE_TOP = 260
+TITLE_TOP = 230
 TITLE_LINE_GAP = 14
 SUBTITLE_GAP = 50
 PHONE_TOP = 700
@@ -43,11 +43,24 @@ PHONE_BORDER_W = 14  # white frame thickness
 PHONE_SHADOW_BLUR = 60
 
 # ── Fonts ──────────────────────────────────────────────────────────────
-FONT_PATH = "/System/Library/Fonts/Hiragino Sans GB.ttc"
-TITLE_FONT_IDX = 2   # W6 (bold)
-SUBTITLE_FONT_IDX = 0  # W3 (regular)
+# CJK locales use Hiragino (full CJK coverage). Every other locale uses Arial,
+# which renders Latin Extended (œ, î), Vietnamese/Turkish diacritics, Cyrillic,
+# AND a normal-width apostrophe — Hiragino lacks œ/î and draws ' full-width
+# (the "d' œil → d' [tofu]" bug the founder caught on the fr card 2026-06-27).
+_CJK_LANGS = {"zh-TW", "zh-CN", "ja"}
+_IS_CJK = LANG in _CJK_LANGS
+HIRAGINO = "/System/Library/Fonts/Hiragino Sans GB.ttc"
+ARIAL = "/System/Library/Fonts/Supplemental/Arial.ttf"
+ARIAL_BOLD = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
+FONT_PATH = HIRAGINO  # legacy alias (sparkle/decoration only)
 TITLE_FONT_SIZE = 116
 SUBTITLE_FONT_SIZE = 48
+
+
+def load_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
+    if _IS_CJK:
+        return ImageFont.truetype(HIRAGINO, size, index=(2 if bold else 0))
+    return ImageFont.truetype(ARIAL_BOLD if bold else ARIAL, size)
 
 
 def gradient_bg() -> Image.Image:
@@ -97,6 +110,27 @@ def wrap_title(title: str) -> list:
     if ", " in title and len(title) > 18:
         return [p.strip() for p in title.split(", ", 1)]
     return [title]
+
+
+def wrap_to_width(draw, text, font, max_width):
+    """Greedy-wrap text to fit max_width px. Word-wraps on spaces (Latin/
+    Cyrillic); falls back to per-character wrapping for space-less CJK."""
+    text = text.strip()
+    if not text:
+        return [""]
+    units = text.split(" ") if " " in text else list(text)
+    joiner = " " if " " in text else ""
+    lines, cur = [], ""
+    for u in units:
+        trial = (cur + joiner + u) if cur else u
+        if not cur or draw.textlength(trial, font=font) <= max_width:
+            cur = trial
+        else:
+            lines.append(cur)
+            cur = u
+    if cur:
+        lines.append(cur)
+    return lines
 
 
 def round_corners(im: Image.Image, radius: int) -> Image.Image:
@@ -200,8 +234,8 @@ def draw_chip(
 
     Centered at (cx, cy). Auto-sizes to fit text + icon.
     """
-    font = ImageFont.truetype(FONT_PATH, 44, index=2)
-    icon_font = ImageFont.truetype(FONT_PATH, 50, index=2)
+    font = load_font(44, bold=True)
+    icon_font = load_font(50, bold=True)
     # Measure text + icon
     text_bbox = ImageDraw.Draw(Image.new("RGB", (1, 1))).textbbox(
         (0, 0), label, font=font
@@ -307,19 +341,24 @@ def build(
 ) -> None:
     bg = gradient_bg().convert("RGBA")
     draw = ImageDraw.Draw(bg)
-    title_font = ImageFont.truetype(FONT_PATH, TITLE_FONT_SIZE, index=TITLE_FONT_IDX)
-    sub_font = ImageFont.truetype(FONT_PATH, SUBTITLE_FONT_SIZE, index=SUBTITLE_FONT_IDX)
+    title_font = load_font(TITLE_FONT_SIZE, bold=True)
+    sub_font = load_font(SUBTITLE_FONT_SIZE, bold=False)
+    max_w = W - 2 * PAD_X
+    title_lh = int(TITLE_FONT_SIZE * 1.16)
+    sub_lh = int(SUBTITLE_FONT_SIZE * 1.32)
 
-    # Title — possibly multi-line.
-    lines = wrap_title(title)
+    # Title — explicit \n parts, each auto-wrapped to fit the canvas width.
     y = TITLE_TOP
-    for line in lines:
-        y = draw_text_centered(draw, line, title_font, y, WHITE)
-        y += TITLE_LINE_GAP
+    for part in wrap_title(title):
+        for line in wrap_to_width(draw, part, title_font, max_w):
+            draw_text_centered(draw, line, title_font, y, WHITE)
+            y += title_lh
 
-    # Subtitle.
-    y += SUBTITLE_GAP - TITLE_LINE_GAP
-    draw_text_centered(draw, subtitle, sub_font, y, WHITE)
+    # Subtitle — auto-wrapped, may span multiple lines.
+    y += SUBTITLE_GAP
+    for line in wrap_to_width(draw, subtitle, sub_font, max_w):
+        draw_text_centered(draw, line, sub_font, y, WHITE)
+        y += sub_lh
 
     # Phone with screenshot.
     paste_phone(bg, app_screenshot_path)

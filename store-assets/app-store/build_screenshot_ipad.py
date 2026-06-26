@@ -38,11 +38,23 @@ PHONE_RADIUS = 76
 PHONE_BORDER_W = 16
 PHONE_SHADOW_BLUR = 70
 
-FONT_PATH = "/System/Library/Fonts/Hiragino Sans GB.ttc"
-TITLE_FONT_IDX = 2
-SUBTITLE_FONT_IDX = 0
+# CJK locales → Hiragino; everyone else → Arial (renders œ/î, Vietnamese/
+# Turkish diacritics, Cyrillic, and a normal-width apostrophe). Mirrors
+# build_screenshot.py's fix (founder caught the fr œ/apostrophe bug 2026-06-27).
+_CJK_LANGS = {"zh-TW", "zh-CN", "ja"}
+_IS_CJK = LANG in _CJK_LANGS
+HIRAGINO = "/System/Library/Fonts/Hiragino Sans GB.ttc"
+ARIAL = "/System/Library/Fonts/Supplemental/Arial.ttf"
+ARIAL_BOLD = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
+FONT_PATH = HIRAGINO  # legacy alias
 TITLE_FONT_SIZE = 116      # was 132 — gives title 2-line room without crowding subtitle
 SUBTITLE_FONT_SIZE = 54    # was 58
+
+
+def load_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
+    if _IS_CJK:
+        return ImageFont.truetype(HIRAGINO, size, index=(2 if bold else 0))
+    return ImageFont.truetype(ARIAL_BOLD if bold else ARIAL, size)
 
 
 def gradient_bg() -> Image.Image:
@@ -78,6 +90,26 @@ def wrap_title(title):
     if ", " in title and len(title) > 18:
         return [p.strip() for p in title.split(", ", 1)]
     return [title]
+
+
+def wrap_to_width(draw, text, font, max_width):
+    """Greedy-wrap to fit max_width px. Word-wrap on spaces; char-wrap for CJK."""
+    text = text.strip()
+    if not text:
+        return [""]
+    units = text.split(" ") if " " in text else list(text)
+    joiner = " " if " " in text else ""
+    lines, cur = [], ""
+    for u in units:
+        trial = (cur + joiner + u) if cur else u
+        if not cur or draw.textlength(trial, font=font) <= max_width:
+            cur = trial
+        else:
+            lines.append(cur)
+            cur = u
+    if cur:
+        lines.append(cur)
+    return lines
 
 
 def round_corners(im, radius):
@@ -134,8 +166,8 @@ def draw_sparkle(draw, cx, cy, size, alpha=200):
 
 
 def draw_chip(bg, cx, cy, label, icon, gradient):
-    font = ImageFont.truetype(FONT_PATH, 52, index=2)
-    icon_font = ImageFont.truetype(FONT_PATH, 60, index=2)
+    font = load_font(52, bold=True)
+    icon_font = load_font(60, bold=True)
     text_bbox = ImageDraw.Draw(Image.new("RGB", (1, 1))).textbbox((0, 0), label, font=font)
     text_w = text_bbox[2] - text_bbox[0]
     text_h = text_bbox[3] - text_bbox[1]
@@ -207,15 +239,20 @@ CARD_EXTRAS = {
 def build(title, subtitle, app_screenshot_path, out_path, extras=None):
     bg = gradient_bg().convert("RGBA")
     draw = ImageDraw.Draw(bg)
-    title_font = ImageFont.truetype(FONT_PATH, TITLE_FONT_SIZE, index=TITLE_FONT_IDX)
-    sub_font = ImageFont.truetype(FONT_PATH, SUBTITLE_FONT_SIZE, index=SUBTITLE_FONT_IDX)
-    lines = wrap_title(title)
+    title_font = load_font(TITLE_FONT_SIZE, bold=True)
+    sub_font = load_font(SUBTITLE_FONT_SIZE, bold=False)
+    max_w = W - 2 * PAD_X
+    title_lh = int(TITLE_FONT_SIZE * 1.16)
+    sub_lh = int(SUBTITLE_FONT_SIZE * 1.32)
     y = TITLE_TOP
-    for line in lines:
-        y = draw_text_centered(draw, line, title_font, y, WHITE)
-        y += TITLE_LINE_GAP
-    y += SUBTITLE_GAP - TITLE_LINE_GAP
-    draw_text_centered(draw, subtitle, sub_font, y, WHITE)
+    for part in wrap_title(title):
+        for line in wrap_to_width(draw, part, title_font, max_w):
+            draw_text_centered(draw, line, title_font, y, WHITE)
+            y += title_lh
+    y += SUBTITLE_GAP
+    for line in wrap_to_width(draw, subtitle, sub_font, max_w):
+        draw_text_centered(draw, line, sub_font, y, WHITE)
+        y += sub_lh
     paste_phone(bg, app_screenshot_path)
     if extras:
         deco = Image.new("RGBA", bg.size, (0, 0, 0, 0))
