@@ -16,7 +16,11 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 W, H = 1320, 2868
 BASE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(BASE, "screenshots-6.9", "06-map.png")
+# Output + header text are env-overridable so the same script builds the
+# zh-TW (default) AND the English (screenshots-6.9-en) dark map.
+OUT = os.environ.get("MAP_OUT", os.path.join(BASE, "screenshots-6.9", "06-map.png"))
+MAP_TITLE = os.environ.get("MAP_TITLE", "好友地圖")
+MAP_SUB = os.environ.get("MAP_SUB", "顯示與你共享位置的好友")
 # Source grid of AI-generated (Gemini) faces — 5 cols x 4 rows. Founder-
 # supplied, synthetic (no real person), so safe for store marketing.
 GRID = os.path.join(BASE, "_faces-grid.png")
@@ -189,12 +193,12 @@ def draw_status_bar_and_header(img: Image.Image):
     d.text((90, 240), "←", font=back_font, fill=(255, 255, 255))
     # Title
     title_font = ImageFont.truetype(FONT_PATH, 60, index=2)
-    bbox = d.textbbox((0, 0), "好友地圖", font=title_font)
+    bbox = d.textbbox((0, 0), MAP_TITLE, font=title_font)
     tw = bbox[2] - bbox[0]
-    d.text(((W - tw) // 2, 240), "好友地圖", font=title_font, fill=(255, 255, 255))
+    d.text(((W - tw) // 2, 240), MAP_TITLE, font=title_font, fill=(255, 255, 255))
     # Subtitle small
     sub_font = ImageFont.truetype(FONT_PATH, 32, index=0)
-    sub_text = "顯示與你共享位置的好友"
+    sub_text = MAP_SUB
     bbox = d.textbbox((0, 0), sub_text, font=sub_font)
     tw = bbox[2] - bbox[0]
     d.text(
