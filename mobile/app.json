@@ -95,9 +95,9 @@
         "expo-font",
         {
           "fonts": [
-            "./assets/fonts/Outfit-Bold.ttf",
-            "./assets/fonts/Outfit-SemiBold.ttf",
-            "./assets/fonts/Outfit-Medium.ttf"
+            "./assets/fonts/LeagueSpartan-Bold.ttf",
+            "./assets/fonts/LeagueSpartan-SemiBold.ttf",
+            "./assets/fonts/LeagueSpartan-Medium.ttf"
           ]
         }
       ],

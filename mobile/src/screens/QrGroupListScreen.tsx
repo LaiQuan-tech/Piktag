@@ -533,8 +533,8 @@ function makeStyles(c: ColorPalette) {
     color: c.gray900,
   },
   headerSubtitle: {
-    // Brand signature "Pick. Tag. Connect." (English-locked) → Outfit.
-    fontFamily: 'Outfit-Medium',
+    // Brand signature "Pick. Tag. Connect." (English-locked) → League Spartan.
+    fontFamily: 'LeagueSpartan-Medium',
     fontSize: 12,
     color: c.gray500,
     marginTop: 2,

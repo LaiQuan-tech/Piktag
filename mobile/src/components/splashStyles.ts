@@ -73,15 +73,15 @@ export const splashStyles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   wordmark: {
-    // PikTag brand wordmark — Outfit (the brand typeface, founder 2026-06-27).
+    // PikTag brand wordmark — League Spartan (the brand typeface, founder 2026-06-27).
     // Static weight file carries the weight, so no fontWeight here.
-    fontFamily: 'Outfit-Bold',
+    fontFamily: 'LeagueSpartan-Bold',
     fontSize: 28,
     letterSpacing: 0.5,
     color: '#ffffff',
   },
   tagline: {
-    fontFamily: 'Outfit-Medium',
+    fontFamily: 'LeagueSpartan-Medium',
     marginTop: 8,
     fontSize: 14,
     color: '#ffffff',
