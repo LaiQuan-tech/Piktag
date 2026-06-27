@@ -113,7 +113,11 @@ export default function App() {
             className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.02] mb-8"
           >
             <span className="block text-white">{t('hero.title1')}</span>
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-accent-red via-brand-400 to-accent-purple">
+            {/* py + matching -my enlarge the gradient's paint box without
+                shifting layout, so tall/deep glyphs (Devanagari shirorekha,
+                Thai stacked marks, CJK) aren't clipped by bg-clip-text on the
+                tight leading-[1.02] line. */}
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-accent-red via-brand-400 to-accent-purple py-[0.22em] -my-[0.22em]">
               {t('hero.title2')}
             </span>
           </motion.h1>
