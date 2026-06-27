@@ -1107,7 +1107,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       ) : (
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={[styles.headerTitle, { color: colors.text }]}>PikTag</Text>
+            <Text style={[styles.headerTitle, styles.brandWordmark, { color: colors.text }]}>PikTag</Text>
             <View style={styles.headerSubtitleRow}>
               {/* The friend count is the entry to the network graph (founder
                   2026-06-25: tap the count → see how your people connect). */}
@@ -1514,6 +1514,11 @@ function makeStyles(c: ColorPalette) {
     fontWeight: '700',
     color: c.gray900,
     lineHeight: 32,
+  },
+  // PikTag brand wordmark only (NOT the localized select-mode title which
+  // shares headerTitle) → League Spartan brand typeface.
+  brandWordmark: {
+    fontFamily: 'LeagueSpartan-Bold',
   },
   headerSubtitle: {
     fontSize: 14,
