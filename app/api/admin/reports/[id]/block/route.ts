@@ -60,8 +60,9 @@ export async function POST(
 
   if (reportErr || !reportRow) {
     const notFound = reportErr?.code === 'PGRST116' || !reportRow;
+    const detail = (reportErr as { message?: string } | null)?.message ?? 'Unknown error';
     return NextResponse.json(
-      { error: notFound ? 'Report not found' : (reportErr?.message ?? 'Unknown error') },
+      { error: notFound ? 'Report not found' : detail },
       { status: notFound ? 404 : 500 }
     );
   }
