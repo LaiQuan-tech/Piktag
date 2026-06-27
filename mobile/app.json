@@ -91,6 +91,16 @@
     },
     "plugins": [
       "@sentry/react-native",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Outfit-Bold.ttf",
+            "./assets/fonts/Outfit-SemiBold.ttf",
+            "./assets/fonts/Outfit-Medium.ttf"
+          ]
+        }
+      ],
       "./plugins/withNonFatalRCTFatalHandler.js",
       "./plugins/withPrivacyManifest.js",
       "@sentry/react-native/expo",

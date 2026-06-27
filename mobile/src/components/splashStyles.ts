@@ -73,15 +73,17 @@ export const splashStyles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   wordmark: {
+    // PikTag brand wordmark — Outfit (the brand typeface, founder 2026-06-27).
+    // Static weight file carries the weight, so no fontWeight here.
+    fontFamily: 'Outfit-Bold',
     fontSize: 28,
-    fontWeight: '800',
     letterSpacing: 0.5,
     color: '#ffffff',
   },
   tagline: {
+    fontFamily: 'Outfit-Medium',
     marginTop: 8,
     fontSize: 14,
-    fontWeight: '500',
     color: '#ffffff',
     opacity: 0.92,
     textAlign: 'center',
