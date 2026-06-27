@@ -312,8 +312,8 @@ function makeStyles(c: ColorPalette) {
     marginBottom: SPACING.sm,
   },
   logoText: {
+    fontFamily: 'LeagueSpartan-Bold',
     fontSize: 48,
-    fontWeight: 'bold',
     color: c.piktag500,
   },
   subtitle: {

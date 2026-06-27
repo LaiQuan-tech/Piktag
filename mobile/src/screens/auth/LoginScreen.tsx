@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
   // fontSize to 44 — a 40px line box clips the 44px glyphs, slicing the
   // top of the letters (the "i" dot showed as a half-dot, founder
   // 2026-06-05). 54 ≈ fontSize × 1.22 → clears ascenders cleanly.
-  logoText: { ...TYPOGRAPHY.display, fontSize: 44, lineHeight: 54 },
+  logoText: { ...TYPOGRAPHY.display, fontFamily: 'LeagueSpartan-Bold', fontSize: 44, lineHeight: 54 },
   subtitle: { ...TYPOGRAPHY.body, marginTop: SPACING.sm },
   formContainer: { gap: SPACING.lg },
   input: {
