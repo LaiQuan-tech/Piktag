@@ -1,8 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  /* Outfit = PikTag brand typeface (Latin). Per-glyph browser fallback:
+     Cyrillic (ru) → Inter; CJK / Arabic / Thai / Devanagari → system. */
+  --font-sans: "Outfit", "Inter", ui-sans-serif, system-ui, sans-serif;
   --color-brand-50: #f5e6ff;
   --color-brand-100: #e6b3ff;
   --color-brand-200: #d580ff;
