@@ -42,10 +42,17 @@ PHONE_SHADOW_BLUR = 70
 # Turkish diacritics, Cyrillic, and a normal-width apostrophe). Mirrors
 # build_screenshot.py's fix (founder caught the fr œ/apostrophe bug 2026-06-27).
 _CJK_LANGS = {"zh-TW", "zh-CN", "ja"}
+# Outfit = PikTag brand typeface; Latin-only → 8 covered locales use it, vi/ru
+# stay Arial (Outfit lacks Vietnamese/Cyrillic), CJK stays Hiragino.
+_OUTFIT_LANGS = {"en", "de", "fr", "es", "pt", "it", "id", "tr"}
 _IS_CJK = LANG in _CJK_LANGS
+_IS_OUTFIT = LANG in _OUTFIT_LANGS
+_HERE = os.path.dirname(os.path.abspath(__file__))
 HIRAGINO = "/System/Library/Fonts/Hiragino Sans GB.ttc"
 ARIAL = "/System/Library/Fonts/Supplemental/Arial.ttf"
 ARIAL_BOLD = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
+OUTFIT = os.path.join(_HERE, "fonts", "Outfit-Regular.ttf")
+OUTFIT_BOLD = os.path.join(_HERE, "fonts", "Outfit-Bold.ttf")
 FONT_PATH = HIRAGINO  # legacy alias
 TITLE_FONT_SIZE = 116      # was 132 — gives title 2-line room without crowding subtitle
 SUBTITLE_FONT_SIZE = 54    # was 58
@@ -54,7 +61,9 @@ SUBTITLE_FONT_SIZE = 54    # was 58
 def load_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
     if _IS_CJK:
         return ImageFont.truetype(HIRAGINO, size, index=(2 if bold else 0))
-    return ImageFont.truetype(ARIAL_BOLD if bold else ARIAL, size)
+    if _IS_OUTFIT:
+        return ImageFont.truetype(OUTFIT_BOLD if bold else OUTFIT, size)
+    return ImageFont.truetype(ARIAL_BOLD if bold else ARIAL, size)  # vi, ru
 
 
 def gradient_bg() -> Image.Image:

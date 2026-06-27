@@ -48,10 +48,18 @@ PHONE_SHADOW_BLUR = 60
 # AND a normal-width apostrophe — Hiragino lacks œ/î and draws ' full-width
 # (the "d' œil → d' [tofu]" bug the founder caught on the fr card 2026-06-27).
 _CJK_LANGS = {"zh-TW", "zh-CN", "ja"}
+# Outfit = PikTag brand typeface (2026-06-27). It is Latin-only — covers these
+# 8 locales but NOT Vietnamese/Cyrillic, so vi/ru stay on Arial; CJK stays
+# Hiragino. (See memory: piktag-brand-typeface-outfit.)
+_OUTFIT_LANGS = {"en", "de", "fr", "es", "pt", "it", "id", "tr"}
 _IS_CJK = LANG in _CJK_LANGS
+_IS_OUTFIT = LANG in _OUTFIT_LANGS
+_HERE = os.path.dirname(os.path.abspath(__file__))
 HIRAGINO = "/System/Library/Fonts/Hiragino Sans GB.ttc"
 ARIAL = "/System/Library/Fonts/Supplemental/Arial.ttf"
 ARIAL_BOLD = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
+OUTFIT = os.path.join(_HERE, "fonts", "Outfit-Regular.ttf")
+OUTFIT_BOLD = os.path.join(_HERE, "fonts", "Outfit-Bold.ttf")
 FONT_PATH = HIRAGINO  # legacy alias (sparkle/decoration only)
 TITLE_FONT_SIZE = 116
 SUBTITLE_FONT_SIZE = 48
@@ -60,7 +68,9 @@ SUBTITLE_FONT_SIZE = 48
 def load_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
     if _IS_CJK:
         return ImageFont.truetype(HIRAGINO, size, index=(2 if bold else 0))
-    return ImageFont.truetype(ARIAL_BOLD if bold else ARIAL, size)
+    if _IS_OUTFIT:
+        return ImageFont.truetype(OUTFIT_BOLD if bold else OUTFIT, size)
+    return ImageFont.truetype(ARIAL_BOLD if bold else ARIAL, size)  # vi, ru
 
 
 def gradient_bg() -> Image.Image:
