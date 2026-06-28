@@ -1035,10 +1035,18 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
                   <Text style={modalStyles.aiEmptyHint}>
                     {t('ask.aiTapToGenerateHint', { defaultValue: '點右上的 ↻ 讓 AI 推薦標籤' })}
                   </Text>
+                ) : body.trim().length > 0 ? (
+                  // Started typing but still under the 5-char trigger
+                  // threshold (e.g. a 4-char CJK Ask like 想打羽球): the
+                  // ↻ is disabled, so say WHY instead of leaving a dead
+                  // blank (prevent-or-feedback). Threshold itself unchanged.
+                  <Text style={modalStyles.aiEmptyHint}>
+                    {t('ask.aiBodyTooShortHint', { defaultValue: 'Describe what you want in a sentence — AI will suggest tags' })}
+                  </Text>
                 ) : null
-                /* Pre-input: nothing. The explainer moved up to the
-                   title sub-line — repeating it here was the
-                   redundancy the user flagged. */}
+                /* Truly empty: nothing here — the title sub-line already
+                   explains, so repeating it was the redundancy the user
+                   flagged. */}
               </View>
 
               {/* Custom tag input */}
