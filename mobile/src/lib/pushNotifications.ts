@@ -122,6 +122,20 @@ export async function refreshBadgeFromServer(userId: string): Promise<void> {
     // Imported lazily-at-call-time to keep this module dependency-
     // light; the constant module itself is sync.
     const { KNOWN_NOTIFICATION_TYPES } = await import('./notificationTypes');
+
+    // Preferred path: server RPC that respects the per-user badge baseline
+    // (the 3-day auto-clear — notifications created at/before the last clear
+    // no longer badge, but stay in the feed). On older backends the RPC is
+    // missing → fall through to the direct count below.
+    const rpc = await supabase.rpc('get_badge_count', {
+      p_types: KNOWN_NOTIFICATION_TYPES as unknown as string[],
+    });
+    if (!rpc.error && typeof rpc.data === 'number') {
+      const Notifications = await import('expo-notifications');
+      await Notifications.setBadgeCountAsync(Math.max(0, rpc.data));
+      return;
+    }
+
     let { count, error } = await supabase
       .from('piktag_notifications')
       .select('id', { count: 'exact', head: true })
@@ -166,5 +180,21 @@ export async function clearBadge(): Promise<void> {
     await Notifications.setBadgeCountAsync(0);
   } catch {
     /* silent — badge clear is best-effort */
+  }
+}
+
+// Records that the user is active so the server-side 3-day-inactivity badge
+// cron knows NOT to clear them. Throttled to ≤1 write / 30 min — last_active_at
+// only needs day-level freshness, and foreground fires often. Uses auth.uid()
+// server-side, so no userId arg; a no-op when signed out (0 rows updated).
+let _lastTouchAt = 0;
+export async function touchLastActive(): Promise<void> {
+  const now = Date.now();
+  if (now - _lastTouchAt < 30 * 60 * 1000) return;
+  _lastTouchAt = now;
+  try {
+    await supabase.rpc('touch_last_active');
+  } catch {
+    /* best-effort — badge auto-clear tolerates a missed touch */
   }
 }

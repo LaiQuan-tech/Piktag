@@ -54,3 +54,18 @@ jobs:
             "https://kbwfdskulxnhjckdvghj.supabase.co/functions/v1/auto-link-concepts" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json"
+
+  # Badge-fatigue relief: users away 3+ days get their app-icon badge cleared
+  # via a silent push (badge:0); notifications stay in the feed. The edge fn
+  # claims + zeroes baselines atomically, so re-running is harmless. Morning
+  # TW slot. (Founder 2026-06-29.)
+  clear-stale-badges:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 1 * * *' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Trigger clear-stale-badges
+        run: |
+          curl --fail-with-body --silent --show-error -X POST \
+            "https://kbwfdskulxnhjckdvghj.supabase.co/functions/v1/clear-stale-badges" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json"

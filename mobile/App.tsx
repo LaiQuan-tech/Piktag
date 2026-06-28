@@ -19,6 +19,7 @@ import OfflineBanner from './src/components/OfflineBanner';
 import { supabase } from './src/lib/supabase';
 import { routeFromNotification } from './src/lib/notificationRouter';
 import { refreshSharedLocationIfNeeded } from './src/lib/sharedLocation';
+import { touchLastActive } from './src/lib/pushNotifications';
 
 // Ensure foreground notifications display the system banner, play sound,
 // and update the badge. Without this, notifications arriving while the
@@ -187,8 +188,12 @@ function AppInner() {
   useEffect(() => {
     if (isWeb) return;
     refreshSharedLocationIfNeeded();
+    touchLastActive(); // mark active so the 3-day badge cron skips this user
     const sub = AppState.addEventListener('change', (next) => {
-      if (next === 'active') refreshSharedLocationIfNeeded();
+      if (next === 'active') {
+        refreshSharedLocationIfNeeded();
+        touchLastActive();
+      }
     });
     return () => sub.remove();
   }, [isWeb]);
