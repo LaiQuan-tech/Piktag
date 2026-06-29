@@ -4,7 +4,7 @@ import * as Sentry from '@sentry/react-native';
 import * as Notifications from 'expo-notifications';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { NavigationContainer, useNavigationContainerRef, getStateFromPath as defaultGetStateFromPath } from '@react-navigation/native';
+import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import './src/i18n'; // Initialize i18n
 import appJson from './app.json';
@@ -72,11 +72,6 @@ const linking = {
               Connections: 'connections',
             },
           },
-          AddTagTab: {
-            screens: {
-              AddTagMain: 'add',
-            },
-          },
           ProfileTab: {
             screens: {
               ProfileMain: 'profile',
@@ -86,7 +81,7 @@ const linking = {
       },
       // Root-level screens. These MUST live here (siblings of Main), NOT
       // nested under a tab, because they are registered on RootStack (see
-      // MainNavigator) — not inside HomeTab/AddTagTab. A linking config that
+      // MainNavigator) — not inside HomeTab/ProfileTab. A linking config that
       // nested UserDetail/FriendDetail under Main→HomeTab built a navigation
       // state whose leaf didn't exist in the real tree, so React Navigation
       // fell back to HomeTab's default route (Connections) and a
@@ -94,29 +89,12 @@ const linking = {
       // screen. Keep this block in sync with RootStack's screen names.
       FriendDetail: 'friend/:id',
       CameraScan: 'scan',
-      RedeemInvite: {
-        path: 'invite/:code',
-      },
       ScanResult: 'scan-result',
       // Single-segment username catch-all for the pikt.ag/<username> profile
       // QR deep link. MUST be LAST so the static paths above (and Main's
       // nested 'connections' / 'add' / 'profile') are matched first.
       UserDetail: ':username',
     },
-  },
-  // The public-facing invite URL is `pikt.ag/i/{code}` (short, shareable),
-  // but the in-app screen path is `invite/:code`. Rewrite the inbound URL
-  // so React Navigation can route it without us needing to register two
-  // separate screens for the same destination.
-  //
-  // Match captures only the bare code segment so trailing path noise
-  // (e.g. `/i/EA9007/extra`) and query strings/hash fragments survive
-  // intact — without the explicit groups, React Navigation would
-  // otherwise treat `EA9007/extra` as the param value.
-  getStateFromPath: (path: string, options: any) => {
-    const m = path.match(/^\/?i\/([^/?#]+)(.*)$/);
-    const rewritten = m ? `/invite/${m[1]}${m[2]}` : path;
-    return defaultGetStateFromPath(rewritten, options);
   },
 };
 
@@ -229,14 +207,15 @@ function AppInner() {
       const nav = navigationRef.current as any;
       if (!nav) return;
 
-      // chat type stays special-cased: it nests via SearchTab → ChatThread
-      // so the back button returns to the previous chat-list state instead
-      // of bouncing between RootStack siblings.
+      // chat type stays special-cased and routes STRAIGHT to ChatThread.
+      // ChatThread is a RootStack screen (moved there in the 2026-06-24 nav
+      // refactor), so the old nested Main→SearchTab→ChatThread form no longer
+      // resolves — SearchStack has no ChatThread route, the action doesn't
+      // bubble to RootStack, and the user lands on SearchMain with the
+      // conversationId dropped. Match the in-app callers (ChatList /
+      // UserDetail / FriendDetail) which navigate('ChatThread', …) directly.
       if (type === 'chat' && data?.conversationId) {
-        nav.navigate('Main', {
-          screen: 'SearchTab',
-          params: { screen: 'ChatThread', params: { conversationId: data.conversationId } },
-        });
+        nav.navigate('ChatThread', { conversationId: data.conversationId });
         return;
       }
 

@@ -13,7 +13,10 @@
 // updates the icon badge without showing a notification. Best-effort: iOS
 // throttles background pushes, so this is not minute-precise (disclosed).
 //
-// Auth: same CRON_SECRET pattern as the other daily-* functions.
+// Auth: same CRON_SECRET pattern as the other daily-* functions. REQUIRES
+// `[functions.clear-stale-badges] verify_jwt = false` in supabase/config.toml —
+// CRON_SECRET is opaque (not a JWT), so without it the platform verifier 401s
+// the request before this code runs and the cron silently never fires.
 // Idempotent: the claim RPC won't re-pick a user already cleared since their
 // last activity (badge_baseline_at >= last_active_at), so re-running is safe.
 

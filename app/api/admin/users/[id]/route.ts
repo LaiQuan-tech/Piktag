@@ -249,6 +249,63 @@ export async function DELETE(_req: Request, ctx: RouteCtx): Promise<Response> {
     targetId: id,
   });
 
+  // ── Resurrection guard (founder 2026-06-07 account-deletion contract) ──
+  // This user's OWN rows are removed by the cascade below, but OTHER users'
+  // piktag_local_contacts that match this user by email/phone are THEIR rows
+  // and do NOT cascade. Left armed, promote_local_contacts_for_profile
+  // re-promotes them the moment this user re-registers with the same
+  // email/phone — resurrecting connections + follows + others' tags (the
+  // "刪除後資料又回來" bug). The self-serve delete-user edge fn already does
+  // this scrub; the admin path reimplements deletion, so it must too. MUST
+  // run BEFORE the cascade deletes the connections the by-link scrub reads.
+  const scrubWarnings: string[] = [];
+  try {
+    let targetEmail = '';
+    let targetPhone = '';
+    try {
+      const { data: tu } = await supabase.auth.admin.getUserById(id);
+      targetEmail = (tu?.user?.email ?? '').toLowerCase();
+      // Mirror the client normalizePhone strip (keep digits + leading "+")
+      // so it matches whatever was written into phone_normalized.
+      targetPhone = (tu?.user?.phone ?? '').replace(/[^\d+]/g, '');
+    } catch (e) {
+      scrubWarnings.push(`getUserById: ${e instanceof Error ? e.message : String(e)}`);
+    }
+    const { data: conns } = await supabase
+      .from('piktag_connections')
+      .select('id')
+      .eq('connected_user_id', id);
+    const connIds = (conns ?? []).map((c: { id: string }) => c.id);
+    const scrub = { email_lower: null, phone_normalized: null };
+    if (connIds.length > 0) {
+      const { error } = await supabase
+        .from('piktag_local_contacts')
+        .update(scrub)
+        .neq('owner_user_id', id)
+        .in('promoted_to_connection_id', connIds);
+      if (error) scrubWarnings.push(`scrub by connection: ${error.message}`);
+    }
+    if (targetEmail) {
+      const { error } = await supabase
+        .from('piktag_local_contacts')
+        .update(scrub)
+        .neq('owner_user_id', id)
+        .eq('email_lower', targetEmail);
+      if (error) scrubWarnings.push(`scrub by email: ${error.message}`);
+    }
+    if (targetPhone) {
+      const { error } = await supabase
+        .from('piktag_local_contacts')
+        .update(scrub)
+        .neq('owner_user_id', id)
+        .eq('phone_normalized', targetPhone);
+      if (error) scrubWarnings.push(`scrub by phone: ${error.message}`);
+    }
+  } catch (e) {
+    // Never block the delete on the scrub — auth user removal is critical.
+    scrubWarnings.push(`resurrection-guard: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
   // Manual cascade first, in case FK cascade isn't configured on every
   // table. Errors are captured but we still attempt auth.deleteUser below.
   const cascadeErrors: string[] = [];
@@ -281,5 +338,9 @@ export async function DELETE(_req: Request, ctx: RouteCtx): Promise<Response> {
   // explicitly for safety.
   await supabase.from('piktag_profiles').delete().eq('id', id);
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json({
+    success: true,
+    ...(cascadeErrors.length ? { cascade_errors: cascadeErrors } : {}),
+    ...(scrubWarnings.length ? { scrub_warnings: scrubWarnings } : {}),
+  });
 }

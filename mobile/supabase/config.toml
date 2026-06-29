@@ -62,3 +62,6 @@ verify_jwt = false
 
 [functions.auto-link-concepts]
 verify_jwt = false
+
+[functions.clear-stale-badges]
+verify_jwt = false
