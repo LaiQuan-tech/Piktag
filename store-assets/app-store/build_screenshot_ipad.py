@@ -27,10 +27,13 @@ WHITE = (255, 255, 255)
 # phone pushed down + phone shrunk so it still fits within 2752 canvas.
 # Source aspect locked at 0.4602 (1320/2868 iPhone source).
 PAD_X = 120
-TITLE_TOP = 200
+TITLE_TOP = 184            # was 200 — tightened to free room for a bigger subtitle
 TITLE_LINE_GAP = 14
-SUBTITLE_GAP = 64          # was 52 — extra room before subtitle
-# Subtitle ends near y≈564; PHONE_TOP=700 leaves a clean 136px band.
+SUBTITLE_GAP = 48          # was 64 — tightened for the bigger subtitle below
+# Bottom is tight (phone ends at PHONE_TOP+PHONE_H = 2750, 2px from the 2752
+# canvas), so we can't push the phone down — the bigger subtitle is absorbed by
+# trimming TITLE_TOP + SUBTITLE_GAP instead. A 2-line title + 2-line subtitle at
+# 64px ends ~668, still clear of PHONE_TOP=700.
 PHONE_TOP = 700            # was 540 — pushed down 160px
 PHONE_W = 960              # was 1020 — slight shrink to keep total < 2752
 PHONE_H = 2050             # inner 928×2018 ≈ 0.460 aspect matches source
@@ -55,7 +58,7 @@ LSPARTAN = os.path.join(_HERE, "fonts", "LeagueSpartan-Regular.ttf")
 LSPARTAN_BOLD = os.path.join(_HERE, "fonts", "LeagueSpartan-Bold.ttf")
 FONT_PATH = HIRAGINO  # legacy alias
 TITLE_FONT_SIZE = 116      # was 132 — gives title 2-line room without crowding subtitle
-SUBTITLE_FONT_SIZE = 54    # was 58
+SUBTITLE_FONT_SIZE = 64    # was 54 — founder 2026-06-29: caption too small for older eyes
 
 
 def load_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:

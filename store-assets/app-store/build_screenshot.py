@@ -30,10 +30,10 @@ DARK = (255, 255, 255)        # title color on gradient
 
 # ── Layout ─────────────────────────────────────────────────────────────
 PAD_X = 90
-TITLE_TOP = 230
+TITLE_TOP = 208
 TITLE_LINE_GAP = 14
-SUBTITLE_GAP = 50
-PHONE_TOP = 700
+SUBTITLE_GAP = 44
+PHONE_TOP = 724
 # Aspect-match source 1320×2868 so the screenshot fits without bottom crop.
 # inner aspect = 952/2068 ≈ 0.460 = source aspect. Outer adds border 14×2.
 PHONE_W = 980
@@ -62,7 +62,7 @@ LSPARTAN = os.path.join(_HERE, "fonts", "LeagueSpartan-Regular.ttf")
 LSPARTAN_BOLD = os.path.join(_HERE, "fonts", "LeagueSpartan-Bold.ttf")
 FONT_PATH = HIRAGINO  # legacy alias (sparkle/decoration only)
 TITLE_FONT_SIZE = 116
-SUBTITLE_FONT_SIZE = 48
+SUBTITLE_FONT_SIZE = 62   # was 48 — founder 2026-06-29: caption too small for older eyes
 
 
 def load_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:

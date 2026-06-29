@@ -24,12 +24,12 @@ GRAD = "linear-gradient(135deg, rgb(140,82,255) 0%, rgb(236,72,153) 100%)"
 # (W,H, pad_x, title_top, title_fs, sub_fs, line_gap, sub_gap, shadow,
 #  phone_top, phone_w, phone_h, phone_radius, border, chip_fs, chips[])
 GEO = {
-  "iphone": dict(W=1320, H=2868, padx=90, ttop=260, tfs=116, sfs=48, lgap=14,
-                 sgap=50, sh=4, ptop=700, pw=980, ph=2096, prad=70, pb=14,
+  "iphone": dict(W=1320, H=2868, padx=90, ttop=238, tfs=116, sfs=62, lgap=14,
+                 sgap=44, sh=4, ptop=724, pw=980, ph=2096, prad=70, pb=14,
                  chipfs=44, chips=[(220, 1120, "white"), (1100, 1900, "pink")],
                  outdir="screenshots-6.9-marketing", srcdir="screenshots-6.9-en"),
-  "ipad": dict(W=2064, H=2752, padx=120, ttop=200, tfs=116, sfs=54, lgap=14,
-               sgap=64, sh=5, ptop=700, pw=960, ph=2050, prad=76, pb=16,
+  "ipad": dict(W=2064, H=2752, padx=120, ttop=184, tfs=116, sfs=64, lgap=14,
+               sgap=48, sh=5, ptop=700, pw=960, ph=2050, prad=76, pb=16,
                chipfs=52, chips=[(380, 1080, "white"), (1690, 1900, "pink")],
                outdir="screenshots-ipad-marketing", srcdir="screenshots-6.9-en"),
 }
