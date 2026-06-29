@@ -42,7 +42,7 @@ SUBTITLE (30/30): Remembers names. Finds people.
 
 PROMOTIONAL TEXT (154/170): Like having an assistant in your ear who remembers every name, every context — and quietly tells you who you should know next. PikTag, your social memory.
 
-KEYWORDS: networking,CRM,tags,QR,contacts,reconnect,memory,business card,scanner,events,startup,investor,designer,community
+KEYWORDS: networking,CRM,tags,QR,contacts,reconnect,business card,scanner,events,startup,investor,designer
 
 DESCRIPTION:
 Tag yourself. Find anyone.
@@ -698,7 +698,7 @@ SUBTITLE (28/30): Lembra nomes. Acha pessoas.
 
 PROMOTIONAL TEXT (152/170): Como ter um assistente ao seu ouvido que lembra cada nome, cada contexto — e sussurra quem você deveria conhecer a seguir. PikTag, a sua memória social.
 
-KEYWORDS: rede,contatos,networking,tags,agenda,reconectar,memória,QR,cartão,scanner,IA,amigos,eventos,negócios,startup
+KEYWORDS: contatos,networking,tags,agenda,reconectar,memória,QR,cartão,scanner,IA,eventos,negócios,startup
 
 DESCRIPTION:
 Tag yourself. Find anyone.
@@ -780,7 +780,7 @@ SUBTITLE (28/30): Ricorda i nomi. Trova tutti.
 
 PROMOTIONAL TEXT (151/170): Come avere un assistente all'orecchio che ricorda ogni nome, ogni contesto — e ti sussurra chi dovresti conoscere dopo. PikTag, la tua memoria sociale.
 
-KEYWORDS: rete,contatti,networking,tag,rubrica,riconnetti,memoria,QR,biglietto,scanner,IA,amici,eventi,lavoro,startup
+KEYWORDS: contatti,networking,tag,rubrica,riconnetti,memoria,QR,biglietto,scanner,IA,eventi,lavoro,startup
 
 DESCRIPTION:
 Tag yourself. Find anyone.
@@ -862,7 +862,7 @@ SUBTITLE (28/30): Помнит имена. Находит людей.
 
 PROMOTIONAL TEXT (151/170): Как будто личный ассистент шепчет вам на ухо каждое имя и контекст — и подсказывает, с кем стоит познакомиться дальше. PikTag — ваша социальная память.
 
-KEYWORDS: контакты,нетворкинг,теги,связи,знакомства,память,QR,визитка,сканер,ИИ,друзья,события,бизнес,стартап,поиск
+KEYWORDS: контакты,нетворкинг,теги,связи,память,QR,визитка,сканер,ИИ,друзья,события,бизнес,стартап,поиск
 
 DESCRIPTION:
 Tag yourself. Find anyone.
@@ -944,7 +944,7 @@ SUBTITLE (28/30): İsmi unutsan da insanı bul
 
 PROMOTIONAL TEXT (157/170): Her ismi, her detayı hatırlayan bir asistan kulağına fısıldıyor gibi düşün; sırada kimi tanıman gerektiğini de sessizce söyler. PikTag, senin sosyal hafızan.
 
-KEYWORDS: rehber,kişi,bağlantı,etiket,networking,kartvizit,tarayıcı,QR,buz kırıcı,iletişim,hatırlatıcı,sosyal,ağ,tanış
+KEYWORDS: rehber,kişi,bağlantı,etiket,networking,kartvizit,tarayıcı,QR,buz kırıcı,iletişim,hatırlatıcı,tanış
 
 DESCRIPTION:
 Tag yourself. Find anyone.
@@ -1026,7 +1026,7 @@ SUBTITLE (29/30): Ingat orang, temukan siapa pun
 
 PROMOTIONAL TEXT (162/170): Bayangkan seorang asisten membisiki tiap nama dan konteks di telingamu, sekaligus diam-diam memberi tahu siapa yang sebaiknya kamu kenal. PikTag, memori sosialmu.
 
-KEYWORDS: kontak,koneksi,tag,jaringan,networking,kartu nama,pemindai,QR,pembuka obrolan,relasi,pengingat,sosial,temukan
+KEYWORDS: kontak,koneksi,tag,networking,kartu nama,pemindai,QR,pembuka obrolan,relasi,pengingat,sosial,temukan
 
 DESCRIPTION:
 Tag yourself. Find anyone.
@@ -1108,7 +1108,7 @@ SUBTITLE (24/30): Nhớ tên, tìm đúng người
 
 PROMOTIONAL TEXT (136/170): Như có một trợ lý luôn nhắc bên tai mọi cái tên, mọi bối cảnh, và lặng lẽ mách bạn nên quen ai tiếp theo. PikTag, bộ nhớ xã hội của bạn.
 
-KEYWORDS: danh bạ,liên hệ,kết nối,thẻ tag,networking,danh thiếp,quét,QR,mở lời,mối quan hệ,nhắc nhở,xã hội,mạng lưới
+KEYWORDS: danh bạ,liên hệ,kết nối,thẻ tag,networking,danh thiếp,quét,QR,mở lời,mối quan hệ,nhắc nhở,xã hội
 
 DESCRIPTION:
 Tag yourself. Find anyone.
