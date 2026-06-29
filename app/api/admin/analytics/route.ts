@@ -83,15 +83,15 @@ export async function GET(): Promise<Response> {
     topTagsRes,
     // ── Growth pulse queries (2026-05-27) ─────────────────────
     newSignups7dRes,
-    // For magic moments we need the user_ids of everyone whose
-    // FIRST piktag_connections row landed in the 7-day window.
-    // Done client-side by pulling (user_id, created_at) for the
-    // window and de-duping against an earlier-existence check.
-    // Two queries: (a) all connections rows in window with their
-    // user_id, (b) all distinct user_ids that had ANY connection
-    // BEFORE the window. Magic = (a) - (b).
-    connections7dRawRes,
-    connectionsBeforeWindowRawRes,
+    // Magic moments = in-window signups who made a real friend, i.e. the
+    // activation funnel "of users who signed up in the last 7 days, how many
+    // connected to a real person?". Computed in Postgres via
+    // admin_magic_moments_7d (the @piktag auto-friend is excluded as a
+    // counterpart). The old approach pulled every pre-window connection row
+    // into Node to diff Sets, which silently truncated at PostgREST's
+    // 1000-row cap once the platform passed ~1000 lifetime connections
+    // (→ inflated magic_moments / activation_rate).
+    magicMoments7dRes,
     // Search telemetry: total + recovery-fired + all-empty in
     // window. recovery_pct = recovery/total, empty_pct = empty/total.
     searchTotal7dRes,
@@ -142,18 +142,11 @@ export async function GET(): Promise<Response> {
       .from('piktag_profiles')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', sevenDaysAgo),
-    // Growth — connections in 7d (for magic moment computation)
-    supabase
-      .from('piktag_connections')
-      .select('user_id')
-      .gte('created_at', sevenDaysAgo),
-    // Growth — distinct user_ids who had any connection BEFORE the
-    // 7d window. Subtracting these from the 7d set gives us "users
-    // whose first ever connection was in the window."
-    supabase
-      .from('piktag_connections')
-      .select('user_id')
-      .lt('created_at', sevenDaysAgo),
+    // Growth — magic moments. In-window signups who made a real friend,
+    // computed Postgres-side (@piktag excluded as a counterpart). Replaces
+    // two unbounded full-table fetches that truncated at PostgREST's
+    // 1000-row cap. Returns a scalar integer.
+    supabase.rpc('admin_magic_moments_7d', { p_since: sevenDaysAgo }),
     // Search telemetry health
     supabase
       .from('piktag_search_telemetry')
@@ -249,29 +242,23 @@ export async function GET(): Promise<Response> {
   // ── Growth pulse derivations ────────────────────────────────
   const newSignups7d = countOrZero(newSignups7dRes as CountResult, 'new_signups_last_7d');
 
-  // Magic moments: users whose FIRST outgoing connection landed in
-  // the 7-day window. Computed by set-difference: distinct user_ids
-  // with a row in the window MINUS distinct user_ids with any row
-  // before the window.
-  const window7dUserRows = rowsOrEmpty<{ user_id: string | null }>(
-    connections7dRawRes as RowsResult<{ user_id: string | null }>,
-    'connections_window',
-  );
-  const beforeWindowUserRows = rowsOrEmpty<{ user_id: string | null }>(
-    connectionsBeforeWindowRawRes as RowsResult<{ user_id: string | null }>,
-    'connections_before_window',
-  );
-  const beforeWindowSet = new Set<string>();
-  for (const row of beforeWindowUserRows) {
-    if (row.user_id) beforeWindowSet.add(row.user_id);
+  // Magic moments: in-window signups who made at least one real friend,
+  // computed by admin_magic_moments_7d (Postgres-side, @piktag auto-friend
+  // excluded as a counterpart). The numerator is a subset of new_signups_7d,
+  // so activation_rate stays within 0-100%. Returns a scalar integer.
+  const magicMomentsRes = magicMoments7dRes as {
+    data: number | null;
+    error: { message: string } | null;
+  };
+  let magicMoments7d = 0;
+  if (magicMomentsRes.error) {
+    console.error(
+      '[admin/analytics] magic_moments_last_7d rpc failed:',
+      magicMomentsRes.error.message,
+    );
+  } else {
+    magicMoments7d = magicMomentsRes.data ?? 0;
   }
-  const firstTimeInWindow = new Set<string>();
-  for (const row of window7dUserRows) {
-    if (row.user_id && !beforeWindowSet.has(row.user_id)) {
-      firstTimeInWindow.add(row.user_id);
-    }
-  }
-  const magicMoments7d = firstTimeInWindow.size;
   const activationRate7d =
     newSignups7d > 0 ? Math.round((magicMoments7d * 100) / newSignups7d) : 0;
 
