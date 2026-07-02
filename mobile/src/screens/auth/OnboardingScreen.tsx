@@ -1809,7 +1809,10 @@ function makeStyles(c: ColorPalette) {
   },
   gateHint: {
     fontSize: 13,
-    color: c.gray500,
+    // Brand purple (founder 2026-07-03): the "what's left to do" gate
+    // hints on steps 2/3 (至少 3 個…/再加 3 個…, plus the bio/birthday
+    // variants sharing this style) read as guidance, not disabled text.
+    color: c.piktag600,
     textAlign: 'center',
     marginBottom: 10,
   },
