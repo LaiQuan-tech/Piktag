@@ -1073,6 +1073,10 @@
       "contact_sync_nudge": {
         "title": "اعثر على أصدقاء من جهات اتصالك",
         "body": "اطّلع على جهات الاتصال الموجودة على PikTag وتواصل معهم بنقرة واحدة."
+      },
+      "tag_suggest_nudge": {
+        "title": "وسوم مقترحة لك",
+        "body": "{{tags}} — أضفها ليجدك الأشخاص المناسبون"
       }
     },
     "tabMatches": "تطابقات",
@@ -1444,7 +1448,7 @@
     "dismissHint": "انقر للإغلاق"
   },
   "qrGroup": {
-    "headerTitle": "تذكّر أصدقاء جدد",
+    "headerTitle": "وسوم الفعاليات",
     "detailHeader": "Tag",
     "create": "إنشاء Tag جديد",
     "createFirst": "أنشئ Tag الآن",

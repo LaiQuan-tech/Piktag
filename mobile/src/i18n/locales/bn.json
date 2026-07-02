@@ -1073,6 +1073,10 @@
       "contact_sync_nudge": {
         "title": "পরিচিতি থেকে বন্ধু খুঁজুন",
         "body": "দেখুন আপনার কোন পরিচিতিরা ইতিমধ্যে PikTag-এ আছেন — এক ট্যাপে যুক্ত হন।"
+      },
+      "tag_suggest_nudge": {
+        "title": "আপনার জন্য বাছাই করা ট্যাগ",
+        "body": "{{tags}} — যোগ করুন, যাতে সঠিক মানুষ আপনাকে খুঁজে পায়"
       }
     },
     "tabMatches": "মিল",
@@ -1444,7 +1448,7 @@
     "dismissHint": "যেকোনো জায়গায় ট্যাপ"
   },
   "qrGroup": {
-    "headerTitle": "নতুন বন্ধুদের মনে রাখুন",
+    "headerTitle": "ইভেন্ট ট্যাগ",
     "detailHeader": "Tag",
     "create": "নতুন Tag তৈরি করুন",
     "createFirst": "এখনই Tag বানান",

@@ -1073,6 +1073,10 @@
       "contact_sync_nudge": {
         "title": "Tìm bạn từ danh bạ",
         "body": "Xem những liên hệ nào đã có trên PikTag — kết nối chỉ với một chạm."
+      },
+      "tag_suggest_nudge": {
+        "title": "Tag gợi ý cho bạn",
+        "body": "{{tags}} — thêm vào để đúng người tìm thấy bạn"
       }
     },
     "tabMatches": "Khớp",
@@ -1444,7 +1448,7 @@
     "dismissHint": "Chạm đâu cũng được để đóng"
   },
   "qrGroup": {
-    "headerTitle": "Ghi nhớ người mới",
+    "headerTitle": "Tag sự kiện",
     "detailHeader": "Tag",
     "create": "Tạo Tag mới",
     "createFirst": "Tạo một Tag ngay",

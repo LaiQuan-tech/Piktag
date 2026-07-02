@@ -90,6 +90,7 @@ function filterNotifications(
           n.type === 'on_this_day' ||
           n.type === 'ask_prompt' ||
           n.type === 'endorsement_request' ||
+          n.type === 'tag_suggest_nudge' ||
           n.type === 'reminder'
       );
     default:
@@ -152,6 +153,23 @@ function getNotificationDisplay(
     return {
       username: '',
       body: t('notifications.types.contact_sync_nudge.body', {
+        defaultValue: item.body || '',
+      }),
+    };
+  }
+
+  // Every-3-days AI tag-suggestion nudge — also self-directed. The
+  // suggested tags travel in data.tag_names; interpolate them into the
+  // localized template ("{{tags}} — add them so ..."), falling back to
+  // the non-empty English body the edge fn wrote.
+  if (type === 'tag_suggest_nudge') {
+    const tags = Array.isArray(data.tag_names)
+      ? (data.tag_names as string[]).map((n) => `#${n}`).join(' ')
+      : '';
+    return {
+      username: '',
+      body: t('notifications.types.tag_suggest_nudge.body', {
+        tags,
         defaultValue: item.body || '',
       }),
     };

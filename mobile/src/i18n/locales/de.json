@@ -1073,6 +1073,10 @@
       "contact_sync_nudge": {
         "title": "Freunde aus deinen Kontakten finden",
         "body": "Sieh, welche Kontakte schon bei PikTag sind – mit einem Tippen verbinden."
+      },
+      "tag_suggest_nudge": {
+        "title": "Tag-Ideen für dich",
+        "body": "{{tags}} — füge sie hinzu, damit die richtigen Leute dich finden"
       }
     },
     "tabMatches": "Treffer",
@@ -1444,7 +1448,7 @@
     "dismissHint": "Tippe irgendwo, um zu schließen"
   },
   "qrGroup": {
-    "headerTitle": "Neue Freunde merken",
+    "headerTitle": "Event-Tags",
     "detailHeader": "Vibe",
     "create": "Neuen Vibe erstellen",
     "createFirst": "Jetzt einen Vibe erstellen",

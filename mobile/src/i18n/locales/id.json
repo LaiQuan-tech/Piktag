@@ -1073,6 +1073,10 @@
       "contact_sync_nudge": {
         "title": "Temukan teman dari kontak",
         "body": "Lihat kontak mana yang sudah ada di PikTag — terhubung dengan satu ketukan."
+      },
+      "tag_suggest_nudge": {
+        "title": "Ide tag untukmu",
+        "body": "{{tags}} — tambahkan agar orang yang tepat menemukanmu"
       }
     },
     "tabMatches": "Cocok",
@@ -1444,7 +1448,7 @@
     "dismissHint": "Tap untuk tutup"
   },
   "qrGroup": {
-    "headerTitle": "Ingat orang baru",
+    "headerTitle": "Tag acara",
     "detailHeader": "Tag",
     "create": "Bikin Tag baru",
     "createFirst": "Buat Tag sekarang",

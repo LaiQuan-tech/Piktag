@@ -1073,6 +1073,10 @@
       "contact_sync_nudge": {
         "title": "Encontre amigos nos seus contatos",
         "body": "Veja quais contatos já estão no PikTag e conecte-se com um toque."
+      },
+      "tag_suggest_nudge": {
+        "title": "Tags escolhidas para você",
+        "body": "{{tags}} — adicione para as pessoas certas te encontrarem"
       }
     },
     "tabMatches": "Matches",
@@ -1444,7 +1448,7 @@
     "dismissHint": "Toque para fechar"
   },
   "qrGroup": {
-    "headerTitle": "Lembre-se de pessoas novas",
+    "headerTitle": "Tags de evento",
     "detailHeader": "Tag",
     "create": "Criar novo Tag",
     "createFirst": "Criar um Tag agora",

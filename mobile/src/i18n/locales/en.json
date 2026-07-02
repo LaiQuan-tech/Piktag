@@ -1073,6 +1073,10 @@
       "contact_sync_nudge": {
         "title": "Find friends from your contacts",
         "body": "See which of your contacts are already on PikTag — connect in one tap."
+      },
+      "tag_suggest_nudge": {
+        "title": "Tag ideas picked for you",
+        "body": "{{tags}} — add them so the right people can find you"
       }
     },
     "tabMatches": "Matches",
@@ -1444,7 +1448,7 @@
     "dismissHint": "Tap anywhere to dismiss"
   },
   "qrGroup": {
-    "headerTitle": "Remember new people",
+    "headerTitle": "Event Tags",
     "detailHeader": "Tag",
     "create": "Create new Tag",
     "createFirst": "Create a Tag for now",

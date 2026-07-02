@@ -45,6 +45,7 @@ export const KNOWN_NOTIFICATION_TYPES = [
   'on_this_day',
   'ask_prompt',
   'endorsement_request',
+  'tag_suggest_nudge', // every-3-days AI profile tag-suggestion push
   'reminder', // legacy memory type, kept in memories tab for older rows
 ] as const;
 

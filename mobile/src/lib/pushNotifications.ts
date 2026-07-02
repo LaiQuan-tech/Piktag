@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import { supabase } from './supabase';
+import i18n from '../i18n';
 
 // NOTE: expo-notifications and expo-device are intentionally lazy-loaded
 // inside the function below. Importing them at module top level loaded
@@ -79,10 +80,16 @@ export async function registerForPushNotifications(
     });
     const pushToken = tokenData.data;
 
-    // Save to DB
+    // Save to DB. `language` rides along (i18n.language verbatim): the
+    // server-localized pushes (tag_suggest_nudge templates and future
+    // ones) key off piktag_profiles.language, and Settings only syncs it
+    // on an EXPLICIT change — users who never opened Settings sat on the
+    // Studio DEFAULT 'en' forever. This runs at every app start for
+    // push-registered users (AppNavigator) and at the contextual
+    // permission grant — exactly the audience whose push locale matters.
     await supabase
       .from('piktag_profiles')
-      .update({ push_token: pushToken })
+      .update({ push_token: pushToken, language: i18n.language })
       .eq('id', userId);
 
     return pushToken;

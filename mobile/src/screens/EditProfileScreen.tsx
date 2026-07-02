@@ -113,7 +113,19 @@ const buildPlatformUrl = platformBuildUrl;
 
 type EditProfileScreenProps = {
   navigation: any;
-  route?: { params?: { fromOnboarding?: boolean; focusPhone?: boolean } };
+  route?: {
+    params?: {
+      fromOnboarding?: boolean;
+      focusPhone?: boolean;
+      // tag_suggest_nudge deep-link (notificationRouter): the pushed
+      // tags preload the AI-suggestion chip row, and the parallel
+      // suggestion ids let a tapped chip close the principle-#5
+      // calibration loop via markAiSuggestionAccepted.
+      suggestedTags?: string[];
+      suggestionIds?: string[];
+      fromTagNudge?: boolean;
+    };
+  };
 };
 
 type FormData = {
@@ -378,6 +390,7 @@ const BiolinkRow = React.memo(function BiolinkRow({
 
 export default function EditProfileScreen({ navigation, route }: EditProfileScreenProps) {
   const focusPhone = !!route?.params?.focusPhone;
+  const fromTagNudge = !!route?.params?.fromTagNudge;
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -522,6 +535,12 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
   // navigate to ManageTagsScreen → wait for auto-load" two-page flow
   // with a single inline action on the same screen.
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  // True once a tag_suggest_nudge deep-link seeded the chip row. Keeps
+  // the AI section visible for the pushed chips even when the normal
+  // render gate (non-empty bio && <10 tags) wouldn't show it — the
+  // params themselves are cleared right after seeding, so this must be
+  // state, not a param read.
+  const [nudgePreloaded, setNudgePreloaded] = useState(false);
   // tag_name -> piktag_ai_tag_suggestions.id, for accept logging (#5).
   const [aiSuggestionIds, setAiSuggestionIds] = useState<Record<string, string>>({});
   const [aiLoading, setAiLoading] = useState(false);
@@ -974,6 +993,40 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
       navigation.setParams?.({ focusPhone: undefined } as any);
     }, 350);
     return () => clearTimeout(timer);
+  }, []);
+
+  // tag_suggest_nudge deep-link: preload the pushed tags straight into
+  // the existing AI-suggestion chip row. Seeding aiSuggestionIds with the
+  // server-logged ids means the untouched handleAddAiSuggestion flow
+  // closes the principle-#5 calibration loop (markAiSuggestionAccepted)
+  // exactly like a bio_extract chip — and we deliberately do NOT call
+  // recordAiSuggestions here: the "shown" rows were written by the edge
+  // fn at send time, and double-logging would corrupt the accept-rate
+  // curve. Run-once mount effect, same rationale as focusPhone above.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const tags = route?.params?.suggestedTags;
+    if (!fromTagNudge || !Array.isArray(tags) || tags.length === 0) return;
+    const ids = route?.params?.suggestionIds;
+    const cleaned = tags
+      .map((n) => (typeof n === 'string' ? n.replace(/^#/, '').trim() : ''))
+      .filter(Boolean);
+    if (cleaned.length === 0) return;
+    setNudgePreloaded(true);
+    setAiSuggestions(cleaned);
+    if (Array.isArray(ids) && ids.length === tags.length) {
+      const map: Record<string, string> = {};
+      cleaned.forEach((name, i) => {
+        if (typeof ids[i] === 'string') map[name] = ids[i];
+      });
+      setAiSuggestionIds((prev) => ({ ...prev, ...map }));
+    }
+    // Clear the params so a later plain visit doesn't re-seed stale chips.
+    navigation.setParams?.({
+      suggestedTags: undefined,
+      suggestionIds: undefined,
+      fromTagNudge: undefined,
+    } as any);
   }, []);
 
   const openEditBiolinkModal = useCallback((biolink: Biolink) => {
@@ -1912,7 +1965,8 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 Auto-fires shortly after the user pauses typing bio /
                 name / headline; ↻ re-rolls. Hidden when bio is empty
                 or tags hit the 10 cap. */}
-            {form.bio.trim().length > 0 && visibleUserTags.length < 10 && (
+            {((form.bio.trim().length > 0 && visibleUserTags.length < 10) ||
+              (nudgePreloaded && (aiSuggestions.length > 0 || aiLoading))) && (
               <View style={styles.ai_inlineSection}>
                 {(aiLoading || aiSuggestions.length > 0 || aiTriedAndEmpty) && (
                   <View style={styles.ai_headerRow}>

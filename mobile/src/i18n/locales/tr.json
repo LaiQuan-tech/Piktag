@@ -1073,6 +1073,10 @@
       "contact_sync_nudge": {
         "title": "Kişilerinden arkadaş bul",
         "body": "Hangi kişilerinin PikTag’de olduğunu gör, tek dokunuşla bağlan."
+      },
+      "tag_suggest_nudge": {
+        "title": "Sana özel etiket önerileri",
+        "body": "{{tags}} — ekle, doğru kişiler seni bulsun"
       }
     },
     "tabMatches": "Eşleşmeler",
@@ -1444,7 +1448,7 @@
     "dismissHint": "Kapatmak için dokun"
   },
   "qrGroup": {
-    "headerTitle": "Yeni insanları hatırla",
+    "headerTitle": "Etkinlik etiketleri",
     "detailHeader": "Tag",
     "create": "Yeni Tag oluştur",
     "createFirst": "Şimdi Tag oluştur",

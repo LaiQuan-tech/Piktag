@@ -59,6 +59,22 @@ export async function routeFromNotification(
     return;
   }
 
+  // Every-3-days AI tag-suggestion nudge → EditProfile with the pushed
+  // tags preloaded into the existing AI-suggestion chip row (opt-in gray
+  // chips, BoltIcon section). suggestion_ids ride along so the screen
+  // can close the principle-#5 calibration loop (markAiSuggestionAccepted)
+  // when a chip is added — the "shown" rows were already logged server-
+  // side at send time. EditProfile is a RootStack screen, so this
+  // resolves from both the in-app tap and the OS push tap.
+  if (type === 'tag_suggest_nudge') {
+    navigation.navigate('EditProfile', {
+      suggestedTags: Array.isArray(data.tag_names) ? data.tag_names : undefined,
+      suggestionIds: Array.isArray(data.suggestion_ids) ? data.suggestion_ids : undefined,
+      fromTagNudge: true,
+    });
+    return;
+  }
+
   // 1. Tag-centric.
   const tagId: string | undefined = data.tag_id;
   const tagName: string | undefined = data.tag_name;

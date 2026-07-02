@@ -45,6 +45,13 @@ verify_jwt = false
 [functions.notification-anniversary]
 verify_jwt = false
 
+[functions.notification-tag-suggest]
+# pg_cron (trigger_tag_suggest_nudge) POSTs with the vault service-role
+# key as bearer — opaque, not a JWT, so platform verification must be
+# off. The function does its own constant-time CRON_SECRET/service-role
+# check. Same pattern as notification-recommendation.
+verify_jwt = false
+
 # ---------------------------------------------------------------------------
 # Daily cron functions invoked by GitHub Actions (.github/workflows/daily-cron.yml)
 # over HTTPS with CRON_SECRET as the Bearer token. CRON_SECRET is opaque

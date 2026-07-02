@@ -1073,6 +1073,10 @@
       "contact_sync_nudge": {
         "title": "連絡先から友だちを探す",
         "body": "連絡先の中で PikTag を使っている人をチェック。ワンタップでつながろう。"
+      },
+      "tag_suggest_nudge": {
+        "title": "あなたに合うタグを選びました",
+        "body": "{{tags}} — 追加すると、見つけてほしい人に見つかります"
       }
     },
     "tabMatches": "マッチ",
@@ -1444,7 +1448,7 @@
     "dismissHint": "どこでもタップで閉じる"
   },
   "qrGroup": {
-    "headerTitle": "新しい人を覚える",
+    "headerTitle": "イベントタグ",
     "detailHeader": "Tag",
     "create": "新しい Tag を作成",
     "createFirst": "今の Tag を作成",

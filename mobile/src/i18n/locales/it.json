@@ -1073,6 +1073,10 @@
       "contact_sync_nudge": {
         "title": "Trova amici dalla rubrica",
         "body": "Scopri quali contatti sono già su PikTag e connettiti con un tocco."
+      },
+      "tag_suggest_nudge": {
+        "title": "Tag scelti per te",
+        "body": "{{tags}} — aggiungili così le persone giuste ti trovano"
       }
     },
     "tabMatches": "Match",
@@ -1444,7 +1448,7 @@
     "dismissHint": "Tocca un punto qualsiasi per chiudere"
   },
   "qrGroup": {
-    "headerTitle": "Ricorda persone nuove",
+    "headerTitle": "Tag evento",
     "detailHeader": "Tag",
     "create": "Crea un nuovo Tag",
     "createFirst": "Per ora crea un Tag",

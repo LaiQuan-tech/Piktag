@@ -1073,6 +1073,10 @@
       "contact_sync_nudge": {
         "title": "หาเพื่อนจากรายชื่อติดต่อ",
         "body": "ดูว่ารายชื่อติดต่อคนไหนอยู่บน PikTag แล้ว แล้วเชื่อมต่อได้ในแตะเดียว"
+      },
+      "tag_suggest_nudge": {
+        "title": "แท็กที่เลือกมาเพื่อคุณ",
+        "body": "{{tags}} — เพิ่มเลย ให้คนที่ใช่ค้นพบคุณ"
       }
     },
     "tabMatches": "จับคู่",
@@ -1444,7 +1448,7 @@
     "dismissHint": "แตะที่ใดก็ได้เพื่อปิด"
   },
   "qrGroup": {
-    "headerTitle": "จดจำเพื่อนใหม่",
+    "headerTitle": "แท็กกิจกรรม",
     "detailHeader": "Tag",
     "create": "สร้าง Tag ใหม่",
     "createFirst": "สร้าง Tag ตอนนี้",
