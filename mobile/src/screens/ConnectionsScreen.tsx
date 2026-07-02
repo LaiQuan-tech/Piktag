@@ -34,8 +34,6 @@ import {
   Share2,
   Circle,
   Plus,
-  Search,
-  QrCode,
   ScanLine,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -901,68 +899,29 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // actually SEE: the official auto-friend means the list is never truly
   // empty, so a ListEmptyComponent-only placement never rendered (caught by
   // the founder testing SMOKE step 3, 2026-06-29).
+  // 2026-06-29 update (founder: 精簡成一個): the four nav rows collapsed
+  // into ONE action button. Card scan is the one action that works ALONE
+  // (organized contact + AI tags, no second person needed); the wizard
+  // payoff step now teaches the same move. Nothing is lost — QR-scan
+  // lives in the header "+", search has its own tab, contacts import is
+  // in Settings.
   const coldStartActions = useCallback(() => (
-    <View style={styles.emptyActionList}>
-      {[
-        {
-          // 2026-06-29 (founder, cold-start single-player value): the
-          // card-scan row leads. 互掃 QR needs another person present;
-          // scanning a business card delivers the magic ALONE — a new
-          // user with zero friends gets an organized contact + AI tags
-          // on day one. Routes straight to the card camera.
-          key: 'card',
-          icon: ScanLine,
-          title: t('connections.coldStartActionCard', { defaultValue: '掃一張名片試試' }),
-          desc: t('connections.coldStartActionCardDesc', { defaultValue: '一個人也能用——拍下名片，AI 幫你整理好聯絡人' }),
-          onPress: () => navigation.navigate('CardCamera', { forNewContact: true }),
-        },
-        {
-          key: 'scan',
-          icon: QrCode,
-          title: t('connections.coldStartActionQr', { defaultValue: '用 QR 連上現場的人' }),
-          desc: t('connections.coldStartActionScanDesc', { defaultValue: '和現場的人互掃，30 秒交換名片' }),
-          // 2026-06-24: was navigate('AddTagTab') (the retired event-QR
-          // tab). 互掃 is the PERSONAL-QR loop — scan the other person's
-          // PikTag QR to connect. Route to the QR scanner.
-          onPress: () => navigation.navigate('CameraScan'),
-        },
-        {
-          key: 'search',
-          icon: Search,
-          title: t('connections.coldStartActionSearch', { defaultValue: '用標籤搜一個人' }),
-          desc: t('connections.coldStartActionSearchDesc', { defaultValue: '例如 #行銷 #設計師，看看誰會出現' }),
-          onPress: () => navigation.navigate('SearchTab'),
-        },
-        {
-          key: 'contacts',
-          icon: Users,
-          title: t('connections.coldStartActionContacts'),
-          desc: t('connections.coldStartActionContactsDesc'),
-          onPress: () => navigation.navigate('ContactSync'),
-        },
-      ].map((action) => (
-        <Pressable
-          key={action.key}
-          style={({ pressed }) => [
-            styles.emptyActionCard,
-            pressed && styles.emptyActionCardPressed,
-          ]}
-          onPress={action.onPress}
-        >
-          <View style={styles.emptyActionIconWrap}>
-            <action.icon size={20} color={colors.piktag500} />
-          </View>
-          <View style={styles.emptyActionTextWrap}>
-            <Text style={styles.emptyActionTitle}>{action.title}</Text>
-            <Text style={styles.emptyActionDesc} numberOfLines={2}>
-              {action.desc}
-            </Text>
-          </View>
-          <ChevronRight size={18} color={colors.gray400} />
-        </Pressable>
-      ))}
+    <View style={styles.coldStartWrap}>
+      <TouchableOpacity
+        style={styles.coldStartBtn}
+        activeOpacity={0.85}
+        onPress={() => navigation.navigate('CardCamera', { forNewContact: true })}
+      >
+        <ScanLine size={20} color={'#FFFFFF'} />
+        <Text style={styles.coldStartBtnText}>
+          {t('connections.coldStartActionCard', { defaultValue: '掃一張名片試試' })}
+        </Text>
+      </TouchableOpacity>
+      <Text style={styles.coldStartDesc}>
+        {t('connections.coldStartActionCardDesc', { defaultValue: '一個人也能用——拍下名片，AI 幫你整理好聯絡人' })}
+      </Text>
     </View>
-  ), [styles, colors, navigation, t]);
+  ), [styles, navigation, t]);
 
   const renderEmpty = useCallback(() => {
     if (loading) return null;
@@ -991,16 +950,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         <Text style={styles.emptyOnboardingTitle}>
           {t('connections.coldStartTitle', { defaultValue: '還沒有朋友？' })}
         </Text>
-        <Text style={styles.emptyOnboardingSubtitle}>
-          {/* 2026-06-10: multi-step subtitle again — the cold-start now
-              teaches the LOOP with three neutral action rows. */}
-          {t('connections.coldStartSubtitle', { defaultValue: '從這幾步開始建立你的 PikTag' })}
-        </Text>
-
-        {/* 2026-06-10 (founder, "測試者不知道怎麼用"): plain nav rows in
-            priority order, no banner-like card (2026-06-07 rule). Rows now
-            live in coldStartActions() — shared with the ListFooter, which
-            is the placement users actually see post-@piktag. */}
         {coldStartActions()}
       </View>
     );
@@ -1263,11 +1212,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             connections.length === 1 &&
             connections[0]?.connected_user_id === OFFICIAL_USER_ID ? (
               <View style={styles.emptyOnboardingContainer}>
-                <Text style={styles.firstFriendHint}>
-                  {t('connections.coldStartSubtitle', {
-                    defaultValue: '從這幾步開始建立你的 PikTag',
-                  })}
-                </Text>
                 {coldStartActions()}
               </View>
             ) : null
@@ -1667,98 +1611,32 @@ function makeStyles(c: ColorPalette) {
     color: c.gray900,
     marginBottom: 6,
   },
-  emptyOnboardingSubtitle: {
-    fontSize: 14,
-    color: c.gray500,
-    marginBottom: 20,
-  },
-  emptyActionList: {
+  // Cold-start single action (2026-06-29). Button = the locked tier-2
+  // primary-CTA token (solid piktag500, white, radius 14, py 15, 700/16);
+  // white icon/text intentionally fixed on the saturated fill.
+  coldStartWrap: {
+    marginTop: 10,
     gap: 10,
   },
-  emptyActionCard: {
+  coldStartBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    paddingVertical: 16,
-    paddingHorizontal: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: c.gray200,
-    backgroundColor: c.white,
-  },
-  // Primary (the recommended-first card) — brand-tinted background +
-  // piktag200 border instead of the neutral grey, so the eye lands
-  // here before the demoted siblings.
-  emptyActionCardPrimary: {
-    backgroundColor: c.piktag50,
-    borderColor: c.piktag200,
-  },
-  // Secondary (the other 4 "or, also try" cards) — translucent
-  // background and softer border, signalling "optional / explore"
-  // rather than "you have homework."
-  emptyActionCardSecondary: {
-    backgroundColor: c.gray50,
-    borderColor: c.gray100,
-  },
-  emptyActionCardPressed: {
-    backgroundColor: c.gray50,
-    borderColor: c.piktag200,
-  },
-  emptyActionIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: c.piktag50,
+    gap: 8,
+    backgroundColor: c.piktag500,
+    borderRadius: 14,
+    paddingVertical: 15,
   },
-  // Secondary icon wrap drops the brand tint a step so the primary
-  // card's icon visibly leads.
-  emptyActionIconWrapSecondary: {
-    backgroundColor: c.gray100,
-  },
-  emptyActionTextWrap: {
-    flex: 1,
-    minWidth: 0,
-    gap: 2,
-  },
-  // Tiny lead-in label that appears on the primary card only —
-  // "建議從這開始" / "Start here". Brand-coloured so it reads as
-  // a contextual hint, not body copy.
-  emptyActionStartHere: {
-    fontSize: 11,
+  coldStartBtnText: {
+    color: '#FFFFFF',
+    fontSize: 16,
     fontWeight: '700',
-    color: c.piktag600,
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-    marginBottom: 2,
   },
-  emptyActionTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: c.gray900,
-  },
-  // One-line guidance under the list while it only holds the official
-  // account — quiet text, deliberately NOT a card/banner (2026-06-07 rule).
-  firstFriendHint: {
+  coldStartDesc: {
     fontSize: 13,
     color: c.gray400,
     textAlign: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 18,
     lineHeight: 19,
-  },
-  emptyActionTitleSecondary: {
-    fontWeight: '600',
-    color: c.gray700,
-  },
-  emptyActionDesc: {
-    fontSize: 13,
-    color: c.gray500,
-    lineHeight: 18,
-  },
-  emptyActionDescSecondary: {
-    color: c.gray400,
   },
   connectionItem: {
     flexDirection: 'row',

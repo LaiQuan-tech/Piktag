@@ -684,7 +684,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   // onComplete so a safety timer can also call it: if the burst
   // animation never fires onComplete, the user is no longer
   // stranded. finishedRef makes it run exactly once.
-  const finishOnboarding = useCallback(async () => {
+  const finishOnboarding = useCallback(async (dest?: 'cardScan') => {
     if (finishedRef.current) return;
     finishedRef.current = true;
     if (navTimerRef.current) {
@@ -711,7 +711,19 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         { name: 'ProfileTab' },
       ],
     };
-    navigation.reset({ index: 0, routes: [{ name: 'Main', state: mainState }] });
+    // dest 'cardScan' (founder 2026-06-29: 精靈最後要導引去拍名片): the
+    // payoff step's PRIMARY action lands the brand-new user in the card
+    // camera — the one move that delivers value with ZERO friends
+    // (organized contact + AI tags). This is a user-CHOSEN route (they
+    // tapped the button), not an auto-dump, so the 2026-06-05 "don't dump
+    // into a creation surface" rule stands. Back from camera → Home.
+    const routes: { name: string; params?: object; state?: object }[] = [
+      { name: 'Main', state: mainState },
+    ];
+    if (dest === 'cardScan') {
+      routes.push({ name: 'CardCamera', params: { forNewContact: true } });
+    }
+    navigation.reset({ index: routes.length - 1, routes });
   }, [navigation]);
 
   // Clear the safety timer if the screen unmounts first.
@@ -1436,8 +1448,11 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   // The bridge from "I filled a form" to "this is my card — people scan
   // it and we're connected". Reuses the shared QrNameCard on the locked
   // brand gradient (same doctrine as QrCodeModal / QrGroupDetail: fixed
-  // colours, theme-agnostic). ONE button (tier-2 solid commit — the QR
-  // card itself is the wow; no gradient button next to a gradient sheet).
+  // colours, theme-agnostic). Two-tier actions (founder 2026-06-29:
+  // 精靈最後要導引去拍名片): PRIMARY tier-2 solid = scan a business card
+  // (the cold-start single-player value — usable with zero friends),
+  // secondary outline = straight to Home. Still no gradient button next
+  // to the gradient sheet — the QR card itself is the wow.
   const renderDone = () => (
     <ScrollView
       contentContainerStyle={styles.doneScroll}
@@ -1469,10 +1484,19 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       </Text>
       <TouchableOpacity
         style={styles.doneCta}
-        onPress={finishOnboarding}
+        onPress={() => finishOnboarding('cardScan')}
         activeOpacity={0.85}
       >
         <Text style={styles.doneCtaText}>
+          {t('connections.coldStartActionCard', { defaultValue: '掃一張名片試試' })}
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.doneCtaSecondary}
+        onPress={() => finishOnboarding()}
+        activeOpacity={0.85}
+      >
+        <Text style={styles.doneCtaSecondaryText}>
           {t('auth.onboarding.payoffCta', { defaultValue: '開始使用 PikTag' })}
         </Text>
       </TouchableOpacity>
@@ -1559,6 +1583,19 @@ function makeStyles(c: ColorPalette) {
   },
   doneCtaText: {
     color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  doneCtaSecondary: {
+    borderWidth: 1.5,
+    borderColor: c.piktag500,
+    borderRadius: 14,
+    paddingVertical: 15,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  doneCtaSecondaryText: {
+    color: c.piktag600,
     fontSize: 16,
     fontWeight: '700',
   },

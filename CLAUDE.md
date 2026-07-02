@@ -866,10 +866,22 @@ don't quietly regress them:
   CardCamera stamps `scanCapturedAt` into the EditLocalContact nav params;
   EditLocalContact reports at applyPrefill. Watch p50/p95 — p95 is the
   "mistaken for a broken app" number for the speed red line.
-- **Cold-start empty state leads with the CARD-SCAN row** (single-player
-  value: works alone, delivers organized-contact + AI-tags magic day one)
-  ahead of 互掃 QR (needs a second person). Keys
-  `connections.coldStartActionCard(+Desc)` ×19.
+- **Cold-start = ONE action (card scan), taught twice.** Founder 2026-06-29
+  ("精簡成一個" + "精靈最後要導引去拍名片"):
+    1. **Wizard payoff step** has two-tier CTAs — PRIMARY tier-2 solid
+       「掃一張名片試試」→ `finishOnboarding('cardScan')` resets to Main
+       with CardCamera pushed on top (user-chosen, so the 2026-06-05
+       "don't auto-dump into a creation surface" rule stands; Back →
+       Home); secondary outline 「開始使用 PikTag」→ Home.
+    2. **Friends-page cold-start** = a single tier-2 button (same copy) +
+       one desc line, rendered in the **ListFooter while the only
+       connection is @piktag** (fixed-UUID check) — NOT in
+       ListEmptyComponent, which never renders because the official
+       auto-friend means the list is never truly empty (SMOKE step-3
+       catch). The old 4-row action list is GONE; nothing lost: QR-scan =
+       header "+", search = its own tab, contacts import = Settings.
+  Keys `connections.coldStartActionCard(+Desc)` ×19 (shared by both
+  surfaces — no separate wizard copy).
 - **Font scaling truth** (verified 2026-06-29): RN's default
   `allowFontScaling=true` means the app ALREADY follows iOS Dynamic Type —
   nothing in the codebase disables it. A GLOBAL `maxFontSizeMultiplier`
