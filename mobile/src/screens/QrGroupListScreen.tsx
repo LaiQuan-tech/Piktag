@@ -414,31 +414,15 @@ export default function QrGroupListScreen({ navigation }: Props) {
               </TouchableOpacity>
             )}
           <View style={styles.headerTitleWrap}>
+            {/* Title renamed 記住新朋友 → 活動標籤 (founder, 2026-07-03):
+                the screen IS the event-tag list, name the artifact.
+                The "Pick. Tag. Connect." brand-signature subtitle was
+                REMOVED from this header on the same founder call —
+                the signature still lives on SplashOverlay / landing /
+                scan.html; this screen just doesn't carry it anymore.
+                Don't re-add a subtitle here. */}
             <Text style={styles.headerTitle}>
-              {t('qrGroup.headerTitle', { defaultValue: '認識新朋友' })}
-            </Text>
-            {/* Title is the PURPOSE ("認識新朋友"), not jargon.
-                The ARTIFACT noun was renamed "Vibe" → "Tag" (English
-                brand term in EVERY locale — ties to the app name
-                PikTag and the core "tagging" mechanic; localising it
-                to 標籤/タグ collides with the #tag chips each row
-                shows). Applied across every surface (list rows,
-                delete dialog, QrGroupDetail).
-
-                The subtitle is the unified brand line "PikTag to
-                connect." — hard-coded English in EVERY locale,
-                deliberately NOT wrapped in t() (the old
-                qrGroup.headerSubtitle i18n key was removed). Same
-                doctrine as SplashOverlay: "Pick. Tag. Connect." is the
-                locked brand signature — three imperatives that also
-                spell the name phonetically (PikTag = Pick + Tag) and
-                name the flow. Localising it would dilute the global
-                identity AND lose the Pick/Tag wordplay (English-only).
-                Same line as the splash screen and the website hero
-                subtitle — one signature across every surface.
-                Translators: please don't re-add an i18n key here. */}
-            <Text style={styles.headerSubtitle}>
-              Pick. Tag. Connect.
+              {t('qrGroup.headerTitle', { defaultValue: '活動標籤' })}
             </Text>
           </View>
           </View>
@@ -532,13 +516,8 @@ function makeStyles(c: ColorPalette) {
     fontWeight: '800',
     color: c.gray900,
   },
-  headerSubtitle: {
-    // Brand signature "Pick. Tag. Connect." (English-locked) → League Spartan.
-    fontFamily: 'LeagueSpartan-Medium',
-    fontSize: 12,
-    color: c.gray500,
-    marginTop: 2,
-  },
+  // (headerSubtitle style removed with the brand-line subtitle,
+  // founder 2026-07-03.)
   // Right-side cluster — scan + create live side-by-side as peer
   // entry points. Naked icons (no circular pill background) to
   // match the convention used by Connections / Search / other
