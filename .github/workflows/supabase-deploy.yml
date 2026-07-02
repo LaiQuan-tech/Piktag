@@ -57,7 +57,14 @@ jobs:
       - name: Checkout (with history for git diff)
         uses: actions/checkout@v6
         with:
-          fetch-depth: 2  # need at least HEAD + HEAD~1 for git diff
+          # 50, not 2: the detector diffs against the PUSH BASE
+          # (github.event.before), and a push can carry several commits.
+          # fetch-depth 2 only covered HEAD~1, so a multi-commit push
+          # whose function change wasn't in the LAST commit was silently
+          # skipped — exactly how notification-tag-suggest went
+          # undeployed on 2026-07-03 (feature commit + a retitle commit
+          # pushed together; HEAD~1 diff only saw the retitle).
+          fetch-depth: 50
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v2
@@ -86,16 +93,28 @@ jobs:
             exit 0
           fi
 
-          # Compare HEAD against the previous commit. Extract unique
-          # function names from any modified file under
-          # supabase/functions/<name>/**.
+          # Compare HEAD against the PUSH BASE — github.event.before —
+          # NOT just HEAD~1. A push often carries several commits; the
+          # HEAD~1 diff silently skipped any function whose change
+          # wasn't in the last commit (2026-07-03:
+          # notification-tag-suggest went undeployed because a retitle
+          # commit sat on top of the feature commit; the run went green
+          # having deployed nothing). Fall back to HEAD~1 when `before`
+          # is unusable (first push / force-push / out-of-range SHA).
           #
           # --relative is REQUIRED here: without it git outputs
           # repo-root-relative paths (mobile/supabase/functions/<n>/…)
           # even though cwd is mobile/, so awk -F'/' '{print $3}' would
           # extract the literal string "functions" instead of <n>.
           # Burned us once (failed run 26419949958, 2026-05-25).
-          changed=$(git diff --name-only --relative HEAD~1..HEAD -- 'supabase/functions/*/**' \
+          BASE="${{ github.event.before }}"
+          if [ -z "$BASE" ] \
+            || [ "$BASE" = "0000000000000000000000000000000000000000" ] \
+            || ! git cat-file -e "$BASE" 2>/dev/null; then
+            BASE="HEAD~1"
+          fi
+          echo "Diff base: $BASE"
+          changed=$(git diff --name-only --relative "$BASE"..HEAD -- 'supabase/functions/*/**' \
             | awk -F'/' '{print $3}' | sort -u)
           # Drop any names whose directory no longer exists. A DELETED
           # function can't be `functions deploy`d (no local source), so a
