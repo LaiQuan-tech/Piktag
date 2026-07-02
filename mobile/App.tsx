@@ -215,7 +215,21 @@ function AppInner() {
       // conversationId dropped. Match the in-app callers (ChatList /
       // UserDetail / FriendDetail) which navigate('ChatThread', …) directly.
       if (type === 'chat' && data?.conversationId) {
-        nav.navigate('ChatThread', { conversationId: data.conversationId });
+        // Pass the sender identity through when the payload carries it
+        // (send-chat-push added senderId/senderName/senderAvatar
+        // 2026-07-02) so ChatThread's header renders instantly. Older
+        // pushes without the fields still work — ChatThread self-heals
+        // the other participant from the conversation row.
+        nav.navigate('ChatThread', {
+          conversationId: data.conversationId,
+          ...(data.senderId
+            ? {
+                otherUserId: data.senderId,
+                otherDisplayName: data.senderName ?? undefined,
+                otherAvatarUrl: data.senderAvatar ?? null,
+              }
+            : {}),
+        });
         return;
       }
 

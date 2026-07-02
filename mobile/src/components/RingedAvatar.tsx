@@ -27,8 +27,10 @@ export type RingStyle = 'gradient' | 'subtle' | 'none';
 export type BadgeKind = 'plus' | 'pencil' | null;
 
 export type RingedAvatarProps = {
-  /** Display name — passed through to InitialsAvatar for fallback initials and color. */
-  name: string;
+  /** Display name — passed through to InitialsAvatar for fallback initials and color.
+   *  Nullable: callers that don't know the name yet (cold-start push into
+   *  ChatThread) render the '?' placeholder instead of crashing. */
+  name?: string | null;
   /** Outer dimension of the ring (the visible circle's diameter). */
   size: number;
   /** Optional avatar image URL. Falls back to initials when missing or load fails. */

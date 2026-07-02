@@ -39,8 +39,14 @@ import type { ThreadMessage } from '../types/chat';
 type ChatThreadParamList = {
   ChatThread: {
     conversationId: string;
-    otherUserId: string;
-    otherDisplayName: string;
+    // Optional on purpose: the cold-start push path (App.tsx `chat`
+    // branch) only carries conversationId — the screen self-heals the
+    // other participant from piktag_conversations when these are
+    // absent (see the resolve effect). In-app callers (ChatList /
+    // UserDetail / FriendDetail) still pass all three for an instant
+    // header.
+    otherUserId?: string;
+    otherDisplayName?: string;
     otherAvatarUrl?: string | null;
   };
   UserDetail: { userId: string };
@@ -87,10 +93,21 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
   const { user } = useAuth();
   const {
     conversationId,
-    otherUserId,
+    otherUserId: routeOtherUserId,
     otherDisplayName: initialDisplayName,
     otherAvatarUrl: initialAvatarUrl,
   } = route.params;
+
+  // The other participant's id. Starts from the route param; when the
+  // route arrived without it (cold-start push tap → App.tsx navigates
+  // with only conversationId), the resolve effect below derives it from
+  // the conversation row. Everything downstream (header profile fetch,
+  // icebreakers, report/block, header tap) keys off this state, so the
+  // whole screen self-heals once it lands. This path used to CRASH the
+  // app: avatarName ended up undefined → InitialsAvatar.getColorFromName
+  // read .length of undefined → render throw → ErrorBoundary (the
+  // 發生錯誤 screen a tester hit on smoke-test step 6, 2026-07-02).
+  const [otherUserId, setOtherUserId] = useState<string | undefined>(routeOtherUserId);
 
   const {
     messages,
@@ -106,6 +123,34 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
 
   const [otherProfile, setOtherProfile] = useState<OtherProfile | null>(null);
   const lastMarkedLenRef = useRef<number>(-1);
+
+  // Self-heal a missing otherUserId (cold-start push tap): the
+  // conversation row names both participants — the other one is
+  // whichever isn't me. Once set, the profile-fetch effect below fills
+  // the header name/avatar exactly as if the route had carried them.
+  useEffect(() => {
+    if (otherUserId || !user?.id || !conversationId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('piktag_conversations')
+          .select('participant_a, participant_b')
+          .eq('id', conversationId)
+          .maybeSingle();
+        if (cancelled || !data) return;
+        const other =
+          data.participant_a === user.id ? data.participant_b : data.participant_a;
+        if (other && other !== user.id) setOtherUserId(other);
+      } catch {
+        // Non-fatal: the thread itself renders fine from conversationId
+        // alone; only the header/profile affordances stay in fallback.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [otherUserId, user?.id, conversationId]);
 
   // Optional askId on the route — when ChatThread is opened from an
   // Ask match flow (Phase 1, post-launch), this anchors the icebreaker
@@ -207,6 +252,7 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
     // demand — no need to cache, this is a once-per-tap event.
     // Defensive fall-through to UserDetail covers any edge case
     // where the connection was severed mid-session.
+    if (!otherUserId) return; // still resolving (cold-start push) — ignore the tap
     if (user) {
       const { data: conn } = await supabase
         .from('piktag_connections')
@@ -228,7 +274,7 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
   // Apple Guideline 1.2: long-press a bubble to report or block.
   const submitReport = useCallback(
     async (messageId: string, reason: string) => {
-      if (!user) return;
+      if (!user || !otherUserId) return;
       try {
         await supabase.from('piktag_reports').insert({
           reporter_id: user.id,
@@ -248,7 +294,7 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
   );
 
   const blockOtherUser = useCallback(async () => {
-    if (!user) return;
+    if (!user || !otherUserId) return;
     // Route through block_user RPC so the cascade matches what
     // FriendDetail / UserDetail use:
     //   * upsert piktag_blocks
@@ -347,7 +393,11 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
   }, [otherProfile, initialDisplayName]);
 
   const avatarName = useMemo(
-    () => displayName || otherUserId,
+    // '' (not undefined) when neither is known yet — InitialsAvatar
+    // renders its '?' placeholder; the self-heal effect fills the real
+    // name a beat later. undefined here once crashed the render tree
+    // (getColorFromName read .length of undefined) on cold-start push.
+    () => displayName || otherUserId || '',
     [displayName, otherUserId],
   );
   const avatarUrl = otherProfile?.avatar_url ?? initialAvatarUrl ?? null;

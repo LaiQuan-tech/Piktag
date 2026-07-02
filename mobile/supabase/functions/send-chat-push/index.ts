@@ -46,6 +46,7 @@ type ProfileRow = {
   push_token: string | null;
   full_name: string | null;
   username: string | null;
+  avatar_url: string | null;
 };
 
 function timingSafeEqual(a: string, b: string): boolean {
@@ -161,7 +162,7 @@ serve(async (req) => {
     // Fetch both profiles in one query, then split by id.
     const { data: profiles, error: profilesError } = await adminClient
       .from('piktag_profiles')
-      .select('id, push_token, full_name, username')
+      .select('id, push_token, full_name, username, avatar_url')
       .in('id', [senderId, recipientId])
       .returns<ProfileRow[]>();
 
@@ -198,6 +199,16 @@ serve(async (req) => {
         type: 'chat',
         conversationId: messageData.conversation_id,
         messageId: messageData.id,
+        // Sender identity so the tap handler can hand ChatThread a full
+        // param set (instant header, no self-heal round-trip). From the
+        // recipient's perspective the sender IS the "other user". Older
+        // clients ignore the extra fields. NOTE: real name-or-null here,
+        // NOT senderDisplayName — its 'New message' fallback is right
+        // for a push title but wrong as a header name.
+        senderId,
+        senderName:
+          senderProfile?.full_name?.trim() || senderProfile?.username?.trim() || null,
+        senderAvatar: senderProfile?.avatar_url ?? null,
       },
       sound: 'default',
       // Intentionally omit badge: the app computes its own unread badge

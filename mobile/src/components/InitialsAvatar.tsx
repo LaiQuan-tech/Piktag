@@ -35,7 +35,13 @@ function getInitials(name: string): string {
 }
 
 type Props = {
-  name: string;
+  /**
+   * Nullable on purpose: some entry points legitimately don't know the
+   * name yet (e.g. ChatThread opened from a cold-start push that only
+   * carries conversationId). Renders the '?' placeholder instead of
+   * throwing — a missing name must NEVER crash the render tree.
+   */
+  name?: string | null;
   size: number;
   /**
    * Optional avatar image URL. When provided, the image is shown and the
@@ -48,8 +54,9 @@ type Props = {
 };
 
 const InitialsAvatar = React.memo(({ name, size, avatarUrl, style }: Props) => {
-  const backgroundColor = getColorFromName(name);
-  const initials = getInitials(name);
+  const safeName = name ?? '';
+  const backgroundColor = getColorFromName(safeName);
+  const initials = getInitials(safeName);
   const fontSize = Math.round(size * 0.38);
   const borderRadius = size / 2;
 
