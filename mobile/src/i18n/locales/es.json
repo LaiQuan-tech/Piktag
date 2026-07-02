@@ -1451,9 +1451,9 @@
     "headerTitle": "Tags de evento",
     "detailHeader": "Tag",
     "create": "Crear nuevo Tag",
-    "createFirst": "Crear un Tag ahora",
-    "emptyTitle": "Que no se te escape el nombre la próxima vez",
-    "emptyDesc": "Escaneen su código QR en el momento para conectar, y PikTag recuerda dónde y cómo se conocieron — así, la próxima vez que te lo encuentres, tienes su nombre y la historia a mano, sin fingir que te acuerdas.",
+    "createFirst": "Crear un QR de evento",
+    "emptyTitle": "Un QR para toda la sala",
+    "emptyDesc": "¿Organizas un meetup o atiendes un stand? Crea una etiqueta de evento: todos los que escaneen el mismo QR se conectan y quedan etiquetados con el evento automáticamente. Meses después, busca esa etiqueta y todos los de esa noche están ahí.",
     "untitled": "Tag sin título",
     "untitledFallback": "Tag · {{date}}",
     "namePlaceholder": "Ponle nombre a este Tag",
@@ -1474,6 +1474,13 @@
     "currentVibesHint": "Tags que este grupo comparte ahora — toca para ver quién.",
     "membersFilterEmpty": "Nadie en este Tag tiene ese tag aún.",
     "currentVibesCount": "{{count}} personas"
+  },
+  "batchTag": {
+    "title": "¿Los conociste en el mismo evento?",
+    "subtitle": "Agregaste a {{count}} personas en la última hora: etiquétalas con la ocasión de una sola vez.",
+    "placeholder": "p. ej., Meetup de diseño de Madrid",
+    "save": "Etiquetar a todos",
+    "skip": "Ahora no"
   },
   "localContact": {
     "aiSuggestLabel": "Etiquetas sugeridas por IA (toca para añadir)",

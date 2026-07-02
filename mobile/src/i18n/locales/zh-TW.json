@@ -1451,9 +1451,9 @@
     "headerTitle": "活動標籤",
     "detailHeader": "Tag",
     "create": "建立新 Tag",
-    "createFirst": "建立當下的 Tag",
-    "emptyTitle": "下次再遇到，別叫不出名字",
-    "emptyDesc": "見面互掃 QR 碼就加好友，PikTag 自動記住你們在哪、在什麼場合認識 —— 下次再碰面，名字和來歷都想得起來，不必尷尬地裝熟。",
+    "createFirst": "建立活動 QR",
+    "emptyTitle": "一場活動，一個 QR",
+    "emptyDesc": "辦聚會、跑活動？建一個活動標籤，現場的人掃同一個 QR，就自動互加好友、帶上這場活動的標籤。幾個月後搜這個標籤，那晚認識的人全部都在。",
     "untitled": "未命名 Tag",
     "untitledFallback": "Tag · {{date}}",
     "namePlaceholder": "幫這個 Tag 取個名字",
@@ -1474,6 +1474,13 @@
     "currentVibesHint": "這群人現在共同的標籤 — 點一下看是誰",
     "membersFilterEmpty": "這個 Tag 中沒有貼這個標籤的人",
     "currentVibesCount": "{{count}} 人"
+  },
+  "batchTag": {
+    "title": "同一場合認識的嗎？",
+    "subtitle": "過去一小時你加了 {{count}} 位朋友 — 一次幫他們加上這場活動的標籤。",
+    "placeholder": "例：台北設計聚",
+    "save": "全部加上標籤",
+    "skip": "先不用"
   },
   "localContact": {
     "aiSuggestLabel": "AI 推薦標籤（點選加入）",

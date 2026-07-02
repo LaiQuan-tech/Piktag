@@ -1451,9 +1451,9 @@
     "headerTitle": "活动标签",
     "detailHeader": "Tag",
     "create": "创建新 Tag",
-    "createFirst": "创建当下的 Tag",
-    "emptyTitle": "下次再遇到，别叫不出名字",
-    "emptyDesc": "见面互扫 QR 码就加好友，PikTag 自动记住你们在哪、在什么场合认识 —— 下次再碰面，名字和来历都想得起来，不必尴尬地装熟。",
+    "createFirst": "创建活动 QR",
+    "emptyTitle": "一场活动，一个 QR",
+    "emptyDesc": "办聚会、跑活动？建一个活动标签，现场的人扫同一个 QR，就自动互加好友、带上这场活动的标签。几个月后搜这个标签，那晚认识的人全都在。",
     "untitled": "未命名 Tag",
     "untitledFallback": "Tag · {{date}}",
     "namePlaceholder": "帮这个 Tag 取个名字",
@@ -1474,6 +1474,13 @@
     "currentVibesHint": "这群人现在共同的标签 — 点一下看是谁",
     "membersFilterEmpty": "这个 Tag 中没有贴这个标签的人",
     "currentVibesCount": "{{count}} 人"
+  },
+  "batchTag": {
+    "title": "同一场合认识的吗？",
+    "subtitle": "过去一小时你加了 {{count}} 位朋友 — 一次帮他们加上这场活动的标签。",
+    "placeholder": "例：上海设计聚",
+    "save": "全部加上标签",
+    "skip": "先不用"
   },
   "localContact": {
     "aiSuggestLabel": "AI 推荐标签（点选加入）",

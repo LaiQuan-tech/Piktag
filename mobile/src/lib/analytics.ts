@@ -69,6 +69,18 @@ export const trackWizardStepCompleted = (step: 'profile' | 'tags' | 'links') =>
   posthog?.capture('wizard_step_completed', { step });
 
 /**
+ * Burst batch-tag prompt (event-tag rework 方向一, 2026-07-03): shown when
+ * the last hour's connection adds hit the burst threshold. `shown` count =
+ * cohort size; `applied` fires on save with how many were kept selected.
+ * These two are THE success metric for the rework — if shown≫applied the
+ * prompt is noise; if applied tracks shown the safety-net thesis holds.
+ */
+export const trackBurstTagPromptShown = (cohortSize: number) =>
+  posthog?.capture('burst_tag_prompt_shown', { cohort_size: cohortSize });
+export const trackBurstTagApplied = (cohortSize: number, taggedCount: number) =>
+  posthog?.capture('burst_tag_applied', { cohort_size: cohortSize, tagged_count: taggedCount });
+
+/**
  * Card-scan perceived latency: shutter tap → form fields visible
  * (founder speed red line — competitors anchored users to "instant").
  * Watch p50/p95 in PostHog; p95 is the "mistaken for a broken app" tail.

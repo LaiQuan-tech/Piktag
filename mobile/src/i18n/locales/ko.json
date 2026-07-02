@@ -1451,9 +1451,9 @@
     "headerTitle": "이벤트 태그",
     "detailHeader": "Tag",
     "create": "새 Tag 만들기",
-    "createFirst": "지금 Tag 만들기",
-    "emptyTitle": "다음에 만났을 때, 이름이 막히지 않도록",
-    "emptyDesc": "그 자리에서 QR 코드를 서로 스캔하면 친구 추가. 어디서 어떤 자리에서 만났는지 PikTag가 자동으로 기억해 줘서, 다음에 마주쳐도 이름과 사연이 바로 떠올라 어색하게 아는 척할 일이 없어요.",
+    "createFirst": "이벤트 QR 만들기",
+    "emptyTitle": "행사 하나, QR 하나",
+    "emptyDesc": "모임이나 행사를 주최하나요? 이벤트 태그를 만들어 보세요. 참가자가 같은 QR을 스캔하면 자동으로 연결되고 행사 태그가 붙습니다. 몇 달 뒤 그 태그를 검색하면 그날 만난 사람이 전부 나옵니다.",
     "untitled": "제목 없는 Tag",
     "untitledFallback": "Tag · {{date}}",
     "namePlaceholder": "이 Tag의 이름을 지어주세요",
@@ -1474,6 +1474,13 @@
     "currentVibesHint": "이 그룹이 지금 공유 중인 태그 — 탭하면 누가 보이나요.",
     "membersFilterEmpty": "이 Tag에는 아직 그 태그가 붙은 사람이 없어요.",
     "currentVibesCount": "{{count}}명"
+  },
+  "batchTag": {
+    "title": "같은 자리에서 만난 사람들인가요?",
+    "subtitle": "지난 1시간 동안 {{count}}명을 추가했어요 — 한 번에 이 자리의 태그를 붙여 보세요.",
+    "placeholder": "예: 서울 디자인 밋업",
+    "save": "모두 태그하기",
+    "skip": "나중에"
   },
   "localContact": {
     "aiSuggestLabel": "AI 추천 태그 (탭하여 추가)",

@@ -1451,9 +1451,9 @@
     "headerTitle": "Tag acara",
     "detailHeader": "Tag",
     "create": "Bikin Tag baru",
-    "createFirst": "Buat Tag sekarang",
-    "emptyTitle": "Lain kali ketemu, jangan lupa namanya",
-    "emptyDesc": "Pindai kode QR satu sama lain di tempat untuk terhubung, dan PikTag otomatis mengingat di mana dan dalam acara apa kalian bertemu — jadi saat berpapasan lagi, nama dan ceritanya sudah ada, tanpa pura-pura ingat.",
+    "createFirst": "Buat QR acara",
+    "emptyTitle": "Satu QR untuk seisi ruangan",
+    "emptyDesc": "Mengadakan meetup atau menjaga booth? Buat tag acara — semua yang memindai QR yang sama otomatis terhubung dan diberi tag acara itu. Berbulan-bulan kemudian, cari tag itu dan semua orang dari malam itu ada di sana.",
     "untitled": "Tag tanpa nama",
     "untitledFallback": "Tag · {{date}}",
     "namePlaceholder": "Kasih nama Tag ini",
@@ -1474,6 +1474,13 @@
     "currentVibesHint": "Tag yang sedang dibagi grup ini — ketuk untuk lihat siapa.",
     "membersFilterEmpty": "Belum ada yang punya tag itu di Tag ini.",
     "currentVibesCount": "{{count}} orang"
+  },
+  "batchTag": {
+    "title": "Kenalan di acara yang sama?",
+    "subtitle": "Kamu menambahkan {{count}} orang dalam satu jam terakhir — beri mereka tag acara ini sekaligus.",
+    "placeholder": "mis. Meetup Desain Jakarta",
+    "save": "Tag semuanya",
+    "skip": "Nanti saja"
   },
   "localContact": {
     "aiSuggestLabel": "Tag saran AI (ketuk untuk menambah)",

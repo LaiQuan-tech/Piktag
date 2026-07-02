@@ -357,6 +357,14 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
           name="CardCamera"
           getComponent={() => require('../screens/CardCameraScreen').default}
         />
+        {/* Burst batch-tag prompt (event-tag rework 方向一, 2026-07-03):
+            ScanResult routes here when the last hour's adds hit the burst
+            threshold; save/skip land on the just-added friend. Also the
+            seed screen for the future full batch-tag feature. */}
+        <RootStack.Screen
+          name="BatchTag"
+          getComponent={() => require('../screens/BatchTagScreen').default}
+        />
         <RootStack.Screen
           name="PrivacyPolicy"
           getComponent={() => require('../screens/legal/PrivacyPolicyScreen').default}

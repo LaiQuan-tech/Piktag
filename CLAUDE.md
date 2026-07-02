@@ -1142,6 +1142,36 @@ deferred. So: QR stays auto (silent), card is a single tap. If a future
 session is asked again for "auto card, no tap", the answer is vision-camera
 or nothing — don't reintroduce the capture loop.
 
+## Event tags reworked: burst batch-tag prompt (2026-07-03, SHIPPED)
+
+Founder accepted the diagnosis that event tags' structural flaw is
+"requires foresight" (create the QR BEFORE the event — nobody remembers,
+and only organizers ever would). The rework, shipped pre-launch:
+
+- **方向一 (shipped): burst detection → one-move batch tag.** Adding ≥3
+  real connections within 60 min = "user is AT an event". After the Nth
+  scan-connect success, ScanResultScreen routes to **BatchTagScreen**
+  (RootStack) ONCE per burst: cohort list (default all selected) + tag
+  name input → writes **private connection tags** (`piktag_connection_tags`
+  is_private=true — the SAME shape the event-QR scan flow writes; owner-only,
+  findable via the Friends tag filter, never enters matching). Detection in
+  `lib/burstTag.ts` (connections only — ContactSync imports deliberately
+  excluded; @piktag excluded; one offer per burst keyed on newest connection
+  id in AsyncStorage). PostHog: `burst_tag_prompt_shown` / `burst_tag_applied`
+  — THE success metric for the rework. BatchTagScreen is deliberately the
+  SEED of the future full batch-tag feature (widen cohort to "pick any
+  friends" later; don't build a second batch UI).
+- **QrGroupList empty-state copy repositioned to the ORGANIZER** ("one QR
+  for the whole room, everyone auto-tagged, searchable months later") —
+  the old name-blanking copy described the PERSONAL QR (wrong feature on
+  that screen). Keys qrGroup.emptyTitle/emptyDesc/createFirst ×19.
+- **Post-launch directions (founder-endorsed, NOT built):** 方向二 = event
+  context as a temporary MODE of the personal QR (toggle on the QR sheet,
+  auto-expires); 方向三 = event QR connects attendees to EACH OTHER
+  (opt-in room graph — biggest friend-add multiplier; needs privacy/RLS +
+  ranking-checklist compliance). Revisit triggers: % of new connections
+  carrying event-context tags, searches hitting event tags.
+
 ## Network graph replaced the invite-lineage Tribe (2026-06-25)
 
 Founder: the old "Tribe" (TribeConstellation + `get_tribe_lineage`/

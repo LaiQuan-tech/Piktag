@@ -390,12 +390,31 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
       Alert.alert(t('scanResult.alertSuccessTitle'), t('scanResult.alertSuccessMessage', { name: hostName }), [
         {
           text: t('scanResult.alertSuccessConfirm'),
-          onPress: () => {
+          onPress: async () => {
             // First friend-add success = the contextual moment for the
             // deferred one-shot OS push-permission ask (they just
             // experienced something worth being notified about).
             // Best-effort; no-op if already granted/asked.
             maybeAskPushPermission().catch(() => {});
+            // Burst check (event-tag rework 方向一, 2026-07-03): several
+            // adds within the hour = the user is AT an event. Offer to
+            // tag the whole batch once; save/skip both land on the
+            // just-added friend, keeping the flow linear. Lazy import —
+            // the common single-add path pays nothing.
+            try {
+              const { detectRecentBurst, markBurstOffered } = await import('../lib/burstTag');
+              const burst = user?.id ? await detectRecentBurst(user.id) : null;
+              if (burst) {
+                void markBurstOffered(burst);
+                navigation.replace('BatchTag', {
+                  people: burst,
+                  next: { friendId: hostUserId, connectionId: connectionData.id },
+                });
+                return;
+              }
+            } catch {
+              /* best-effort — fall through to FriendDetail */
+            }
             // Go to the person you just added (was dumping the user
             // on HomeTab — a different tab, no trace of who they
             // connected with). replace so back returns to the

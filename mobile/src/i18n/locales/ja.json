@@ -1451,9 +1451,9 @@
     "headerTitle": "イベントタグ",
     "detailHeader": "Tag",
     "create": "新しい Tag を作成",
-    "createFirst": "今の Tag を作成",
-    "emptyTitle": "次に会ったとき、名前に詰まらない",
-    "emptyDesc": "その場で QRコードを見せ合えば友だち追加。どこで・どんな場で会ったかを PikTag が自動で覚えておくので、次に会ったときも名前と経緯がすぐ分かり、気まずく取り繕う必要はありません。",
+    "createFirst": "イベントQRを作成",
+    "emptyTitle": "会場ぜんぶ、QRひとつで",
+    "emptyDesc": "交流会やイベントを主催するなら、イベントタグを作りましょう。参加者が同じQRをスキャンするだけで自動的につながり、そのイベントのタグが付きます。数ヶ月後にタグを検索すれば、あの夜出会った人が全員見つかります。",
     "untitled": "無題の Tag",
     "untitledFallback": "Tag · {{date}}",
     "namePlaceholder": "この Tag に名前をつける",
@@ -1474,6 +1474,13 @@
     "currentVibesHint": "このグループが今共有しているタグ — タップして誰か見る。",
     "membersFilterEmpty": "この Tag にはまだそのタグを付けた人がいません。",
     "currentVibesCount": "{{count}}人"
+  },
+  "batchTag": {
+    "title": "同じイベントで出会った人たち？",
+    "subtitle": "この1時間で{{count}}人とつながりました — まとめてイベントのタグを付けましょう。",
+    "placeholder": "例：東京デザイン交流会",
+    "save": "まとめてタグ付け",
+    "skip": "あとで"
   },
   "localContact": {
     "aiSuggestLabel": "AI のおすすめタグ（タップで追加）",

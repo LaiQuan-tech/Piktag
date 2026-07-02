@@ -356,20 +356,20 @@ export default function QrGroupListScreen({ navigation }: Props) {
           <QrCode size={36} color={colors.piktag500} />
         </View>
         <Text style={styles.emptyTitle}>
-          {t('qrGroup.emptyTitle', { defaultValue: '下次再遇到，別叫不出名字' })}
+          {t('qrGroup.emptyTitle', { defaultValue: '一場活動，一個 QR' })}
         </Text>
         <Text style={styles.emptyDesc}>
-          {/* Founder 2026-06-07: (1) the old copy said "活動標籤" —
-              internal jargon a first-time user has never heard; (2) lean
-              harder into the universal, relatable sting — you bump into
-              someone again and blank on their name (the Devil-Wears-Prada
-              gala scene; an ordinary person's only "assistant" feeding
-              them names is an app like this). Lead with that awkward
-              next-encounter, state the fix (scan QR → auto-remember
-              where/how you met) plainly, no jargon. */}
+          {/* Repositioned 2026-07-03 (founder-approved event-tag rework):
+              this surface speaks to the ORGANIZER — its unique value is
+              "one QR for the whole room, everyone auto-tagged with the
+              event, searchable months later". The old copy (2026-06-07
+              name-blanking sting) described the PERSONAL mutual-scan QR,
+              which lives on Profile — wrong feature on this screen. The
+              attendee-side / no-foresight case is now covered by the
+              burst batch-tag prompt (lib/burstTag.ts), not this page. */}
           {t('qrGroup.emptyDesc', {
             defaultValue:
-              '見面互掃 QR 碼就加好友，PikTag 自動記住你們在哪、在什麼場合認識 —— 下次再碰面，名字和來歷都想得起來，不必尷尬地裝熟。',
+              '辦聚會、跑活動？建一個活動標籤，現場的人掃同一個 QR，就自動互加好友、帶上這場活動的標籤。幾個月後搜這個標籤，那晚認識的人全部都在。',
           })}
         </Text>
         <TouchableOpacity
@@ -379,7 +379,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
         >
           <Plus size={18} color="#FFFFFF" />
           <Text style={styles.emptyCtaText}>
-            {t('qrGroup.createFirst', { defaultValue: '建立當下的 Tag' })}
+            {t('qrGroup.createFirst', { defaultValue: '建立活動 QR' })}
           </Text>
         </TouchableOpacity>
         {/* Secondary "scan someone else's QR" link removed from the

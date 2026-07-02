@@ -1451,9 +1451,9 @@
     "headerTitle": "Event Tags",
     "detailHeader": "Tag",
     "create": "Create new Tag",
-    "createFirst": "Create a Tag for now",
-    "emptyTitle": "Never blank on a name again",
-    "emptyDesc": "Scan each other's QR Code to connect on the spot, and PikTag remembers where and how you met — so the next time you run into them, their name and the backstory are right there, no awkward pretending.",
+    "createFirst": "Create an event QR",
+    "emptyTitle": "One QR for the whole room",
+    "emptyDesc": "Hosting a meetup or running a booth? Create an event tag — everyone who scans the same QR connects with you and gets tagged with the event automatically. Months later, search that tag and everyone from that night is right there.",
     "untitled": "Untitled Tag",
     "untitledFallback": "Tag · {{date}}",
     "namePlaceholder": "Name this Tag",
@@ -1474,6 +1474,13 @@
     "currentVibesHint": "Tags this group is sharing right now — tap to see who.",
     "membersFilterEmpty": "No one in this Tag has that tag yet.",
     "currentVibesCount": "{{count}} people"
+  },
+  "batchTag": {
+    "title": "Met at the same event?",
+    "subtitle": "You added {{count}} people in the last hour — tag them with the occasion in one go.",
+    "placeholder": "e.g. SF Design Meetup",
+    "save": "Tag them all",
+    "skip": "Not now"
   },
   "localContact": {
     "aiSuggestLabel": "AI suggested tags (tap to add)",

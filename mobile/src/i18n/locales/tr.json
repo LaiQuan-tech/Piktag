@@ -1451,9 +1451,9 @@
     "headerTitle": "Etkinlik etiketleri",
     "detailHeader": "Tag",
     "create": "Yeni Tag oluştur",
-    "createFirst": "Şimdi Tag oluştur",
-    "emptyTitle": "Bir dahaki sefere adını unutma",
-    "emptyDesc": "Orada birbirinizin QR kodunu tarayarak ekleyin; PikTag nerede ve hangi ortamda tanıştığınızı otomatik hatırlar — böylece bir dahaki karşılaşmada adı ve hikâyesi elinin altında olur, hatırlıyormuş gibi yapmana gerek kalmaz.",
+    "createFirst": "Etkinlik QR'ı oluştur",
+    "emptyTitle": "Tüm salon için tek bir QR",
+    "emptyDesc": "Buluşma mı düzenliyorsun, stant mı işletiyorsun? Bir etkinlik etiketi oluştur — aynı QR'ı tarayan herkes otomatik olarak bağlanır ve etkinlik etiketini alır. Aylar sonra o etiketi ara, o geceki herkes orada.",
     "untitled": "İsimsiz Tag",
     "untitledFallback": "Tag · {{date}}",
     "namePlaceholder": "Bu Tag'a isim ver",
@@ -1474,6 +1474,13 @@
     "currentVibesHint": "Bu grubun şu an paylaştığı etiketler — kim olduğunu görmek için dokun.",
     "membersFilterEmpty": "Bu Tag'de henüz bu etiketi taşıyan yok.",
     "currentVibesCount": "{{count}} kişi"
+  },
+  "batchTag": {
+    "title": "Aynı etkinlikte mi tanıştınız?",
+    "subtitle": "Son bir saatte {{count}} kişi eklediniz — hepsine tek seferde bu buluşmanın etiketini ekleyin.",
+    "placeholder": "örn. İstanbul Tasarım Buluşması",
+    "save": "Hepsini etiketle",
+    "skip": "Şimdi değil"
   },
   "localContact": {
     "aiSuggestLabel": "AI önerilen etiketler (eklemek için dokun)",

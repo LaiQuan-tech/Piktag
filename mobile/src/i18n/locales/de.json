@@ -1451,9 +1451,9 @@
     "headerTitle": "Event-Tags",
     "detailHeader": "Vibe",
     "create": "Neuen Vibe erstellen",
-    "createFirst": "Jetzt einen Vibe erstellen",
-    "emptyTitle": "Beim nächsten Mal nicht den Namen vergessen",
-    "emptyDesc": "Scannt euren QR-Code direkt vor Ort, um euch zu verbinden — PikTag merkt sich automatisch, wo und bei welcher Gelegenheit ihr euch getroffen habt. So hast du beim nächsten Treffen Name und Hintergrund parat, ganz ohne peinliches So-tun-als-ob.",
+    "createFirst": "Event-QR erstellen",
+    "emptyTitle": "Ein QR für den ganzen Raum",
+    "emptyDesc": "Du organisierst ein Meetup oder betreust einen Stand? Erstelle einen Event-Tag — alle, die denselben QR scannen, werden automatisch verbunden und mit dem Event getaggt. Monate später suchst du den Tag und alle von diesem Abend sind da.",
     "untitled": "Unbenannter Vibe",
     "untitledFallback": "Vibe · {{date}}",
     "namePlaceholder": "Gib diesem Vibe einen Namen",
@@ -1474,6 +1474,13 @@
     "currentVibesHint": "Tags, die diese Gruppe gerade teilt — tippe, um zu sehen wer.",
     "membersFilterEmpty": "Niemand in diesem Tag hat diesen Tag noch.",
     "currentVibesCount": "{{count}} Personen"
+  },
+  "batchTag": {
+    "title": "Beim selben Event kennengelernt?",
+    "subtitle": "Du hast in der letzten Stunde {{count}} Personen hinzugefügt — tagge sie alle auf einmal mit dem Anlass.",
+    "placeholder": "z. B. Berlin Design Meetup",
+    "save": "Alle taggen",
+    "skip": "Jetzt nicht"
   },
   "localContact": {
     "aiSuggestLabel": "KI-Tag-Vorschläge (zum Hinzufügen tippen)",
