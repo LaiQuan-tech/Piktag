@@ -151,6 +151,11 @@ export async function routeFromNotification(
   // (some legacy notifications stuff `data.user_id = me`).
   const userIdCandidates: (string | undefined)[] = [
     data.actor_user_id,
+    // Dashboard-era follow rows ("新的追蹤者") carried ONLY follower_id
+    // — never probed here, so their taps dead-ended (founder repro
+    // 2026-07-02). The legacy trigger + rows are dropped by migration
+    // 20260702160000; this probe keeps any straggler row tappable.
+    data.follower_id,
     data.connected_user_id,
     data.friend_user_id,
     data.recommended_user_id,
