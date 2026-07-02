@@ -339,6 +339,8 @@
     "addPersonTitle": "Aggiungi persone",
     "addPersonA11y": "Aggiungi persone",
     "coldStartActionScanDesc": "Scansionatevi a vicenda: scambio di contatti in 30 secondi",
+    "coldStartActionCard": "Scansiona un biglietto da visita",
+    "coldStartActionCardDesc": "Funziona da soli: fotografa un biglietto e l'IA salva il contatto",
     "coldStartActionSearch": "Cerca persone per tag",
     "coldStartActionSearchDesc": "Prova #marketing o #designer: guarda chi compare",
     "firstFriendHint": "Scansiona il QR con chi ti sta intorno o aggiungi amici dai contatti",

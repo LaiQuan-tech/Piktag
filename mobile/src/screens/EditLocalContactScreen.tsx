@@ -44,6 +44,7 @@ import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
+import { trackCardScanLatency } from '../lib/analytics';
 import { toBirthdayDate } from '../lib/birthday';
 import BirthdayInput from '../components/BirthdayInput';
 import PhoneNumberInput from '../components/PhoneNumberInput';
@@ -206,7 +207,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   const cameraAutoRef = useRef(false);
   // Latest-runScan ref so `openCamera` can stay a stable callback
   // without a circular dep (openCamera ← runScan ← openCamera).
-  const runScanRef = useRef<((uri: string, mime: string) => void) | null>(null);
+  const runScanRef = useRef<((uri: string, mime: string, capturedAt?: number) => void) | null>(null);
 
   // ── Avatar (大頭照) state + create-mode stable id ────────────────
   // For an existing contact we use its real id as the storage
@@ -494,7 +495,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     [navigation],
   );
 
-  const runScan = useCallback(async (uri: string, mimeType: string) => {
+  const runScan = useCallback(async (uri: string, mimeType: string, capturedAt?: number) => {
     // Scanning is a "review prefilled data" path — never autofocus
     // the name field (would pop the keyboard over the results).
     setManualFocus(false);
@@ -606,6 +607,12 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       // RPC here, which serialized a non-critical lookup behind the visible
       // result; that's gone now.
       applyPrefill();
+      // Perceived-speed metric (founder red line): shutter tap →
+      // fields visible. Only the primary CardCamera→here path carries
+      // capturedAt; watch p50/p95 in PostHog.
+      if (capturedAt && Number.isFinite(capturedAt)) {
+        trackCardScanLatency(Date.now() - capturedAt);
+      }
 
       // Is the scanned person ALREADY a PikTag member? Match the
       // scanned phone/email against profiles via the SAME canonical
@@ -705,7 +712,8 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     const scanMime: string | undefined = route.params?.scanMime;
     const startManual: boolean = route.params?.startManual === true;
     if (scanUri) {
-      runScanRef.current?.(scanUri, scanMime || 'image/jpeg');
+      const scanCapturedAt: number | undefined = route.params?.scanCapturedAt;
+      runScanRef.current?.(scanUri, scanMime || 'image/jpeg', scanCapturedAt);
     } else if (startManual) {
       setManualFocus(true);
     } else {

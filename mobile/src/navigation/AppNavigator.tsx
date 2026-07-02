@@ -579,7 +579,12 @@ export default function AppNavigator() {
       // boot-to-interactive window.
       const userId = currentSession.user.id;
       InteractionManager.runAfterInteractions(() => {
-        registerForPushNotifications(userId).catch(() => {});
+        // requestPermission:false — startup only refreshes the token when
+        // permission is ALREADY granted. The OS prompt itself is deferred
+        // to maybeAskPushPermission() at the first meaningful moment
+        // (first friend-add / first Notifications-tab open); a cold ask
+        // at launch is the highest-refusal timing on iOS. Founder 2026-06-29.
+        registerForPushNotifications(userId, { requestPermission: false }).catch(() => {});
         // Reflect the user's unread count on the app icon. No
         // separate badge toggle by design — the badge is the visible
         // form of "you have unread notifications you opted into".

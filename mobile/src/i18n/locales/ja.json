@@ -339,6 +339,8 @@
     "addPersonTitle": "人を追加",
     "addPersonA11y": "人を追加",
     "coldStartActionScanDesc": "その場でお互いにスキャン。30秒で名刺交換",
+    "coldStartActionCard": "名刺をスキャンしてみる",
+    "coldStartActionCardDesc": "ひとりでも使える——名刺を撮るだけで、AIが連絡先を整理します",
     "coldStartActionSearch": "タグで人を探す",
     "coldStartActionSearchDesc": "例：#マーケ #デザイナー — 誰が出てくるか試してみて",
     "firstFriendHint": "まわりの人と QR を見せ合うか、連絡先から友達を追加しましょう",

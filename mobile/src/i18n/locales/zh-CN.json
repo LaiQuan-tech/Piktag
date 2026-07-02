@@ -339,6 +339,8 @@
     "addPersonTitle": "加人",
     "addPersonA11y": "加人",
     "coldStartActionScanDesc": "和现场的人互扫，30 秒交换名片",
+    "coldStartActionCard": "扫一张名片试试",
+    "coldStartActionCardDesc": "一个人也能用——拍下名片，AI 帮你整理好联系人",
     "coldStartActionSearch": "用标签搜一个人",
     "coldStartActionSearchDesc": "例如 #营销 #设计师，看看谁会出现",
     "firstFriendHint": "和身边的人互扫 QR，或从通讯录把朋友加进来",

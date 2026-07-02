@@ -17,6 +17,7 @@ import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../lib/supabase';
+import { maybeAskPushPermission } from '../lib/pushNotifications';
 import { ilikeEscape } from '../lib/normalizeTag';
 import { useAuth } from '../hooks/useAuth';
 import PageLoader from '../components/loaders/PageLoader';
@@ -390,6 +391,11 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
         {
           text: t('scanResult.alertSuccessConfirm'),
           onPress: () => {
+            // First friend-add success = the contextual moment for the
+            // deferred one-shot OS push-permission ask (they just
+            // experienced something worth being notified about).
+            // Best-effort; no-op if already granted/asked.
+            maybeAskPushPermission().catch(() => {});
             // Go to the person you just added (was dumping the user
             // on HomeTab — a different tab, no trace of who they
             // connected with). replace so back returns to the

@@ -48,6 +48,7 @@ import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase';
 import { normalizeTagName } from '../../lib/normalizeTag';
 import { addUserTagByName } from '../../lib/userTags';
 import { recordAiSuggestions, markAiSuggestionAccepted } from '../../lib/aiTagLogger';
+import { trackWizardStepCompleted } from '../../lib/analytics';
 import TagChip from '../../components/TagChip';
 import QrNameCard from '../../components/QrNameCard';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -384,6 +385,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       console.warn('[Onboarding] identity pre-save failed:', e);
       // Non-fatal — handleComplete upserts again at the end. Proceed.
     }
+    trackWizardStepCompleted('profile');
     setStep(STEP_TAGS);
   }, [displayName, username, usernameStatus]);
 
@@ -514,6 +516,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   const goToLinks = useCallback(() => {
     if (selectedTags.length < MIN_ONB_TAGS || !bio.trim()) return;
     if (!hasBirthday && !toBirthdayDate(birthday)) return;
+    trackWizardStepCompleted('tags');
     setStep(STEP_LINKS);
   }, [selectedTags.length, bio, hasBirthday, birthday]);
 
@@ -845,6 +848,9 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       } catch (err) {
         console.warn('[Onboarding] flag persist failed:', err);
       }
+      // 'links' completion = wizard completion (handleComplete only runs
+      // from step 3's finish CTA, after onboarding_completed is persisted).
+      trackWizardStepCompleted('links');
       setBurstUserName(trimmed);
       // Land on the payoff step (你的名片+QR) with the burst playing over
       // it. Leaving for Main is now an EXPLICIT user action (payoff CTA →

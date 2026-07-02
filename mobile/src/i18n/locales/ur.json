@@ -339,6 +339,8 @@
     "addPersonTitle": "لوگ شامل کریں",
     "addPersonA11y": "لوگ شامل کریں",
     "coldStartActionScanDesc": "ایک دوسرے کو اسکین کریں — 30 سیکنڈ میں کارڈ کا تبادلہ",
+    "coldStartActionCard": "ایک بزنس کارڈ اسکین کریں",
+    "coldStartActionCardDesc": "اکیلے بھی کام کرتا ہے — کارڈ کی تصویر لیں، AI رابطہ محفوظ کر دے گا",
     "coldStartActionSearch": "ٹیگ سے لوگ تلاش کریں",
     "coldStartActionSearchDesc": "#مارکیٹنگ یا #ڈیزائنر آزمائیں — دیکھیں کون آتا ہے",
     "firstFriendHint": "آس پاس کے لوگوں کے ساتھ QR اسکین کریں، یا رابطوں سے دوست شامل کریں",

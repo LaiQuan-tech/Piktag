@@ -339,6 +339,8 @@
     "addPersonTitle": "Kişi ekle",
     "addPersonA11y": "Kişi ekle",
     "coldStartActionScanDesc": "Birbirinizi tarayın — 30 saniyede kartvizit takası",
+    "coldStartActionCard": "Bir kartvizit tarayın",
+    "coldStartActionCardDesc": "Tek başına da çalışır — kartı çekin, yapay zekâ kişiyi kaydetsin",
     "coldStartActionSearch": "Etiketle insan ara",
     "coldStartActionSearchDesc": "#pazarlama ya da #tasarımcı dene — kim çıkacak bak",
     "firstFriendHint": "Yanındakilerle QR taratın ya da rehberinden arkadaş ekle",

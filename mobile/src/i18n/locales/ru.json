@@ -339,6 +339,8 @@
     "addPersonTitle": "Добавить людей",
     "addPersonA11y": "Добавить людей",
     "coldStartActionScanDesc": "Отсканируйте друг друга — обмен визитками за 30 секунд",
+    "coldStartActionCard": "Отсканируйте визитку",
+    "coldStartActionCardDesc": "Работает и в одиночку — сфотографируйте визитку, ИИ сохранит контакт",
     "coldStartActionSearch": "Искать людей по тегам",
     "coldStartActionSearchDesc": "Попробуйте #маркетинг или #дизайнер — посмотрите, кто найдётся",
     "firstFriendHint": "Отсканируйте QR с теми, кто рядом, или добавьте друзей из контактов",

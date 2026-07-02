@@ -58,6 +58,25 @@ export const trackMessageSent = () => posthog?.capture('message_sent');
 export const trackAskPosted = () => posthog?.capture('ask_posted');
 
 /**
+ * Onboarding-wizard funnel (founder 2026-06-29). One event per step
+ * COMPLETION: 'profile' | 'tags' | 'links' ('links' fires inside
+ * handleComplete — completing step 3 IS completing the wizard). Chain
+ * with signup_complete in a PostHog funnel to see per-step drop-off.
+ * Predefined trigger (see CLAUDE.md): if the tags→links step loses
+ * >30% of users, relax the ≥3-links gate to ≥1.
+ */
+export const trackWizardStepCompleted = (step: 'profile' | 'tags' | 'links') =>
+  posthog?.capture('wizard_step_completed', { step });
+
+/**
+ * Card-scan perceived latency: shutter tap → form fields visible
+ * (founder speed red line — competitors anchored users to "instant").
+ * Watch p50/p95 in PostHog; p95 is the "mistaken for a broken app" tail.
+ */
+export const trackCardScanLatency = (durationMs: number) =>
+  posthog?.capture('card_scan_latency', { duration_ms: Math.round(durationMs) });
+
+/**
  * Screen-view auto-capture. Called from the NavigationContainer state
  * listener in App.tsx so we get one event per route change. Wrapped in
  * try/catch because PostHog can throw if not yet initialized, and we

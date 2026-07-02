@@ -231,6 +231,10 @@ export default function CardCameraScreen({ navigation, route }: Props) {
       // no inline base64 encode). For OCR — which only cares about
       // legible text, not photogenic colour grading — this is the
       // right tradeoff. 2026-06-03 Path A speed pass.
+      // Timestamp the shutter moment — EditLocalContact reports
+      // (fields visible − scanCapturedAt) as card_scan_latency, the
+      // founder's perceived-speed red-line metric.
+      const scanCapturedAt = Date.now();
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.5,
         skipProcessing: true,
@@ -266,6 +270,7 @@ export default function CardCameraScreen({ navigation, route }: Props) {
         navigation.replace('EditLocalContact', {
           scanUri: finalUri,
           scanMime: 'image/jpeg',
+          scanCapturedAt,
         });
         return;
       }

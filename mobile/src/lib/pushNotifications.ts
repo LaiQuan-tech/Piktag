@@ -17,7 +17,11 @@ let handlerConfigured = false;
  * Safe to call on every session restore — wrapped in try/catch so any
  * native failure can never crash the app.
  */
-export async function registerForPushNotifications(userId: string): Promise<string | null> {
+export async function registerForPushNotifications(
+  userId: string,
+  opts: { requestPermission?: boolean } = {},
+): Promise<string | null> {
+  const { requestPermission = true } = opts;
   try {
     const Notifications = await import('expo-notifications');
     const Device = await import('expo-device');
@@ -45,6 +49,12 @@ export async function registerForPushNotifications(userId: string): Promise<stri
     let finalStatus = existingStatus;
 
     if (existingStatus !== 'granted') {
+      // Contextual-ask policy (founder 2026-06-29): the OS permission
+      // prompt must NOT fire cold at app start — the startup path passes
+      // requestPermission:false (token refresh only) and the prompt is
+      // deferred to maybeAskPushPermission() at the first meaningful
+      // moment (first friend-add success / first Notifications-tab open).
+      if (!requestPermission) return null;
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
     }
@@ -180,6 +190,40 @@ export async function clearBadge(): Promise<void> {
     await Notifications.setBadgeCountAsync(0);
   } catch {
     /* silent — badge clear is best-effort */
+  }
+}
+
+// One-shot contextual permission ask (founder 2026-06-29): fire the OS
+// push-permission prompt at the first moment the user has experienced
+// something notification-worthy (first friend-add success, first open of
+// the Notifications tab) instead of cold at app start — the cold ask is
+// the highest-refusal timing on iOS, and a refusal there is near-permanent
+// (Settings-only to undo). We only ever trigger the OS dialog once
+// (AsyncStorage flag); if permission is already granted this just makes
+// sure the token is registered.
+const PUSH_PROMPTED_KEY = 'piktag_push_prompted_v1';
+
+export async function maybeAskPushPermission(): Promise<void> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const Notifications = await import('expo-notifications');
+    const { status, canAskAgain } = await Notifications.getPermissionsAsync();
+    if (status === 'granted') {
+      // Already granted (existing installs) — refresh the token, no prompt.
+      await registerForPushNotifications(user.id, { requestPermission: false });
+      return;
+    }
+    if (!canAskAgain) return; // hard-denied at the OS level — don't nag
+
+    const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+    if (await AsyncStorage.getItem(PUSH_PROMPTED_KEY)) return;
+    await AsyncStorage.setItem(PUSH_PROMPTED_KEY, '1');
+
+    await registerForPushNotifications(user.id, { requestPermission: true });
+  } catch {
+    /* best-effort — a failed ask must never break the calling flow */
   }
 }
 

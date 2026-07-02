@@ -339,6 +339,8 @@
     "addPersonTitle": "เพิ่มคน",
     "addPersonA11y": "เพิ่มคน",
     "coldStartActionScanDesc": "สแกนกันและกัน แลกนามบัตรใน 30 วินาที",
+    "coldStartActionCard": "ลองสแกนนามบัตร",
+    "coldStartActionCardDesc": "ใช้คนเดียวได้ — ถ่ายนามบัตรแล้ว AI จัดเก็บรายชื่อให้",
     "coldStartActionSearch": "ค้นหาคนด้วยแท็ก",
     "coldStartActionSearchDesc": "ลอง #การตลาด หรือ #นักออกแบบ ดูว่าใครโผล่มา",
     "firstFriendHint": "สแกน QR กับคนรอบตัว หรือเพิ่มเพื่อนจากรายชื่อผู้ติดต่อ",

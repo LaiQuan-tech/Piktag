@@ -339,6 +339,8 @@
     "addPersonTitle": "Add people",
     "addPersonA11y": "Add people",
     "coldStartActionScanDesc": "Scan each other — swap cards in 30 seconds",
+    "coldStartActionCard": "Try scanning a business card",
+    "coldStartActionCardDesc": "Works solo — snap a card and AI files the contact for you",
     "coldStartActionSearch": "Search people by tag",
     "coldStartActionSearchDesc": "Try #marketing or #designer — see who shows up",
     "firstFriendHint": "Scan QR with people around you, or add friends from your contacts",

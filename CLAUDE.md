@@ -841,6 +841,54 @@ founder when the trigger condition lands:
   hardcoded bg colour pairs with hardcoded fg colours; a
   theme-aware bg pairs with theme-aware fg. Don't mix.
 
+## Launch UX contracts + instrumentation (founder-approved 2026-06-29)
+
+Shipped as the "UX 建議跟 Debug 建議都改" batch. These are CONTRACTS —
+don't quietly regress them:
+
+- **Push permission is CONTEXTUAL, never at launch.** Startup calls
+  `registerForPushNotifications(userId, { requestPermission: false })`
+  (token refresh only, no OS prompt). The one-shot OS ask lives in
+  `maybeAskPushPermission()` (pushNotifications.ts) and fires at the
+  first meaningful moment: first friend-add success (ScanResultScreen
+  success-alert onPress) or first Notifications-tab open. AsyncStorage
+  `piktag_push_prompted_v1` guards one-shot; `canAskAgain=false` → never
+  nag. Do NOT re-add a cold ask at startup — a cold refusal on iOS is
+  near-permanent (Settings-only to undo).
+- **Onboarding funnel events + PREDEFINED relax trigger.** PostHog
+  `wizard_step_completed` (`profile`/`tags`/`links`; `links` fires inside
+  handleComplete = wizard completion). Chain with `signup_complete` in a
+  PostHog funnel. **Founder pre-approved trigger: if the tags→links step
+  loses >30% of users in the first weeks post-launch, relax the step-3
+  gate from ≥3 links to ≥1 (or skippable) — execute, don't re-litigate.**
+  The ≥3-TAGS gate stays (it's the North Star; links are not).
+- **card_scan_latency** (PostHog) = shutter tap → fields visible.
+  CardCamera stamps `scanCapturedAt` into the EditLocalContact nav params;
+  EditLocalContact reports at applyPrefill. Watch p50/p95 — p95 is the
+  "mistaken for a broken app" number for the speed red line.
+- **Cold-start empty state leads with the CARD-SCAN row** (single-player
+  value: works alone, delivers organized-contact + AI-tags magic day one)
+  ahead of 互掃 QR (needs a second person). Keys
+  `connections.coldStartActionCard(+Desc)` ×19.
+- **Font scaling truth** (verified 2026-06-29): RN's default
+  `allowFontScaling=true` means the app ALREADY follows iOS Dynamic Type —
+  nothing in the codebase disables it. A GLOBAL `maxFontSizeMultiplier`
+  cap is NOT reliably settable on RN 0.81 + React 19 (function-component
+  defaultProps removed; Text.js reads none). Post-launch backlog:
+  per-component `maxFontSizeMultiplier` on layout-critical rows if big-font
+  breakage shows up. Don't claim "app ignores system font size" — it doesn't.
+- **RTL (ar/ur) layout is NOT implemented** (no I18nManager anywhere) —
+  those locales render translated text in LTR layout. Deliberate, NA-first;
+  revisit only if ar-market traction appears.
+- **Deep multi-agent audit cadence**: run a workflow deep-scan after every
+  MAJOR refactor (nav restructure, pipeline swap), not routinely. The
+  2026-06-29 run: 12 candidates → 7 false positives killed by adversarial
+  verify → 5 real (2 HIGH were refactor leftovers). Always adversarially
+  verify AI-reported bugs before fixing.
+- **SMOKE_TEST.md (repo root)**: the 10-minute manual loop to walk before
+  EVERY store submission. Step 6 (chat push routing) and step 9 (delete →
+  re-register resurrection) exist because those exact bugs shipped once.
+
 ## Infra & ops — admin backend, auth emails, DNS (set 2026-06-07)
 
 - **Ops/营运 data lives in the admin backend, NEVER the user app.** Founder

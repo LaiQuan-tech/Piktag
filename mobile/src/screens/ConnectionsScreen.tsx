@@ -36,6 +36,7 @@ import {
   Plus,
   Search,
   QrCode,
+  ScanLine,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS, type ColorPalette } from '../constants/theme';
@@ -934,6 +935,18 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               still OWNS the QR teaching (row 1 just routes there).
               Order conveys priority. */}
           {[
+            {
+              // 2026-06-29 (founder, cold-start single-player value): the
+              // card-scan row leads. 互掃 QR needs another person present;
+              // scanning a business card delivers the magic ALONE — a new
+              // user with zero friends gets an organized contact + AI tags
+              // on day one. Routes straight to the card camera.
+              key: 'card',
+              icon: ScanLine,
+              title: t('connections.coldStartActionCard', { defaultValue: '掃一張名片試試' }),
+              desc: t('connections.coldStartActionCardDesc', { defaultValue: '一個人也能用——拍下名片，AI 幫你整理好聯絡人' }),
+              onPress: () => navigation.navigate('CardCamera', { forNewContact: true }),
+            },
             {
               key: 'scan',
               icon: QrCode,

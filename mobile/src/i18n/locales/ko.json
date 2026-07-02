@@ -339,6 +339,8 @@
     "addPersonTitle": "사람 추가",
     "addPersonA11y": "사람 추가",
     "coldStartActionScanDesc": "서로 스캔하면 30초 만에 명함 교환",
+    "coldStartActionCard": "명함을 스캔해 보세요",
+    "coldStartActionCardDesc": "혼자서도 쓸 수 있어요 — 명함을 찍으면 AI가 연락처를 정리해 줍니다",
     "coldStartActionSearch": "태그로 사람 찾기",
     "coldStartActionSearchDesc": "예: #마케팅 #디자이너 — 누가 나오는지 보세요",
     "firstFriendHint": "주변 사람과 QR을 스캔하거나 연락처에서 친구를 추가하세요",

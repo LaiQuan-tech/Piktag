@@ -20,7 +20,7 @@ import { COLORS, SPACING, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { routeFromNotification } from '../lib/notificationRouter';
-import { refreshBadgeFromServer } from '../lib/pushNotifications';
+import { refreshBadgeFromServer, maybeAskPushPermission } from '../lib/pushNotifications';
 import { useAuth } from '../hooks/useAuth';
 import { useChatUnread } from '../hooks/useChatUnread';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
@@ -494,6 +494,13 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
+
+  // Opening the Notifications tab = the user cares about notifications —
+  // the other contextual moment (besides first friend-add) to fire the
+  // deferred one-shot OS push-permission ask. No-op if already asked.
+  useEffect(() => {
+    maybeAskPushPermission().catch(() => {});
+  }, []);
 
   // Realtime subscription for new notifications. Also keeps the app
   // icon badge fresh — when a new row lands in real-time, recompute

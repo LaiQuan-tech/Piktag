@@ -339,6 +339,8 @@
     "addPersonTitle": "Tambah orang",
     "addPersonA11y": "Tambah orang",
     "coldStartActionScanDesc": "Saling pindai — tukar kartu dalam 30 detik",
+    "coldStartActionCard": "Pindai kartu nama",
+    "coldStartActionCardDesc": "Bisa dipakai sendirian — foto kartu nama, AI merapikan kontaknya",
     "coldStartActionSearch": "Cari orang lewat tag",
     "coldStartActionSearchDesc": "Coba #marketing atau #desainer — lihat siapa yang muncul",
     "firstFriendHint": "Pindai QR dengan orang di sekitarmu, atau tambah teman dari kontak",
