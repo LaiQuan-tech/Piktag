@@ -31,7 +31,7 @@ export default function RecordCard({ icon, label, value }: Props) {
     <View style={styles.card}>
       <View style={styles.row}>
         {icon}
-        <Text style={styles.label}>{label}</Text>
+        <Text style={styles.label} numberOfLines={1}>{label}</Text>
         <Text style={styles.value}>{value}</Text>
       </View>
     </View>
@@ -54,7 +54,14 @@ function makeStyles(c: ColorPalette) {
     label: {
       fontSize: 14,
       color: c.gray500,
-      width: 70,
+      // Was a fixed width: 70, which clipped the label ("Birthday" ->
+      // "Birthda") for longer locales / large Dynamic Type. minWidth
+      // keeps the original column alignment for short labels while
+      // letting longer ones take the space they need; flexShrink +
+      // numberOfLines={1} ellipsize instead of painting outside the
+      // card. The value keeps its flex:1 slot.
+      minWidth: 70,
+      flexShrink: 1,
     },
     value: {
       flex: 1,

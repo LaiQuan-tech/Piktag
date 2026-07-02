@@ -1051,7 +1051,13 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          // Keep the last row (birthday RecordCard) clear of the iOS
+          // home indicator when fully scrolled — same insets idiom as
+          // the header / moreSheet above.
+          { paddingBottom: 100 + insets.bottom },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {/* Threads style layout */}
@@ -1284,7 +1290,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               {followLoading ? (
                 <BrandSpinner size={20} />
               ) : (
-                <Text style={styles.secondaryBtnText}>
+                <Text style={styles.secondaryBtnText} numberOfLines={1}>
                   {isFollowing
                     ? t('friendDetail.following')
                     : t('friendDetail.follow')}
@@ -1300,7 +1306,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               {messageLoading ? (
                 <BrandSpinner size={20} />
               ) : (
-                <Text style={styles.secondaryBtnText}>{t('friendDetail.sendMessage')}</Text>
+                <Text style={styles.secondaryBtnText} numberOfLines={1}>{t('friendDetail.sendMessage')}</Text>
               )}
             </TouchableOpacity>
             {isFollowing && (
@@ -1311,7 +1317,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 accessibilityRole="button"
                 accessibilityLabel={t('friendDetail.tag', { defaultValue: '標籤' })}
               >
-                <Text style={styles.primaryBtnText}>{t('friendDetail.tag', { defaultValue: '標籤' })}</Text>
+                <Text style={styles.primaryBtnText} numberOfLines={1}>{t('friendDetail.tag', { defaultValue: '標籤' })}</Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity
@@ -1952,6 +1958,11 @@ function makeStyles(c: ColorPalette) {
     // that box. Explicit textAlign keeps multi-line button labels
     // centered too.
     textAlign: 'center',
+    // Belt-and-braces with numberOfLines={1} at the call sites: a
+    // label that still can't fit (long locale + large Dynamic Type)
+    // ellipsizes inside the button instead of painting past its
+    // bounds — the founder-reported "Send Messag" clip.
+    flexShrink: 1,
   },
   // Non-CTA secondary buttons — IG-style filled gray. c.gray200 is
   // #e5e7eb in light / #363636 in dark — the latter is exactly IG's
@@ -1969,9 +1980,10 @@ function makeStyles(c: ColorPalette) {
     fontSize: 14,
     fontWeight: '600',
     color: c.gray900,
-    // See primaryBtnText — same multi-line center-align fix.
-    // "Send Message" wraps to 2 lines on this narrow button width.
+    // See primaryBtnText — same multi-line center-align fix and the
+    // same single-line ellipsis guard (numberOfLines at call sites).
     textAlign: 'center',
+    flexShrink: 1,
   },
   iconSecondaryBtn: {
     width: 44,

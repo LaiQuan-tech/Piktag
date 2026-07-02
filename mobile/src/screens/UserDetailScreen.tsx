@@ -1355,7 +1355,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 {followLoading ? (
                   <BrandSpinner size={20} />
                 ) : (
-                  <Text style={styles.secondaryBtnText}>
+                  <Text style={styles.secondaryBtnText} numberOfLines={1}>
                     {t('userDetail.following')}
                   </Text>
                 )}
@@ -1370,7 +1370,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 {followLoading ? (
                   <BrandSpinner size={20} />
                 ) : (
-                  <Text style={styles.primaryBtnText}>
+                  <Text style={styles.primaryBtnText} numberOfLines={1}>
                     {t('userDetail.follow')}
                   </Text>
                 )}
@@ -1386,7 +1386,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 {messageLoading ? (
                   <BrandSpinner size={20} />
                 ) : (
-                  <Text style={styles.secondaryBtnText}>{t('userDetail.sendMessage')}</Text>
+                  <Text style={styles.secondaryBtnText} numberOfLines={1}>{t('userDetail.sendMessage')}</Text>
                 )}
               </TouchableOpacity>
             )}
@@ -1398,7 +1398,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 accessibilityRole="button"
                 accessibilityLabel={t('userDetail.tag', { defaultValue: '標籤' })}
               >
-                <Text style={styles.tagBtnPrimaryText}>{t('userDetail.tag', { defaultValue: '標籤' })}</Text>
+                <Text style={styles.tagBtnPrimaryText} numberOfLines={1}>{t('userDetail.tag', { defaultValue: '標籤' })}</Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity
@@ -1983,6 +1983,10 @@ function makeStyles(c: ColorPalette) {
     fontSize: 14,
     fontWeight: '700',
     color: '#FFFFFF',
+    // Paired with numberOfLines={1} at the call sites: long locales /
+    // large Dynamic Type ellipsize inside the button instead of
+    // painting past its bounds (mirrors FriendDetailScreen).
+    flexShrink: 1,
   },
   // IG-style filled-gray secondary buttons (c.gray200 = #e5e7eb
   // light / #363636 dark). c.gray100 was too close to the black
@@ -2007,6 +2011,8 @@ function makeStyles(c: ColorPalette) {
     fontSize: 14,
     fontWeight: '600',
     color: c.gray900,
+    // See primaryBtnText — same single-line ellipsis guard.
+    flexShrink: 1,
   },
   // 「標籤」is the action that defines PikTag. Other action buttons
   // (follow / message / add-friend) exist in every social app; the
@@ -2025,6 +2031,8 @@ function makeStyles(c: ColorPalette) {
     fontSize: 14,
     fontWeight: '700',
     color: '#FFFFFF',
+    // See primaryBtnText — same single-line ellipsis guard.
+    flexShrink: 1,
   },
   iconSecondaryBtn: {
     width: 44,
