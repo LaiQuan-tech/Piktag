@@ -62,7 +62,12 @@ jobs:
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v2
         with:
-          version: latest
+          # Pinned (2026-07-03): `latest` resolves the release via an
+          # UNAUTHENTICATED GitHub API call, which intermittently dies with
+          # "rate limit exceeded" on shared runners and fails the whole job
+          # before anything deploys. Pinning is also better for migration
+          # reproducibility. Bump deliberately when a newer CLI is needed.
+          version: 2.108.0
 
       - name: Detect changed functions
         id: changed
@@ -167,7 +172,12 @@ jobs:
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v2
         with:
-          version: latest
+          # Pinned (2026-07-03): `latest` resolves the release via an
+          # UNAUTHENTICATED GitHub API call, which intermittently dies with
+          # "rate limit exceeded" on shared runners and fails the whole job
+          # before anything deploys. Pinning is also better for migration
+          # reproducibility. Bump deliberately when a newer CLI is needed.
+          version: 2.108.0
 
       - name: Link to project
         working-directory: mobile
