@@ -58,6 +58,10 @@ import { shouldShowPhonePrompt, dismissPhonePrompt } from '../lib/phonePrompt';
 import AskStoryRow from '../components/ask/AskStoryRow';
 import type { Connection, ConnectionTag } from '../types';
 
+// PikTag official account (fixed UUID, auto-friended at wizard completion).
+// Used to detect the "only friend is @piktag" cold-start state.
+const OFFICIAL_USER_ID = '00000000-0000-4000-a000-000000000001';
+
 type ConnectionWithTags = Connection & {
   tags: string[];
   semanticTypes: string[]; // unique semantic types from all tags
@@ -891,6 +895,75 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     dismissPhonePrompt();
   }, []);
 
+  // Shared cold-start action rows (card-scan leads — single-player value).
+  // Rendered from BOTH the true-empty state AND the ListFooter when the only
+  // connection is the auto-added @piktag. The footer is the one users
+  // actually SEE: the official auto-friend means the list is never truly
+  // empty, so a ListEmptyComponent-only placement never rendered (caught by
+  // the founder testing SMOKE step 3, 2026-06-29).
+  const coldStartActions = useCallback(() => (
+    <View style={styles.emptyActionList}>
+      {[
+        {
+          // 2026-06-29 (founder, cold-start single-player value): the
+          // card-scan row leads. 互掃 QR needs another person present;
+          // scanning a business card delivers the magic ALONE — a new
+          // user with zero friends gets an organized contact + AI tags
+          // on day one. Routes straight to the card camera.
+          key: 'card',
+          icon: ScanLine,
+          title: t('connections.coldStartActionCard', { defaultValue: '掃一張名片試試' }),
+          desc: t('connections.coldStartActionCardDesc', { defaultValue: '一個人也能用——拍下名片，AI 幫你整理好聯絡人' }),
+          onPress: () => navigation.navigate('CardCamera', { forNewContact: true }),
+        },
+        {
+          key: 'scan',
+          icon: QrCode,
+          title: t('connections.coldStartActionQr', { defaultValue: '用 QR 連上現場的人' }),
+          desc: t('connections.coldStartActionScanDesc', { defaultValue: '和現場的人互掃，30 秒交換名片' }),
+          // 2026-06-24: was navigate('AddTagTab') (the retired event-QR
+          // tab). 互掃 is the PERSONAL-QR loop — scan the other person's
+          // PikTag QR to connect. Route to the QR scanner.
+          onPress: () => navigation.navigate('CameraScan'),
+        },
+        {
+          key: 'search',
+          icon: Search,
+          title: t('connections.coldStartActionSearch', { defaultValue: '用標籤搜一個人' }),
+          desc: t('connections.coldStartActionSearchDesc', { defaultValue: '例如 #行銷 #設計師，看看誰會出現' }),
+          onPress: () => navigation.navigate('SearchTab'),
+        },
+        {
+          key: 'contacts',
+          icon: Users,
+          title: t('connections.coldStartActionContacts'),
+          desc: t('connections.coldStartActionContactsDesc'),
+          onPress: () => navigation.navigate('ContactSync'),
+        },
+      ].map((action) => (
+        <Pressable
+          key={action.key}
+          style={({ pressed }) => [
+            styles.emptyActionCard,
+            pressed && styles.emptyActionCardPressed,
+          ]}
+          onPress={action.onPress}
+        >
+          <View style={styles.emptyActionIconWrap}>
+            <action.icon size={20} color={colors.piktag500} />
+          </View>
+          <View style={styles.emptyActionTextWrap}>
+            <Text style={styles.emptyActionTitle}>{action.title}</Text>
+            <Text style={styles.emptyActionDesc} numberOfLines={2}>
+              {action.desc}
+            </Text>
+          </View>
+          <ChevronRight size={18} color={colors.gray400} />
+        </Pressable>
+      ))}
+    </View>
+  ), [styles, colors, navigation, t]);
+
   const renderEmpty = useCallback(() => {
     if (loading) return null;
     // Network failure path. Has to come BEFORE the onboarding empty
@@ -924,75 +997,11 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           {t('connections.coldStartSubtitle', { defaultValue: '從這幾步開始建立你的 PikTag' })}
         </Text>
 
-        <View style={styles.emptyActionList}>
-          {/* 2026-06-10 (founder, "測試者不知道怎麼用"): the cold-start
-              teaches the LOOP, not just the list — three action rows in
-              priority order: scan (the live mutual-add moment) → tag
-              search (the thesis) → contacts import. Deliberately NO
-              purple primary tint and NO 建議從這開始 label: the
-              2026-06-07 rule stands — the Friends tab carries no
-              banner-like card; these are plain nav rows, and the # tab
-              still OWNS the QR teaching (row 1 just routes there).
-              Order conveys priority. */}
-          {[
-            {
-              // 2026-06-29 (founder, cold-start single-player value): the
-              // card-scan row leads. 互掃 QR needs another person present;
-              // scanning a business card delivers the magic ALONE — a new
-              // user with zero friends gets an organized contact + AI tags
-              // on day one. Routes straight to the card camera.
-              key: 'card',
-              icon: ScanLine,
-              title: t('connections.coldStartActionCard', { defaultValue: '掃一張名片試試' }),
-              desc: t('connections.coldStartActionCardDesc', { defaultValue: '一個人也能用——拍下名片，AI 幫你整理好聯絡人' }),
-              onPress: () => navigation.navigate('CardCamera', { forNewContact: true }),
-            },
-            {
-              key: 'scan',
-              icon: QrCode,
-              title: t('connections.coldStartActionQr', { defaultValue: '用 QR 連上現場的人' }),
-              desc: t('connections.coldStartActionScanDesc', { defaultValue: '和現場的人互掃，30 秒交換名片' }),
-              // 2026-06-24: was navigate('AddTagTab') (the retired event-QR
-              // tab). 互掃 is the PERSONAL-QR loop — scan the other person's
-              // PikTag QR to connect. Route to the QR scanner.
-              onPress: () => navigation.navigate('CameraScan'),
-            },
-            {
-              key: 'search',
-              icon: Search,
-              title: t('connections.coldStartActionSearch', { defaultValue: '用標籤搜一個人' }),
-              desc: t('connections.coldStartActionSearchDesc', { defaultValue: '例如 #行銷 #設計師，看看誰會出現' }),
-              onPress: () => navigation.navigate('SearchTab'),
-            },
-            {
-              key: 'contacts',
-              icon: Users,
-              title: t('connections.coldStartActionContacts'),
-              desc: t('connections.coldStartActionContactsDesc'),
-              onPress: () => navigation.navigate('ContactSync'),
-            },
-          ].map((action) => (
-            <Pressable
-              key={action.key}
-              style={({ pressed }) => [
-                styles.emptyActionCard,
-                pressed && styles.emptyActionCardPressed,
-              ]}
-              onPress={action.onPress}
-            >
-              <View style={styles.emptyActionIconWrap}>
-                <action.icon size={20} color={colors.piktag500} />
-              </View>
-              <View style={styles.emptyActionTextWrap}>
-                <Text style={styles.emptyActionTitle}>{action.title}</Text>
-                <Text style={styles.emptyActionDesc} numberOfLines={2}>
-                  {action.desc}
-                </Text>
-              </View>
-              <ChevronRight size={18} color={colors.gray400} />
-            </Pressable>
-          ))}
-        </View>
+        {/* 2026-06-10 (founder, "測試者不知道怎麼用"): plain nav rows in
+            priority order, no banner-like card (2026-06-07 rule). Rows now
+            live in coldStartActions() — shared with the ListFooter, which
+            is the placement users actually see post-@piktag. */}
+        {coldStartActions()}
       </View>
     );
     // 2026-06-03 fix: added styles + colors to deps. This callback
@@ -1001,7 +1010,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     // cold-start empty state froze the cards on the launch theme
     // (the sibling listHeader already lists them — this one was
     // missed). Both are fresh objects per theme switch.
-  }, [loading, loadError, fetchConnections, t, navigation, styles, colors]);
+  }, [loading, loadError, fetchConnections, t, styles, colors, coldStartActions]);
 
   // --- Optimized: stable keyExtractor ---
   const keyExtractor = useCallback((item: ConnectionWithTags) => item.id, []);
@@ -1244,16 +1253,23 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           ListHeaderComponent={listHeader}
           ListEmptyComponent={renderEmpty}
           ListFooterComponent={
-            // One quiet line while the list holds only the auto-added
-            // official account (founder 2026-06-12: the official friend
-            // replaces the teaching cards; this hint is the only guidance
-            // left — no banner, no card).
-            !loading && connections.length === 1 ? (
-              <Text style={styles.firstFriendHint}>
-                {t('connections.firstFriendHint', {
-                  defaultValue: '跟身邊的人互掃 QR，或從通訊錄把朋友加進來',
-                })}
-              </Text>
+            // Cold-start guidance under the auto-added @piktag row
+            // (founder 2026-06-29, SMOKE step-3 catch): @piktag means the
+            // list is never truly empty, so ListEmptyComponent never
+            // renders — THIS is the real cold-start surface. Shown only
+            // while the ONLY connection is the official account; plain
+            // nav rows, no banner (2026-06-07 rule stands).
+            !loading &&
+            connections.length === 1 &&
+            connections[0]?.connected_user_id === OFFICIAL_USER_ID ? (
+              <View style={styles.emptyOnboardingContainer}>
+                <Text style={styles.firstFriendHint}>
+                  {t('connections.coldStartSubtitle', {
+                    defaultValue: '從這幾步開始建立你的 PikTag',
+                  })}
+                </Text>
+                {coldStartActions()}
+              </View>
             ) : null
           }
           initialNumToRender={10}
