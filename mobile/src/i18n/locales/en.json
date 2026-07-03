@@ -1492,6 +1492,7 @@
   },
   "eventRoom": {
     "offerBody": "You're now friends with {{name}}. Want to see who else is here? Join the list and other attendees who opted in can see you and connect.",
+    "rejoinDesc": "Join the list and attendees who opted in can see each other and connect directly.",
     "offerYes": "See the room",
     "title": "People here",
     "connect": "Connect",

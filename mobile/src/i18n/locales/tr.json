@@ -1492,6 +1492,7 @@
   },
   "eventRoom": {
     "offerBody": "Artık {{name}} ile arkadaşsınız. Burada başka kimler var görmek ister misin? Listeye katıl — onay veren katılımcılar birbirini görüp doğrudan bağlanabilir.",
+    "rejoinDesc": "Listeye katıl — onay veren katılımcılar birbirini görüp doğrudan bağlanabilir.",
     "offerYes": "Salonu gör",
     "title": "Buradakiler",
     "connect": "Bağlan",

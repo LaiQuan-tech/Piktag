@@ -25,6 +25,8 @@ import {
   Calendar,
   MapPin,
   FileText,
+  Users,
+  ChevronRight,
   Globe,
   Instagram,
   Facebook,
@@ -230,6 +232,29 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
   // Close friend + more menu state
   const [isCloseFriend, setIsCloseFriend] = useState(false);
+
+  // Event-room re-entry (UX fix 2026-07-03): the post-connect 「看看這場的人」
+  // offer was one-shot — decline it and there was no way back. This holds
+  // the scan session id when (and only when) the session row is still
+  // readable; RLS exposes is_active sessions only, so a host closing the
+  // event hides the row automatically.
+  const [eventSessionId, setEventSessionId] = useState<string | null>(null);
+
+  const handleOpenEventRoom = useCallback(async () => {
+    if (!eventSessionId) return;
+    try {
+      // Tapping IS the visibility opt-in — the row's desc line states that
+      // other attendees will see you (labeled consent, same contract as the
+      // post-connect offer). Membership is validated server-side.
+      await supabase.rpc('set_event_visibility', {
+        p_session_id: eventSessionId,
+        p_visible: true,
+      });
+      navigation.navigate('EventAttendees', { sessionId: eventSessionId });
+    } catch (e) {
+      console.warn('[FriendDetail] event room open failed:', e);
+    }
+  }, [eventSessionId, navigation]);
   const [moreMenuVisible, setMoreMenuVisible] = useState(false);
 
   // Mutual tags detail modal
@@ -423,12 +448,14 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         phase2.push(
           Promise.resolve(supabase
             .from('piktag_scan_sessions')
-            .select('event_tags')
+            .select('id, event_tags')
             .eq('id', connData.scan_session_id)
             .maybeSingle()
           ).then(({ data }) => {
             if (data?.event_tags)
               dispatchFriendData({ type: 'SET_SCAN_EVENT_TAGS', scanEventTags: data.event_tags });
+            // Row readable = session still active (RLS) → room re-entry shows.
+            if ((data as any)?.id) setEventSessionId(String((data as any).id));
           }),
         );
       }
@@ -1221,6 +1248,29 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                   </TouchableOpacity>
                 )}
               </View>
+              {/* Room re-entry (方向三 UX fix): durable way back into 這場的人
+                  — the post-connect offer alone was one-shot. Sits with the
+                  event tags because that's the "we met at X" context. */}
+              {eventSessionId && (
+                <TouchableOpacity
+                  style={styles.eventRoomRow}
+                  activeOpacity={0.7}
+                  onPress={handleOpenEventRoom}
+                >
+                  <Users size={15} color={colors.piktag600} />
+                  <View style={styles.eventRoomTextWrap}>
+                    <Text style={styles.eventRoomTitle}>
+                      {t('eventRoom.offerYes', { defaultValue: '看看這場的人' })}
+                    </Text>
+                    <Text style={styles.eventRoomDesc} numberOfLines={2}>
+                      {t('eventRoom.rejoinDesc', {
+                        defaultValue: '加入名單後，這場已同意的參加者能互相看到、直接加好友。',
+                      })}
+                    </Text>
+                  </View>
+                  <ChevronRight size={16} color={colors.gray400} />
+                </TouchableOpacity>
+              )}
             </View>
           )}
 
@@ -1867,6 +1917,34 @@ function makeStyles(c: ColorPalette) {
   // not who they are."
   eventTagsSection: {
     marginBottom: 14,
+  },
+  // Room re-entry row under the event tags (方向三 UX fix 2026-07-03).
+  eventRoomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: c.piktag200,
+    backgroundColor: c.piktag50,
+  },
+  eventRoomTextWrap: {
+    flex: 1,
+    minWidth: 0,
+    gap: 1,
+  },
+  eventRoomTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: c.piktag600,
+  },
+  eventRoomDesc: {
+    fontSize: 11,
+    color: c.gray500,
+    lineHeight: 15,
   },
   eventTagsTitleRow: {
     flexDirection: 'row',

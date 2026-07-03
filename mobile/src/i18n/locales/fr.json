@@ -1492,6 +1492,7 @@
   },
   "eventRoom": {
     "offerBody": "Vous êtes maintenant ami avec {{name}}. Envie de voir qui d'autre est là ? Rejoignez la liste — les participants ayant accepté se voient et peuvent se connecter directement.",
+    "rejoinDesc": "Rejoignez la liste — les participants ayant accepté se voient et peuvent se connecter directement.",
     "offerYes": "Voir la salle",
     "title": "Les gens ici",
     "connect": "Se connecter",

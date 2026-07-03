@@ -1492,6 +1492,7 @@
   },
   "eventRoom": {
     "offerBody": "Bạn đã là bạn bè với {{name}}. Xem thử còn ai ở đây nữa? Tham gia danh sách — những người tham dự đã đồng ý có thể thấy nhau và kết bạn ngay.",
+    "rejoinDesc": "Tham gia danh sách — những người tham dự đã đồng ý có thể thấy nhau và kết bạn ngay.",
     "offerYes": "Xem mọi người",
     "title": "Mọi người ở đây",
     "connect": "Kết bạn",

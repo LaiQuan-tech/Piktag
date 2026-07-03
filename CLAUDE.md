@@ -1191,6 +1191,12 @@ and only organizers ever would). The rework, shipped pre-launch:
   (ignoreDuplicates — never clobbers existing met_at), session event tags +
   date/loc as private tags on both rows, auto-follow, PostHog friend_added
   source='event_room'. A 20-person room = 190 potential edges, not 19.
+  **Re-entry (UX fix, same day):** the post-connect offer is one-shot, so
+  FriendDetailScreen renders a 「看看這場的人」 row under the friend's
+  event-tags section whenever the connection's scan_session_id row is
+  still readable (RLS exposes is_active sessions only → host closing the
+  event hides the row). Tapping IS the labeled visibility opt-in (desc
+  line states others will see you) → set_event_visibility → EventAttendees.
 - **Revisit triggers:** % of new connections carrying event-context tags,
   searches hitting event tags, friend_added source='event_room' volume.
 

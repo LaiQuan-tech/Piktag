@@ -1492,6 +1492,7 @@
   },
   "eventRoom": {
     "offerBody": "Kamu sekarang berteman dengan {{name}}. Mau lihat siapa lagi yang ada di sini? Gabung ke daftar — peserta yang setuju bisa saling melihat dan langsung terhubung.",
+    "rejoinDesc": "Gabung ke daftar — peserta yang setuju bisa saling melihat dan langsung terhubung.",
     "offerYes": "Lihat ruangan",
     "title": "Orang di sini",
     "connect": "Terhubung",

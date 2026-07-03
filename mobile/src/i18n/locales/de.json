@@ -1492,6 +1492,7 @@
   },
   "eventRoom": {
     "offerBody": "Du bist jetzt mit {{name}} befreundet. Willst du sehen, wer noch hier ist? Tritt der Liste bei — Teilnehmende, die zugestimmt haben, sehen einander und können sich direkt verbinden.",
+    "rejoinDesc": "Tritt der Liste bei — Teilnehmende, die zugestimmt haben, sehen einander und können sich direkt verbinden.",
     "offerYes": "Raum ansehen",
     "title": "Leute hier",
     "connect": "Verbinden",
