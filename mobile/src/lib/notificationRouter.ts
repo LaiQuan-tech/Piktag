@@ -142,14 +142,37 @@ export async function routeFromNotification(
 
   // reconnect_suggest — "Eva 也標了 #X #Y — 你們很久沒聊了".
   // The whole magic moment is the "wait, I forgot we had this in
-  // common" jolt + the friction-free path to actually message
-  // them. data.friend_id points to the forgotten friend; route
-  // straight to their FriendDetail (or fall through to the
-  // userId-based branch below, which also handles unknown-
-  // connection-id resolution).
+  // common" jolt + the friction-free path to actually message them.
+  // 2026-07-03 (founder: 喚醒沉睡人脈): route STRAIGHT into the
+  // conversation with icebreakers armed — the old FriendDetail landing
+  // added two decisions (find the 訊息 button, then face a blank box)
+  // between the jolt and the message. Same get_or_create_conversation
+  // RPC FriendDetail's own message CTA uses; ChatThread self-hydrates
+  // the header from just a conversationId (the chat-push path already
+  // relies on that). On any failure, fall through to the profile.
   if (type === 'reconnect_suggest' && typeof data.friend_id === 'string') {
-    // Let the generic user-id branch below handle the resolve
-    // — it knows how to look up connection_id and pick
+    try {
+      const { data: conv, error } = await supabase.rpc('get_or_create_conversation', {
+        other_user_id: data.friend_id,
+      });
+      if (!error && conv) {
+        const conversationId =
+          typeof conv === 'string'
+            ? conv
+            : (conv as any)?.id ?? (conv as any)?.conversation_id ?? conv;
+        navigation.navigate('ChatThread', {
+          conversationId,
+          otherUserId: data.friend_id,
+          // Force the icebreaker suggestions regardless of the thread's
+          // own dormancy math — the nudge IS the dormancy signal.
+          suggestIcebreakers: true,
+        });
+        return;
+      }
+    } catch {
+      /* fall through to the profile route below */
+    }
+    // Fallback: let the generic user-id branch below resolve
     // FriendDetail vs UserDetail. We just hint userId via data.
     data.connected_user_id = data.friend_id;
   }

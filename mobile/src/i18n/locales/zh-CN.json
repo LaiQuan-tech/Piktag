@@ -307,6 +307,7 @@
     "sortByAlphabet": "字母 A→Z",
     "sortByAlphabetDesc": "字母 Z→A",
     "sortByInteraction": "最近互动",
+    "sortByDormant": "最久没联系",
     "sortByBirthday": "最近生日",
     "addContact": "添加联系人",
     "addContactTitle": "添加联系人",

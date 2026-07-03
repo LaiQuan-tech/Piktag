@@ -307,6 +307,7 @@
     "sortByAlphabet": "Alphabetical (A→Z)",
     "sortByAlphabetDesc": "Alphabetical (Z→A)",
     "sortByInteraction": "Recent interaction",
+    "sortByDormant": "Out of touch longest",
     "sortByBirthday": "Upcoming birthday",
     "phonePromptTitle": "Add your phone so friends can find you",
     "phonePromptBody": "Friends syncing their contacts will be auto-connected. Used only by PikTag, never made public.",

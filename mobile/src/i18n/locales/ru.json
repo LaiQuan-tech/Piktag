@@ -306,6 +306,7 @@
     "sortByAlphabet": "По алфавиту (A→Z)",
     "sortByAlphabetDesc": "По алфавиту (Z→A)",
     "sortByInteraction": "Недавнее взаимодействие",
+    "sortByDormant": "Дольше всего без связи",
     "sortByBirthday": "Скоро день рождения",
     "addContact": "Добавить контакт",
     "addContactTitle": "Добавить контакт",

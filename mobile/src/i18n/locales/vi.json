@@ -307,6 +307,7 @@
     "sortByAlphabet": "Theo bảng chữ cái (A→Z)",
     "sortByAlphabetDesc": "Theo bảng chữ cái (Z→A)",
     "sortByInteraction": "Tương tác gần đây",
+    "sortByDormant": "Lâu chưa liên lạc nhất",
     "sortByBirthday": "Sinh nhật sắp tới",
     "phonePromptTitle": "Thêm số điện thoại để bạn bè tìm ra bạn",
     "phonePromptBody": "Bạn bè đồng bộ danh bạ sẽ tự kết nối với bạn. Chỉ PikTag dùng, không bao giờ công khai.",

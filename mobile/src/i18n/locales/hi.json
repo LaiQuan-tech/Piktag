@@ -306,6 +306,7 @@
     "sortByAlphabet": "वर्णक्रम (A→Z)",
     "sortByAlphabetDesc": "वर्णक्रम (Z→A)",
     "sortByInteraction": "हाल का संवाद",
+    "sortByDormant": "सबसे लंबे समय से संपर्क नहीं",
     "sortByBirthday": "आने वाले जन्मदिन",
     "addContact": "संपर्क जोड़ें",
     "addContactTitle": "एक संपर्क जोड़ें",

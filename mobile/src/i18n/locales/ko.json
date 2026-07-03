@@ -306,6 +306,7 @@
     "sortByAlphabet": "가나다순 (A→Z)",
     "sortByAlphabetDesc": "가나다순 (Z→A)",
     "sortByInteraction": "최근 활동순",
+    "sortByDormant": "오래 연락 안 한 순",
     "sortByBirthday": "생일 임박순",
     "addContact": "연락처 추가",
     "addContactTitle": "연락처 추가하기",

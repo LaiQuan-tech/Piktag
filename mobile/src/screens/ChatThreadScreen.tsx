@@ -177,15 +177,21 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
 
     // Trigger conditions:
     //   - empty conversation (truly new), OR
-    //   - dormant: most recent message > 90 days ago
+    //   - dormant: most recent message > 60 days ago (aligned 2026-07-03
+    //     with enqueue_reconnect_notifications' 60-day tier — the old 90
+    //     here meant a 60-89-day nudge landed in a thread that showed no
+    //     icebreakers), OR
+    //   - forced via route param (the reconnect nudge deep-link — the
+    //     nudge itself IS the dormancy signal).
+    const forced = (route.params as any)?.suggestIcebreakers === true;
     const lastMsg = messages.length > 0 ? messages[messages.length - 1] : null;
     const lastMsgAge = lastMsg?.created_at
       ? (Date.now() - new Date(lastMsg.created_at).getTime()) / (1000 * 60 * 60 * 24)
       : Infinity;
     const isEmpty = messages.length === 0;
-    const isDormant = lastMsgAge >= 90;
+    const isDormant = lastMsgAge >= 60;
 
-    if (!(isEmpty || isDormant)) return;
+    if (!(isEmpty || isDormant || forced)) return;
 
     icebreakerTriggeredRef.current = true;
     setIcebreakerLoading(true);

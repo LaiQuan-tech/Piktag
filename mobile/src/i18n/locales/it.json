@@ -307,6 +307,7 @@
     "sortByAlphabet": "Alfabetico (A→Z)",
     "sortByAlphabetDesc": "Alfabetico (Z→A)",
     "sortByInteraction": "Interazione recente",
+    "sortByDormant": "Da più tempo senza contatti",
     "sortByBirthday": "Compleanno in arrivo",
     "phonePromptTitle": "Aggiungi il telefono, così gli amici ti trovano",
     "phonePromptBody": "Gli amici che sincronizzano i contatti si collegano da soli a te. Lo usa solo PikTag, mai pubblico.",

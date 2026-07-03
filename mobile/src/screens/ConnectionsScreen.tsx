@@ -308,8 +308,11 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
 
   // Sort options. 'recent' = newest connection first (default), 'alphabet'
   // = nickname/full_name A→Z, 'interaction' = piktag_connections.updated_at
-  // newest first as a proxy for "you touched this connection lately".
-  type SortMode = 'recent' | 'alphabet' | 'alphabet_desc' | 'interaction' | 'birthday';
+  // newest first as a proxy for "you touched this connection lately",
+  // 'dormant' = the same proxy ASCENDING — the pull-driven reactivation
+  // surface (founder 2026-07-03 喚醒沉睡人脈): browse who you've been out
+  // of touch with the longest, without waiting for the weekly nudge.
+  type SortMode = 'recent' | 'alphabet' | 'alphabet_desc' | 'interaction' | 'dormant' | 'birthday';
   const [sortMode, setSortMode] = useState<SortMode>('recent');
   const [sortModalVisible, setSortModalVisible] = useState(false);
 
@@ -609,6 +612,12 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       sorted.sort((a, b) => displayName(b).localeCompare(displayName(a), undefined, { sensitivity: 'base' }));
     } else if (sortMode === 'interaction') {
       sorted.sort((a, b) => recencyTs(b) - recencyTs(a));
+    } else if (sortMode === 'dormant') {
+      // Longest-silent first. @piktag sinks to the bottom — the bot is
+      // never a reactivation candidate (counting-surface rule #4).
+      const dormantTs = (c: ConnectionWithTags) =>
+        c.connected_user_id === OFFICIAL_USER_ID ? Number.MAX_SAFE_INTEGER : recencyTs(c);
+      sorted.sort((a, b) => dormantTs(a) - dormantTs(b));
     } else if (sortMode === 'birthday') {
       sorted.sort((a, b) => daysUntilBirthday(a) - daysUntilBirthday(b));
     } else {
@@ -1316,6 +1325,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               [
                 { key: 'recent', label: t('connections.sortByRecent', { defaultValue: '最近加為好友' }) },
                 { key: 'interaction', label: t('connections.sortByInteraction', { defaultValue: '最近互動' }) },
+                { key: 'dormant', label: t('connections.sortByDormant', { defaultValue: '最久沒聯絡' }) },
                 { key: 'birthday', label: t('connections.sortByBirthday', { defaultValue: '最近生日' }) },
                 { key: 'alphabet', label: t('connections.sortByAlphabet', { defaultValue: '字母 A→Z' }) },
                 { key: 'alphabet_desc', label: t('connections.sortByAlphabetDesc', { defaultValue: '字母 Z→A' }) },

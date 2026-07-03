@@ -306,6 +306,7 @@
     "sortByAlphabet": "ตัวอักษร (A→Z)",
     "sortByAlphabetDesc": "ตัวอักษร (Z→A)",
     "sortByInteraction": "การโต้ตอบล่าสุด",
+    "sortByDormant": "ไม่ได้ติดต่อนานที่สุด",
     "sortByBirthday": "วันเกิดที่ใกล้จะถึง",
     "addContact": "เพิ่มผู้ติดต่อ",
     "addContactTitle": "เพิ่มผู้ติดต่อ",

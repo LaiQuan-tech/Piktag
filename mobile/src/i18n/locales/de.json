@@ -307,6 +307,7 @@
     "sortByAlphabet": "Alphabetisch (A→Z)",
     "sortByAlphabetDesc": "Alphabetisch (Z→A)",
     "sortByInteraction": "Letzte Interaktion",
+    "sortByDormant": "Am längsten kein Kontakt",
     "sortByBirthday": "Anstehender Geburtstag",
     "addContact": "Kontakt hinzufügen",
     "addContactTitle": "Einen Kontakt hinzufügen",
