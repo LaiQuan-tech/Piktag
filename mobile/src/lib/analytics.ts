@@ -47,8 +47,9 @@ export const trackLoginComplete = (props: { method: 'apple' | 'google' | 'email'
 export const trackQrScanned = (props: { type: 'invite' | 'profile' | 'unknown' }) =>
   posthog?.capture('qr_scanned', props);
 
-/** User successfully added a friend connection. */
-export const trackFriendAdded = (props: { source: 'qr' | 'search' | 'contact' | 'invite' }) =>
+/** User successfully added a friend connection. 'event_room' = the
+ *  attendee↔attendee connect from the 這場的人 list (方向三). */
+export const trackFriendAdded = (props: { source: 'qr' | 'search' | 'contact' | 'invite' | 'event_room' }) =>
   posthog?.capture('friend_added', props);
 
 /** User sent a chat message. */

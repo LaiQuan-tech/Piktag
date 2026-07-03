@@ -4,13 +4,14 @@ import {
   Text,
   Modal,
   TouchableOpacity,
+  TextInput,
   StyleSheet,
   Alert,
   StatusBar,
   Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Share2, Copy, ScanLine, QrCode as QrCodeIcon } from 'lucide-react-native';
+import { X, Share2, Copy, ScanLine, QrCode as QrCodeIcon, Plus } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { setStringAsync } from 'expo-clipboard';
 import { useTranslation } from 'react-i18next';
@@ -19,6 +20,8 @@ import { useNavigation } from '@react-navigation/native';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { buildProfileUrl, shareProfile } from '../lib/shareProfile';
+import { supabase } from '../lib/supabase';
+import { normalizeTagName } from '../lib/normalizeTag';
 import QrModalStinger from './stingers/QrModalStinger';
 import QrShareBody from './QrShareBody';
 
@@ -82,6 +85,85 @@ export default function QrCodeModal({
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const reArmRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ── 方向二: event context on the PERSONAL QR (founder 2026-07-03) ──
+  // "加上活動情境": for the next 8 hours, anyone who connects via this
+  // QR gets the context applied as a private tag on both rows (applied
+  // by UserDetailScreen.applyQrContextTags — this sheet only sets the
+  // profile fields). Like an IG-story location sticker: a temporary
+  // MODE of the one QR users already know, not a second artifact.
+  const CTX_HOURS = 8;
+  const [ctxLoaded, setCtxLoaded] = useState(false);
+  const [ctxActive, setCtxActive] = useState<{ name: string; until: string } | null>(null);
+  const [ctxEditing, setCtxEditing] = useState(false);
+  const [ctxInput, setCtxInput] = useState('');
+  const [ctxBusy, setCtxBusy] = useState(false);
+
+  useEffect(() => {
+    if (!visible) return;
+    void (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data } = await supabase
+          .from('piktag_profiles')
+          .select('qr_context_name, qr_context_expires_at')
+          .eq('id', user.id)
+          .maybeSingle();
+        const name = String((data as any)?.qr_context_name ?? '').trim();
+        const exp = (data as any)?.qr_context_expires_at as string | null;
+        setCtxActive(name && exp && new Date(exp).getTime() > Date.now() ? { name, until: exp } : null);
+      } catch {
+        /* strip stays hidden on failure */
+      } finally {
+        setCtxLoaded(true);
+      }
+    })();
+  }, [visible]);
+
+  const handleCtxEnable = async () => {
+    const name = normalizeTagName(ctxInput);
+    if (!name || ctxBusy) return;
+    setCtxBusy(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const until = new Date(Date.now() + CTX_HOURS * 3600 * 1000).toISOString();
+      await supabase
+        .from('piktag_profiles')
+        .update({ qr_context_name: name, qr_context_expires_at: until })
+        .eq('id', user.id);
+      setCtxActive({ name, until });
+      setCtxEditing(false);
+      setCtxInput('');
+    } catch {
+      /* best-effort */
+    } finally {
+      setCtxBusy(false);
+    }
+  };
+
+  const handleCtxDisable = async () => {
+    if (ctxBusy) return;
+    setCtxBusy(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      await supabase
+        .from('piktag_profiles')
+        .update({ qr_context_name: null, qr_context_expires_at: null })
+        .eq('id', user.id);
+      setCtxActive(null);
+    } catch {
+      /* best-effort */
+    } finally {
+      setCtxBusy(false);
+    }
+  };
+
+  const ctxUntilLabel = ctxActive
+    ? new Date(ctxActive.until).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : '';
 
   useEffect(() => {
     if (!visible) {
@@ -241,6 +323,65 @@ export default function QrCodeModal({
             </TouchableOpacity>
           </View>
 
+          {/* 方向二 strip: event context on the personal QR. Fixed colours
+              on the always-vivid brand gradient (hardcoded bg pairs with
+              hardcoded fg — the dark-mode rule). */}
+          {!isScanMode && ctxLoaded ? (
+            <View style={styles.ctxWrap}>
+              {ctxActive ? (
+                <View style={styles.ctxActiveRow}>
+                  <Text style={styles.ctxActiveText} numberOfLines={1}>
+                    {t('qrContext.active', {
+                      name: ctxActive.name,
+                      time: ctxUntilLabel,
+                      defaultValue: '#{{name}} 生效中 · 至 {{time}}',
+                    })}
+                  </Text>
+                  <TouchableOpacity onPress={handleCtxDisable} disabled={ctxBusy} activeOpacity={0.7}>
+                    <Text style={styles.ctxOffText}>
+                      {t('qrContext.off', { defaultValue: '關閉' })}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : ctxEditing ? (
+                <View style={styles.ctxEditRow}>
+                  <TextInput
+                    style={styles.ctxInput}
+                    value={ctxInput}
+                    onChangeText={setCtxInput}
+                    placeholder={t('qrContext.placeholder', { defaultValue: '例：台北設計聚' })}
+                    placeholderTextColor="rgba(17,24,39,0.4)"
+                    autoFocus
+                    maxLength={40}
+                    returnKeyType="done"
+                    onSubmitEditing={handleCtxEnable}
+                  />
+                  <TouchableOpacity
+                    style={styles.ctxSetBtn}
+                    onPress={handleCtxEnable}
+                    disabled={ctxBusy}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.ctxSetText}>
+                      {t('qrContext.set', { defaultValue: '開啟 8 小時' })}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={styles.ctxAddBtn}
+                  onPress={() => setCtxEditing(true)}
+                  activeOpacity={0.8}
+                >
+                  <Plus size={14} color="#FFFFFF" />
+                  <Text style={styles.ctxAddText}>
+                    {t('qrContext.add', { defaultValue: '加上活動情境' })}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ) : null}
+
           {/* Show mode = the SHARED QrShareBody (card + bottom action
               pills). Scan mode keeps its own inline scaffolding because
               it needs the scanner inside cardWrap and a spacer in the
@@ -361,6 +502,71 @@ function makeStyles(c: ColorPalette) {
       padding: 8,
     },
     // ── Centre wrap — mirrors AddTagScreen.qrCardWrap ──
+    // 方向二 context strip — fixed colours on the brand gradient.
+    ctxWrap: {
+      paddingHorizontal: 24,
+      marginTop: 2,
+      marginBottom: 8,
+    },
+    ctxAddBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      alignSelf: 'center',
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 999,
+      backgroundColor: 'rgba(255,255,255,0.22)',
+    },
+    ctxAddText: {
+      color: '#FFFFFF',
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    ctxEditRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    ctxInput: {
+      flex: 1,
+      backgroundColor: '#FFFFFF',
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 9,
+      fontSize: 14,
+      color: '#111827',
+    },
+    ctxSetBtn: {
+      backgroundColor: 'rgba(255,255,255,0.22)',
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 9,
+    },
+    ctxSetText: {
+      color: '#FFFFFF',
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    ctxActiveRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 10,
+    },
+    ctxActiveText: {
+      color: '#FFFFFF',
+      fontSize: 13,
+      fontWeight: '600',
+      flexShrink: 1,
+    },
+    ctxOffText: {
+      color: 'rgba(255,255,255,0.85)',
+      fontSize: 13,
+      fontWeight: '700',
+      textDecorationLine: 'underline',
+    },
     cardWrap: {
       flex: 1,
       alignItems: 'center',

@@ -494,6 +494,52 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   // We intentionally do NOT early-return when connectionId already
   // exists (the pre-existing behavior). If the user scanned a new event
   // QR for someone they already know, we still want this event's
+  // 方向二 (founder 2026-07-03): if the SCANNED person has an ACTIVE event
+  // context on their personal QR ("加上活動情境" on the QR sheet), stamp it
+  // on BOTH connection rows as a private tag — the same shape event tags
+  // use. Gated to QR/link-origin visits (username/sid param present), so
+  // organic in-app adds never pick it up; expiry is enforced by reading
+  // qr_context_expires_at at apply time, so a stale context tags no one.
+  // Self-contained (looks up both connection rows itself) so the sid flow
+  // AND the plain personal-QR flow can both call it with no arguments.
+  const applyQrContextTags = useCallback(async () => {
+    if (!paramUsername && !paramSid) return;
+    if (!authUser || !resolvedUserId) return;
+    try {
+      const { data: ctx } = await supabase
+        .from('piktag_profiles')
+        .select('qr_context_name, qr_context_expires_at')
+        .eq('id', resolvedUserId)
+        .maybeSingle();
+      const name = String((ctx as any)?.qr_context_name ?? '').trim();
+      const exp = (ctx as any)?.qr_context_expires_at;
+      if (!name || !exp || new Date(exp).getTime() <= Date.now()) return;
+
+      const [{ data: fwd }, { data: rev }] = await Promise.all([
+        supabase
+          .from('piktag_connections')
+          .select('id')
+          .eq('user_id', authUser.id)
+          .eq('connected_user_id', resolvedUserId)
+          .maybeSingle(),
+        supabase
+          .from('piktag_connections')
+          .select('id')
+          .eq('user_id', resolvedUserId)
+          .eq('connected_user_id', authUser.id)
+          .maybeSingle(),
+      ]);
+      const ids = [(fwd as any)?.id, (rev as any)?.id].filter(
+        (x): x is string => typeof x === 'string' && x.length > 0,
+      );
+      if (ids.length === 0) return;
+      const tagIds = await ensureTagIdsByName([name]);
+      await attachTagsToConnections(ids, tagIds);
+    } catch {
+      /* best-effort — context tagging must never break the add itself */
+    }
+  }, [paramUsername, paramSid, authUser, resolvedUserId, ensureTagIdsByName, attachTagsToConnections]);
+
   // context tagged onto the existing connection. The upsert calls below
   // make this safe to run against an existing row without clobbering
   // the original met_at/note metadata.
@@ -619,6 +665,11 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         await attachTagsToConnections([reverseConnId], tagIds);
       }
 
+      // 方向二: the host's personal-QR event context (if active) lands on
+      // BOTH rows — occasion facts belong to both sides, unlike the
+      // Vibe's descriptive tags above (reverse-only by design).
+      await applyQrContextTags();
+
       // Increment scan count (server-side RPC, best-effort)
       await supabase.rpc('increment_scan_count', { session_id: paramSid });
 
@@ -644,10 +695,46 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         console.warn('[UserDetail] auto-follow on QR scan failed:', followErr);
       }
 
-      Alert.alert(
-        t('scanResult.alertSuccessTitle'),
-        t('scanResult.alertSuccessMessage', { name: profile?.full_name || '' }),
-      );
+      // 方向三 (founder 2026-07-03): connecting via a REAL event session =
+      // the moment to offer the room. Opt-in is explicit (privacy): the
+      // button both registers visibility (set_event_visibility validates
+      // membership server-side) and opens the attendee list. Declining
+      // changes nothing — the plain success alert semantics stay.
+      const realSession = !!paramSid && !String(paramSid).startsWith('local_');
+      if (realSession) {
+        Alert.alert(
+          t('scanResult.alertSuccessTitle'),
+          t('eventRoom.offerBody', {
+            name: profile?.full_name || '',
+            defaultValue:
+              '已和 {{name}} 成為好友。也看看這場的其他人？加入名單後，這場已同意的參加者能互相看到、直接加好友。',
+          }),
+          [
+            { text: t('batchTag.skip', { defaultValue: '先不用' }), style: 'cancel' },
+            {
+              text: t('eventRoom.offerYes', { defaultValue: '看看這場的人' }),
+              onPress: () => {
+                void (async () => {
+                  try {
+                    await supabase.rpc('set_event_visibility', {
+                      p_session_id: paramSid,
+                      p_visible: true,
+                    });
+                    navigation.navigate('EventAttendees', { sessionId: paramSid });
+                  } catch (e) {
+                    console.warn('[UserDetail] event-room opt-in failed:', e);
+                  }
+                })();
+              },
+            },
+          ],
+        );
+      } else {
+        Alert.alert(
+          t('scanResult.alertSuccessTitle'),
+          t('scanResult.alertSuccessMessage', { name: profile?.full_name || '' }),
+        );
+      }
     } catch (err) {
       console.error('Error adding friend from QR:', err);
       Alert.alert(t('common.error'), t('scanResult.alertAddFriendError'));
@@ -662,6 +749,8 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     resolveEventData,
     ensureTagIdsByName,
     attachTagsToConnections,
+    applyQrContextTags,
+    navigation,
   ]);
 
   // Track which (paramSid, connectionId) pairs we've already backfilled
@@ -1092,6 +1181,11 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         if (connId && connId !== connectionId) {
           setConnectionId(connId);
         }
+
+        // 方向二: plain personal-QR adds (no sid) also pick up the scanned
+        // person's active event context. No-op for organic (search) visits
+        // — the helper gates on the QR/link-origin params.
+        void applyQrContextTags();
 
         // Show Pick Tag modal if friend has public tags
         const ftags = await fetchFriendPublicTags();

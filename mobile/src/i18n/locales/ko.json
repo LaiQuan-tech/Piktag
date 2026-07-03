@@ -1483,6 +1483,21 @@
     "save": "모두 태그하기",
     "skip": "나중에"
   },
+  "qrContext": {
+    "add": "이벤트 컨텍스트 추가",
+    "placeholder": "예: 서울 디자인 밋업",
+    "set": "8시간 켜기",
+    "active": "#{{name}} 활성 · {{time}}까지",
+    "off": "끄기"
+  },
+  "eventRoom": {
+    "offerBody": "{{name}} 님과 친구가 되었습니다. 이 행사의 다른 참가자도 볼까요? 목록에 참여하면 동의한 참가자끼리 서로 보고 바로 친구를 맺을 수 있습니다.",
+    "offerYes": "참가자 보기",
+    "title": "이 행사의 사람들",
+    "connect": "친구 추가",
+    "connected": "친구",
+    "empty": "아직 목록에 참여한 사람이 없어요 — 잠시 후 다시 확인해 보세요."
+  },
   "localContact": {
     "aiSuggestLabel": "AI 추천 태그 (탭하여 추가)",
     "aiSuggestLoading": "태그 추천 중…",

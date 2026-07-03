@@ -1165,12 +1165,34 @@ and only organizers ever would). The rework, shipped pre-launch:
   for the whole room, everyone auto-tagged, searchable months later") —
   the old name-blanking copy described the PERSONAL QR (wrong feature on
   that screen). Keys qrGroup.emptyTitle/emptyDesc/createFirst ×19.
-- **Post-launch directions (founder-endorsed, NOT built):** 方向二 = event
-  context as a temporary MODE of the personal QR (toggle on the QR sheet,
-  auto-expires); 方向三 = event QR connects attendees to EACH OTHER
-  (opt-in room graph — biggest friend-add multiplier; needs privacy/RLS +
-  ranking-checklist compliance). Revisit triggers: % of new connections
-  carrying event-context tags, searches hitting event tags.
+- **方向二 (SHIPPED 2026-07-03): event context as a temporary MODE of the
+  personal QR.** The personal-QR sheet (QrCodeModal, gradient — the strip
+  uses FIXED colours per the dark-mode rule) gains 「加上活動情境」: name +
+  8h window written to `piktag_profiles.qr_context_name/qr_context_expires_at`
+  (migration 20260703000000). NO URL change — printed QRs and the web scan
+  path pick it up automatically. Application lives in UserDetailScreen's
+  `applyQrContextTags()` (self-contained; called from BOTH the sid flow and
+  the plain personal-QR followUser flow): if the SCANNED person's context is
+  active at connect time, the name lands as a private connection tag on BOTH
+  rows. Gated to QR/link-origin visits (username/sid param) — organic search
+  adds never pick it up. Expiry enforced at read time; no cron.
+- **方向三 (SHIPPED 2026-07-03): the event QR connects the ROOM.**
+  After connecting via a REAL (non-local_) scan session, UserDetail's
+  success alert offers 「看看這場的人」— explicit privacy OPT-IN: the button
+  calls `set_event_visibility` (SECURITY DEFINER; validates REAL membership
+  — your own connection row carries the scan_session_id, or you're host)
+  then opens **EventAttendeesScreen** (RootStack). The list comes ONLY from
+  the `event_attendees` RPC which enforces: reciprocity (must be visible to
+  see the room), checklist #4 (is_official excluded), checklist #3 (viewer's
+  dismissals on ANY surface respected — NOTE: piktag_match_dismissals.surface
+  has a CHECK constraint; ALTER it to add 'event_attendees' before wiring a
+  dismiss gesture here). `piktag_event_visibility` is deny-all RLS (RPC-only).
+  Room connect reuses established shapes: both connection rows
+  (ignoreDuplicates — never clobbers existing met_at), session event tags +
+  date/loc as private tags on both rows, auto-follow, PostHog friend_added
+  source='event_room'. A 20-person room = 190 potential edges, not 19.
+- **Revisit triggers:** % of new connections carrying event-context tags,
+  searches hitting event tags, friend_added source='event_room' volume.
 
 ## Network graph replaced the invite-lineage Tribe (2026-06-25)
 

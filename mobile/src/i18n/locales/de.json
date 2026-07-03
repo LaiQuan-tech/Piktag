@@ -1483,6 +1483,21 @@
     "save": "Alle taggen",
     "skip": "Jetzt nicht"
   },
+  "qrContext": {
+    "add": "Event-Kontext hinzufügen",
+    "placeholder": "z. B. Berlin Design Meetup",
+    "set": "8 Std. aktiv",
+    "active": "#{{name}} aktiv · bis {{time}}",
+    "off": "Aus"
+  },
+  "eventRoom": {
+    "offerBody": "Du bist jetzt mit {{name}} befreundet. Willst du sehen, wer noch hier ist? Tritt der Liste bei — Teilnehmende, die zugestimmt haben, sehen einander und können sich direkt verbinden.",
+    "offerYes": "Raum ansehen",
+    "title": "Leute hier",
+    "connect": "Verbinden",
+    "connected": "Befreundet",
+    "empty": "Noch niemand auf der Liste — schau später wieder vorbei."
+  },
   "localContact": {
     "aiSuggestLabel": "KI-Tag-Vorschläge (zum Hinzufügen tippen)",
     "aiSuggestLoading": "Tag-Vorschläge werden gesucht…",

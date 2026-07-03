@@ -1483,6 +1483,21 @@
     "save": "全部加上标签",
     "skip": "先不用"
   },
+  "qrContext": {
+    "add": "加上活动情境",
+    "placeholder": "例：上海设计聚",
+    "set": "开启 8 小时",
+    "active": "#{{name}} 生效中 · 至 {{time}}",
+    "off": "关闭"
+  },
+  "eventRoom": {
+    "offerBody": "已和 {{name}} 成为好友。也看看这场的其他人？加入名单后，这场已同意的参加者能互相看到、直接加好友。",
+    "offerYes": "看看这场的人",
+    "title": "这场的人",
+    "connect": "加好友",
+    "connected": "已是好友",
+    "empty": "还没有其他人加入名单 — 晚点再回来看看。"
+  },
   "localContact": {
     "aiSuggestLabel": "AI 推荐标签（点选加入）",
     "aiSuggestLoading": "AI 正在推荐标签…",

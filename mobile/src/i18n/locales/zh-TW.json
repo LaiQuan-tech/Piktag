@@ -1483,6 +1483,21 @@
     "save": "全部加上標籤",
     "skip": "先不用"
   },
+  "qrContext": {
+    "add": "加上活動情境",
+    "placeholder": "例：台北設計聚",
+    "set": "開啟 8 小時",
+    "active": "#{{name}} 生效中 · 至 {{time}}",
+    "off": "關閉"
+  },
+  "eventRoom": {
+    "offerBody": "已和 {{name}} 成為好友。也看看這場的其他人？加入名單後，這場已同意的參加者能互相看到、直接加好友。",
+    "offerYes": "看看這場的人",
+    "title": "這場的人",
+    "connect": "加好友",
+    "connected": "已是好友",
+    "empty": "還沒有其他人加入名單 — 晚點再回來看看。"
+  },
   "localContact": {
     "aiSuggestLabel": "AI 推薦標籤（點選加入）",
     "aiSuggestLoading": "AI 想推薦標籤中…",

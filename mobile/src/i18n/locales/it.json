@@ -1483,6 +1483,21 @@
     "save": "Tagga tutti",
     "skip": "Non ora"
   },
+  "qrContext": {
+    "add": "Aggiungi contesto evento",
+    "placeholder": "es.: Meetup design Milano",
+    "set": "Attivo per 8 ore",
+    "active": "#{{name}} attivo · fino alle {{time}}",
+    "off": "Disattiva"
+  },
+  "eventRoom": {
+    "offerBody": "Ora sei amico di {{name}}. Vuoi vedere chi altro c'è? Unisciti alla lista: i partecipanti che hanno accettato si vedono e possono collegarsi subito.",
+    "offerYes": "Vedi la sala",
+    "title": "Persone qui",
+    "connect": "Collegati",
+    "connected": "Amici",
+    "empty": "Nessun altro si è ancora unito alla lista — riprova tra poco."
+  },
   "localContact": {
     "aiSuggestLabel": "Tag suggeriti dall’IA (tocca per aggiungere)",
     "aiSuggestLoading": "Ricerca tag in corso…",

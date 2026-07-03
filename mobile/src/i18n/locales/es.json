@@ -1483,6 +1483,21 @@
     "save": "Etiquetar a todos",
     "skip": "Ahora no"
   },
+  "qrContext": {
+    "add": "Añadir contexto de evento",
+    "placeholder": "p. ej., Meetup de diseño de Madrid",
+    "set": "Activo 8 h",
+    "active": "#{{name}} activo · hasta las {{time}}",
+    "off": "Desactivar"
+  },
+  "eventRoom": {
+    "offerBody": "Ya eres amigo de {{name}}. ¿Quieres ver quién más está aquí? Únete a la lista: los asistentes que aceptaron pueden verse y conectar directamente.",
+    "offerYes": "Ver la sala",
+    "title": "Gente aquí",
+    "connect": "Conectar",
+    "connected": "Amigos",
+    "empty": "Nadie más se ha unido a la lista todavía; vuelve en un rato."
+  },
   "localContact": {
     "aiSuggestLabel": "Etiquetas sugeridas por IA (toca para añadir)",
     "aiSuggestLoading": "Buscando etiquetas…",

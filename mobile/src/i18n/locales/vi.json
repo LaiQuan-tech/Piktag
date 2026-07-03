@@ -1483,6 +1483,21 @@
     "save": "Gắn thẻ tất cả",
     "skip": "Để sau"
   },
+  "qrContext": {
+    "add": "Thêm ngữ cảnh sự kiện",
+    "placeholder": "VD: Design Meetup Sài Gòn",
+    "set": "Bật 8 giờ",
+    "active": "#{{name}} đang bật · đến {{time}}",
+    "off": "Tắt"
+  },
+  "eventRoom": {
+    "offerBody": "Bạn đã là bạn bè với {{name}}. Xem thử còn ai ở đây nữa? Tham gia danh sách — những người tham dự đã đồng ý có thể thấy nhau và kết bạn ngay.",
+    "offerYes": "Xem mọi người",
+    "title": "Mọi người ở đây",
+    "connect": "Kết bạn",
+    "connected": "Bạn bè",
+    "empty": "Chưa có ai khác tham gia danh sách — quay lại sau nhé."
+  },
   "localContact": {
     "aiSuggestLabel": "Thẻ do AI gợi ý (chạm để thêm)",
     "aiSuggestLoading": "Đang tìm thẻ gợi ý…",

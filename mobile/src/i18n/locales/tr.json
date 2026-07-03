@@ -1483,6 +1483,21 @@
     "save": "Hepsini etiketle",
     "skip": "Şimdi değil"
   },
+  "qrContext": {
+    "add": "Etkinlik bağlamı ekle",
+    "placeholder": "örn. İstanbul Tasarım Buluşması",
+    "set": "8 saat açık",
+    "active": "#{{name}} etkin · {{time}}'e kadar",
+    "off": "Kapat"
+  },
+  "eventRoom": {
+    "offerBody": "Artık {{name}} ile arkadaşsınız. Burada başka kimler var görmek ister misin? Listeye katıl — onay veren katılımcılar birbirini görüp doğrudan bağlanabilir.",
+    "offerYes": "Salonu gör",
+    "title": "Buradakiler",
+    "connect": "Bağlan",
+    "connected": "Arkadaş",
+    "empty": "Henüz listeye katılan yok — biraz sonra tekrar bak."
+  },
   "localContact": {
     "aiSuggestLabel": "AI önerilen etiketler (eklemek için dokun)",
     "aiSuggestLoading": "Etiketler öneriliyor…",

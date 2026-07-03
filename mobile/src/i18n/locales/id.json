@@ -1483,6 +1483,21 @@
     "save": "Tag semuanya",
     "skip": "Nanti saja"
   },
+  "qrContext": {
+    "add": "Tambah konteks acara",
+    "placeholder": "mis. Meetup Desain Jakarta",
+    "set": "Aktif 8 jam",
+    "active": "#{{name}} aktif · sampai {{time}}",
+    "off": "Matikan"
+  },
+  "eventRoom": {
+    "offerBody": "Kamu sekarang berteman dengan {{name}}. Mau lihat siapa lagi yang ada di sini? Gabung ke daftar — peserta yang setuju bisa saling melihat dan langsung terhubung.",
+    "offerYes": "Lihat ruangan",
+    "title": "Orang di sini",
+    "connect": "Terhubung",
+    "connected": "Berteman",
+    "empty": "Belum ada orang lain di daftar — cek lagi nanti."
+  },
   "localContact": {
     "aiSuggestLabel": "Tag saran AI (ketuk untuk menambah)",
     "aiSuggestLoading": "Mencari saran tag…",

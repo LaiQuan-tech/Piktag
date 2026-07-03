@@ -365,6 +365,13 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
           name="BatchTag"
           getComponent={() => require('../screens/BatchTagScreen').default}
         />
+        {/* Event room list (event-tag rework 方向三, 2026-07-03): opted-in
+            attendees of a scan session see each other + one-tap connect.
+            Reached from UserDetail's post-connect offer. */}
+        <RootStack.Screen
+          name="EventAttendees"
+          getComponent={() => require('../screens/EventAttendeesScreen').default}
+        />
         <RootStack.Screen
           name="PrivacyPolicy"
           getComponent={() => require('../screens/legal/PrivacyPolicyScreen').default}

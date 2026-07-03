@@ -1483,6 +1483,21 @@
     "save": "Tag them all",
     "skip": "Not now"
   },
+  "qrContext": {
+    "add": "Add event context",
+    "placeholder": "e.g. SF Design Meetup",
+    "set": "On for 8 hours",
+    "active": "#{{name}} active · until {{time}}",
+    "off": "Turn off"
+  },
+  "eventRoom": {
+    "offerBody": "You're now friends with {{name}}. Want to see who else is here? Join the list and other attendees who opted in can see you and connect.",
+    "offerYes": "See the room",
+    "title": "People here",
+    "connect": "Connect",
+    "connected": "Friends",
+    "empty": "No one else has joined the list yet — check back in a bit."
+  },
   "localContact": {
     "aiSuggestLabel": "AI suggested tags (tap to add)",
     "aiSuggestLoading": "Finding tag suggestions…",
