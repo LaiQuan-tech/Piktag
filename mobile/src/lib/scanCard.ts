@@ -58,7 +58,70 @@ export type ScanCardInput = {
    *  encode for the multimodal fallback consume it. */
   uri: string;
   mimeType: string;
+  /** 2026-07-04 speed pass: fires the moment on-device OCR text is in
+   *  hand (BEFORE the network structuring call) with regex-extracted
+   *  phone/email/website, so the caller can paint those fields
+   *  instantly. Gemini's structured result arrives 1-2s later and is
+   *  allowed to overwrite these quick values (caller's contract).
+   *  Only fires on the OCR fast path; the multimodal fallback has no
+   *  early text to mine. Never throws into the scan flow. */
+  onQuickFields?: (quick: QuickFields) => void;
 };
+
+export type QuickFields = { phone?: string; email?: string; website?: string };
+
+/**
+ * Regex-mine the unambiguous contact fields out of raw OCR text.
+ * Deliberately conservative: first plausible match per field, dates
+ * rejected as phone candidates. Gemini remains the authority — these
+ * exist so SOMETHING useful is on screen ~1-2s before it answers.
+ */
+export function extractQuickFields(text: string): QuickFields {
+  const out: QuickFields = {};
+  const EMAIL_RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
+  const emailMatch = text.match(EMAIL_RE);
+  if (emailMatch) out.email = emailMatch[0];
+
+  // Strip emails first so their domains can't masquerade as websites.
+  const withoutEmails = text.replace(new RegExp(EMAIL_RE.source, 'g'), ' ');
+  const site =
+    withoutEmails.match(/https?:\/\/[^\s]+|www\.[A-Za-z0-9-]+(?:\.[A-Za-z]{2,})+[^\s]*/i) ||
+    withoutEmails.match(
+      /\b[A-Za-z0-9-]{2,}(?:\.[A-Za-z0-9-]+)*\.(?:com|net|org|io|co|ai|app|dev|me|tw|jp|kr|cn|hk|sg|de|fr|uk|us|ca|au|info|biz|tech|xyz|store|shop)\b(?:\/[^\s]*)?/i,
+    );
+  if (site) out.website = site[0].replace(/[),.;:]+$/, '');
+
+  // Phone: first digit-run with 8-15 digits; date-shaped strings
+  // ("2026.06.03" would otherwise pass the 8-digit bar) are rejected.
+  const candidates = withoutEmails.match(/\+?\d[\d\s().\-]{6,}\d/g) ?? [];
+  for (const c of candidates) {
+    const trimmed = c.trim();
+    if (/^\d{4}[./-]\d{1,2}[./-]\d{1,2}$/.test(trimmed)) continue;
+    const digits = trimmed.replace(/\D/g, '');
+    if (digits.length >= 8 && digits.length <= 15) {
+      out.phone = trimmed;
+      break;
+    }
+  }
+  return out;
+}
+
+// ── Edge-fn prewarm (2026-07-04 speed pass) ─────────────────────────
+// scan-business-card answers `{ warmup: true }` immediately, above its
+// JWT guard (the pg_cron pinger uses the same door). Firing one ping
+// when the card camera OPENS means the Deno isolate is hot by the time
+// the user has framed the card — the cron keeps it warm in general,
+// but this closes the gap between cron ticks. Throttled so repeated
+// camera opens don't spam; fire-and-forget, never blocks anything.
+let lastWarmAt = 0;
+export function prewarmScanBusinessCard(): void {
+  const now = Date.now();
+  if (now - lastWarmAt < 60_000) return;
+  lastWarmAt = now;
+  void supabase.functions
+    .invoke('scan-business-card', { body: { warmup: true } })
+    .catch(() => {});
+}
 
 export type ScanCardResult = {
   /** Mirrors supabase.functions.invoke's `data` — the edge fn body
@@ -163,6 +226,19 @@ export async function scanCard(input: ScanCardInput): Promise<ScanCardResult> {
   if (OCR_ENABLED) {
     const text = await tryOcr(uri);
     if (text && text.length >= MIN_OCR_CHARS) {
+      // Instant fields: hand the caller regex-mined phone/email/website
+      // NOW, before paying network latency. Guarded so a callback bug
+      // can never break the scan itself.
+      if (input.onQuickFields) {
+        try {
+          const quick = extractQuickFields(text);
+          if (quick.phone || quick.email || quick.website) {
+            input.onQuickFields(quick);
+          }
+        } catch {
+          /* quick fields are best-effort */
+        }
+      }
       try {
         const { data, error } = await supabase.functions.invoke(
           'scan-business-card',

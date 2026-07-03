@@ -516,8 +516,45 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       // { data, error } shape as the raw invoke, so everything below
       // is unchanged. 2026-06-03 speed pass: uri-only input — base64
       // is lazy-encoded inside scanCard only when the fallback fires.
+      //
+      // Instant-field protocol (2026-07-04 speed pass): onQuickFields
+      // fires with regex-mined phone/email/website the moment OCR text
+      // exists — BEFORE the network structuring round-trip — so those
+      // fields paint ~1-2s ahead of Gemini. quickApplied remembers
+      // exactly what the quick pass wrote so applyPrefill below can let
+      // Gemini's authoritative values REPLACE them, while never touching
+      // a value the USER edited in the meantime.
+      const quickApplied = { phone: '', email: '', website: '' };
       const { data, error } = await Promise.race([
-        scanCard({ uri, mimeType }),
+        scanCard({
+          uri,
+          mimeType,
+          onQuickFields: (quick) => {
+            if (quick.email) {
+              setEmail((cur) => {
+                if (cur.trim()) return cur;
+                quickApplied.email = quick.email as string;
+                return quickApplied.email;
+              });
+            }
+            if (quick.website) {
+              setWebsite((cur) => {
+                if (cur.trim()) return cur;
+                quickApplied.website = quick.website as string;
+                return quickApplied.website;
+              });
+            }
+            if (quick.phone) {
+              const scanned = splitTelUrl(quick.phone);
+              setPhoneNational((cur) => {
+                if (cur.trim()) return cur;
+                if (scanned.country) setPhoneCountry(scanned.country);
+                quickApplied.phone = scanned.national.replace(/\D/g, '');
+                return quickApplied.phone;
+              });
+            }
+          },
+        }),
         new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('SCAN_TIMEOUT')), SCAN_TIMEOUT_MS),
         ),
@@ -586,14 +623,18 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
         if (cardPhone) {
           const scanned = splitTelUrl(cardPhone);
           setPhoneNational((cur) => {
-            if (cur.trim()) return cur;
+            // Gemini overwrites the quick-regex value (it picks the right
+            // number when a card lists several) but never one the user
+            // typed — "user edited" shows as cur differing from what the
+            // quick pass wrote.
+            if (cur.trim() && cur !== quickApplied.phone) return cur;
             if (scanned.country) setPhoneCountry(scanned.country);
             return scanned.national.replace(/\D/g, '');
           });
         }
-        if (cardEmail) setEmail((cur) => (cur.trim() ? cur : cardEmail));
+        if (cardEmail) setEmail((cur) => (cur.trim() && cur !== quickApplied.email ? cur : cardEmail));
         if (cardAddress) setAddress((cur) => (cur.trim() ? cur : cardAddress));
-        if (cardWebsite) setWebsite((cur) => (cur.trim() ? cur : cardWebsite));
+        if (cardWebsite) setWebsite((cur) => (cur.trim() && cur !== quickApplied.website ? cur : cardWebsite));
         // Job title + company → the member-aligned 職稱 field.
         if (cardHeadline) setHeadline((cur) => (cur.trim() ? cur : cardHeadline));
         // Recognition is on screen NOW → fire AI tag recs ASYNC. Off the

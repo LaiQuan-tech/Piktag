@@ -17,6 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
+import { prewarmScanBusinessCard } from '../lib/scanCard';
 import QrNameCard from '../components/QrNameCard';
 import ScanSuccessStinger from '../components/stingers/ScanSuccessStinger';
 
@@ -87,6 +88,9 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
   const [myQr, setMyQr] = useState<{ username: string; name: string; tags: string[] } | null>(null);
 
   useEffect(() => {
+    // 2026-07-04 speed pass: warm the scan-business-card isolate as soon
+    // as the unified scanner opens — the 拍名片 path pays no cold start.
+    prewarmScanBusinessCard();
     return () => {
       if (scanTimeoutRef.current) clearTimeout(scanTimeoutRef.current);
     };
@@ -177,12 +181,17 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
       // A single, framed shot — quality over the throwaway 0.5 we used for
       // detection (this is the real image scanCard will OCR). One shutter
       // click here is normal/expected, unlike the killed auto-loop.
+      const scanCapturedAt = Date.now(); // shutter moment for card_scan_latency
       const photo = await cameraRef.current.takePictureAsync({ quality: 0.6 });
       if (photo?.uri) {
         // Replace the camera with the prefill form (Back from the form →
         // wherever the scanner was opened from). EditLocalContact runs the
         // full, unchanged scanCard pipeline on mount.
-        navigation.replace('EditLocalContact', { scanUri: photo.uri, scanMime: 'image/jpeg' });
+        navigation.replace('EditLocalContact', {
+          scanUri: photo.uri,
+          scanMime: 'image/jpeg',
+          scanCapturedAt,
+        });
         return; // screen is unmounting; leave locked
       }
       // Capture returned nothing — re-arm so the user can retry.

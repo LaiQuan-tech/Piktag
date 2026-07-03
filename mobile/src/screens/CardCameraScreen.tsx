@@ -27,7 +27,7 @@
 //                               itself. Create-contact flow uses it
 //                               to also pop the form → back to 好友頁.
 
-import React, { useCallback, useRef, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -45,6 +45,7 @@ import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react-native';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
+import { prewarmScanBusinessCard } from '../lib/scanCard';
 
 type Props = { navigation: any; route: any };
 
@@ -174,6 +175,15 @@ export default function CardCameraScreen({ navigation, route }: Props) {
   // Synchronous re-entrancy guard: a fast double-tap on the shutter
   // can fire two takePictureAsync before `capturing` state flushes.
   const busyRef = useRef(false);
+
+  // 2026-07-04 speed pass: warm the scan-business-card Deno isolate the
+  // moment the camera opens — by the time the user has framed the card
+  // (countdown ~3s), the structuring endpoint is hot, cutting the
+  // cold-start tail out of card_scan_latency p95. Throttled + fire-and-
+  // forget inside the helper; costs nothing on the render path.
+  useEffect(() => {
+    prewarmScanBusinessCard();
+  }, []);
 
   // Signature changed 2026-06-03 (Path A speed pass): we now pass
   // ONLY the captured frame's file uri. The base64 used to be sent
