@@ -1200,6 +1200,55 @@ and only organizers ever would). The rework, shipped pre-launch:
 - **Revisit triggers:** % of new connections carrying event-context tags,
   searches hitting event tags, friend_added source='event_room' volume.
 
+## Reactivation/connection backlog — founder-approved list (2026-07-04)
+
+Post-audit of both North-Star loops (激活舊關係 + 連結新關係). Verified
+COMPLETE and not to rebuild: main search covers all three memory tiers
+(member public tags / friends' private connection tags / local contacts);
+promote-on-registration fires the generic friend notification; reconnect
+cron→chat, dormant sort, on_this_day, room list + re-entry all live.
+Founder approved ALL FIVE below as worth doing (2026-07-04):
+
+1. **Contact-import batch bucketing** (biggest gap — the loops' intersection):
+   after ContactSync import, a "quick sort" step — multi-select imported
+   contacts → one-tap #同事/#大學同學/#家人/#客戶. Local-contact variant of
+   BatchTagScreen. Untagged local contacts are unsearchable dead data.
+   **FREE tier by design — see the paid-boundary decision below.**
+2. **Dedicated "your saved contact joined" notification** (post-launch):
+   upgrade the generic friend notification fired by promote_local_contacts
+   to a dedicated type telling the owner "X you saved 3 months ago joined —
+   auto-connected, your tags survived". 4-point checklist + 19 locales.
+3. **寄聯絡資料 follow-up state** (small): "已寄出" status on
+   LocalContactDetail; allow re-send after 7 days un-joined.
+4. **Chat-thread context line** (small): thread header shows "met 2026/3 ·
+   #台北讀書會" — lowers the reopen cost visually (icebreakers already do
+   the wording).
+5. **Dormant boost in own-network search ranking** (post-launch,
+   data-gated): weight long-no-contact friends up when searching own
+   network. Do NOT hand-tune pre-data — wait for piktag_search_impressions
+   volume per the deferred-tuning doctrine.
+
+**Paid batch-tagging boundary (founder plan, next version):** friend-facing
+batch tagging will be a PAID feature. Decision to prevent cannibalization
+AND protect the tag engine: **free = system-initiated cohorts** (the burst
+prompt's auto-cohort at events; the import batch at ContactSync — moments
+that BUILD tag data; paywalling data creation would starve the North-Star
+engine at cold start), **paid = user-initiated arbitrary selection**
+(anytime multi-select of ANY friends, multi-tag apply/remove, bulk manage).
+Never add a free "pick any friends" batch entry — that IS the paid line.
+BatchTagScreen stays the single shared UI for all tiers.
+
+**Card-scan speed backlog (2026-07-04):** current pipeline has NO edge-fn
+prewarm (cold start lands in p95) and NO device-side instant fields. Next
+speed levers in cost order: (a) prewarm ping to scan-business-card when
+CardCamera mounts; (b) regex-extract phone/email/website from on-device
+OCR text and fill those fields INSTANTLY, Gemini fills name/company/title
+in the second wave (respect applyPrefill no-overwrite guards); (c) start
+OCR in CardCamera right after capture (overlap with navigation/mount);
+(d) react-native-vision-camera live-frame OCR = the endgame, big native
+change (already documented in the unified-scanner section). Measure with
+card_scan_latency p50/p95 before/after each lever.
+
 ## Network graph replaced the invite-lineage Tribe (2026-06-25)
 
 Founder: the old "Tribe" (TribeConstellation + `get_tribe_lineage`/
