@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import { maybeAskPushPermission } from '../lib/pushNotifications';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -494,6 +495,25 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   // We intentionally do NOT early-return when connectionId already
   // exists (the pre-existing behavior). If the user scanned a new event
   // QR for someone they already know, we still want this event's
+  // Burst batch-tag offer (see lib/burstTag.ts). Wired HERE because the
+  // URL-format QR — i.e. every QR the app currently generates — lands on
+  // THIS screen; ScanResultScreen only serves the legacy base64 payload,
+  // so a hook that lived only there never fired for live scans (debug
+  // catch 2026-07-03). One-shot per burst; lazy import keeps the common
+  // path free.
+  const maybeOfferBurstTag = useCallback(async () => {
+    try {
+      const { detectRecentBurst, markBurstOffered } = await import('../lib/burstTag');
+      const burst = authUser?.id ? await detectRecentBurst(authUser.id) : null;
+      if (burst) {
+        void markBurstOffered(burst);
+        navigation.navigate('BatchTag', { people: burst });
+      }
+    } catch {
+      /* best-effort */
+    }
+  }, [authUser?.id, navigation]);
+
   // 方向二 (founder 2026-07-03): if the SCANNED person has an ACTIVE event
   // context on their personal QR ("加上活動情境" on the QR sheet), stamp it
   // on BOTH connection rows as a private tag — the same shape event tags
@@ -695,11 +715,18 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         console.warn('[UserDetail] auto-follow on QR scan failed:', followErr);
       }
 
+      // First friend-add success = the contextual moment for the deferred
+      // one-shot OS push-permission ask (wired here because THIS is the
+      // live QR-connect path; ScanResult's copy only serves legacy QRs).
+      maybeAskPushPermission().catch(() => {});
+
       // 方向三 (founder 2026-07-03): connecting via a REAL event session =
       // the moment to offer the room. Opt-in is explicit (privacy): the
       // button both registers visibility (set_event_visibility validates
       // membership server-side) and opens the attendee list. Declining
-      // changes nothing — the plain success alert semantics stay.
+      // changes nothing — the plain success alert semantics stay. The
+      // burst prompt is deliberately SKIPPED on this branch (the room +
+      // session tags already cover the batch value; two prompts stack).
       const realSession = !!paramSid && !String(paramSid).startsWith('local_');
       if (realSession) {
         Alert.alert(
@@ -733,6 +760,15 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         Alert.alert(
           t('scanResult.alertSuccessTitle'),
           t('scanResult.alertSuccessMessage', { name: profile?.full_name || '' }),
+          [
+            {
+              text: t('common.confirm', { defaultValue: '確認' }),
+              // Burst check rides the dismiss: several adds within the
+              // hour → offer to tag the batch (BatchTag; back returns
+              // here — no `next` param needed on this path).
+              onPress: () => { void maybeOfferBurstTag(); },
+            },
+          ],
         );
       }
     } catch (err) {
@@ -750,6 +786,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     ensureTagIdsByName,
     attachTagsToConnections,
     applyQrContextTags,
+    maybeOfferBurstTag,
     navigation,
   ]);
 
@@ -1186,6 +1223,12 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         // person's active event context. No-op for organic (search) visits
         // — the helper gates on the QR/link-origin params.
         void applyQrContextTags();
+
+        // Contextual push ask + burst check on the plain add path too —
+        // a first friend-add via search deserves the same one-shot ask,
+        // and a burst is a burst regardless of how the adds happened.
+        maybeAskPushPermission().catch(() => {});
+        void maybeOfferBurstTag();
 
         // Show Pick Tag modal if friend has public tags
         const ftags = await fetchFriendPublicTags();
