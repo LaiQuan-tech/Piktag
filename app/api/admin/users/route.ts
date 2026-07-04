@@ -63,7 +63,19 @@ export async function GET(req: Request): Promise<Response> {
     // Escape % and _ which are ILIKE wildcards; also escape commas which
     // break .or() filter syntax.
     const safe = q.replace(/[%_,]/g, (c) => `\\${c}`);
-    query = query.or(`username.ilike.%${safe}%,full_name.ilike.%${safe}%`);
+    if (q.includes('@')) {
+      // Email search (2026-07-04): email lives in auth.users, not
+      // piktag_profiles, so resolve matching ids server-side and filter
+      // by them. Falls through to a guaranteed-empty result when the
+      // email matches nobody, rather than silently matching on username.
+      const { data: idRows } = await supabase.rpc('admin_search_user_ids_by_email', {
+        p_query: q,
+      });
+      const ids = ((idRows ?? []) as Array<{ id: string }>).map((r) => r.id);
+      query = query.in('id', ids.length > 0 ? ids : ['00000000-0000-0000-0000-000000000000']);
+    } else {
+      query = query.or(`username.ilike.%${safe}%,full_name.ilike.%${safe}%`);
+    }
   }
   if (isActiveParam === 'true' || isActiveParam === 'false') {
     query = query.eq('is_active', isActiveParam === 'true');

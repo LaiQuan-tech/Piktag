@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Tag, Link2, Users } from 'lucide-react';
+import { Tag, Link2, Users, Pin } from 'lucide-react';
 import { createAdminClient } from '@/lib/supabase-admin';
 import type { AdminUserDetail } from '@/lib/admin-types';
 import UserActionsBar from '@/components/admin/UserActionsBar';
@@ -82,18 +82,27 @@ async function loadUserDetail(id: string): Promise<AdminUserDetail | null> {
     tagsList,
     biolinksList,
     recentConnections,
-    recentPoints,
   ] = await Promise.all([
     supabase.from('piktag_connections').select('id', { count: 'exact', head: true }).eq('user_id', id),
-    supabase.from('piktag_tags').select('id', { count: 'exact', head: true }).eq('user_id', id),
+    // piktag_tags is the tag DICTIONARY (no user_id column) — the
+    // user↔tag mapping lives in piktag_user_tags. The old query here
+    // silently 400'd and rendered 標籤數 0 for EVERY user (founder
+    // caught it 2026-07-03).
+    supabase.from('piktag_user_tags').select('id', { count: 'exact', head: true }).eq('user_id', id),
     supabase.from('piktag_biolinks').select('id', { count: 'exact', head: true }).eq('user_id', id),
-    supabase.from('piktag_scan_sessions').select('id', { count: 'exact', head: true }).eq('user_id', id),
+    // piktag_scan_sessions is keyed by host_user_id (the QR-group host),
+    // not user_id — the old .eq('user_id') 42703'd → 掃描次數 always 0.
+    supabase.from('piktag_scan_sessions').select('id', { count: 'exact', head: true }).eq('host_user_id', id),
     supabase.from('piktag_reports').select('id', { count: 'exact', head: true }).eq('reporter_id', id),
     supabase.from('piktag_reports').select('id', { count: 'exact', head: true }).eq('reported_id', id),
-    supabase.from('piktag_tags').select('id, name, is_pinned').eq('user_id', id).order('is_pinned', { ascending: false }).limit(50),
+    supabase.from('piktag_user_tags').select('id, is_pinned, is_private, tag:piktag_tags(name)').eq('user_id', id).order('is_pinned', { ascending: false }).limit(50),
     supabase.from('piktag_biolinks').select('id, platform, url, label, visibility').eq('user_id', id).limit(50),
     supabase.from('piktag_connections').select('id, connected_user_id, nickname, met_at, created_at').eq('user_id', id).order('created_at', { ascending: false }).limit(10),
-    supabase.from('piktag_points_ledger').select('id, delta, balance_after, reason, created_at').eq('user_id', id).order('created_at', { ascending: false }).limit(10),
+    // (piktag_points_ledger query removed 2026-07-04 — the table was
+    // DROPped with the invite-code/points retirement in 20260513120000
+    // and never rebuilt; the query 42P01'd every page load. The whole
+    // Points section is gone until/unless the tag-auction v3 revives a
+    // ledger.)
   ]);
 
   const detail: AdminUserDetail = {
@@ -120,10 +129,16 @@ async function loadUserDetail(id: string): Promise<AdminUserDetail | null> {
     scan_sessions_count: scanSessionsCount.count ?? 0,
     reports_filed: reportsFiled.count ?? 0,
     reports_received: reportsReceived.count ?? 0,
-    tags: (tagsList.data ?? []) as AdminUserDetail['tags'],
+    // Flatten the piktag_user_tags→piktag_tags join back to the
+    // {id,name,is_pinned} shape the type/renderer expects.
+    tags: (tagsList.data ?? []).map((r: any) => ({
+      id: r.id,
+      name: r.tag?.name ?? '',
+      is_pinned: !!r.is_pinned,
+    })) as AdminUserDetail['tags'],
     biolinks: (biolinksList.data ?? []) as AdminUserDetail['biolinks'],
     recent_connections: (recentConnections.data ?? []) as AdminUserDetail['recent_connections'],
-    recent_points: (recentPoints.data ?? []) as AdminUserDetail['recent_points'],
+    recent_points: [],
   };
 
   return detail;
@@ -244,7 +259,7 @@ export default async function UserDetailPage({
                     : 'bg-slate-50 border-slate-200 text-slate-700')
                 }
               >
-                {t.is_pinned && <span className="mr-1">📌</span>}
+                {t.is_pinned && <Pin className="w-3 h-3 mr-1" />}
                 {t.name}
               </span>
             ))}
@@ -297,34 +312,6 @@ export default async function UserDetailPage({
                 </div>
                 <span className="text-xs text-slate-500 whitespace-nowrap">
                   {relativeTime(c.created_at)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Section>
-
-      <Section title="Points 紀錄">
-        {user.recent_points.length === 0 ? (
-          <EmptyRow>尚無 Points 紀錄</EmptyRow>
-        ) : (
-          <ul className="divide-y divide-slate-100">
-            {user.recent_points.map((p) => (
-              <li key={p.id} className="py-2.5 flex items-center justify-between gap-4">
-                <div className="min-w-0">
-                  <div className="text-sm text-slate-900">{p.reason}</div>
-                  <div className="text-xs text-slate-500">
-                    {relativeTime(p.created_at)} · 餘額 {p.balance_after}
-                  </div>
-                </div>
-                <span
-                  className={
-                    'text-sm font-semibold tabular-nums ' +
-                    (p.delta >= 0 ? 'text-emerald-600' : 'text-rose-600')
-                  }
-                >
-                  {p.delta >= 0 ? '+' : ''}
-                  {p.delta}
                 </span>
               </li>
             ))}

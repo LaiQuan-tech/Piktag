@@ -88,11 +88,14 @@ export default async function AdminDashboardPage() {
     .from('piktag_profiles')
     .select('id', { count: 'exact', head: true });
 
-  // 2. 本週活躍用戶 (distinct user_id from api usage log, last 7d)
+  // 2. 本週活躍用戶 (distinct user_id from api usage log, last 7d).
+  // The column is `created_at`, NOT `timestamp` — the old name 42703'd,
+  // nulled the data, and pinned this KPI at 0 (the /analytics page uses
+  // created_at and was correct; the two pages disagreed). 2026-07-04.
   const activeUsersRes = await supabase
     .from('piktag_api_usage_log')
     .select('user_id')
-    .gte('timestamp', sevenDaysAgo);
+    .gte('created_at', sevenDaysAgo);
 
   // 3. 本週新增註冊
   const newUsersRes = await supabase
@@ -120,31 +123,22 @@ export default async function AdminDashboardPage() {
     .order('created_at', { ascending: false })
     .limit(10);
 
-  // 7. 本週魔法時刻 — distinct users whose first outgoing
-  //    piktag_connections row landed in the 7d window. Set-difference
-  //    against the "had any connection before" set; mirrors the
-  //    /api/admin/analytics implementation.
-  const [conn7dRes, connBeforeRes] = await Promise.all([
-    supabase.from('piktag_connections').select('user_id').gte('created_at', sevenDaysAgo),
-    supabase.from('piktag_connections').select('user_id').lt('created_at', sevenDaysAgo),
-  ]);
+  // 7. 本週魔法時刻 — users whose FIRST real (non-@piktag) friend
+  //    landed in the 7d window. Server-side RPC (2026-07-04): the old
+  //    client-side set-difference (a) counted @piktag auto-friends so
+  //    every onboarded user looked "activated" (~100%), and (b) hit
+  //    PostgREST's 1000-row cap silently once connections grew. The
+  //    /analytics page already switched to this RPC; the dashboard
+  //    hadn't, so the two pages showed different activation numbers.
+  const magicMomentsRes = await supabase.rpc('admin_magic_moments_7d', {
+    p_since: sevenDaysAgo,
+  });
 
   const totalUsers = totalUsersRes.count ?? 0;
   const newUsersThisWeek = newUsersRes.count ?? 0;
   const pendingReports = pendingReportsRes.count ?? 0;
 
-  // Magic-moment computation (2026-05-27).
-  const beforeSet = new Set<string>();
-  for (const row of (connBeforeRes.data ?? []) as Array<{ user_id: string | null }>) {
-    if (row.user_id) beforeSet.add(row.user_id);
-  }
-  const magicMomentUsers = new Set<string>();
-  for (const row of (conn7dRes.data ?? []) as Array<{ user_id: string | null }>) {
-    if (row.user_id && !beforeSet.has(row.user_id)) {
-      magicMomentUsers.add(row.user_id);
-    }
-  }
-  const magicMomentsThisWeek = magicMomentUsers.size;
+  const magicMomentsThisWeek = (magicMomentsRes.data as number | null) ?? 0;
   // Activation = first-friend / new-signups, integer 0–100. The
   // single KPI most predictive of product-market fit for a
   // network-based app at cold-start.
