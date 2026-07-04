@@ -18,7 +18,7 @@ import type {
   SocialPostsResponse,
   SocialPostStatus,
 } from '@/lib/admin-types';
-import { summarizeSocialPosts } from '@/lib/social-analytics.js';
+import { summarizeSocialPosts, normalizePostWithMetrics } from '@/lib/social-analytics.js';
 
 const VALID_PLATFORMS: ReadonlyArray<SocialPlatform> = ['instagram', 'threads'];
 const VALID_TYPES: ReadonlyArray<SocialContentType> = [
@@ -158,7 +158,14 @@ export async function GET(req: Request): Promise<Response> {
     }
   }
 
-  const items = rows.map((row) => postWithLatestMetrics(row, metricsByPostId));
+  // normalizePostWithMetrics computes content_score from latest_metrics;
+  // without it the list's 分數 column rendered 0 for every post (the
+  // table has no content_score column — it's derived). summarize already
+  // normalizes internally, so the KPI cards were fine; only the per-row
+  // score was stuck at 0. 2026-07-04.
+  const items = rows
+    .map((row) => postWithLatestMetrics(row, metricsByPostId))
+    .map(normalizePostWithMetrics);
   const body: SocialPostsResponse = {
     items,
     total: count ?? items.length,

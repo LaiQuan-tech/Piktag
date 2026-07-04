@@ -16,6 +16,7 @@ import {
   MousePointerClick,
   UserPlus,
   Sparkles,
+  Filter,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -31,6 +32,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/signups', label: '註冊審查', icon: UserPlus },
   { href: '/reports', label: '舉報', icon: Flag },
   { href: '/analytics', label: '數據', icon: BarChart3 },
+  { href: '/funnel', label: '註冊轉換', icon: Filter },
   { href: '/social-analytics', label: '社群成效', icon: Megaphone },
   { href: '/biolink-clicks', label: '連結點擊', icon: MousePointerClick },
   { href: '/tag-calibration', label: '標籤校準', icon: Sparkles },
