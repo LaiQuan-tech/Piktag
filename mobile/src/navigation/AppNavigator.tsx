@@ -20,6 +20,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useAppReady } from '../context/AppReadyContext';
 import { useTranslation } from 'react-i18next';
 import { registerForPushNotifications, refreshBadgeFromServer } from '../lib/pushNotifications';
+import { captureAcquisitionSource } from '../lib/acquisition';
 import { posthog } from '../lib/analytics';
 import { ChatUnreadProvider, useChatUnread } from '../hooks/useChatUnread';
 
@@ -488,6 +489,13 @@ export default function AppNavigator() {
   // registered exactly once.
   useEffect(() => {
     if (Platform.OS === 'web') return;
+
+    // First-touch signup-source attribution (NO-SDK). Fire-and-forget so
+    // it can NEVER delay launch — it reads the same cold-start
+    // Linking.getInitialURL() this effect handles, stored once in
+    // AsyncStorage before the URL context is lost. Persisted onto the
+    // profile later, only on the new-signup path (OnboardingScreen).
+    captureAcquisitionSource().catch(() => {});
 
     let sub: { remove: () => void } | undefined;
     let cancelled = false;

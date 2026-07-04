@@ -49,6 +49,7 @@ import { normalizeTagName } from '../../lib/normalizeTag';
 import { addUserTagByName } from '../../lib/userTags';
 import { recordAiSuggestions, markAiSuggestionAccepted } from '../../lib/aiTagLogger';
 import { trackWizardStepCompleted } from '../../lib/analytics';
+import { persistSignupSourceIfNew } from '../../lib/acquisition';
 import TagChip from '../../components/TagChip';
 import QrNameCard from '../../components/QrNameCard';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -337,6 +338,27 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       }
     };
     prefill();
+    return () => { cancelled = true; };
+  }, []);
+
+  // ─── Signup-source attribution (new-user gate) ──────────
+  // OnboardingScreen is reached ONLY by brand-new accounts (the linear
+  // wizard — existing users never see it), so it's the clean gate for
+  // first-touch signup attribution. Persist the captured source onto the
+  // profile ONCE on mount. Best-effort + the DB write is guarded with
+  // `.is('signup_source', null)`, so even if this somehow re-ran for an
+  // existing user it would never overwrite their original attribution.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (cancelled || !user) return;
+        await persistSignupSourceIfNew(user.id);
+      } catch {
+        // best-effort — attribution must never disrupt onboarding
+      }
+    })();
     return () => { cancelled = true; };
   }, []);
 

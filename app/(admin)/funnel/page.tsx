@@ -9,6 +9,12 @@ import { createAdminClient } from '@/lib/supabase-admin';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+interface SourceRow {
+  source: string;
+  signed_up: number;
+  activated: number;
+  rate_activated: number;
+}
 interface Funnel {
   window_days: number;
   signed_up: number;
@@ -20,6 +26,19 @@ interface Funnel {
   rate_has_tag: number;
   rate_activated: number;
   rate_messaged: number;
+  by_source: SourceRow[];
+}
+
+const SOURCE_LABEL: Record<string, string> = {
+  qr: '互掃 QR',
+  web_profile: 'pikt.ag 網頁檔案',
+  app_store: 'App Store 直接下載',
+  play_store: 'Play 商店直接下載',
+  unknown: '未歸因（舊資料）',
+};
+function sourceLabel(s: string): string {
+  if (s.startsWith('utm:')) return `社群：${s.slice(4)}`;
+  return SOURCE_LABEL[s] ?? s;
 }
 
 const WINDOW_DAYS = 30;
@@ -39,8 +58,10 @@ export default async function FunnelPage() {
     rate_has_tag: 0,
     rate_activated: 0,
     rate_messaged: 0,
+    by_source: [],
     ...((res.data as Partial<Funnel> | null) ?? {}),
   };
+  const bySource = f.by_source ?? [];
 
   // Each stage as a % of the signup cohort, plus the step-over-step drop.
   const stages: Array<{
@@ -116,8 +137,51 @@ export default async function FunnelPage() {
         </div>
       </section>
 
+      {/* By acquisition source — populates once the next build starts
+          writing signup_source; pre-attribution rows show as 未歸因. */}
+      <section className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-100">
+          <h2 className="text-lg font-semibold text-slate-900">各來源轉換</h2>
+          <p className="text-xs text-slate-500 mt-0.5">
+            哪個管道帶最多人、活化率多好。社群貼文的 pikt.ag 連結帶上
+            <code className="mx-1 px-1 rounded bg-slate-100 text-[11px]">?utm_source=instagram</code>
+            就會歸到「社群：instagram」。
+          </p>
+        </div>
+        {bySource.length === 0 ? (
+          <div className="px-6 py-16 text-center text-sm text-slate-400">尚無資料</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 border-b border-slate-100">
+                <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-4 py-3">來源</th>
+                  <th className="px-4 py-3 w-24">註冊</th>
+                  <th className="px-4 py-3 w-24">活化</th>
+                  <th className="px-4 py-3 w-28">活化率</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {bySource.map((s) => (
+                  <tr key={s.source} className="hover:bg-slate-50/60 transition-colors">
+                    <td className="px-4 py-3 whitespace-nowrap font-medium text-slate-900">{sourceLabel(s.source)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-slate-600">{s.signed_up.toLocaleString('zh-TW')}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-slate-600">{s.activated.toLocaleString('zh-TW')}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className="inline-flex items-center rounded-full bg-[#faf5ff] px-2.5 py-0.5 text-xs font-semibold text-[#8c52ff]">
+                        {s.rate_activated}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
       <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-        想知道「這些轉換各自來自哪個社群管道」，目前<strong>算不出來</strong>——App 現在沒有在註冊時記錄來源。要有這個能力，得先埋「註冊來源歸因」（landing 帶 UTM ＋ App 在註冊時把來源寫進資料）。這是上線前該做的事，之後才補就永久失去這段資料。
+        「各來源轉換」從下一個 build 開始累積：App 會在註冊時記錄來源（互掃 QR／pikt.ag 網頁檔案／商店直接下載／社群 UTM）。現有的舊帳號無來源、歸在「未歸因」。要拆到「哪個社群管道」，在你分享的 pikt.ag 連結後面加 <code className="px-1 rounded bg-slate-100 text-[11px]">?utm_source=instagram&amp;utm_campaign=ep01</code> 即可。
       </div>
     </div>
   );
