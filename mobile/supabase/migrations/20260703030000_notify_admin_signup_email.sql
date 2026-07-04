@@ -15,10 +15,13 @@
 -- Safety properties:
 --   * The trigger can NEVER fail the signup — everything is wrapped in
 --     an exception handler that only RAISEs WARNING.
---   * Flood guard: if more than 20 profiles were created in the past
---     hour, skip the email (a bot wave would otherwise turn the
---     founder's inbox into the bot's amplifier). The admin backend
---     remains the complete record.
+--   * Flood behaviour (revised 2026-07-04 — the earlier "silent skip
+--     above 20/hr" was backwards: a bot WAVE is exactly when the
+--     founder wants to know). Normal volume (<=20/hr) -> one email per
+--     signup. In a wave (>20/hr) -> a throttled DIGEST alert at the
+--     21st signup and then every 50th (50/100/150…), so the founder is
+--     told "possible bot wave, N signups this hour" without 500 emails.
+--     The edge fn renders per-signup vs digest off signups_last_hour.
 --   * Official account excluded (is_official insert = backfill/system).
 --
 -- Idempotent: CREATE OR REPLACE + DROP TRIGGER IF EXISTS.
@@ -41,12 +44,15 @@ BEGIN
       RETURN NEW;
     END IF;
 
-    -- Flood guard (bot wave -> don't amplify into the founder's inbox).
+    -- Flood throttle: in a wave (>20/hr) don't per-signup spam the
+    -- inbox, but DO alert — send a digest at the 21st signup and then
+    -- every 50th. Below the threshold, every signup passes through.
     SELECT count(*) INTO v_last_hour
     FROM public.piktag_profiles
     WHERE created_at > now() - interval '1 hour';
-    IF v_last_hour > 20 THEN
-      RAISE WARNING 'notify_admin_on_signup: >20 signups in the last hour — email suppressed (flood guard)';
+    IF v_last_hour > 20 AND v_last_hour <> 21 AND (v_last_hour % 50) <> 0 THEN
+      -- Mid-wave, not a digest tick — stay quiet (the admin backend
+      -- still has every row).
       RETURN NEW;
     END IF;
 
@@ -69,9 +75,10 @@ BEGIN
         'Authorization', 'Bearer ' || v_auth_key
       ),
       body    := jsonb_build_object(
-        'user_id',    NEW.id,
-        'email',      v_email,
-        'created_at', NEW.created_at
+        'user_id',           NEW.id,
+        'email',             v_email,
+        'created_at',        NEW.created_at,
+        'signups_last_hour', v_last_hour
       )
     );
   EXCEPTION WHEN OTHERS THEN

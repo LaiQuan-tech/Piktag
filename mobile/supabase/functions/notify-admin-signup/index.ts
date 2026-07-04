@@ -60,7 +60,12 @@ serve(async (req) => {
       });
     }
 
-    let body: { user_id?: string; email?: string; created_at?: string } = {};
+    let body: {
+      user_id?: string;
+      email?: string;
+      created_at?: string;
+      signups_last_hour?: number;
+    } = {};
     try {
       body = await req.json();
     } catch {
@@ -72,12 +77,40 @@ serve(async (req) => {
 
     const userId = body.user_id ?? '(unknown)';
     const email = body.email ?? '(no email)';
+    const lastHour = typeof body.signups_last_hour === 'number' ? body.signups_last_hour : 1;
     // Render the timestamp in the founder's timezone.
     const when = new Date(body.created_at ?? Date.now()).toLocaleString('zh-TW', {
       timeZone: 'Asia/Taipei',
       hour12: false,
     });
     const adminUrl = `https://admin.pikt.ag/users/${userId}`;
+    const signupsUrl = 'https://admin.pikt.ag/signups';
+
+    // Digest mode: the trigger only reaches here during a wave at the
+    // 21st/50th/100th… signup, so this email says "possible bot wave"
+    // rather than spamming one mail per bot. Normal volume renders the
+    // per-signup email.
+    const isFlood = lastHour > 20;
+    const subject = isFlood
+      ? `PikTag 疑似機器人潮：過去一小時 ${lastHour} 筆註冊`
+      : `PikTag 新註冊：${email}`;
+    const html = isFlood
+      ? [
+          `<p><strong>過去一小時有 ${lastHour} 筆註冊</strong>，超過正常量，疑似機器人潮。</p>`,
+          `<p>為避免灌爆信箱，我們不會每筆都寄——只在第 21、50、100… 筆提醒你一次。</p>`,
+          `<p>最新一筆：${email}（${when} 台北）</p>`,
+          `<p><a href="${signupsUrl}">去後台批次審查這批註冊</a></p>`,
+        ].join('\n')
+      : [
+          `<p>有新使用者註冊 PikTag。</p>`,
+          `<p><strong>Email：</strong>${email}<br/>`,
+          `<strong>User ID：</strong>${userId}<br/>`,
+          `<strong>時間：</strong>${when}（台北）</p>`,
+          `<p><a href="${adminUrl}">在後台查看這位使用者</a></p>`,
+        ].join('\n');
+    const text = isFlood
+      ? `過去一小時有 ${lastHour} 筆註冊，疑似機器人潮。\n最新一筆: ${email}（${when} 台北）\n批次審查: ${signupsUrl}`
+      : `有新使用者註冊 PikTag。\nEmail: ${email}\nUser ID: ${userId}\n時間: ${when}（台北）\n後台: ${adminUrl}`;
 
     const resp = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -85,19 +118,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${resendKey}`,
       },
-      body: JSON.stringify({
-        from: FROM,
-        to: [ADMIN_EMAIL],
-        subject: `PikTag 新註冊：${email}`,
-        html: [
-          `<p>有新使用者註冊 PikTag。</p>`,
-          `<p><strong>Email：</strong>${email}<br/>`,
-          `<strong>User ID：</strong>${userId}<br/>`,
-          `<strong>時間：</strong>${when}（台北）</p>`,
-          `<p><a href="${adminUrl}">在後台查看這位使用者</a></p>`,
-        ].join('\n'),
-        text: `有新使用者註冊 PikTag。\nEmail: ${email}\nUser ID: ${userId}\n時間: ${when}（台北）\n後台: ${adminUrl}`,
-      }),
+      body: JSON.stringify({ from: FROM, to: [ADMIN_EMAIL], subject, html, text }),
     });
 
     if (!resp.ok) {
