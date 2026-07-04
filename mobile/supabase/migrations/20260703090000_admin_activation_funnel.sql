@@ -67,7 +67,7 @@ AS $$
         ))::int AS activated,
       (SELECT count(*) FROM cohort c
         WHERE EXISTS (SELECT 1 FROM piktag_messages m WHERE m.sender_id = c.id))::int AS messaged
-  )
+  ),
   by_source AS (
     SELECT
       COALESCE(p.signup_source, 'unknown') AS source,
