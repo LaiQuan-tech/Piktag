@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="apple-itunes-app" content="app-id=6761379641" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="google-site-verification" content="PdzhF7KaWMp9U4aBN6CStZaTbPOEoYVuDL01wNtFL6Q" />
+    <!-- Static fallback meta — JS replaces these per-locale once React mounts.
+         See LocalizedDocumentMeta in src/main.tsx. The static values stay in
+         English so crawlers and the pre-hydration first paint share the
+         canonical brand voice. -->
+    <meta name="description" content="Tag yourself. Find anyone you know — by what they actually do." />
+    <meta name="keywords" content="social CRM, contact management, semantic tags, networking, PikTag" />
+    <meta name="author" content="PikTag Team" />
+    <meta property="og:title" content="PikTag — Tag yourself. Find anyone." />
+    <meta property="og:description" content="Tag yourself. Find anyone you know — by what they actually do." />
+    <meta property="og:type" content="website" />
+    <!-- 2026-06-03: "summary" (not summary_large_image) — we share as a
+         TEXT + LINK card by design (no OG image asset). summary_large_image
+         would reserve a big image area and render it broken/empty without a
+         twitter:image. og:title + og:description above already give FB / LINE
+         a clean text unfurl; this keeps X/Twitter compact-text too. If a
+         designed share image is added later, switch this back to
+         summary_large_image and add og:image + twitter:image. -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="PikTag — Tag yourself. Find anyone." />
+    <meta name="twitter:description" content="Tag yourself. Find anyone you know — by what they actually do." />
+    <title>PikTag — Tag yourself. Find anyone.</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
