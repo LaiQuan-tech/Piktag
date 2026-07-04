@@ -52,6 +52,10 @@ jobs:
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       PROJECT_REF: kbwfdskulxnhjckdvghj
+      # Resend key (same one the auth SMTP uses) — provisioned as the
+      # RESEND_API_KEY function secret below so notify-admin-signup can
+      # send the founder's new-registration emails.
+      SMTP_PASS: ${{ secrets.SMTP_PASS }}
 
     steps:
       - name: Checkout (with history for git diff)
@@ -169,6 +173,16 @@ jobs:
       - name: Note when no functions changed
         if: steps.changed.outputs.names == ''
         run: echo "No edge function changes in this commit — skipping deploy."
+
+      - name: Provision RESEND_API_KEY function secret (idempotent)
+        # `secrets set` upserts, so running it every deploy is harmless
+        # and self-heals if the secret was ever cleared. Same Resend key
+        # as the auth SMTP (SMTP_PASS); skipped if the secret isn't set.
+        if: env.SMTP_PASS != ''
+        run: |
+          supabase secrets set "RESEND_API_KEY=$SMTP_PASS" --project-ref "$PROJECT_REF" \
+            && echo "RESEND_API_KEY provisioned" \
+            || echo "::warning::Could not set RESEND_API_KEY (non-fatal)"
 
   db-push:
     name: Apply DB migrations
