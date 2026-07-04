@@ -856,7 +856,8 @@
     "introTitle": "Xem ai đã có trên PikTag",
     "introDesc": "Theo dõi bạn bè đã tham gia chỉ với một chạm, và mời những người chưa.",
     "introPrivacy": "Danh bạ chỉ dùng để đối chiếu — chỉ PikTag thấy, không bao giờ công khai hay tải lên.",
-    "introCta": "Bắt đầu"
+    "introCta": "Bắt đầu",
+    "quickSortEntry": "Phân loại nhanh"
   },
   "invite": {
     "headerTitle": "Mời bạn bè",
@@ -1481,7 +1482,17 @@
     "subtitle": "Bạn vừa thêm {{count}} người trong một giờ qua — gắn thẻ dịp gặp gỡ cho tất cả cùng lúc.",
     "placeholder": "VD: Design Meetup Sài Gòn",
     "save": "Gắn thẻ tất cả",
-    "skip": "Để sau"
+    "skip": "Để sau",
+    "importTitle": "Phân loại nhanh danh bạ",
+    "importSubtitle": "Chọn những người cùng một nhóm và gắn thẻ một lần — sau này tìm thẻ đó là thấy tất cả.",
+    "presetColleague": "Đồng nghiệp",
+    "presetClassmate": "Bạn học",
+    "presetFamily": "Gia đình",
+    "presetClient": "Khách hàng",
+    "selectAll": "Chọn tất cả",
+    "clearAll": "Bỏ chọn tất cả",
+    "done": "Xong",
+    "savedToast": "Đã gắn #{{tag}} cho {{count}} người"
   },
   "qrContext": {
     "add": "Thêm ngữ cảnh sự kiện",

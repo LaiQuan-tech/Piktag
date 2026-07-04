@@ -856,7 +856,8 @@
     "introTitle": "連絡先の中で、誰がもう PikTag にいるか見てみよう",
     "introDesc": "すでに参加した友だちはワンタップでフォロー、まだの友だちは招待できます。",
     "introPrivacy": "連絡先は照合のみに使用 —— PikTag だけが利用し、公開やアップロードは一切ありません。",
-    "introCta": "はじめる"
+    "introCta": "はじめる",
+    "quickSortEntry": "すばやく仕分け"
   },
   "invite": {
     "headerTitle": "友達を招待",
@@ -1481,7 +1482,17 @@
     "subtitle": "この1時間で{{count}}人とつながりました — まとめてイベントのタグを付けましょう。",
     "placeholder": "例：東京デザイン交流会",
     "save": "まとめてタグ付け",
-    "skip": "あとで"
+    "skip": "あとで",
+    "importTitle": "連絡先をすばやく仕分け",
+    "importSubtitle": "同じグループの人を選んで、まとめてタグ付け。あとでそのタグを検索すれば全員すぐ見つかります。",
+    "presetColleague": "同僚",
+    "presetClassmate": "同級生",
+    "presetFamily": "家族",
+    "presetClient": "取引先",
+    "selectAll": "すべて選択",
+    "clearAll": "選択を解除",
+    "done": "完了",
+    "savedToast": "{{count}}人に #{{tag}} を付けました"
   },
   "qrContext": {
     "add": "イベント情報を付ける",

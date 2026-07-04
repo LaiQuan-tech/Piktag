@@ -856,7 +856,8 @@
     "introTitle": "看看通訊錄裡，誰已經在 PikTag",
     "introDesc": "一鍵追蹤已經加入的朋友，還沒加入的也能一鍵邀請。",
     "introPrivacy": "通訊錄只用來比對 —— 只有 PikTag 用得到，永遠不會公開或上傳。",
-    "introCta": "開始"
+    "introCta": "開始",
+    "quickSortEntry": "快速分類"
   },
   "invite": {
     "headerTitle": "邀請好友",
@@ -1481,7 +1482,17 @@
     "subtitle": "過去一小時你加了 {{count}} 位朋友 — 一次幫他們加上這場活動的標籤。",
     "placeholder": "例：台北設計聚",
     "save": "全部加上標籤",
-    "skip": "先不用"
+    "skip": "先不用",
+    "importTitle": "幫聯絡人快速分類",
+    "importSubtitle": "挑出同一類的人，一次加上標籤 — 之後搜這個標籤，他們全都找得到。",
+    "presetColleague": "同事",
+    "presetClassmate": "同學",
+    "presetFamily": "家人",
+    "presetClient": "客戶",
+    "selectAll": "全選",
+    "clearAll": "取消全選",
+    "done": "完成",
+    "savedToast": "已為 {{count}} 位加上 #{{tag}}"
   },
   "qrContext": {
     "add": "加上活動情境",

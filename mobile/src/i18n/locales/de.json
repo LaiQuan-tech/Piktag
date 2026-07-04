@@ -856,7 +856,8 @@
     "introTitle": "Sieh, wer schon bei PikTag ist",
     "introDesc": "Folge mit einem Tipp Freunden, die schon dabei sind — und lade die anderen ein.",
     "introPrivacy": "Deine Kontakte werden nur zum Abgleich genutzt — nur PikTag sieht sie, nie öffentlich, nie hochgeladen.",
-    "introCta": "Loslegen"
+    "introCta": "Loslegen",
+    "quickSortEntry": "Schnell sortieren"
   },
   "invite": {
     "headerTitle": "Freunde einladen",
@@ -1481,7 +1482,17 @@
     "subtitle": "Du hast in der letzten Stunde {{count}} Personen hinzugefügt — tagge sie alle auf einmal mit dem Anlass.",
     "placeholder": "z. B. Berlin Design Meetup",
     "save": "Alle taggen",
-    "skip": "Jetzt nicht"
+    "skip": "Jetzt nicht",
+    "importTitle": "Kontakte schnell sortieren",
+    "importSubtitle": "Wähle alle aus demselben Kreis und tagge sie auf einmal — such später nach dem Tag und alle tauchen sofort auf.",
+    "presetColleague": "Kollegen",
+    "presetClassmate": "Mitschüler",
+    "presetFamily": "Familie",
+    "presetClient": "Kunden",
+    "selectAll": "Alle auswählen",
+    "clearAll": "Auswahl aufheben",
+    "done": "Fertig",
+    "savedToast": "{{count}} mit #{{tag}} getaggt"
   },
   "qrContext": {
     "add": "Event-Kontext hinzufügen",

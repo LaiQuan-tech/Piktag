@@ -856,7 +856,8 @@
     "introTitle": "연락처 중에 누가 이미 PikTag에 있는지 확인하세요",
     "introDesc": "이미 가입한 친구는 한 번에 팔로우하고, 아직인 친구는 초대하세요.",
     "introPrivacy": "연락처는 매칭에만 사용돼요 —— PikTag만 사용하며, 공개하거나 업로드하지 않아요.",
-    "introCta": "시작하기"
+    "introCta": "시작하기",
+    "quickSortEntry": "빠른 분류"
   },
   "invite": {
     "headerTitle": "친구 초대",
@@ -1481,7 +1482,17 @@
     "subtitle": "지난 1시간 동안 {{count}}명을 추가했어요 — 한 번에 이 자리의 태그를 붙여 보세요.",
     "placeholder": "예: 서울 디자인 밋업",
     "save": "모두 태그하기",
-    "skip": "나중에"
+    "skip": "나중에",
+    "importTitle": "연락처 빠르게 분류하기",
+    "importSubtitle": "같은 그룹의 사람들을 골라 한 번에 태그하세요. 나중에 그 태그를 검색하면 모두 바로 나옵니다.",
+    "presetColleague": "동료",
+    "presetClassmate": "동창",
+    "presetFamily": "가족",
+    "presetClient": "고객",
+    "selectAll": "전체 선택",
+    "clearAll": "전체 해제",
+    "done": "완료",
+    "savedToast": "{{count}}명에게 #{{tag}} 태그 완료"
   },
   "qrContext": {
     "add": "이벤트 컨텍스트 추가",

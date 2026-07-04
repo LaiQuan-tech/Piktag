@@ -1,23 +1,29 @@
-// BatchTagScreen — "同一場合認識的嗎?" one-move tagging for a connection
-// burst (founder 2026-07-03, event-tag rework 方向一; see lib/burstTag.ts
-// for the detection). Reached from ScanResultScreen when the last hour's
-// adds hit the burst threshold; params carry the cohort so this screen
-// does zero re-querying.
+// BatchTagScreen — the ONE shared batch-tagging UI (CLAUDE.md contract).
+// Two FREE, system-initiated modes live here today:
 //
-// Writes the SAME data shape the event-QR scan flow writes: private
-// connection tags (piktag_connection_tags, is_private=true) on the
-// owner's own connection rows — owner-only "where/how we met" context,
-// findable via the Friends-page tag filter, never enters the matching
-// algorithm. This screen is also the seed of the future full batch-tag
-// feature (that version widens the cohort from "the burst" to "pick any
-// friends").
+//   1. Burst mode (`people`, event-tag rework 方向一): auto-cohort = the
+//      last hour's connection adds. All pre-selected, one tag, save/skip
+//      lands on the just-added friend. Writes piktag_connection_tags
+//      (is_private) — the event-QR shape.
+//
+//   2. Import mode (`deviceContacts`, 2026-07-04 backlog #1): cohort =
+//      ContactSync's 尚未加入 device contacts. Nothing pre-selected —
+//      the user picks ONE circle (同事/同學/家人/客戶/自訂), taps save,
+//      the screen RESETS for the next circle (quick-sort loop), 完成
+//      exits. Writes the `tags` array on piktag_local_contacts (creating
+//      rows for contacts that had none) — the same array the promote
+//      trigger copies into real connection tags when that person joins.
+//
+// The future PAID tier (user-initiated arbitrary friend selection) will
+// extend THIS screen — never build a second batch UI. Free/paid boundary
+// is recorded in CLAUDE.md (free = system-initiated cohorts only).
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
   Image,
-  ScrollView,
+  FlatList,
   TextInput,
   TouchableOpacity,
   StyleSheet,
@@ -30,20 +36,51 @@ import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { findOrCreateTag } from '../lib/userTags';
 import { normalizeTagName } from '../lib/normalizeTag';
-import { trackBurstTagPromptShown, trackBurstTagApplied } from '../lib/analytics';
+import {
+  trackBurstTagPromptShown,
+  trackBurstTagApplied,
+  trackImportBatchTagged,
+} from '../lib/analytics';
+import { useLocalContacts } from '../hooks/useLocalContacts';
 import type { BurstPerson } from '../lib/burstTag';
+
+export type ImportContact = {
+  /** Stable row key (the device-contact id). */
+  key: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  /** Existing piktag_local_contacts row id, when the contact already has one. */
+  existingId: string | null;
+  existingTags: string[];
+};
+
+type Row = {
+  key: string;
+  name: string;
+  avatarUrl: string | null;
+  subtitle?: string;
+};
 
 type Props = {
   navigation: any;
   route: {
     params?: {
       people?: BurstPerson[];
-      // Where to land afterwards — ScanResult passes the just-added friend
-      // so save/skip both end on FriendDetail, keeping the flow linear.
+      deviceContacts?: ImportContact[];
+      // Where to land afterwards — ScanResult/UserDetail pass the
+      // just-added friend so burst save/skip stays a linear flow.
       next?: { friendId: string; connectionId: string };
     };
   };
 };
+
+const PRESET_KEYS = [
+  { key: 'presetColleague', fallback: '同事' },
+  { key: 'presetClassmate', fallback: '同學' },
+  { key: 'presetFamily', fallback: '家人' },
+  { key: 'presetClient', fallback: '客戶' },
+] as const;
 
 export default function BatchTagScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
@@ -51,16 +88,53 @@ export default function BatchTagScreen({ navigation, route }: Props) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const people: BurstPerson[] = route.params?.people ?? [];
+  const deviceContacts: ImportContact[] = route.params?.deviceContacts ?? [];
   const next = route.params?.next;
+  const isImport = deviceContacts.length > 0;
 
+  const { add: addLocalContact, update: updateLocalContact } = useLocalContacts();
+
+  const rows: Row[] = useMemo(
+    () =>
+      isImport
+        ? deviceContacts.map((c) => ({
+            key: c.key,
+            name: c.name,
+            avatarUrl: null,
+            subtitle: c.phone || c.email || undefined,
+          }))
+        : people.map((p) => ({
+            key: p.connectionId,
+            name: p.name,
+            avatarUrl: p.avatarUrl,
+          })),
+    [isImport, deviceContacts, people],
+  );
+
+  // Burst: everyone pre-selected (one event, opt-out). Import: empty —
+  // a bucket is a SUBSET by definition, the user picks the circle.
   const [selected, setSelected] = useState<Set<string>>(
-    () => new Set(people.map((p) => p.connectionId)),
+    () => new Set(isImport ? [] : people.map((p) => p.connectionId)),
   );
   const [tagName, setTagName] = useState('');
   const [saving, setSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<{ tag: string; count: number } | null>(null);
+
+  // Import quick-sort loop bookkeeping: created row ids + accumulated
+  // tags per contact, so the SECOND bucket updates the row created by
+  // the first instead of inserting a duplicate.
+  const createdIdsRef = useRef<Map<string, string>>(new Map());
+  const tagsByKeyRef = useRef<Map<string, string[]>>(new Map());
+  useEffect(() => {
+    for (const c of deviceContacts) {
+      if (c.existingId) createdIdsRef.current.set(c.key, c.existingId);
+      tagsByKeyRef.current.set(c.key, [...c.existingTags]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
-    trackBurstTagPromptShown(people.length);
+    if (!isImport) trackBurstTagPromptShown(people.length);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -74,127 +148,248 @@ export default function BatchTagScreen({ navigation, route }: Props) {
     }
   };
 
-  const toggle = (connectionId: string) => {
+  const toggle = (key: string) => {
     setSelected((cur) => {
       const nextSet = new Set(cur);
-      if (nextSet.has(connectionId)) nextSet.delete(connectionId);
-      else nextSet.add(connectionId);
+      if (nextSet.has(key)) nextSet.delete(key);
+      else nextSet.add(key);
       return nextSet;
     });
   };
 
+  const allSelected = selected.size === rows.length && rows.length > 0;
+  const toggleAll = () => {
+    setSelected(allSelected ? new Set() : new Set(rows.map((r) => r.key)));
+  };
+
   const canSave = !saving && selected.size > 0 && normalizeTagName(tagName).length > 0;
+
+  // ── Save: burst mode → private connection tags (event-QR shape) ──
+  const saveConnections = async (name: string) => {
+    const tagId = await findOrCreateTag(name);
+    if (!tagId) return;
+    const ids = [...selected];
+    const { data: existing } = await supabase
+      .from('piktag_connection_tags')
+      .select('connection_id')
+      .eq('tag_id', tagId)
+      .in('connection_id', ids);
+    const has = new Set((existing ?? []).map((r: any) => r.connection_id));
+    const inserts = ids
+      .filter((id) => !has.has(id))
+      .map((id) => ({ connection_id: id, tag_id: tagId, is_private: true }));
+    if (inserts.length > 0) {
+      await supabase.from('piktag_connection_tags').insert(inserts);
+    }
+    trackBurstTagApplied(people.length, ids.length);
+  };
+
+  // ── Save: import mode → piktag_local_contacts.tags (creating rows) ──
+  // The promote trigger copies this array into real connection tags the
+  // day the person registers — bucketing now IS future serendipity fuel.
+  const saveLocalContacts = async (name: string) => {
+    const byKey = new Map(deviceContacts.map((c) => [c.key, c]));
+    let tagged = 0;
+    for (const key of selected) {
+      const contact = byKey.get(key);
+      if (!contact) continue;
+      const prior = tagsByKeyRef.current.get(key) ?? [];
+      if (prior.includes(name)) {
+        tagged++;
+        continue; // idempotent — re-bucketing the same person is a no-op
+      }
+      const nextTags = [...prior, name];
+      const existingId = createdIdsRef.current.get(key);
+      if (existingId) {
+        const ok = await updateLocalContact(existingId, { tags: nextTags });
+        if (ok) {
+          tagsByKeyRef.current.set(key, nextTags);
+          tagged++;
+        }
+      } else {
+        const created = await addLocalContact({
+          name: contact.name,
+          phone: contact.phone,
+          email: contact.email,
+          tags: nextTags,
+        });
+        if (created?.id) {
+          createdIdsRef.current.set(key, created.id);
+          tagsByKeyRef.current.set(key, nextTags);
+          tagged++;
+        }
+      }
+    }
+    trackImportBatchTagged(tagged);
+    return tagged;
+  };
 
   const handleSave = async () => {
     const name = normalizeTagName(tagName);
     if (!name || selected.size === 0 || saving) return;
     setSaving(true);
     try {
-      const tagId = await findOrCreateTag(name);
-      if (!tagId) {
+      if (isImport) {
+        const tagged = await saveLocalContacts(name);
+        // Quick-sort loop: stay here, show what landed, reset for the
+        // next circle. 完成 exits when the user is done bucketing.
+        setLastSaved({ tag: name, count: tagged });
+        setSelected(new Set());
+        setTagName('');
+      } else {
+        await saveConnections(name);
         leave();
-        return;
       }
-      const ids = [...selected];
-      // Dedupe against rows that already carry this tag (re-runs, or the
-      // scan flow already attached it) — insert only the missing pairs.
-      const { data: existing } = await supabase
-        .from('piktag_connection_tags')
-        .select('connection_id')
-        .eq('tag_id', tagId)
-        .in('connection_id', ids);
-      const has = new Set((existing ?? []).map((r: any) => r.connection_id));
-      const rows = ids
-        .filter((id) => !has.has(id))
-        .map((id) => ({ connection_id: id, tag_id: tagId, is_private: true }));
-      if (rows.length > 0) {
-        await supabase.from('piktag_connection_tags').insert(rows);
-      }
-      trackBurstTagApplied(people.length, ids.length);
     } catch {
-      // Best-effort — a failed batch write should never trap the user here.
+      // Best-effort — a failed batch write should never trap the user.
+      if (!isImport) leave();
     } finally {
       setSaving(false);
-      leave();
     }
   };
 
+  const renderRow = ({ item }: { item: Row }) => {
+    const on = selected.has(item.key);
+    const doneTags = isImport ? tagsByKeyRef.current.get(item.key) ?? [] : [];
+    return (
+      <TouchableOpacity
+        style={styles.personRow}
+        activeOpacity={0.7}
+        onPress={() => toggle(item.key)}
+      >
+        {item.avatarUrl ? (
+          <Image source={{ uri: item.avatarUrl }} style={styles.avatar} />
+        ) : (
+          <View style={[styles.avatar, styles.avatarFallback]}>
+            <Text style={styles.avatarInitial}>
+              {(item.name || '?').slice(0, 1).toUpperCase()}
+            </Text>
+          </View>
+        )}
+        <View style={styles.personTextWrap}>
+          <Text style={styles.personName} numberOfLines={1}>
+            {item.name}
+          </Text>
+          {doneTags.length > 0 ? (
+            <Text style={styles.personTags} numberOfLines={1}>
+              {doneTags.map((tg) => `#${tg}`).join(' ')}
+            </Text>
+          ) : item.subtitle ? (
+            <Text style={styles.personTags} numberOfLines={1}>
+              {item.subtitle}
+            </Text>
+          ) : null}
+        </View>
+        <View style={[styles.checkWrap, on && styles.checkWrapOn]}>
+          {on ? <Check size={14} color={'#FFFFFF'} /> : null}
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const header = (
+    <View style={styles.headerWrap}>
+      <View style={styles.iconWrap}>
+        <Tag size={28} color={colors.piktag500} />
+      </View>
+      <Text style={styles.title}>
+        {isImport
+          ? t('batchTag.importTitle', { defaultValue: '幫聯絡人快速分類' })
+          : t('batchTag.title', { defaultValue: '同一場合認識的嗎？' })}
+      </Text>
+      <Text style={styles.subtitle}>
+        {isImport
+          ? t('batchTag.importSubtitle', {
+              defaultValue: '挑出同一類的人，一次加上標籤 — 之後搜這個標籤，他們全都找得到。',
+            })
+          : t('batchTag.subtitle', {
+              count: people.length,
+              defaultValue: '過去一小時你加了 {{count}} 位朋友 — 一次幫他們加上這場活動的標籤。',
+            })}
+      </Text>
+      {rows.length > 1 ? (
+        <TouchableOpacity style={styles.selectAllBtn} activeOpacity={0.7} onPress={toggleAll}>
+          <Text style={styles.selectAllText}>
+            {allSelected
+              ? t('batchTag.clearAll', { defaultValue: '取消全選' })
+              : t('batchTag.selectAll', { defaultValue: '全選' })}
+          </Text>
+        </TouchableOpacity>
+      ) : null}
+    </View>
+  );
+
+  const footer = (
+    <View style={styles.footerWrap}>
+      <View style={styles.presetRow}>
+        {PRESET_KEYS.map(({ key, fallback }) => {
+          const label = t(`batchTag.${key}`, { defaultValue: fallback });
+          const active = normalizeTagName(tagName) === normalizeTagName(label);
+          return (
+            <TouchableOpacity
+              key={key}
+              style={[styles.presetChip, active && styles.presetChipOn]}
+              activeOpacity={0.7}
+              onPress={() => setTagName(label)}
+            >
+              <Text style={[styles.presetChipText, active && styles.presetChipTextOn]}>
+                #{label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+      <TextInput
+        style={styles.input}
+        value={tagName}
+        onChangeText={setTagName}
+        placeholder={t('batchTag.placeholder', { defaultValue: '例：台北設計聚' })}
+        placeholderTextColor={colors.gray400}
+        maxLength={40}
+        returnKeyType="done"
+        onSubmitEditing={() => { if (canSave) void handleSave(); }}
+      />
+      {lastSaved ? (
+        <Text style={styles.savedToast}>
+          {t('batchTag.savedToast', {
+            count: lastSaved.count,
+            tag: lastSaved.tag,
+            defaultValue: '已為 {{count}} 位加上 #{{tag}}',
+          })}
+        </Text>
+      ) : null}
+      <TouchableOpacity
+        style={[styles.saveBtn, !canSave && styles.saveBtnDisabled]}
+        activeOpacity={0.85}
+        disabled={!canSave}
+        onPress={handleSave}
+      >
+        <Text style={styles.saveBtnText}>
+          {t('batchTag.save', { defaultValue: '全部加上標籤' })}
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.skipBtn} activeOpacity={0.7} onPress={leave}>
+        <Text style={styles.skipText}>
+          {isImport
+            ? t('batchTag.done', { defaultValue: '完成' })
+            : t('batchTag.skip', { defaultValue: '先不用' })}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <ScrollView
+      <FlatList
+        data={rows}
+        keyExtractor={(item) => item.key}
+        renderItem={renderRow}
+        extraData={[selected, lastSaved]}
+        ListHeaderComponent={header}
+        ListFooterComponent={footer}
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.iconWrap}>
-          <Tag size={28} color={colors.piktag500} />
-        </View>
-        <Text style={styles.title}>
-          {t('batchTag.title', { defaultValue: '同一場合認識的嗎？' })}
-        </Text>
-        <Text style={styles.subtitle}>
-          {t('batchTag.subtitle', {
-            count: people.length,
-            defaultValue: '過去一小時你加了 {{count}} 位朋友 — 一次幫他們加上這場活動的標籤。',
-          })}
-        </Text>
-
-        <View style={styles.peopleList}>
-          {people.map((p) => {
-            const on = selected.has(p.connectionId);
-            return (
-              <TouchableOpacity
-                key={p.connectionId}
-                style={styles.personRow}
-                activeOpacity={0.7}
-                onPress={() => toggle(p.connectionId)}
-              >
-                {p.avatarUrl ? (
-                  <Image source={{ uri: p.avatarUrl }} style={styles.avatar} />
-                ) : (
-                  <View style={[styles.avatar, styles.avatarFallback]}>
-                    <Text style={styles.avatarInitial}>
-                      {(p.name || '?').slice(0, 1).toUpperCase()}
-                    </Text>
-                  </View>
-                )}
-                <Text style={styles.personName} numberOfLines={1}>
-                  {p.name}
-                </Text>
-                <View style={[styles.checkWrap, on && styles.checkWrapOn]}>
-                  {on ? <Check size={14} color={'#FFFFFF'} /> : null}
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        <TextInput
-          style={styles.input}
-          value={tagName}
-          onChangeText={setTagName}
-          placeholder={t('batchTag.placeholder', { defaultValue: '例：台北設計聚' })}
-          placeholderTextColor={colors.gray400}
-          maxLength={40}
-          returnKeyType="done"
-          onSubmitEditing={() => { if (canSave) void handleSave(); }}
-        />
-
-        <TouchableOpacity
-          style={[styles.saveBtn, !canSave && styles.saveBtnDisabled]}
-          activeOpacity={0.85}
-          disabled={!canSave}
-          onPress={handleSave}
-        >
-          <Text style={styles.saveBtnText}>
-            {t('batchTag.save', { defaultValue: '全部加上標籤' })}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.skipBtn} activeOpacity={0.7} onPress={leave}>
-          <Text style={styles.skipText}>
-            {t('batchTag.skip', { defaultValue: '先不用' })}
-          </Text>
-        </TouchableOpacity>
-      </ScrollView>
+      />
     </SafeAreaView>
   );
 }
@@ -206,10 +401,12 @@ function makeStyles(c: ColorPalette) {
       backgroundColor: c.background,
     },
     scroll: {
-      flexGrow: 1,
       paddingHorizontal: 24,
       paddingTop: 36,
       paddingBottom: 24,
+    },
+    headerWrap: {
+      marginBottom: 16,
     },
     iconWrap: {
       alignSelf: 'center',
@@ -233,11 +430,16 @@ function makeStyles(c: ColorPalette) {
       color: c.gray500,
       textAlign: 'center',
       lineHeight: 20,
-      marginBottom: 20,
     },
-    peopleList: {
-      gap: 8,
-      marginBottom: 20,
+    selectAllBtn: {
+      alignSelf: 'flex-end',
+      paddingVertical: 10,
+      paddingHorizontal: 4,
+    },
+    selectAllText: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: c.piktag600,
     },
     personRow: {
       flexDirection: 'row',
@@ -249,6 +451,7 @@ function makeStyles(c: ColorPalette) {
       borderWidth: 1,
       borderColor: c.gray200,
       backgroundColor: c.white,
+      marginBottom: 8,
     },
     avatar: {
       width: 40,
@@ -265,11 +468,19 @@ function makeStyles(c: ColorPalette) {
       fontWeight: '700',
       color: c.piktag600,
     },
-    personName: {
+    personTextWrap: {
       flex: 1,
+      minWidth: 0,
+    },
+    personName: {
       fontSize: 15,
       fontWeight: '600',
       color: c.gray900,
+    },
+    personTags: {
+      fontSize: 12,
+      color: c.gray400,
+      marginTop: 1,
     },
     checkWrap: {
       width: 24,
@@ -284,6 +495,35 @@ function makeStyles(c: ColorPalette) {
       backgroundColor: c.piktag500,
       borderColor: c.piktag500,
     },
+    footerWrap: {
+      marginTop: 12,
+    },
+    presetRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginBottom: 12,
+    },
+    presetChip: {
+      paddingHorizontal: 12,
+      paddingVertical: 7,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: c.gray200,
+      backgroundColor: c.gray50,
+    },
+    presetChipOn: {
+      backgroundColor: c.piktag500,
+      borderColor: c.piktag500,
+    },
+    presetChipText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: c.gray700,
+    },
+    presetChipTextOn: {
+      color: '#FFFFFF',
+    },
     input: {
       borderWidth: 1,
       borderColor: c.gray200,
@@ -293,7 +533,14 @@ function makeStyles(c: ColorPalette) {
       fontSize: 16,
       color: c.gray900,
       backgroundColor: c.white,
-      marginBottom: 16,
+      marginBottom: 12,
+    },
+    savedToast: {
+      fontSize: 13,
+      color: c.piktag600,
+      textAlign: 'center',
+      marginBottom: 12,
+      fontWeight: '600',
     },
     saveBtn: {
       backgroundColor: c.piktag500,

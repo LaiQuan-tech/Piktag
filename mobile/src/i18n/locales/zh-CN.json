@@ -856,7 +856,8 @@
     "introTitle": "看看通讯录里，谁已经在 PikTag",
     "introDesc": "一键追踪已经加入的朋友，还没加入的也能一键邀请。",
     "introPrivacy": "通讯录只用来比对 —— 只有 PikTag 用得到，永远不会公开或上传。",
-    "introCta": "开始"
+    "introCta": "开始",
+    "quickSortEntry": "快速分类"
   },
   "invite": {
     "headerTitle": "邀请好友",
@@ -1481,7 +1482,17 @@
     "subtitle": "过去一小时你加了 {{count}} 位朋友 — 一次帮他们加上这场活动的标签。",
     "placeholder": "例：上海设计聚",
     "save": "全部加上标签",
-    "skip": "先不用"
+    "skip": "先不用",
+    "importTitle": "帮联系人快速分类",
+    "importSubtitle": "挑出同一类的人，一次加上标签 — 之后搜这个标签，他们全都找得到。",
+    "presetColleague": "同事",
+    "presetClassmate": "同学",
+    "presetFamily": "家人",
+    "presetClient": "客户",
+    "selectAll": "全选",
+    "clearAll": "取消全选",
+    "done": "完成",
+    "savedToast": "已为 {{count}} 位加上 #{{tag}}"
   },
   "qrContext": {
     "add": "加上活动情境",

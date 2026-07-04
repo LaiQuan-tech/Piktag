@@ -856,7 +856,8 @@
     "introTitle": "Kim zaten PikTag'te, gör",
     "introDesc": "Zaten katılan arkadaşlarını tek dokunuşla takip et, katılmayanları davet et.",
     "introPrivacy": "Kişilerin yalnızca eşleştirme için kullanılır — sadece PikTag görür, asla herkese açık olmaz, asla yüklenmez.",
-    "introCta": "Başla"
+    "introCta": "Başla",
+    "quickSortEntry": "Hızlı ayır"
   },
   "invite": {
     "headerTitle": "Arkadaş Davet Et",
@@ -1481,7 +1482,17 @@
     "subtitle": "Son bir saatte {{count}} kişi eklediniz — hepsine tek seferde bu buluşmanın etiketini ekleyin.",
     "placeholder": "örn. İstanbul Tasarım Buluşması",
     "save": "Hepsini etiketle",
-    "skip": "Şimdi değil"
+    "skip": "Şimdi değil",
+    "importTitle": "Kişilerini hızla ayır",
+    "importSubtitle": "Aynı çevredekileri seç, tek seferde etiketle — sonra o etiketi ara, hepsi karşına çıksın.",
+    "presetColleague": "İş arkadaşları",
+    "presetClassmate": "Okul arkadaşları",
+    "presetFamily": "Aile",
+    "presetClient": "Müşteriler",
+    "selectAll": "Tümünü seç",
+    "clearAll": "Seçimi kaldır",
+    "done": "Bitti",
+    "savedToast": "{{count}} kişi #{{tag}} ile etiketlendi"
   },
   "qrContext": {
     "add": "Etkinlik bağlamı ekle",

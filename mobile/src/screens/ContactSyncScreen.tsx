@@ -43,8 +43,10 @@ import { useAuth } from '../hooks/useAuth';
 import {
   useLocalContacts,
   normalizePhone,
+  type LocalContact,
 } from '../hooks/useLocalContacts';
 import { appendLang } from '../lib/shareProfile';
+import type { ImportContact } from './BatchTagScreen';
 import type { Tag } from '../types';
 
 const MAX_TAGS_PER_CONTACT = 8;
@@ -386,6 +388,39 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
     }
     return out;
   }, [contacts, matches, importedIds, t]);
+
+  // Import quick-sort (backlog #1, 2026-07-04): hand the 尚未加入 cohort to
+  // the shared BatchTagScreen — multi-select → one-tap #同事/#同學/#家人/
+  // #客戶 → tags land on piktag_local_contacts (rows created for contacts
+  // that had none), which the promote trigger converts into REAL connection
+  // tags the day that person joins. Untagged imports are unsearchable dead
+  // data; this is the moment that makes them findable. FREE by design —
+  // system-initiated cohort (see CLAUDE.md paid-boundary decision).
+  const openQuickSort = useCallback(
+    (cohort: PhoneContact[]) => {
+      const byPhone = new Map<string, LocalContact>();
+      const byEmail = new Map<string, LocalContact>();
+      for (const lc of localContacts) {
+        if (lc.phone_normalized) byPhone.set(lc.phone_normalized, lc);
+        if (lc.email_lower) byEmail.set(lc.email_lower, lc);
+      }
+      const deviceContacts: ImportContact[] = cohort.map((c) => {
+        const pn = normalizePhone(c.phone);
+        const el = c.email?.trim().toLowerCase() || null;
+        const existing = (pn && byPhone.get(pn)) || (el && byEmail.get(el)) || null;
+        return {
+          key: c.id,
+          name: c.name,
+          phone: c.phone,
+          email: c.email,
+          existingId: existing ? existing.id : null,
+          existingTags: existing ? existing.tags ?? [] : [],
+        };
+      });
+      navigation.navigate('BatchTag', { deviceContacts });
+    },
+    [localContacts, navigation],
+  );
 
   const onPiktagCount = useMemo(
     () => contacts.reduce((acc, c) => acc + (matches.has(c.id) ? 1 : 0), 0),
@@ -913,6 +948,17 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
         renderSectionHeader={({ section }) => (
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionHeaderText}>{section.title}</Text>
+            {section.variant === 'not-on-piktag' && section.data.length >= 2 ? (
+              <TouchableOpacity
+                style={styles.quickSortBtn}
+                activeOpacity={0.7}
+                onPress={() => openQuickSort(section.data as PhoneContact[])}
+              >
+                <Text style={styles.quickSortText}>
+                  {t('contactSync.quickSortEntry', { defaultValue: '快速分類' })}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
         )}
         renderItem={({ item, section }) =>
@@ -1301,6 +1347,9 @@ function makeStyles(c: ColorPalette) {
 
   // Section header
   sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 8,
     backgroundColor: c.gray50 || '#F7F7F8',
@@ -1313,6 +1362,19 @@ function makeStyles(c: ColorPalette) {
     fontWeight: '700',
     color: c.gray600,
     letterSpacing: 0.2,
+  },
+  // Import quick-sort entry (backlog #1, 2026-07-04) — small pill on the
+  // 尚未加入 section header, routes to the shared BatchTagScreen.
+  quickSortBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: c.piktag500,
+  },
+  quickSortText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 
   listContent: {

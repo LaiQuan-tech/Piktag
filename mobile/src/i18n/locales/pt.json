@@ -856,7 +856,8 @@
     "introTitle": "Veja quem já está no PikTag",
     "introDesc": "Siga com um toque os amigos que já entraram e convide os que ainda não.",
     "introPrivacy": "Seus contatos são usados só para encontrar correspondências — só o PikTag os vê, nunca públicos, nunca enviados.",
-    "introCta": "Começar"
+    "introCta": "Começar",
+    "quickSortEntry": "Organizar rápido"
   },
   "invite": {
     "headerTitle": "Convidar amigos",
@@ -1481,7 +1482,17 @@
     "subtitle": "Você adicionou {{count}} pessoas na última hora — marque todas com a ocasião de uma vez.",
     "placeholder": "ex.: Meetup de design de São Paulo",
     "save": "Marcar todos",
-    "skip": "Agora não"
+    "skip": "Agora não",
+    "importTitle": "Organize seus contatos",
+    "importSubtitle": "Escolha todos do mesmo círculo e marque de uma vez — busque a tag depois e todos aparecem na hora.",
+    "presetColleague": "Colegas",
+    "presetClassmate": "Colegas de turma",
+    "presetFamily": "Família",
+    "presetClient": "Clientes",
+    "selectAll": "Selecionar tudo",
+    "clearAll": "Limpar seleção",
+    "done": "Concluir",
+    "savedToast": "{{count}} marcados com #{{tag}}"
   },
   "qrContext": {
     "add": "Adicionar contexto de evento",

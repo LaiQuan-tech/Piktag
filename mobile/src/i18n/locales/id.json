@@ -856,7 +856,8 @@
     "introTitle": "Lihat siapa yang sudah ada di PikTag",
     "introDesc": "Ikuti teman yang sudah bergabung sekali ketuk, dan undang yang belum.",
     "introPrivacy": "Kontakmu hanya dipakai untuk mencocokkan — hanya PikTag yang melihatnya, tak pernah publik, tak pernah diunggah.",
-    "introCta": "Mulai"
+    "introCta": "Mulai",
+    "quickSortEntry": "Pilah cepat"
   },
   "invite": {
     "headerTitle": "Undang Teman",
@@ -1481,7 +1482,17 @@
     "subtitle": "Kamu menambahkan {{count}} orang dalam satu jam terakhir — beri mereka tag acara ini sekaligus.",
     "placeholder": "mis. Meetup Desain Jakarta",
     "save": "Tag semuanya",
-    "skip": "Nanti saja"
+    "skip": "Nanti saja",
+    "importTitle": "Pilah kontakmu dengan cepat",
+    "importSubtitle": "Pilih semua orang dari lingkaran yang sama dan tag sekaligus — cari tag itu nanti dan semuanya langsung muncul.",
+    "presetColleague": "Rekan kerja",
+    "presetClassmate": "Teman sekolah",
+    "presetFamily": "Keluarga",
+    "presetClient": "Klien",
+    "selectAll": "Pilih semua",
+    "clearAll": "Batalkan semua",
+    "done": "Selesai",
+    "savedToast": "{{count}} orang diberi tag #{{tag}}"
   },
   "qrContext": {
     "add": "Tambah konteks acara",

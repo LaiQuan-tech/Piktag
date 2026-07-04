@@ -81,6 +81,11 @@ export const trackBurstTagPromptShown = (cohortSize: number) =>
 export const trackBurstTagApplied = (cohortSize: number, taggedCount: number) =>
   posthog?.capture('burst_tag_applied', { cohort_size: cohortSize, tagged_count: taggedCount });
 
+/** Import quick-sort (backlog #1, 2026-07-04): one bucket saved from the
+ *  ContactSync batch flow. Count only — tag names are user content. */
+export const trackImportBatchTagged = (taggedCount: number) =>
+  posthog?.capture('import_batch_tagged', { tagged_count: taggedCount });
+
 /**
  * Card-scan perceived latency: shutter tap → form fields visible
  * (founder speed red line — competitors anchored users to "instant").

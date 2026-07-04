@@ -1209,11 +1209,20 @@ promote-on-registration fires the generic friend notification; reconnect
 cron→chat, dormant sort, on_this_day, room list + re-entry all live.
 Founder approved ALL FIVE below as worth doing (2026-07-04):
 
-1. **Contact-import batch bucketing** (biggest gap — the loops' intersection):
-   after ContactSync import, a "quick sort" step — multi-select imported
-   contacts → one-tap #同事/#大學同學/#家人/#客戶. Local-contact variant of
-   BatchTagScreen. Untagged local contacts are unsearchable dead data.
-   **FREE tier by design — see the paid-boundary decision below.**
+1. **Contact-import batch bucketing — SHIPPED 2026-07-04** (was the biggest
+   gap — the loops' intersection). ContactSync's 尚未加入 section header
+   gains a 「快速分類」 pill (shows when ≥2 non-member contacts) → the
+   SHARED BatchTagScreen in import mode (`deviceContacts` param): nothing
+   pre-selected (a bucket is a subset), 全選 toggle, preset chips
+   #同事/#同學/#家人/#客戶 + free input, and a QUICK-SORT LOOP — save
+   applies the bucket, resets selection, stays for the next circle; 完成
+   exits. Writes the `tags` array on piktag_local_contacts (creating rows
+   for contacts that had none; created ids + accumulated tags tracked so
+   the 2nd bucket UPDATES instead of duplicating). Those tags are exactly
+   what promote_local_contacts copies into REAL connection tags when the
+   person joins — bucketing now IS future serendipity fuel. PostHog:
+   `import_batch_tagged`. **FREE tier by design — the paid boundary below
+   stands: no free "pick any friends" entry was added.**
 2. **Dedicated "your saved contact joined" notification** (post-launch):
    upgrade the generic friend notification fired by promote_local_contacts
    to a dedicated type telling the owner "X you saved 3 months ago joined —
