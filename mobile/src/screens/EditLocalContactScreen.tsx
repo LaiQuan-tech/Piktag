@@ -62,7 +62,7 @@ import TagChip from '../components/TagChip';
 // useAuthProfile import dropped — the share-button component owns
 // its own viewer-profile lookup now.
 import LocalContactShareButton from '../components/LocalContactShareButton';
-import { scanCard } from '../lib/scanCard';
+import { scanCard, claimScanJob, type QuickFields } from '../lib/scanCard';
 import { recordAiSuggestions, markAiSuggestionAccepted } from '../lib/aiTagLogger';
 
 type Props = { navigation: any; route: any };
@@ -525,36 +525,42 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       // Gemini's authoritative values REPLACE them, while never touching
       // a value the USER edited in the meantime.
       const quickApplied = { phone: '', email: '', website: '' };
+      const handleQuickFields = (quick: QuickFields) => {
+        if (quick.email) {
+          setEmail((cur) => {
+            if (cur.trim()) return cur;
+            quickApplied.email = quick.email as string;
+            return quickApplied.email;
+          });
+        }
+        if (quick.website) {
+          setWebsite((cur) => {
+            if (cur.trim()) return cur;
+            quickApplied.website = quick.website as string;
+            return quickApplied.website;
+          });
+        }
+        if (quick.phone) {
+          const scanned = splitTelUrl(quick.phone);
+          setPhoneNational((cur) => {
+            if (cur.trim()) return cur;
+            if (scanned.country) setPhoneCountry(scanned.country);
+            quickApplied.phone = scanned.national.replace(/\D/g, '');
+            return quickApplied.phone;
+          });
+        }
+      };
+      // Pipeline overlap (speed lever #3): the capture screens start the
+      // OCR→structuring job BEFORE navigating here — claim it by uri so
+      // navigation/mount time overlaps the scan instead of preceding it.
+      // Quick fields emitted before this mount replay synchronously on
+      // claim. Paths with no in-flight job (retake, stale uri) start a
+      // fresh scan exactly as before.
+      const claimed = claimScanJob(uri, handleQuickFields);
+      const scanPromise =
+        claimed ?? scanCard({ uri, mimeType, onQuickFields: handleQuickFields });
       const { data, error } = await Promise.race([
-        scanCard({
-          uri,
-          mimeType,
-          onQuickFields: (quick) => {
-            if (quick.email) {
-              setEmail((cur) => {
-                if (cur.trim()) return cur;
-                quickApplied.email = quick.email as string;
-                return quickApplied.email;
-              });
-            }
-            if (quick.website) {
-              setWebsite((cur) => {
-                if (cur.trim()) return cur;
-                quickApplied.website = quick.website as string;
-                return quickApplied.website;
-              });
-            }
-            if (quick.phone) {
-              const scanned = splitTelUrl(quick.phone);
-              setPhoneNational((cur) => {
-                if (cur.trim()) return cur;
-                if (scanned.country) setPhoneCountry(scanned.country);
-                quickApplied.phone = scanned.national.replace(/\D/g, '');
-                return quickApplied.phone;
-              });
-            }
-          },
-        }),
+        scanPromise,
         new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('SCAN_TIMEOUT')), SCAN_TIMEOUT_MS),
         ),

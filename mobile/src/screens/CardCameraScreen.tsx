@@ -45,7 +45,7 @@ import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react-native';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
-import { prewarmScanBusinessCard } from '../lib/scanCard';
+import { prewarmScanBusinessCard, startScanJob } from '../lib/scanCard';
 
 type Props = { navigation: any; route: any };
 
@@ -274,9 +274,12 @@ export default function CardCameraScreen({ navigation, route }: Props) {
         return;
       }
       if (forNewContact) {
+        // Pipeline overlap (speed lever #3): start the OCR→structuring
+        // job on the final frame BEFORE navigating — EditLocalContact
+        // claims it by uri, so navigation/mount time overlaps the scan.
+        startScanJob({ uri: finalUri, mimeType: 'image/jpeg' });
         // Entry mode: swap the camera for the prefill form (Back from
-        // the form → 好友頁, not back to the camera). EditLocalContact
-        // runs the scan / OCR on mount from these params.
+        // the form → 好友頁, not back to the camera).
         navigation.replace('EditLocalContact', {
           scanUri: finalUri,
           scanMime: 'image/jpeg',

@@ -17,7 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
-import { prewarmScanBusinessCard } from '../lib/scanCard';
+import { prewarmScanBusinessCard, startScanJob } from '../lib/scanCard';
 import QrNameCard from '../components/QrNameCard';
 import ScanSuccessStinger from '../components/stingers/ScanSuccessStinger';
 
@@ -184,9 +184,12 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
       const scanCapturedAt = Date.now(); // shutter moment for card_scan_latency
       const photo = await cameraRef.current.takePictureAsync({ quality: 0.6 });
       if (photo?.uri) {
+        // Pipeline overlap (speed lever #3): kick the OCR→structuring job
+        // NOW so it runs during the navigation + mount; EditLocalContact
+        // claims it by uri instead of starting from zero.
+        startScanJob({ uri: photo.uri, mimeType: 'image/jpeg' });
         // Replace the camera with the prefill form (Back from the form →
-        // wherever the scanner was opened from). EditLocalContact runs the
-        // full, unchanged scanCard pipeline on mount.
+        // wherever the scanner was opened from).
         navigation.replace('EditLocalContact', {
           scanUri: photo.uri,
           scanMime: 'image/jpeg',

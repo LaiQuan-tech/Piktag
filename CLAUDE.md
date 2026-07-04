@@ -1238,16 +1238,29 @@ engine at cold start), **paid = user-initiated arbitrary selection**
 Never add a free "pick any friends" batch entry — that IS the paid line.
 BatchTagScreen stays the single shared UI for all tiers.
 
-**Card-scan speed backlog (2026-07-04):** current pipeline has NO edge-fn
-prewarm (cold start lands in p95) and NO device-side instant fields. Next
-speed levers in cost order: (a) prewarm ping to scan-business-card when
-CardCamera mounts; (b) regex-extract phone/email/website from on-device
-OCR text and fill those fields INSTANTLY, Gemini fills name/company/title
-in the second wave (respect applyPrefill no-overwrite guards); (c) start
-OCR in CardCamera right after capture (overlap with navigation/mount);
-(d) react-native-vision-camera live-frame OCR = the endgame, big native
-change (already documented in the unified-scanner section). Measure with
-card_scan_latency p50/p95 before/after each lever.
+**Card-scan speed levers (2026-07-04): (a)(b)(c) SHIPPED, (d) post-launch.**
+- (a) **Prewarm**: `prewarmScanBusinessCard()` (scanCard.ts, 60s throttle,
+  body `{warmup:true}` — the edge fn answers above its JWT guard) fires on
+  CardCameraScreen AND CameraScanScreen mount. Kills the cold-start tail.
+- (b) **Instant fields**: `extractQuickFields()` regex-mines phone/email/
+  website from OCR text; `onQuickFields` paints them ~1-2s before Gemini.
+  **Overwrite protocol**: runScan's `quickApplied` records exactly what the
+  quick pass wrote — applyPrefill lets Gemini REPLACE a quick value (it
+  picks the right number when a card lists several) but NEVER a value the
+  user edited (cur !== quickApplied.X). Dates rejected as phone candidates.
+- (c) **Pipeline overlap**: capture screens call `startScanJob()` on the
+  final frame BEFORE navigating; EditLocalContact `claimScanJob(uri)`
+  awaits the in-flight job — navigation/mount time overlaps the scan.
+  Single-slot job stash; quick fields emitted pre-claim replay on claim;
+  unclaimed jobs are overwritten harmlessly.
+- (d) **vision-camera live-frame OCR — post-launch ONLY (founder asked
+  2026-07-04; deliberately held).** It's a big native dependency swap on
+  the app's most crash-prone surface days before store submission, and it
+  shares the camera with the North-Star QR path — a regression there costs
+  more than the remaining latency win. Plan: after 1.0.8 ships, spike on a
+  branch (vision-camera v4 + frame-processor OCR), acceptance = QR + card
+  paths stable on device, then compare card_scan_latency p50/p95.
+Measure every lever against `card_scan_latency` p50/p95 (PostHog).
 
 ## Network graph replaced the invite-lineage Tribe (2026-06-25)
 

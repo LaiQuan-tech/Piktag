@@ -106,6 +106,65 @@ export function extractQuickFields(text: string): QuickFields {
   return out;
 }
 
+// ── Pipeline overlap: capture-time scan jobs (speed lever #3) ───────
+// The old sequence was strictly serial: capture → crop → navigate →
+// EditLocalContact mounts → OCR starts. The capture screen now calls
+// startScanJob() the moment the final frame uri exists, so OCR (and
+// usually the structuring round-trip too) runs DURING the navigation
+// and mount. EditLocalContact claims the in-flight job by uri instead
+// of starting a fresh scan — navigation time is now free.
+//
+// Single-slot by design: only one card capture can be in flight (the
+// camera screens are modal). A job nobody claims (user backs out) is
+// simply overwritten by the next capture. Quick fields emitted before
+// the claimer subscribes are buffered on the job and replayed at claim.
+type ScanJob = {
+  uri: string;
+  promise: Promise<ScanCardResult>;
+  quick?: QuickFields;
+  onQuick?: (q: QuickFields) => void;
+};
+
+let pendingJob: ScanJob | null = null;
+
+export function startScanJob(input: { uri: string; mimeType: string }): void {
+  const job = { uri: input.uri } as ScanJob;
+  job.promise = scanCard({
+    uri: input.uri,
+    mimeType: input.mimeType,
+    onQuickFields: (q) => {
+      job.quick = q;
+      job.onQuick?.(q);
+    },
+  });
+  // Pre-claim rejection guard — the claimer attaches its own handlers.
+  job.promise.catch(() => {});
+  pendingJob = job;
+}
+
+/** Claim the in-flight job for this uri (null = none; caller starts a
+ *  fresh scan). Buffered quick fields replay synchronously on claim. */
+export function claimScanJob(
+  uri: string,
+  onQuick?: (q: QuickFields) => void,
+): Promise<ScanCardResult> | null {
+  const job = pendingJob;
+  if (!job || job.uri !== uri) return null;
+  pendingJob = null;
+  if (onQuick) {
+    if (job.quick) {
+      try {
+        onQuick(job.quick);
+      } catch {
+        /* quick fields are best-effort */
+      }
+    } else {
+      job.onQuick = onQuick;
+    }
+  }
+  return job.promise;
+}
+
 // ── Edge-fn prewarm (2026-07-04 speed pass) ─────────────────────────
 // scan-business-card answers `{ warmup: true }` immediately, above its
 // JWT guard (the pg_cron pinger uses the same door). Firing one ping
