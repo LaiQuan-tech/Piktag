@@ -1079,6 +1079,9 @@
       "tag_suggest_nudge": {
         "title": "Tag gợi ý cho bạn",
         "body": "{{tags}} — thêm vào để đúng người tìm thấy bạn"
+      },
+      "contact_joined": {
+        "body": "{{name}} vừa tham gia PikTag — người bạn đã lưu. Hai bạn đã tự động kết nối và các thẻ của bạn vẫn còn nguyên."
       }
     },
     "tabMatches": "Khớp",
@@ -1327,7 +1330,8 @@
     "timeHoursAgo": "{{count}} giờ trước",
     "timeDaysAgo": "{{count}} ngày trước",
     "icebreakerHeader": "Cách bắt đầu",
-    "icebreakerLoading": "Đang nghĩ điều gì đó cụ thể…"
+    "icebreakerLoading": "Đang nghĩ điều gì đó cụ thể…",
+    "metContext": "Quen từ {{date}}"
   },
   "share": {
     "profileInviteMessage": "{{name}} đang ở PikTag — dùng tag để nhớ nhau\n{{url}}"
@@ -1569,7 +1573,9 @@
     "shareWhatsappBody": "Chào {{theirFirst}}, rất vui được gặp. Liên hệ của tôi: {{url}}\n\n— {{firstName}}",
     "tagsDesc": "Ghi lại cách bạn quen nhau, đã nói chuyện gì, điều cần nhớ — để không bao giờ quên người này.",
     "aiPreselectLoading": "AI đang chọn thẻ từ danh thiếp…",
-    "aiPreselectNote": "AI đã thêm các thẻ này từ danh thiếp — chạm vào thẻ bạn không muốn để bỏ"
+    "aiPreselectNote": "AI đã thêm các thẻ này từ danh thiếp — chạm vào thẻ bạn không muốn để bỏ",
+    "introSentAt": "Đã gửi · {{date}}",
+    "shareResend": "Gửi lại"
   },
   "followers": {
     "title": "Người theo dõi",

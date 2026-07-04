@@ -1079,6 +1079,9 @@
       "tag_suggest_nudge": {
         "title": "Sana özel etiket önerileri",
         "body": "{{tags}} — ekle, doğru kişiler seni bulsun"
+      },
+      "contact_joined": {
+        "body": "{{name}} PikTag'e katıldı — kaydettiğin kişi. Otomatik olarak bağlandınız ve etiketlerin korundu."
       }
     },
     "tabMatches": "Eşleşmeler",
@@ -1327,7 +1330,8 @@
     "timeHoursAgo": "{{count}} sa önce",
     "timeDaysAgo": "{{count}} g önce",
     "icebreakerHeader": "Sohbete başlamak için",
-    "icebreakerLoading": "Spesifik bir şey düşünüyoruz…"
+    "icebreakerLoading": "Spesifik bir şey düşünüyoruz…",
+    "metContext": "Tanışma: {{date}}"
   },
   "share": {
     "profileInviteMessage": "{{name}} PikTag'da — etiketlerle birbirimizi hatırlayalım\n{{url}}"
@@ -1569,7 +1573,9 @@
     "shareWhatsappBody": "Selam {{theirFirst}}, tanıştığımıza memnun oldum. İletişim: {{url}}\n\n— {{firstName}}",
     "tagsDesc": "Nasıl tanıştığınızı, ne konuştuğunuzu ve hatırlanacakları not et — bu kişiyi asla unutma.",
     "aiPreselectLoading": "Yapay zeka kartvizitten etiket seçiyor…",
-    "aiPreselectNote": "Yapay zeka kartvizitten etiketler ekledi — istemediğine dokunup çıkar"
+    "aiPreselectNote": "Yapay zeka kartvizitten etiketler ekledi — istemediğine dokunup çıkar",
+    "introSentAt": "Gönderildi · {{date}}",
+    "shareResend": "Tekrar gönder"
   },
   "followers": {
     "title": "Takipçiler",

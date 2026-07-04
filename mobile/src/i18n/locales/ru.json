@@ -1079,6 +1079,9 @@
       "tag_suggest_nudge": {
         "title": "Теги, подобранные для вас",
         "body": "{{tags}} — добавьте их, чтобы вас нашли нужные люди"
+      },
+      "contact_joined": {
+        "body": "{{name}} присоединился к PikTag — контакт, который вы сохранили. Вы уже связаны, и ваши теги сохранились."
       }
     },
     "tabMatches": "Совпадения",
@@ -1327,7 +1330,8 @@
     "timeHoursAgo": "{{count}} ч назад",
     "timeDaysAgo": "{{count}} дн назад",
     "icebreakerHeader": "Как начать",
-    "icebreakerLoading": "Подбираем что-то конкретное…"
+    "icebreakerLoading": "Подбираем что-то конкретное…",
+    "metContext": "Знакомы с {{date}}"
   },
   "share": {
     "profileInviteMessage": "{{name}} в PikTag — запомним друг друга по тегам\n{{url}}"
@@ -1569,7 +1573,9 @@
     "shareWhatsappBody": "Привет, {{theirFirst}}, рад знакомству. Мои контакты: {{url}}\n\n— {{firstName}}",
     "tagsDesc": "Запишите, как познакомились, о чём говорили и что запомнить — чтобы не забыть этого человека.",
     "aiPreselectLoading": "ИИ подбирает теги по визитке…",
-    "aiPreselectNote": "ИИ добавил теги по визитке — нажми на лишние, чтобы убрать"
+    "aiPreselectNote": "ИИ добавил теги по визитке — нажми на лишние, чтобы убрать",
+    "introSentAt": "Отправлено · {{date}}",
+    "shareResend": "Отправить ещё раз"
   },
   "followers": {
     "title": "Подписчики",

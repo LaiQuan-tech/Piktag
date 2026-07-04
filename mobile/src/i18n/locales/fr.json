@@ -1079,6 +1079,9 @@
       "tag_suggest_nudge": {
         "title": "Des tags choisis pour vous",
         "body": "{{tags}} — ajoutez-les pour que les bonnes personnes vous trouvent"
+      },
+      "contact_joined": {
+        "body": "{{name}} vient de rejoindre PikTag — le contact que vous aviez enregistré. Vous êtes déjà connectés et vos tags ont été conservés."
       }
     },
     "tabMatches": "Matchs",
@@ -1327,7 +1330,8 @@
     "timeHoursAgo": "il y a {{count}} h",
     "timeDaysAgo": "il y a {{count}} j",
     "icebreakerHeader": "Idées pour commencer",
-    "icebreakerLoading": "On cherche un truc précis…"
+    "icebreakerLoading": "On cherche un truc précis…",
+    "metContext": "Rencontrés en {{date}}"
   },
   "share": {
     "profileInviteMessage": "{{name}} est sur PikTag, souvenons-nous l'un de l'autre avec des tags\n{{url}}"
@@ -1569,7 +1573,9 @@
     "shareWhatsappBody": "Salut {{theirFirst}}, ravi de t'avoir rencontré. Mes coordonnées : {{url}}\n\n— {{firstName}}",
     "tagsDesc": "Notez comment vous vous êtes rencontrés, de quoi vous avez parlé et ce dont vous voulez vous souvenir — pour ne jamais oublier cette personne.",
     "aiPreselectLoading": "L'IA choisit des tags depuis la carte…",
-    "aiPreselectNote": "L'IA a ajouté ces tags depuis la carte — touche ceux dont tu ne veux pas pour les retirer"
+    "aiPreselectNote": "L'IA a ajouté ces tags depuis la carte — touche ceux dont tu ne veux pas pour les retirer",
+    "introSentAt": "Envoyé · {{date}}",
+    "shareResend": "Renvoyer"
   },
   "followers": {
     "title": "Abonnés",

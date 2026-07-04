@@ -58,7 +58,13 @@ function filterNotifications(
       return notifications.filter(
         (n) =>
           n.type === 'follow' ||
-          n.type === 'friend' ||
+          // Promote-created connections fire BOTH the generic friend row
+          // (kept for pre-contact_joined builds) and the dedicated
+          // contact_joined row below — hide the generic one here so new
+          // builds see the story exactly once. Old builds ignore the
+          // data.source field and keep showing the generic row.
+          (n.type === 'friend' && (n.data as any)?.source !== 'promote') ||
+          n.type === 'contact_joined' ||
           n.type === 'tag_added' ||
           n.type === 'biolink_click' ||
           n.type === 'invite_accepted' ||
@@ -144,6 +150,22 @@ function getNotificationDisplay(
   ]);
   if (MAGIC_MOMENT_TYPES.has(type) && item.title) {
     return { username: '', body: item.title };
+  }
+
+  // "Your saved contact joined" (backlog #2, 2026-07-05): the magic-moment
+  // story — the person you filed months ago is here, auto-connected, your
+  // tags survived. saved_name = what the OWNER called them (their card),
+  // which is the memorable handle; falls back to the member identity.
+  if (type === 'contact_joined') {
+    const savedName =
+      (typeof data.saved_name === 'string' && data.saved_name.trim()) || dataUsername || '';
+    return {
+      username: '',
+      body: t('notifications.types.contact_joined.body', {
+        name: savedName,
+        defaultValue: item.body || '',
+      }),
+    };
   }
 
   // Self-directed growth nudge — no actor, no username. Render the

@@ -33,6 +33,7 @@ export const KNOWN_NOTIFICATION_TYPES = [
   'ask_posted',
   'tag_trending',
   'contact_sync_nudge', // growth nudge: find friends from your contacts
+  'contact_joined', // your saved local contact registered — auto-connected, tags carried over
   // matches (AI / discovery)
   'recommendation',
   'tag_convergence',

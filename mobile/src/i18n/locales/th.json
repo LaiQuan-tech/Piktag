@@ -1079,6 +1079,9 @@
       "tag_suggest_nudge": {
         "title": "แท็กที่เลือกมาเพื่อคุณ",
         "body": "{{tags}} — เพิ่มเลย ให้คนที่ใช่ค้นพบคุณ"
+      },
+      "contact_joined": {
+        "body": "{{name}} เพิ่งเข้าร่วม PikTag — ผู้ติดต่อที่คุณบันทึกไว้ ตอนนี้เป็นเพื่อนกันแล้วโดยอัตโนมัติ และแท็กของคุณยังอยู่ครบ"
       }
     },
     "tabMatches": "จับคู่",
@@ -1327,7 +1330,8 @@
     "timeHoursAgo": "{{count}} ชั่วโมงก่อน",
     "timeDaysAgo": "{{count}} วันก่อน",
     "icebreakerHeader": "วิธีเริ่มคุย",
-    "icebreakerLoading": "กำลังคิดอะไรเฉพาะเจาะจง…"
+    "icebreakerLoading": "กำลังคิดอะไรเฉพาะเจาะจง…",
+    "metContext": "รู้จักกันเมื่อ {{date}}"
   },
   "share": {
     "profileInviteMessage": "{{name}} อยู่บน PikTag — ใช้แท็กจำกันไว้\n{{url}}"
@@ -1569,7 +1573,9 @@
     "shareWhatsappBody": "สวัสดี {{theirFirst}} ยินดีที่ได้พบ ข้อมูลติดต่อ: {{url}}\n\n— {{firstName}}",
     "tagsDesc": "จดว่ารู้จักกันยังไง คุยอะไรกัน และสิ่งที่ต้องจำ —— เพื่อจำคนนี้ได้ดี",
     "aiPreselectLoading": "AI กำลังเลือกแท็กจากนามบัตร…",
-    "aiPreselectNote": "AI เพิ่มแท็กให้จากนามบัตรแล้ว — แตะอันที่ไม่ต้องการเพื่อเอาออก"
+    "aiPreselectNote": "AI เพิ่มแท็กให้จากนามบัตรแล้ว — แตะอันที่ไม่ต้องการเพื่อเอาออก",
+    "introSentAt": "ส่งแล้ว · {{date}}",
+    "shareResend": "ส่งอีกครั้ง"
   },
   "followers": {
     "title": "ผู้ติดตาม",

@@ -1063,6 +1063,9 @@
       "tag_suggest_nudge": {
         "title": "為你挑了幾個標籤",
         "body": "{{tags}} — 補上，讓對的人找到你"
+      },
+      "contact_joined": {
+        "body": "{{name}} 加入 PikTag 了 — 你存過的聯絡人。已自動成為好友，你打的標籤都還在。"
       }
     },
     "tabMatches": "配對",
@@ -1327,7 +1330,8 @@
     "timeHoursAgo": "{{count}} 小時前",
     "timeDaysAgo": "{{count}} 天前",
     "icebreakerHeader": "幾個好開頭",
-    "icebreakerLoading": "想一個對得上的開場…"
+    "icebreakerLoading": "想一個對得上的開場…",
+    "metContext": "認識於 {{date}}"
   },
   "share": {
     "profileInviteMessage": "{{name}} 在 PikTag，用標籤記住彼此\n{{url}}"
@@ -1569,7 +1573,9 @@
     "shareWhatsappBody": "Hi {{theirFirst}}，很高興認識你。我的聯絡資料：{{url}}\n\n— {{firstName}}",
     "tagsDesc": "記下怎麼認識、聊過什麼、要記得的事，幫你好好記住這個人。",
     "aiPreselectLoading": "AI 正在根據名片挑標籤…",
-    "aiPreselectNote": "AI 根據名片為你加上了標籤，不要的點掉就好"
+    "aiPreselectNote": "AI 根據名片為你加上了標籤，不要的點掉就好",
+    "introSentAt": "已寄出 · {{date}}",
+    "shareResend": "再寄一次"
   },
   "followers": {
     "title": "追蹤者",

@@ -1079,6 +1079,9 @@
       "tag_suggest_nudge": {
         "title": "وسوم مقترحة لك",
         "body": "{{tags}} — أضفها ليجدك الأشخاص المناسبون"
+      },
+      "contact_joined": {
+        "body": "انضم {{name}} للتو إلى PikTag — جهة الاتصال التي حفظتها. أنتما متصلان تلقائيًا ووسومك محفوظة."
       }
     },
     "tabMatches": "تطابقات",
@@ -1327,7 +1330,8 @@
     "timeHoursAgo": "قبل {{count}} س",
     "timeDaysAgo": "قبل {{count}} ي",
     "icebreakerHeader": "كيف تبدأ",
-    "icebreakerLoading": "نفكر في شيء محدد…"
+    "icebreakerLoading": "نفكر في شيء محدد…",
+    "metContext": "تعارفتما في {{date}}"
   },
   "share": {
     "profileInviteMessage": "{{name}} على PikTag — لنتذكر بعضنا بالوسوم\n{{url}}"
@@ -1569,7 +1573,9 @@
     "shareWhatsappBody": "مرحبا {{theirFirst}}، سعيد بلقائك. بياناتي: {{url}}\n\n— {{firstName}}",
     "tagsDesc": "دوّن كيف تعارفتما وعمّ تحدثتما وما يجب تذكّره — حتى لا تنسى هذا الشخص.",
     "aiPreselectLoading": "يختار الذكاء الاصطناعي وسومًا من البطاقة…",
-    "aiPreselectNote": "أضاف الذكاء الاصطناعي هذه الوسوم من البطاقة — انقر ما لا تريده لإزالته"
+    "aiPreselectNote": "أضاف الذكاء الاصطناعي هذه الوسوم من البطاقة — انقر ما لا تريده لإزالته",
+    "introSentAt": "أُرسل · {{date}}",
+    "shareResend": "إرسال مرة أخرى"
   },
   "followers": {
     "title": "المتابعون",

@@ -1079,6 +1079,9 @@
       "tag_suggest_nudge": {
         "title": "Ide tag untukmu",
         "body": "{{tags}} — tambahkan agar orang yang tepat menemukanmu"
+      },
+      "contact_joined": {
+        "body": "{{name}} baru saja bergabung dengan PikTag — kontak yang kamu simpan. Kalian sudah terhubung dan tag-mu tetap ada."
       }
     },
     "tabMatches": "Cocok",
@@ -1327,7 +1330,8 @@
     "timeHoursAgo": "{{count}} jam lalu",
     "timeDaysAgo": "{{count}} hari lalu",
     "icebreakerHeader": "Cara memulai",
-    "icebreakerLoading": "Mencari yang pas…"
+    "icebreakerLoading": "Mencari yang pas…",
+    "metContext": "Kenal sejak {{date}}"
   },
   "share": {
     "profileInviteMessage": "{{name}} ada di PikTag — saling ingat lewat tag\n{{url}}"
@@ -1569,7 +1573,9 @@
     "shareWhatsappBody": "Hi {{theirFirst}}, senang bertemu. Kontak saya: {{url}}\n\n— {{firstName}}",
     "tagsDesc": "Catat bagaimana kalian berkenalan, apa yang dibahas, dan hal yang perlu diingat — agar tak melupakan orang ini.",
     "aiPreselectLoading": "AI sedang memilih tag dari kartu…",
-    "aiPreselectNote": "AI menambahkan tag ini dari kartu — ketuk yang tak kamu mau untuk menghapus"
+    "aiPreselectNote": "AI menambahkan tag ini dari kartu — ketuk yang tak kamu mau untuk menghapus",
+    "introSentAt": "Terkirim · {{date}}",
+    "shareResend": "Kirim lagi"
   },
   "followers": {
     "title": "Pengikut",

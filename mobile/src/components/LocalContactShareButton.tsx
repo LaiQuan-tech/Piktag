@@ -76,6 +76,15 @@ type Props = {
    * audited stay visually correct (the original treatment).
    */
   variant?: 'primary' | 'secondary';
+  /** backlog #3 (2026-07-05): when the owner last sent their card
+   *  (piktag_local_contacts.intro_sent_at). Within 7 days the button
+   *  shows a disabled 已寄出 state; after that it re-arms as 再寄一次.
+   *  Omit/null = never sent → normal CTA. */
+  sentAt?: string | null;
+  /** Fires when the user picks a share channel (intent-to-send — the
+   *  OS won't tell us if the message actually left). The host screen
+   *  persists intro_sent_at here. */
+  onShared?: () => void;
 };
 
 export default function LocalContactShareButton({
@@ -85,6 +94,8 @@ export default function LocalContactShareButton({
   eventOrCompanyHint = null,
   style,
   variant = 'secondary',
+  sentAt = null,
+  onShared,
 }: Props) {
   const { t } = useTranslation();
   const { profile: myProfile } = useAuthProfile();
@@ -111,6 +122,10 @@ export default function LocalContactShareButton({
   const myUsername = myProfile.username ?? '';
 
   const onPick = (channel: ShareChannel) => {
+    // Intent-to-send = sent, best-effort (no OS callback exists for
+    // "the SMS actually went"). Fire before the async open so a slow
+    // channel launch can't lose the state write.
+    onShared?.();
     void openChannel(channel, {
       recipientEmail: recipientEmail ?? '',
       recipientPhone: recipientPhone ?? '',
@@ -164,14 +179,40 @@ export default function LocalContactShareButton({
     }
   };
 
+  // ── 已寄出 state (backlog #3) ─────────────────────────────────────
+  // Within 7 days of a send the CTA rests ("已寄出 · 7/5" — the job is
+  // done, don't nag the same person twice in a week); after 7 days
+  // un-joined it re-arms as 再寄一次. Same CTA, three states — the
+  // locked visual position/weight never changes.
+  const RESEND_AFTER_MS = 7 * 24 * 3600 * 1000;
+  const sentTs = sentAt ? new Date(sentAt).getTime() : NaN;
+  const sentRecently =
+    Number.isFinite(sentTs) && Date.now() - sentTs < RESEND_AFTER_MS;
+  const sentEver = Number.isFinite(sentTs);
+
+  const label = sentRecently
+    ? t('localContact.introSentAt', {
+        date: `${new Date(sentTs).getMonth() + 1}/${new Date(sentTs).getDate()}`,
+        defaultValue: '已寄出 · {{date}}',
+      })
+    : sentEver
+      ? t('localContact.shareResend', { defaultValue: '再寄一次' })
+      : t('localContact.shareBtn', { defaultValue: '寄我的聯絡資料給他' });
+
   return (
     <TouchableOpacity
-      style={[styles.btn, isPrimary && styles.btnPrimary, style]}
+      style={[
+        styles.btn,
+        isPrimary && styles.btnPrimary,
+        sentRecently && styles.btnSent,
+        style,
+      ]}
       onPress={onTapShare}
       activeOpacity={0.7}
+      disabled={sentRecently}
     >
       <Text style={[styles.btnText, isPrimary && styles.btnTextPrimary]}>
-        {t('localContact.shareBtn', { defaultValue: '寄我的聯絡資料給他' })}
+        {label}
       </Text>
     </TouchableOpacity>
   );
@@ -198,6 +239,11 @@ function makeStyles(c: ColorPalette) {
       fontSize: 15,
       fontWeight: '700',
       color: c.piktag600,
+    },
+    // 已寄出 resting state — same footprint, visibly "done" (the CTA's
+    // locked position/weight is untouched; only saturation drops).
+    btnSent: {
+      opacity: 0.45,
     },
     // Primary tier override — matches the canonical primary CTA
     // pattern (EditLocalContact.saveBtn / EditProfile save / etc.):

@@ -124,6 +124,57 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
   const [otherProfile, setOtherProfile] = useState<OtherProfile | null>(null);
   const lastMarkedLenRef = useRef<number>(-1);
 
+  // Met-context line (backlog #4, 2026-07-05): "認識於 2026/3 · #台北讀書會"
+  // under the header name — the at-a-glance reminder that lowers the cost
+  // of reopening a dormant thread (the icebreakers already do the wording;
+  // this does the glance). Sourced from the VIEWER's own connection row:
+  // met_at + up to two of their private context tags. No data → no line.
+  const [metContext, setMetContext] = useState<string | null>(null);
+  useEffect(() => {
+    if (!user?.id || !otherUserId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: conn } = await supabase
+          .from('piktag_connections')
+          .select('id, met_at')
+          .eq('user_id', user.id)
+          .eq('connected_user_id', otherUserId)
+          .maybeSingle();
+        if (cancelled || !conn) return;
+        let tagPart = '';
+        try {
+          const { data: ct } = await supabase
+            .from('piktag_connection_tags')
+            .select('tag:piktag_tags(name)')
+            .eq('connection_id', (conn as any).id)
+            .limit(2);
+          const names = ((ct ?? []) as any[])
+            .map((r) => r?.tag?.name)
+            .filter((n): n is string => typeof n === 'string' && n.trim().length > 0);
+          if (names.length > 0) tagPart = names.map((n) => `#${n}`).join(' ');
+        } catch {
+          /* tags are optional garnish */
+        }
+        const metAt = (conn as any).met_at ? new Date((conn as any).met_at) : null;
+        const datePart =
+          metAt && !Number.isNaN(metAt.getTime())
+            ? t('chat.metContext', {
+                date: `${metAt.getFullYear()}/${metAt.getMonth() + 1}`,
+                defaultValue: '認識於 {{date}}',
+              })
+            : '';
+        const line = [datePart, tagPart].filter(Boolean).join(' · ');
+        if (!cancelled && line) setMetContext(line);
+      } catch {
+        /* best-effort — the thread renders fine without the line */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, otherUserId, t]);
+
   // Self-heal a missing otherUserId (cold-start push tap): the
   // conversation row names both participants — the other one is
   // whichever isn't me. Once set, the profile-fetch effect below fills
@@ -552,9 +603,16 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
             size={36}
             ringStyle="subtle"
           />
-          <Text style={styles.headerTitle} numberOfLines={1}>
-            {displayName}
-          </Text>
+          <View style={styles.headerTextWrap}>
+            <Text style={styles.headerTitle} numberOfLines={1}>
+              {displayName}
+            </Text>
+            {metContext ? (
+              <Text style={styles.headerContext} numberOfLines={1}>
+                {metContext}
+              </Text>
+            ) : null}
+          </View>
         </Pressable>
 
         <View style={styles.headerIconBtn} />
@@ -635,6 +693,16 @@ function makeStyles(c: ColorPalette) {
     fontWeight: '700',
     color: c.gray900,
     flexShrink: 1,
+  },
+  headerTextWrap: {
+    flexShrink: 1,
+    minWidth: 0,
+    alignItems: 'center',
+  },
+  headerContext: {
+    fontSize: 11,
+    color: c.gray400,
+    marginTop: 1,
   },
   listContent: { paddingVertical: 12 },
   listContentEmpty: {

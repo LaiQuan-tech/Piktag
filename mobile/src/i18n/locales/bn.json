@@ -1079,6 +1079,9 @@
       "tag_suggest_nudge": {
         "title": "আপনার জন্য বাছাই করা ট্যাগ",
         "body": "{{tags}} — যোগ করুন, যাতে সঠিক মানুষ আপনাকে খুঁজে পায়"
+      },
+      "contact_joined": {
+        "body": "{{name}} এইমাত্র PikTag-এ যোগ দিয়েছেন — আপনার সংরক্ষিত কন্টাক্ট। স্বয়ংক্রিয়ভাবে বন্ধু হয়ে গেছেন, আর আপনার ট্যাগগুলোও রয়ে গেছে।"
       }
     },
     "tabMatches": "মিল",
@@ -1327,7 +1330,8 @@
     "timeHoursAgo": "{{count}} ঘণ্টা আগে",
     "timeDaysAgo": "{{count}} দিন আগে",
     "icebreakerHeader": "শুরু করার উপায়",
-    "icebreakerLoading": "নির্দিষ্ট কিছু ভাবছি…"
+    "icebreakerLoading": "নির্দিষ্ট কিছু ভাবছি…",
+    "metContext": "{{date}}-এ পরিচয়"
   },
   "share": {
     "profileInviteMessage": "{{name}} PikTag-এ — ট্যাগ দিয়ে একে অপরকে মনে রাখি\n{{url}}"
@@ -1569,7 +1573,9 @@
     "shareWhatsappBody": "হাই {{theirFirst}}, দেখা করে ভালো লাগল। আমার যোগাযোগ: {{url}}\n\n— {{firstName}}",
     "tagsDesc": "কীভাবে পরিচয় হলো, কী নিয়ে কথা হলো, কী মনে রাখতে হবে লিখে রাখুন — যাতে এই মানুষটিকে কখনো ভুলবেন না।",
     "aiPreselectLoading": "AI কার্ড থেকে ট্যাগ বাছছে…",
-    "aiPreselectNote": "AI কার্ড দেখে এই ট্যাগগুলো যোগ করেছে — যেগুলো চান না সেগুলো ট্যাপ করে সরান"
+    "aiPreselectNote": "AI কার্ড দেখে এই ট্যাগগুলো যোগ করেছে — যেগুলো চান না সেগুলো ট্যাপ করে সরান",
+    "introSentAt": "পাঠানো হয়েছে · {{date}}",
+    "shareResend": "আবার পাঠান"
   },
   "followers": {
     "title": "ফলোয়ার",

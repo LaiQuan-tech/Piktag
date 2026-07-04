@@ -1079,6 +1079,9 @@
       "tag_suggest_nudge": {
         "title": "어울리는 태그를 골랐어요",
         "body": "{{tags}} — 추가하면 꼭 맞는 사람이 당신을 찾습니다"
+      },
+      "contact_joined": {
+        "body": "{{name}} 님이 PikTag에 가입했어요 — 당신이 저장해 둔 연락처입니다. 자동으로 친구가 되었고, 붙여 둔 태그도 그대로예요."
       }
     },
     "tabMatches": "매칭",
@@ -1327,7 +1330,8 @@
     "timeHoursAgo": "{{count}}시간 전",
     "timeDaysAgo": "{{count}}일 전",
     "icebreakerHeader": "대화 시작하기",
-    "icebreakerLoading": "잘 맞는 인사말을 생각 중…"
+    "icebreakerLoading": "잘 맞는 인사말을 생각 중…",
+    "metContext": "{{date}}에 만남"
   },
   "share": {
     "profileInviteMessage": "{{name}}님이 PikTag에 — 태그로 서로를 기억해요\n{{url}}"
@@ -1569,7 +1573,9 @@
     "shareWhatsappBody": "{{theirFirst}}님, 만나서 반가웠습니다. 연락처: {{url}}\n\n— {{firstName}}",
     "tagsDesc": "어떻게 만났는지, 무슨 얘기를 했는지, 기억할 점을 적어두고 이 사람을 잘 기억하세요.",
     "aiPreselectLoading": "AI가 명함에서 태그를 고르고 있어요…",
-    "aiPreselectNote": "AI가 명함을 보고 태그를 추가했어요. 필요 없는 건 탭해서 빼세요"
+    "aiPreselectNote": "AI가 명함을 보고 태그를 추가했어요. 필요 없는 건 탭해서 빼세요",
+    "introSentAt": "보냄 · {{date}}",
+    "shareResend": "다시 보내기"
   },
   "followers": {
     "title": "팔로워",

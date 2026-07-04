@@ -46,7 +46,7 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const contactId: string | undefined = route.params?.contactId;
-  const { contacts, loading, refresh } = useLocalContacts();
+  const { contacts, loading, refresh, update } = useLocalContacts();
   const { profile: myProfile } = useAuthProfile();
 
   // Refetch every focus so returning from the 編輯 form shows the
@@ -365,6 +365,16 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
             recipientPhone={existing.phone_normalized}
             recipientName={existing.name}
             eventOrCompanyHint={existing.headline ?? null}
+            // backlog #3 (2026-07-05): 已寄出 state + 7-day re-send. The
+            // component owns the display logic; we persist the moment a
+            // channel is picked (intent-to-send — the OS never confirms
+            // actual delivery).
+            sentAt={existing.intro_sent_at}
+            onShared={() => {
+              void update(existing.id, {
+                intro_sent_at: new Date().toISOString(),
+              });
+            }}
           />
         </View>
       )}

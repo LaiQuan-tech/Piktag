@@ -44,6 +44,9 @@ export type LocalContact = {
   // and surfaced as a tappable linkCard on the contact detail.
   website: string | null;
   tags: string[];
+  // When the owner last sent their contact card to this person (寄我的
+  // 聯絡資料, backlog #3). Drives the 已寄出 CTA state; 7-day re-send.
+  intro_sent_at: string | null;
   promoted_to_connection_id: string | null;
   promoted_at: string | null;
   created_at: string;

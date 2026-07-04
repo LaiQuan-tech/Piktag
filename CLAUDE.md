@@ -1223,19 +1223,34 @@ Founder approved ALL FIVE below as worth doing (2026-07-04):
    person joins — bucketing now IS future serendipity fuel. PostHog:
    `import_batch_tagged`. **FREE tier by design — the paid boundary below
    stands: no free "pick any friends" entry was added.**
-2. **Dedicated "your saved contact joined" notification** (post-launch):
-   upgrade the generic friend notification fired by promote_local_contacts
-   to a dedicated type telling the owner "X you saved 3 months ago joined —
-   auto-connected, your tags survived". 4-point checklist + 19 locales.
-3. **寄聯絡資料 follow-up state** (small): "已寄出" status on
-   LocalContactDetail; allow re-send after 7 days un-joined.
-4. **Chat-thread context line** (small): thread header shows "met 2026/3 ·
-   #台北讀書會" — lowers the reopen cost visually (icebreakers already do
-   the wording).
-5. **Dormant boost in own-network search ranking** (post-launch,
-   data-gated): weight long-no-contact friends up when searching own
-   network. Do NOT hand-tune pre-data — wait for piktag_search_impressions
-   volume per the deferred-tuning doctrine.
+2. **"Your saved contact joined" notification — SHIPPED 2026-07-05.**
+   New type `contact_joined` (category notif_social), inserted by
+   promote_local_contacts_for_profile (migration 20260705000000) with a
+   NON-EMPTY English SQL body + rich data (saved_name/saved_at/tag_names/
+   connection_id/friend_user_id → router lands on FriendDetail
+   generically). **Old-build compatibility protocol:** the generic
+   'friend' row from trg_notify_friend is KEPT (old builds only know that
+   type) but stamped `data.source='promote'`; new builds' social filter
+   HIDES friend-with-source-promote so the story shows exactly once. No
+   extra push (the generic friend push already covers the lock screen).
+   4-point checklist complete; i18n `notifications.types.contact_joined.body` ×19.
+3. **寄聯絡資料 follow-up — SHIPPED 2026-07-05.**
+   `piktag_local_contacts.intro_sent_at` (same migration); recorded on
+   channel-pick (intent-to-send — the OS never confirms delivery).
+   LocalContactShareButton owns the 3-state CTA: normal → 已寄出 · M/D
+   (disabled, opacity 0.45, 7 days) → 再寄一次. Locked CTA
+   position/weight untouched.
+4. **Chat-thread context line — SHIPPED 2026-07-05.** ChatThread header
+   shows "認識於 2026/3 · #tag #tag" under the name (viewer's own
+   connection met_at + ≤2 private tags; no data → no line). Key
+   `chat.metContext` ×19.
+5. **Dormant TIEBREAKER in search_users — SHIPPED 2026-07-05**
+   (migration 20260705010000). NOT a re-weighting: the deferred-tuning
+   doctrine stands — main weights untouched. Among EQUAL match scores,
+   the viewer's longest-known friends rank first (`vc.met_at ASC NULLS
+   LAST` via a LEFT JOIN on the viewer's own connection rows); strangers
+   keep their position. A true coefficient boost still waits for
+   piktag_search_impressions volume.
 
 **Paid batch-tagging boundary (founder plan, next version):** friend-facing
 batch tagging will be a PAID feature. Decision to prevent cannibalization

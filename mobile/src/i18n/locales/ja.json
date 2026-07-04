@@ -1079,6 +1079,9 @@
       "tag_suggest_nudge": {
         "title": "あなたに合うタグを選びました",
         "body": "{{tags}} — 追加すると、見つけてほしい人に見つかります"
+      },
+      "contact_joined": {
+        "body": "{{name}}さんがPikTagに参加しました — あなたが保存していた連絡先です。自動的に友達になり、付けたタグもそのまま残っています。"
       }
     },
     "tabMatches": "マッチ",
@@ -1327,7 +1330,8 @@
     "timeHoursAgo": "{{count}} 時間前",
     "timeDaysAgo": "{{count}} 日前",
     "icebreakerHeader": "会話のきっかけ",
-    "icebreakerLoading": "具体的な話題を考えています…"
+    "icebreakerLoading": "具体的な話題を考えています…",
+    "metContext": "{{date}}に出会う"
   },
   "share": {
     "profileInviteMessage": "{{name}}さんが PikTag に — タグでお互いを覚えておこう\n{{url}}"
@@ -1569,7 +1573,9 @@
     "shareWhatsappBody": "{{theirFirst}} さん、お会いできてうれしかったです。連絡先：{{url}}\n\n— {{firstName}}",
     "tagsDesc": "どこで出会ったか、何を話したか、覚えておきたいことをメモ —— この人をしっかり覚えておけます。",
     "aiPreselectLoading": "AI が名刺からタグを選んでいます…",
-    "aiPreselectNote": "AI が名刺からタグを付けました。不要なものはタップで外せます"
+    "aiPreselectNote": "AI が名刺からタグを付けました。不要なものはタップで外せます",
+    "introSentAt": "送信済み · {{date}}",
+    "shareResend": "もう一度送る"
   },
   "followers": {
     "title": "フォロワー",

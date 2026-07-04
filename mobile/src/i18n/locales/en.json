@@ -1079,6 +1079,9 @@
       "tag_suggest_nudge": {
         "title": "Tag ideas picked for you",
         "body": "{{tags}} — add them so the right people can find you"
+      },
+      "contact_joined": {
+        "body": "{{name}} just joined PikTag — the contact you saved. You're already connected, and your tags carried over."
       }
     },
     "tabMatches": "Matches",
@@ -1327,7 +1330,8 @@
     "timeHoursAgo": "{{count}}h ago",
     "timeDaysAgo": "{{count}}d ago",
     "icebreakerHeader": "Easier ways to start",
-    "icebreakerLoading": "Thinking of something specific…"
+    "icebreakerLoading": "Thinking of something specific…",
+    "metContext": "Met {{date}}"
   },
   "share": {
     "profileInviteMessage": "{{name}} is on PikTag — let's remember each other with tags\n{{url}}"
@@ -1569,7 +1573,9 @@
     "shareWhatsappBody": "Hey {{theirFirst}}, great meeting you. Here's my contact: {{url}}\n\n— {{firstName}}",
     "tagsDesc": "Jot down how you met, what you talked about, things to remember — so you never forget this person.",
     "aiPreselectLoading": "AI is picking tags from the card…",
-    "aiPreselectNote": "AI added these from the card — tap any you don't want to remove it"
+    "aiPreselectNote": "AI added these from the card — tap any you don't want to remove it",
+    "introSentAt": "Sent · {{date}}",
+    "shareResend": "Send again"
   },
   "followers": {
     "title": "Followers",
