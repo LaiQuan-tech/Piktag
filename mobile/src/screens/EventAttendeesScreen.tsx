@@ -16,7 +16,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
-  Image,
   FlatList,
   TouchableOpacity,
   StyleSheet,
@@ -30,6 +29,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { findOrCreateTag } from '../lib/userTags';
 import { trackFriendAdded } from '../lib/analytics';
+import InitialsAvatar from '../components/InitialsAvatar';
 
 type Attendee = {
   user_id: string;
@@ -185,15 +185,13 @@ export default function EventAttendeesScreen({ navigation, route }: Props) {
         activeOpacity={0.7}
         onPress={() => navigation.navigate('UserDetail', { userId: item.user_id })}
       >
-        {item.avatar_url ? (
-          <Image source={{ uri: item.avatar_url }} style={styles.avatar} />
-        ) : (
-          <View style={[styles.avatar, styles.avatarFallback]}>
-            <Text style={styles.avatarInitial}>
-              {(item.full_name || item.username || '?').slice(0, 1).toUpperCase()}
-            </Text>
-          </View>
-        )}
+        {/* Shared avatar component (consistency rule: never hand-roll a
+            fallback the app already owns). */}
+        <InitialsAvatar
+          name={item.full_name || item.username}
+          avatarUrl={item.avatar_url}
+          size={44}
+        />
         <View style={styles.nameWrap}>
           <Text style={styles.name} numberOfLines={1}>
             {item.full_name || item.username || ''}
@@ -308,21 +306,6 @@ function makeStyles(c: ColorPalette) {
       alignItems: 'center',
       gap: 12,
       minWidth: 0,
-    },
-    avatar: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-    },
-    avatarFallback: {
-      backgroundColor: c.piktag50,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    avatarInitial: {
-      fontSize: 17,
-      fontWeight: '700',
-      color: c.piktag600,
     },
     nameWrap: {
       flex: 1,

@@ -22,7 +22,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   View,
   Text,
-  Image,
   FlatList,
   TextInput,
   TouchableOpacity,
@@ -42,6 +41,7 @@ import {
   trackImportBatchTagged,
 } from '../lib/analytics';
 import { useLocalContacts } from '../hooks/useLocalContacts';
+import InitialsAvatar from '../components/InitialsAvatar';
 import type { BurstPerson } from '../lib/burstTag';
 
 export type ImportContact = {
@@ -257,15 +257,9 @@ export default function BatchTagScreen({ navigation, route }: Props) {
         activeOpacity={0.7}
         onPress={() => toggle(item.key)}
       >
-        {item.avatarUrl ? (
-          <Image source={{ uri: item.avatarUrl }} style={styles.avatar} />
-        ) : (
-          <View style={[styles.avatar, styles.avatarFallback]}>
-            <Text style={styles.avatarInitial}>
-              {(item.name || '?').slice(0, 1).toUpperCase()}
-            </Text>
-          </View>
-        )}
+        {/* Shared avatar component (consistency rule: never hand-roll a
+            fallback the app already owns). */}
+        <InitialsAvatar name={item.name} avatarUrl={item.avatarUrl} size={40} />
         <View style={styles.personTextWrap}>
           <Text style={styles.personName} numberOfLines={1}>
             {item.name}
@@ -452,21 +446,6 @@ function makeStyles(c: ColorPalette) {
       borderColor: c.gray200,
       backgroundColor: c.white,
       marginBottom: 8,
-    },
-    avatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-    },
-    avatarFallback: {
-      backgroundColor: c.piktag50,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    avatarInitial: {
-      fontSize: 16,
-      fontWeight: '700',
-      color: c.piktag600,
     },
     personTextWrap: {
       flex: 1,
