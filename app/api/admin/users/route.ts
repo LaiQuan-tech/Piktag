@@ -29,6 +29,7 @@ interface ProfileRow {
   is_verified: boolean;
   is_active: boolean;
   is_public: boolean;
+  is_test_account: boolean;
   language: string | null;
   p_points: number | null;
   location: string | null;
@@ -57,7 +58,7 @@ export async function GET(req: Request): Promise<Response> {
   let query = supabase
     .from('piktag_profiles')
     .select(
-      'id, username, full_name, avatar_url, bio, headline, phone, is_verified, is_active, is_public, language, p_points, location, created_at, updated_at',
+      'id, username, full_name, avatar_url, bio, headline, phone, is_verified, is_active, is_public, is_test_account, language, p_points, location, created_at, updated_at',
       { count: 'exact' }
     );
 
@@ -142,6 +143,7 @@ export async function GET(req: Request): Promise<Response> {
       is_verified: p.is_verified,
       is_active: p.is_active,
       is_public: p.is_public,
+      is_test_account: p.is_test_account,
       language: p.language,
       p_points: p.p_points,
       location: p.location,

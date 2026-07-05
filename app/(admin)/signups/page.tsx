@@ -3,6 +3,7 @@ import { UserPlus, AlertTriangle, CheckCircle2, Users } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { createAdminClient } from '@/lib/supabase-admin';
 import SignupRowAction from '@/components/admin/SignupRowAction';
+import TestAccountAction from '@/components/admin/TestAccountAction';
 
 // Signup review panel. admin_recent_signups(p_days, p_limit) — one row
 // per signup with the real/bot signals (20260703080000). The email alert
@@ -17,6 +18,7 @@ interface SignupRow {
   email: string | null;
   created_at: string;
   is_active: boolean;
+  is_test_account: boolean;
   onboarding_completed: boolean;
   has_bio: boolean;
   tag_count: number;
@@ -113,7 +115,7 @@ export default async function SignupsPage() {
                   <th className="px-4 py-3">註冊時間</th>
                   <th className="px-4 py-3">同小時</th>
                   <th className="px-4 py-3">精靈/標籤/朋友</th>
-                  <th className="px-4 py-3 w-24">動作</th>
+                  <th className="px-4 py-3 w-28">動作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -130,6 +132,11 @@ export default async function SignupsPage() {
                       <Link href={`/users/${r.user_id}`} className="group">
                         <div className="font-medium text-slate-900 group-hover:text-[#8c52ff] group-hover:underline">
                           {r.username ? `@${r.username}` : r.full_name || r.user_id.slice(0, 8)}
+                          {r.is_test_account ? (
+                            <span className="ml-2 inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700">
+                              測試
+                            </span>
+                          ) : null}
                           {r.suspicious ? (
                             <span className="ml-2 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
                               可疑
@@ -160,7 +167,10 @@ export default async function SignupsPage() {
                       {r.onboarding_completed ? '完成' : '未完成'} · {r.tag_count} 標籤 · {r.real_friends} 朋友
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <SignupRowAction userId={r.user_id} isActive={r.is_active} />
+                      <div className="flex flex-col items-start gap-1.5">
+                        <SignupRowAction userId={r.user_id} isActive={r.is_active} />
+                        <TestAccountAction userId={r.user_id} isTestAccount={r.is_test_account} />
+                      </div>
                     </td>
                   </tr>
                 ))}

@@ -83,10 +83,21 @@ export default async function AdminDashboardPage() {
     weekday: 'long',
   });
 
-  // 1. 總用戶數
+  // 1. 總用戶數 (real users only — closed-test tester accounts excluded).
   const totalUsersRes = await supabase
     .from('piktag_profiles')
-    .select('id', { count: 'exact', head: true });
+    .select('id', { count: 'exact', head: true })
+    .eq('is_test_account', false);
+
+  // Tester ids — used to strip test accounts out of signals that come
+  // from a table without a profiles join (api_usage_log).
+  const testerIdsRes = await supabase
+    .from('piktag_profiles')
+    .select('id')
+    .eq('is_test_account', true);
+  const testerIds = new Set(
+    ((testerIdsRes.data ?? []) as Array<{ id: string }>).map((r) => r.id),
+  );
 
   // 2. 本週活躍用戶 (distinct user_id from api usage log, last 7d).
   // The column is `created_at`, NOT `timestamp` — the old name 42703'd,
@@ -97,10 +108,11 @@ export default async function AdminDashboardPage() {
     .select('user_id')
     .gte('created_at', sevenDaysAgo);
 
-  // 3. 本週新增註冊
+  // 3. 本週新增註冊 (real users only)
   const newUsersRes = await supabase
     .from('piktag_profiles')
     .select('id', { count: 'exact', head: true })
+    .eq('is_test_account', false)
     .gte('created_at', sevenDaysAgo);
 
   // 4. 待處理舉報
@@ -109,10 +121,11 @@ export default async function AdminDashboardPage() {
     .select('id', { count: 'exact', head: true })
     .eq('status', 'pending');
 
-  // 5. 最近註冊用戶 (last 10)
+  // 5. 最近註冊用戶 (last 10, real users only)
   const recentSignupsRes = await supabase
     .from('piktag_profiles')
     .select('id, username, avatar_url, created_at')
+    .eq('is_test_account', false)
     .order('created_at', { ascending: false })
     .limit(10);
 
@@ -151,7 +164,7 @@ export default async function AdminDashboardPage() {
     ? new Set(
         activeUsersRes.data
           .map((row: { user_id: string | null }) => row.user_id)
-          .filter((id): id is string => !!id),
+          .filter((id): id is string => !!id && !testerIds.has(id)),
       ).size
     : 0;
 

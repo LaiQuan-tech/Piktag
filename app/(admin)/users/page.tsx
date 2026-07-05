@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AdminUser, PaginatedResponse } from '@/lib/admin-types';
+import TestAccountAction from '@/components/admin/TestAccountAction';
 
-type FilterKey = 'all' | 'verified' | 'inactive';
+type FilterKey = 'all' | 'verified' | 'inactive' | 'test';
 
 // Show everyone on one page (founder call 2026-07-05). The route caps at
 // 2000; filtering is done client-side over the full list.
@@ -144,9 +145,14 @@ export default function UsersPage() {
   const items = useMemo(() => {
     if (filter === 'verified') return allItems.filter((u) => u.email_verified);
     if (filter === 'inactive') return allItems.filter((u) => !u.is_active);
+    if (filter === 'test') return allItems.filter((u) => u.is_test_account);
     return allItems;
   }, [allItems, filter]);
   const total = data?.total ?? 0;
+  const testCount = useMemo(
+    () => allItems.filter((u) => u.is_test_account).length,
+    [allItems],
+  );
 
   return (
     <div className="space-y-6">
@@ -173,6 +179,7 @@ export default function UsersPage() {
             ['all', '全部'],
             ['verified', '已驗證'],
             ['inactive', '未啟用'],
+            ['test', testCount > 0 ? `測試帳號 (${testCount})` : '測試帳號'],
           ] as Array<[FilterKey, string]>
         ).map(([key, label]) => {
           const active = filter === key;
@@ -207,7 +214,7 @@ export default function UsersPage() {
               <th className="text-center font-medium px-4 py-3">是否啟用</th>
               <th className="text-right font-medium px-4 py-3">P-points</th>
               <th className="text-left font-medium px-4 py-3">註冊時間</th>
-              <th className="text-right font-medium px-4 py-3 w-20">操作</th>
+              <th className="text-right font-medium px-4 py-3 w-44">操作</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -247,8 +254,13 @@ export default function UsersPage() {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="font-medium text-slate-900">
-                      @{u.username ?? '—'}
+                    <div className="font-medium text-slate-900 flex items-center gap-2">
+                      <span>@{u.username ?? '—'}</span>
+                      {u.is_test_account ? (
+                        <span className="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700">
+                          測試
+                        </span>
+                      ) : null}
                     </div>
                     <div className="text-xs text-slate-500">
                       {u.full_name ?? ''}
@@ -290,13 +302,19 @@ export default function UsersPage() {
                     <div className="tabular-nums">{formatDateTime(u.created_at)}</div>
                     <div className="text-xs text-slate-400">{relativeHint(u.created_at)}</div>
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <Link
-                      href={`/users/${u.id}`}
-                      className="text-[#8c52ff] hover:underline font-medium"
-                    >
-                      查看
-                    </Link>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-2">
+                      <TestAccountAction
+                        userId={u.id}
+                        isTestAccount={!!u.is_test_account}
+                      />
+                      <Link
+                        href={`/users/${u.id}`}
+                        className="text-[#8c52ff] hover:underline font-medium"
+                      >
+                        查看
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))

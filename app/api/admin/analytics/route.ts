@@ -82,6 +82,41 @@ export async function GET(): Promise<Response> {
   const fourteenDaysAgo = new Date(now.getTime() - 14 * DAY_MS).toISOString();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * DAY_MS).toISOString();
 
+  // Closed-test tester accounts are excluded from the "real data" the
+  // founder reviews. Profile-count queries filter inline via
+  // .eq('is_test_account', false); the cross-table counts below key on a
+  // user/host id, so pull the tester id list once up front. Fetching it
+  // here (not inside Promise.all) also keeps the active-user dedup in sync
+  // with the dashboard, which strips the same set — the two pages must
+  // agree on 本週活躍用戶.
+  const testerIdsRes = await supabase
+    .from('piktag_profiles')
+    .select('id')
+    .eq('is_test_account', true);
+  const testerIds = ((testerIdsRes.data ?? []) as Array<{ id: string }>).map(
+    (r) => r.id,
+  );
+  const testerIdSet = new Set(testerIds);
+  // An empty IN-list is invalid PostgREST syntax, so only attach the
+  // not-in filter when there is at least one tester.
+  const testerInList = testerIds.length > 0 ? `(${testerIds.join(',')})` : null;
+
+  let connectionsQ = supabase
+    .from('piktag_connections')
+    .select('*', { count: 'exact', head: true });
+  if (testerInList) connectionsQ = connectionsQ.not('user_id', 'in', testerInList);
+
+  let tagsQ = supabase
+    .from('piktag_user_tags')
+    .select('*', { count: 'exact', head: true });
+  if (testerInList) tagsQ = tagsQ.not('user_id', 'in', testerInList);
+
+  let qrScansQ = supabase
+    .from('piktag_scan_sessions')
+    .select('*', { count: 'exact', head: true })
+    .gte('created_at', sevenDaysAgo);
+  if (testerInList) qrScansQ = qrScansQ.not('host_user_id', 'in', testerInList);
+
   const [
     totalUsersRes,
     totalConnectionsRes,
@@ -116,13 +151,10 @@ export async function GET(): Promise<Response> {
   ] = await Promise.all([
     supabase
       .from('piktag_profiles')
-      .select('*', { count: 'exact', head: true }),
-    supabase
-      .from('piktag_connections')
-      .select('*', { count: 'exact', head: true }),
-    supabase
-      .from('piktag_user_tags')
-      .select('*', { count: 'exact', head: true }),
+      .select('*', { count: 'exact', head: true })
+      .eq('is_test_account', false),
+    connectionsQ,
+    tagsQ,
     supabase
       .from('piktag_reports')
       .select('*', { count: 'exact', head: true })
@@ -130,6 +162,7 @@ export async function GET(): Promise<Response> {
     supabase
       .from('piktag_profiles')
       .select('created_at')
+      .eq('is_test_account', false)
       .gte('created_at', thirtyDaysAgo),
     // No distinct-count RPC exists; pull the user_id column for the last
     // 7 days and dedup client-side via a Set. The BRIN index on
@@ -138,19 +171,17 @@ export async function GET(): Promise<Response> {
       .from('piktag_api_usage_log')
       .select('user_id')
       .gte('created_at', sevenDaysAgo),
-    supabase
-      .from('piktag_scan_sessions')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', sevenDaysAgo),
+    qrScansQ,
     supabase
       .from('piktag_tags')
       .select('name, usage_count')
       .order('usage_count', { ascending: false })
       .limit(20),
-    // Growth — new signups in 7d window
+    // Growth — new signups in 7d window (real users only)
     supabase
       .from('piktag_profiles')
       .select('*', { count: 'exact', head: true })
+      .eq('is_test_account', false)
       .gte('created_at', sevenDaysAgo),
     // Growth — magic moments (server-side count; no 1000-row cap). Users
     // whose first non-official connection landed in the window.
@@ -244,7 +275,9 @@ export async function GET(): Promise<Response> {
 
   const distinctActiveUserIds = new Set<string>();
   for (const row of activeUserRows) {
-    if (row.user_id) distinctActiveUserIds.add(row.user_id);
+    if (row.user_id && !testerIdSet.has(row.user_id)) {
+      distinctActiveUserIds.add(row.user_id);
+    }
   }
   const activeUsersLast7d = distinctActiveUserIds.size;
 

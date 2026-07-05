@@ -28,6 +28,9 @@ export interface AdminUser {
   // an auth join) stays valid; the users LIST route populates them.
   provider?: string | null;
   email_verified?: boolean;
+  // Closed-test / QA tester account — excluded from all "real data"
+  // metrics. Reversible flag toggled from the admin backend.
+  is_test_account?: boolean;
 }
 
 export interface AdminUserDetail extends AdminUser {
