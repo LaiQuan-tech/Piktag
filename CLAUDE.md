@@ -1015,11 +1015,18 @@ official is excluded EVERYWHERE as candidate AND as broadcast actor
 tag-adds do NOT notify; official announcements would be a new deliberate
 feature, not a side effect. Avatar still needs uploading (founder).
 Content lives in normal piktag_* rows — edit via admin/SQL anytime.
-Tags replaced 2026-07-06 (20260706000000): the ten founder-picked brand
-hashtags DefineYourVibe / FindYourTribe / TagWhatMatters / NoFilter /
-AuraFarming / MainCharacterEnergy / POV / CoreMemory / SideQuest /
-BetaEra — English-everywhere brand voice, position-ordered. (Replaced
-the seed Startup / AI / tag.)
+Tags replaced 2026-07-06, v2 same day (20260706010000): the profile is
+the DEMO every new user sees first, so the ten model a COPYABLE
+identity across dimensions, brand voice carried by word choice —
+DefineYourVibe / DigitalNomad(身份) / ReactNative(技能) /
+ThriftedFashion(興趣) / GravelCycling(興趣) / ENFP(MBTI) / SideQuest /
+AuraFarming / IceBreaker(技能+品牌) / BetaEra. Position-ordered,
+English-everywhere. Bio = the teaching line ("Tags are how people find
+you — job, skills, hobbies, MBTI, anything that's you. Tap your
+profile to add yours."). Rule: @piktag's tags are a TEACHING surface —
+any future edit keeps dimension coverage (身份/技能/興趣/MBTI), never
+reverts to all-slogan. (v1 all-slogan set + seed Startup/AI/tag both
+superseded.)
 `find_tag_similar_strangers` is dead code and was left unswept — add the
 two-hop is_official predicates if ever revived.
 
