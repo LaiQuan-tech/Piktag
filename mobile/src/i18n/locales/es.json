@@ -1607,6 +1607,7 @@
     "emptyDesc": "Agrega algunos amigos y verás cómo se conectan entre sí, además de personas que quizá conozcas.",
     "legendFriend": "Tus amigos",
     "legendBridge": "Quizá conozcas",
+    "legendContact": "Aún no está en PikTag",
     "bridgeHeader": "Personas que quizá conozcas",
     "bridgeMutual": "{{n}} amigos los conocen",
     "footnote": "Solo tú ves tu propia red.",

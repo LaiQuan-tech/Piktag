@@ -1607,6 +1607,7 @@
     "emptyDesc": "Add a few more friends and this will show how they connect to each other — plus people you may know.",
     "legendFriend": "Your friends",
     "legendBridge": "You may know",
+    "legendContact": "Not on PikTag yet",
     "bridgeHeader": "People you may know",
     "bridgeMutual": "{{n}} friends know them",
     "footnote": "Only you can see your own network.",

@@ -182,7 +182,11 @@ also owner-only and out of algorithm scope.
 1. **Multi-source provenance weighting.** Same tag from `self` vs
    `friend` vs `ask` vs `event` carries different reliability and
    different temporal validity. Algorithm must store source explicitly
-   and weight per-source. (Implemented: `piktag_user_tags.source`.)
+   and weight per-source. (Implemented STRUCTURALLY: source derives
+   from the owning table — `piktag_user_tags` = self,
+   `piktag_connection_tags` = friend/event, `piktag_ask_tags` = ask.
+   There is NO `source` column on `piktag_user_tags` — live-probed
+   2026-07-06; SQL writing one fails the whole migration stack.)
 2. **Inter-source agreement = verified.** When self + ≥1 friend both
    tag the same person with the same concept → that tag earns a
    "verified" status: higher search weight, ✓ icon in UI, used as the

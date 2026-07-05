@@ -12,10 +12,22 @@
 // pass so nodes never clump, plus pinch/zoom/pan and a gentle fly-in. 3D can
 // return later via a real engine (the WebView 3d-force-graph option) if wanted.
 //
-// Node kinds (data from get_friend_graph()):
+// Node kinds:
 //   • Friend node — avatar (or purple initial) + name, tap → FriendDetail.
+//     (data from get_friend_graph())
 //   • Bridge node — gray dot + a faceless PERSON silhouette (a 2nd-degree
 //     person you may know; anonymous until a deliberate tap → UserDetail).
+//     (data from get_friend_graph())
+//   • Contact node (2026-07-06) — the owner's card-scanned local contacts
+//     who are NOT on PikTag yet (piktag_local_contacts, owner-only RLS,
+//     un-promoted rows). Rendered in the brand gradient's CORAL (#ff5757 —
+//     a fixed brand colour, not theme-mapped) so members (purple) vs
+//     not-yet-members (coral) read at a glance. Deliberately EDGE-LESS:
+//     they aren't connected to anyone on the graph, so the force layout
+//     naturally settles them on the periphery — an honest "orbiting your
+//     network, waiting to be pulled in" visual. Tap → LocalContactDetail,
+//     whose locked CTA (寄我的聯絡資料給他) IS the North-Star conversion
+//     action — the graph feeds the install funnel with zero new UI.
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
@@ -47,18 +59,20 @@ type FriendNode = {
   deg: number;
 };
 type Bridge = { id: string; mutual_count: number };
+type ContactNode = { id: string; name: string; avatar_url: string | null };
 type GraphData = {
   friends: FriendNode[];
   edges: [string, string][];
   bridges: Bridge[];
   bridge_edges: [string, string][];
+  contacts: ContactNode[];
 };
 type Props = { navigation: any };
 
 type LaidNode = {
   i: number;
   id: string;
-  type: 'friend' | 'bridge';
+  type: 'friend' | 'bridge' | 'contact';
   x: number;
   y: number;
   r: number;
@@ -68,9 +82,15 @@ type LaidNode = {
 };
 type Seg = { x1: number; y1: number; x2: number; y2: number };
 
-const EMPTY: GraphData = { friends: [], edges: [], bridges: [], bridge_edges: [] };
+const EMPTY: GraphData = { friends: [], edges: [], bridges: [], bridge_edges: [], contacts: [] };
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 4;
+// Brand-gradient coral — the not-yet-member tier. FIXED brand colour
+// (same doctrine as the gradient): pairs with hardcoded white FG.
+const CONTACT_CORAL = '#ff5757';
+// Force-layout is O(n²) per iteration; cap the contact halo so a huge
+// imported address book can't stall the JS thread or pack the canvas.
+const MAX_CONTACTS = 30;
 
 export default function NetworkGraphScreen({ navigation }: Props) {
   const { t } = useTranslation();
@@ -85,19 +105,36 @@ export default function NetworkGraphScreen({ navigation }: Props) {
     if (!user) return;
     setLoading(true);
     try {
-      const { data: res, error } = await supabase.rpc('get_friend_graph');
+      // Members via the RPC; the coral halo straight off the owner-only
+      // table (same predicate shape as phonePrompt/ConnectionsScreen:
+      // un-promoted rows only — promoted contacts already ARE friend
+      // nodes, drawing both would double-count the person).
+      const [{ data: res, error }, contactsRes] = await Promise.all([
+        supabase.rpc('get_friend_graph'),
+        supabase
+          .from('piktag_local_contacts')
+          .select('id, name, avatar_url')
+          .eq('owner_user_id', user.id)
+          .is('promoted_to_connection_id', null)
+          .order('created_at', { ascending: false })
+          .limit(MAX_CONTACTS),
+      ]);
+      const contacts = Array.isArray(contactsRes.data)
+        ? (contactsRes.data as ContactNode[]).filter((cNode) => !!cNode.name?.trim())
+        : [];
       if (error) {
         const isMissing =
           (error as any).code === 'PGRST202' ||
           /could not find the function|does not exist/i.test(error.message);
         if (!isMissing) console.warn('[NetworkGraph] fetch failed:', error);
-        setData(EMPTY);
+        setData({ ...EMPTY, contacts });
       } else if (res) {
         setData({
           friends: Array.isArray(res.friends) ? res.friends : [],
           edges: Array.isArray(res.edges) ? res.edges : [],
           bridges: Array.isArray(res.bridges) ? res.bridges : [],
           bridge_edges: Array.isArray(res.bridge_edges) ? res.bridge_edges : [],
+          contacts,
         });
       }
     } finally {
@@ -120,6 +157,13 @@ export default function NetworkGraphScreen({ navigation }: Props) {
       })),
       ...data.bridges.map((b, idx) => ({
         i: data.friends.length + idx, id: b.id, type: 'bridge' as const, x: 0, y: 0, r: 11,
+      })),
+      // Edge-less by design — repulsion pushes them to the periphery,
+      // a coral halo of not-yet-members around the purple network.
+      ...data.contacts.map((lc, idx) => ({
+        i: data.friends.length + data.bridges.length + idx, id: lc.id,
+        type: 'contact' as const, x: 0, y: 0, r: 11,
+        label: shortLabel(lc.name), avatar: lc.avatar_url, initial: initialOfName(lc.name),
       })),
     ];
     const n = laid.length;
@@ -228,7 +272,10 @@ export default function NetworkGraphScreen({ navigation }: Props) {
   const savedTx = useSharedValue(0);
   const savedTy = useSharedValue(0);
 
-  const hasGraph = data.friends.length > 0;
+  // Contacts alone are enough to draw — cold-start users with an
+  // imported address book but no member friends still get a live,
+  // rich graph (and every coral node is a conversion entry).
+  const hasGraph = data.friends.length > 0 || data.contacts.length > 0;
 
   useEffect(() => {
     if (!hasGraph) return;
@@ -259,6 +306,9 @@ export default function NetworkGraphScreen({ navigation }: Props) {
 
   const onFriendTap = useCallback((id: string) => navigation.navigate('FriendDetail', { friendId: id }), [navigation]);
   const onBridgeTap = useCallback((id: string) => navigation.navigate('UserDetail', { userId: id }), [navigation]);
+  // Contact tap lands on LocalContactDetail — its locked CTA
+  // (寄我的聯絡資料給他) is the member-conversion push.
+  const onContactTap = useCallback((id: string) => navigation.navigate('LocalContactDetail', { contactId: id }), [navigation]);
 
   const friendCount = data.friends.length;
 
@@ -272,7 +322,7 @@ export default function NetworkGraphScreen({ navigation }: Props) {
         </TouchableOpacity>
         <View style={styles.headerTitleWrap}>
           <Text style={styles.headerTitle}>{t('network.title', { defaultValue: '你的人脈' })}</Text>
-          {hasGraph && (
+          {friendCount > 0 && (
             <Text style={styles.headerSubtitle}>
               {t('network.subtitle', { n: friendCount, defaultValue: `${friendCount} 位好友，看看他們如何連結` })}
             </Text>
@@ -304,7 +354,7 @@ export default function NetworkGraphScreen({ navigation }: Props) {
               <Svg width={size} height={size}>
                 <Defs>
                   {nodes.map((nd) =>
-                    nd.type === 'friend' && nd.avatar ? (
+                    nd.type !== 'bridge' && nd.avatar ? (
                       <ClipPath key={`clip-${nd.i}`} id={`clip-${nd.i}`}>
                         <Circle cx={nd.x} cy={nd.y} r={nd.r} />
                       </ClipPath>
@@ -325,19 +375,30 @@ export default function NetworkGraphScreen({ navigation }: Props) {
 
                 {/* Nodes */}
                 {nodes.map((nd) => (
-                  <G key={nd.id} onPress={() => (nd.type === 'friend' ? onFriendTap(nd.id) : onBridgeTap(nd.id))}>
+                  <G
+                    key={nd.id}
+                    onPress={() =>
+                      nd.type === 'friend' ? onFriendTap(nd.id)
+                      : nd.type === 'contact' ? onContactTap(nd.id)
+                      : onBridgeTap(nd.id)
+                    }
+                  >
                     <Circle cx={nd.x} cy={nd.y} r={Math.max(nd.r + 10, 20)} fill="#000000" fillOpacity={0} />
-                    {nd.type === 'friend' ? (
+                    {nd.type !== 'bridge' ? (
                       <>
+                        {/* Friend = purple, contact = brand coral. Both are
+                            fixed brand colours with hardcoded white FG. */}
                         {nd.avatar ? (
                           <>
                             <SvgImage x={nd.x - nd.r} y={nd.y - nd.r} width={nd.r * 2} height={nd.r * 2}
                               href={{ uri: nd.avatar }} preserveAspectRatio="xMidYMid slice" clipPath={`url(#clip-${nd.i})`} />
-                            <Circle cx={nd.x} cy={nd.y} r={nd.r} fill="none" stroke={colors.piktag500} strokeWidth={1.5} />
+                            <Circle cx={nd.x} cy={nd.y} r={nd.r} fill="none"
+                              stroke={nd.type === 'contact' ? CONTACT_CORAL : colors.piktag500} strokeWidth={1.5} />
                           </>
                         ) : (
                           <>
-                            <Circle cx={nd.x} cy={nd.y} r={nd.r} fill={colors.piktag500} opacity={0.92} />
+                            <Circle cx={nd.x} cy={nd.y} r={nd.r}
+                              fill={nd.type === 'contact' ? CONTACT_CORAL : colors.piktag500} opacity={0.92} />
                             <SvgText x={nd.x} y={nd.y + nd.r * 0.38} fill="#FFFFFF" fontSize={nd.r} fontWeight="700" textAnchor="middle">{nd.initial}</SvgText>
                           </>
                         )}
@@ -375,6 +436,12 @@ export default function NetworkGraphScreen({ navigation }: Props) {
                 </View>
                 <Text style={styles.legendText}>{t('network.legendBridge', { defaultValue: '你可能認識' })}</Text>
               </View>
+              {data.contacts.length > 0 && (
+                <View style={styles.legendItem}>
+                  <View style={styles.legendContactDot} />
+                  <Text style={styles.legendText}>{t('network.legendContact', { defaultValue: '還沒加入 PikTag' })}</Text>
+                </View>
+              )}
               <Text style={styles.zoomHint}>{t('network.zoomHint', { defaultValue: '雙指縮放 · 拖曳移動' })}</Text>
             </View>
 
@@ -408,14 +475,20 @@ function friendRadius(deg: number, maxDeg: number): number {
   const tt = maxDeg > 0 ? deg / maxDeg : 0;
   return 13 + 6 * Math.sqrt(tt);
 }
-function shortName(f: FriendNode): string {
-  const base = (f.full_name || f.username || '').trim();
+function shortLabel(name: string): string {
+  const base = (name || '').trim();
   const first = base.split(/\s+/)[0] || base;
   return first.length > 8 ? `${first.slice(0, 8)}…` : first;
 }
-function initialOf(f: FriendNode): string {
-  const base = (f.full_name || f.username || '?').trim();
+function initialOfName(name: string): string {
+  const base = (name || '?').trim();
   return (base[0] || '?').toUpperCase();
+}
+function shortName(f: FriendNode): string {
+  return shortLabel(f.full_name || f.username || '');
+}
+function initialOf(f: FriendNode): string {
+  return initialOfName(f.full_name || f.username || '?');
 }
 
 function makeStyles(c: ColorPalette) {
@@ -442,10 +515,13 @@ function makeStyles(c: ColorPalette) {
     emptyCta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8, backgroundColor: c.piktag500, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 28 },
     emptyCtaText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
 
-    legendRow: { flexDirection: 'row', alignItems: 'center', gap: 18, paddingHorizontal: 16, marginBottom: 2 },
+    // flexWrap: three legend items + the zoom hint won't fit one row on
+    // narrow screens once the contact tier is present.
+    legendRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 12, paddingHorizontal: 16, marginBottom: 2 },
     legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
     legendFriendDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: c.piktag500 },
     legendBridgeDot: { width: 16, height: 16, borderRadius: 8, backgroundColor: c.gray500, alignItems: 'center', justifyContent: 'center' },
+    legendContactDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: CONTACT_CORAL },
     legendText: { fontSize: 12, color: c.gray600 },
     zoomHint: { marginLeft: 'auto', fontSize: 11, color: c.gray400 },
 
