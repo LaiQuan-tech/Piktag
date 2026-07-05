@@ -6,7 +6,32 @@ import type { AdminUser, PaginatedResponse } from '@/lib/admin-types';
 
 type FilterKey = 'all' | 'verified' | 'inactive';
 
-const PAGE_SIZE = 20;
+// Show everyone on one page (founder call 2026-07-05). The route caps at
+// 2000; filtering is done client-side over the full list.
+const PAGE_SIZE = 2000;
+
+// Signup-method badge (from the auth provider).
+const PROVIDER_LABEL: Record<string, string> = {
+  google: 'Google',
+  apple: 'Apple',
+  email: 'Email',
+};
+function providerLabel(p: string | null | undefined): string {
+  if (!p) return '—';
+  return PROVIDER_LABEL[p] ?? p;
+}
+function providerClasses(p: string | null | undefined): string {
+  switch (p) {
+    case 'google':
+      return 'bg-blue-50 text-blue-700 border-blue-200';
+    case 'apple':
+      return 'bg-slate-100 text-slate-800 border-slate-300';
+    case 'email':
+      return 'bg-amber-50 text-amber-700 border-amber-200';
+    default:
+      return 'bg-slate-50 text-slate-500 border-slate-200';
+  }
+}
 
 function relativeTime(iso: string): string {
   if (!iso) return '';
@@ -45,7 +70,6 @@ export default function UsersPage() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filter, setFilter] = useState<FilterKey>('all');
-  const [page, setPage] = useState(1);
   const [data, setData] = useState<PaginatedResponse<AdminUser> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,27 +81,21 @@ export default function UsersPage() {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(() => {
       setDebouncedSearch(search.trim());
-      setPage(1);
     }, 300);
     return () => {
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
     };
   }, [search]);
 
-  // Reset page when filter changes
-  useEffect(() => {
-    setPage(1);
-  }, [filter]);
-
+  // Search stays server-side (it also resolves email → id via RPC); the
+  // filter chips are applied client-side over the full one-page list.
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
     if (debouncedSearch) params.set('q', debouncedSearch);
-    params.set('page', String(page));
+    params.set('page', '1');
     params.set('page_size', String(PAGE_SIZE));
-    if (filter === 'verified') params.set('is_verified', 'true');
-    if (filter === 'inactive') params.set('is_active', 'false');
     return params.toString();
-  }, [debouncedSearch, page, filter]);
+  }, [debouncedSearch]);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -103,9 +121,14 @@ export default function UsersPage() {
     fetchUsers();
   }, [fetchUsers]);
 
+  const allItems = data?.items ?? [];
+  // Client-side filter chips (all data is on one page).
+  const items = useMemo(() => {
+    if (filter === 'verified') return allItems.filter((u) => u.email_verified);
+    if (filter === 'inactive') return allItems.filter((u) => !u.is_active);
+    return allItems;
+  }, [allItems, filter]);
   const total = data?.total ?? 0;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const items = data?.items ?? [];
 
   return (
     <div className="space-y-6">
@@ -161,7 +184,8 @@ export default function UsersPage() {
               <th className="text-left font-medium px-4 py-3 w-16">頭像</th>
               <th className="text-left font-medium px-4 py-3">使用者</th>
               <th className="text-left font-medium px-4 py-3">Email</th>
-              <th className="text-center font-medium px-4 py-3">已驗證</th>
+              <th className="text-center font-medium px-4 py-3">註冊方式</th>
+              <th className="text-center font-medium px-4 py-3">Email 驗證</th>
               <th className="text-center font-medium px-4 py-3">是否啟用</th>
               <th className="text-right font-medium px-4 py-3">P-points</th>
               <th className="text-left font-medium px-4 py-3">註冊時間</th>
@@ -171,19 +195,19 @@ export default function UsersPage() {
           <tbody className="divide-y divide-slate-100">
             {loading ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-slate-400">
+                <td colSpan={9} className="px-4 py-12 text-center text-slate-400">
                   載入中...
                 </td>
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-red-600">
+                <td colSpan={9} className="px-4 py-12 text-center text-red-600">
                   載入失敗：{error}
                 </td>
               </tr>
             ) : items.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-slate-400">
+                <td colSpan={9} className="px-4 py-12 text-center text-slate-400">
                   找不到符合條件的用戶
                 </td>
               </tr>
@@ -214,7 +238,17 @@ export default function UsersPage() {
                   </td>
                   <td className="px-4 py-3 text-slate-700">{u.email ?? '—'}</td>
                   <td className="px-4 py-3 text-center">
-                    {u.is_verified ? (
+                    <span
+                      className={
+                        'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ' +
+                        providerClasses(u.provider)
+                      }
+                    >
+                      {providerLabel(u.provider)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {u.email_verified ? (
                       <span className="text-emerald-600 font-medium">✓</span>
                     ) : (
                       <span className="text-slate-300">—</span>
@@ -252,30 +286,11 @@ export default function UsersPage() {
         </table>
       </div>
 
-      {/* Pagination */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-500">
-          第 {page} 頁 / 共 {totalPages} 頁
-        </p>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page <= 1 || loading}
-            className="px-3 py-1.5 text-sm border border-slate-300 rounded-md bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            上一頁
-          </button>
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page >= totalPages || loading}
-            className="px-3 py-1.5 text-sm border border-slate-300 rounded-md bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            下一頁
-          </button>
-        </div>
-      </div>
+      {/* One-page list (no pagination): show the loaded count vs total. */}
+      <p className="text-sm text-slate-500">
+        顯示 {items.length} / 共 {total} 位
+        {filter !== 'all' ? '（已篩選）' : ''}
+      </p>
     </div>
   );
 }

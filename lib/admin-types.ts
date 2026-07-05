@@ -22,6 +22,12 @@ export interface AdminUser {
   created_at: string;
   updated_at: string | null;
   last_sign_in_at: string | null;
+  // Auth-derived (from auth.users): the signup method and whether the
+  // email is confirmed. provider = 'google' | 'apple' | 'email' | ...
+  // Optional so AdminUserDetail (which extends this and is built without
+  // an auth join) stays valid; the users LIST route populates them.
+  provider?: string | null;
+  email_verified?: boolean;
 }
 
 export interface AdminUserDetail extends AdminUser {

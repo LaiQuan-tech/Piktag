@@ -43,8 +43,10 @@ export async function GET(req: Request): Promise<Response> {
   const url = new URL(req.url);
   const q = url.searchParams.get('q')?.trim() ?? '';
   const page = Math.max(1, parseInt(url.searchParams.get('page') ?? '1', 10) || 1);
+  // Cap raised to 2000 so the admin list can show every user on one page
+  // (the UI dropped pagination). Bounded to keep the bulk auth join sane.
   const pageSize = Math.min(
-    100,
+    2000,
     Math.max(1, parseInt(url.searchParams.get('page_size') ?? '20', 10) || 20)
   );
   const isActiveParam = url.searchParams.get('is_active');
@@ -95,15 +97,39 @@ export async function GET(req: Request): Promise<Response> {
 
   const rows = (profiles ?? []) as ProfileRow[];
 
-  // Join auth.users for email/last_sign_in_at per profile. There's no bulk
-  // getByIds API on supabase-js, so we fire these in parallel. Page size is
-  // capped at 100 so this stays bounded.
-  const authLookups = await Promise.all(
-    rows.map((p) => supabase.auth.admin.getUserById(p.id))
-  );
+  // Join auth.users for email / last_sign_in / provider / email_confirmed.
+  // Use ONE bulk listUsers sweep (paged) into a Map instead of N per-row
+  // getUserById calls — the old N+1 didn't scale past a page and would be
+  // 140+ round-trips now that the UI shows everyone on one page.
+  const authById = new Map<
+    string,
+    { email: string | null; phone: string | null; last_sign_in_at: string | null; provider: string | null; email_verified: boolean }
+  >();
+  for (let authPage = 1; authPage <= 20; authPage++) {
+    const { data: listData, error: listErr } = await supabase.auth.admin.listUsers({
+      page: authPage,
+      perPage: 1000,
+    });
+    if (listErr) break;
+    const users = listData?.users ?? [];
+    for (const u of users) {
+      const provider =
+        (u.app_metadata as { provider?: string } | undefined)?.provider ??
+        u.identities?.[0]?.provider ??
+        null;
+      authById.set(u.id, {
+        email: u.email ?? null,
+        phone: (u.phone as string | undefined) ?? null,
+        last_sign_in_at: u.last_sign_in_at ?? null,
+        provider,
+        email_verified: !!u.email_confirmed_at,
+      });
+    }
+    if (users.length < 1000) break; // last page
+  }
 
-  const items: AdminUser[] = rows.map((p, i) => {
-    const authUser = authLookups[i]?.data?.user ?? null;
+  const items: AdminUser[] = rows.map((p) => {
+    const auth = authById.get(p.id);
     return {
       id: p.id,
       username: p.username,
@@ -111,8 +137,8 @@ export async function GET(req: Request): Promise<Response> {
       avatar_url: p.avatar_url,
       bio: p.bio,
       headline: p.headline,
-      phone: p.phone ?? authUser?.phone ?? null,
-      email: authUser?.email ?? null,
+      phone: p.phone ?? auth?.phone ?? null,
+      email: auth?.email ?? null,
       is_verified: p.is_verified,
       is_active: p.is_active,
       is_public: p.is_public,
@@ -121,7 +147,9 @@ export async function GET(req: Request): Promise<Response> {
       location: p.location,
       created_at: p.created_at,
       updated_at: p.updated_at,
-      last_sign_in_at: authUser?.last_sign_in_at ?? null,
+      last_sign_in_at: auth?.last_sign_in_at ?? null,
+      provider: auth?.provider ?? null,
+      email_verified: auth?.email_verified ?? false,
     };
   });
 
