@@ -3,8 +3,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   Activity,
+  BarChart3,
   Flag,
+  Languages,
   Link as LinkIcon,
+  Network,
   QrCode,
   Sparkles,
   Search,
@@ -196,6 +199,103 @@ function FailedKeywordsList({
   );
 }
 
+// ── Algo health (2026-07-05) ────────────────────────────────────────
+// The moat metrics + replay funnel from migration 20260705020000.
+// Coverage cards show a % with the raw linked/total underneath; the
+// funnel table is THE replay gate — no search-ranking change ships
+// without winning here first (CLAUDE.md doctrine).
+
+function AlgoCard({
+  icon: Icon,
+  label,
+  pct,
+  detail,
+  alert = false,
+}: {
+  icon: LucideIcon;
+  label: string;
+  pct: number | null;
+  detail: string;
+  alert?: boolean;
+}) {
+  const valueColor = alert ? 'text-red-600' : 'text-[#8c52ff]';
+  const iconWrap = alert ? 'bg-red-50 text-red-600' : 'bg-[#faf5ff] text-[#8c52ff]';
+  return (
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+      <div className="flex items-center gap-3 mb-4">
+        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${iconWrap}`}>
+          <Icon className="w-5 h-5" />
+        </div>
+        <span className="text-sm text-slate-600 font-medium">{label}</span>
+      </div>
+      <div className={`text-4xl font-bold ${valueColor}`}>
+        {pct === null ? '—' : pct.toLocaleString('zh-TW')}
+        {pct === null ? null : <span className="text-2xl ml-0.5">%</span>}
+      </div>
+      <p className="mt-1.5 text-xs text-slate-500">{detail}</p>
+    </div>
+  );
+}
+
+function SearchFunnelTable({
+  rows,
+}: {
+  rows: AdminAnalytics['algo_search_funnel_30d'];
+}) {
+  if (rows.length === 0) {
+    return (
+      <div className="px-6 py-12 text-center text-sm text-slate-400">
+        資料累積中 — query_id 從 2026-07-05 起記錄，需累積搜尋曝光後才有漏斗
+      </div>
+    );
+  }
+  const maxCtr = Math.max(...rows.map((r) => r.ctr_pct), 0.01);
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-xs text-slate-500 border-b border-slate-100">
+            <th className="px-6 py-2.5 text-left font-medium">名次</th>
+            <th className="px-3 py-2.5 text-right font-medium">曝光</th>
+            <th className="px-3 py-2.5 text-right font-medium">點擊</th>
+            <th className="px-3 py-2.5 text-right font-medium">CTR</th>
+            <th className="px-6 py-2.5 text-left font-medium w-1/3"></th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {rows.map((r) => {
+            const barPct = Math.max(4, Math.round((r.ctr_pct / maxCtr) * 100));
+            return (
+              <tr key={r.rank_position}>
+                <td className="px-6 py-2.5 font-medium text-slate-900">
+                  #{r.rank_position}
+                </td>
+                <td className="px-3 py-2.5 text-right text-slate-600">
+                  {r.impressions.toLocaleString('zh-TW')}
+                </td>
+                <td className="px-3 py-2.5 text-right text-slate-600">
+                  {r.clicks.toLocaleString('zh-TW')}
+                </td>
+                <td className="px-3 py-2.5 text-right text-slate-900 font-medium whitespace-nowrap">
+                  {r.ctr_pct.toLocaleString('zh-TW')}%
+                </td>
+                <td className="px-6 py-2.5">
+                  <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-[#8c52ff]"
+                      style={{ width: `${barPct}%` }}
+                    />
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default function AnalyticsPage() {
   const [data, setData] = useState<AdminAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -295,6 +395,89 @@ export default function AnalyticsPage() {
                   />
                 );
               })}
+        </div>
+      </section>
+
+      {/* Algo health — moat metrics (concept coverage + cross-language
+          match rate) + the per-rank search funnel that gates every
+          ranking change (migration 20260705020000). */}
+      <section>
+        <h2 className="text-lg font-semibold text-slate-900 mb-3">
+          演算法健康{' '}
+          <span className="text-sm font-normal text-slate-500">
+            覆蓋率為全量 · 其餘過去 30 天
+          </span>
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+          {loading && !data ? (
+            <>
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+            </>
+          ) : (
+            <>
+              <AlgoCard
+                icon={Network}
+                label="標籤概念覆蓋率"
+                pct={data?.algo_concept_coverage?.tag_coverage_pct ?? null}
+                detail={
+                  data?.algo_concept_coverage
+                    ? `${data.algo_concept_coverage.linked_tags.toLocaleString('zh-TW')} / ${data.algo_concept_coverage.total_tags.toLocaleString('zh-TW')} 個標籤已連結概念`
+                    : '讀取失敗'
+                }
+                // Coverage dropping = the linker is failing and
+                // cross-language matching is silently bleeding.
+                alert={(data?.algo_concept_coverage?.tag_coverage_pct ?? 100) < 60}
+              />
+              <AlgoCard
+                icon={Tag}
+                label="實例概念覆蓋率"
+                pct={data?.algo_concept_coverage?.instance_coverage_pct ?? null}
+                detail={
+                  data?.algo_concept_coverage
+                    ? `${data.algo_concept_coverage.linked_instances.toLocaleString('zh-TW')} / ${data.algo_concept_coverage.total_instances.toLocaleString('zh-TW')} 個公開標籤實例`
+                    : '讀取失敗'
+                }
+                alert={(data?.algo_concept_coverage?.instance_coverage_pct ?? 100) < 60}
+              />
+              <AlgoCard
+                icon={Languages}
+                label="跨語言媒合率"
+                pct={data?.algo_cross_language_30d?.cross_rate_pct ?? null}
+                detail={
+                  data?.algo_cross_language_30d
+                    ? data.algo_cross_language_30d.total_clicks > 0
+                      ? `${data.algo_cross_language_30d.cross_script_clicks.toLocaleString('zh-TW')} / ${data.algo_cross_language_30d.total_clicks.toLocaleString('zh-TW')} 次點擊跨文字系（PikTag 獨有價值）`
+                      : '尚無搜尋點擊資料'
+                    : '讀取失敗'
+                }
+              />
+            </>
+          )}
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-slate-100">
+          <div className="px-6 py-4 border-b border-slate-100">
+            <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-[#8c52ff]" />
+              搜尋名次漏斗（重放門檻）
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              各名次曝光 → 點擊 CTR。規則：任何搜尋排序改動（含搜尋面 IDF）必須先在這裡贏過現行排序才准上線
+            </p>
+          </div>
+          {loading && !data ? (
+            <div className="px-6 py-6 space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="h-3 w-24 bg-slate-100 rounded mb-2" />
+                  <div className="h-2 w-full bg-slate-100 rounded-full" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <SearchFunnelTable rows={data?.algo_search_funnel_30d ?? []} />
+          )}
         </div>
       </section>
 

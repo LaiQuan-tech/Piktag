@@ -90,6 +90,33 @@ export interface AdminAnalytics {
   // the result set was still empty — the actionable "which tags are missing"
   // signal that used to live in the retired weekly digest body.
   failed_search_keywords_last_7d: Array<{ keyword: string; frequency: number }>;
+  // ── Algo health (added 2026-07-05, migration 20260705020000) ──────
+  // Concept coverage = % of tags / public tag instances linked to a
+  // concept_id — THE health number for cross-language matching. A drop
+  // means the linker is failing and matches are silently bleeding.
+  algo_concept_coverage: {
+    total_tags: number;
+    linked_tags: number;
+    tag_coverage_pct: number;
+    total_instances: number;
+    linked_instances: number;
+    instance_coverage_pct: number;
+  } | null;
+  // Clicks whose query script differs from the clicked tag's script
+  // (ascii proxy — misses es↔en but measures the CJK↔EN moat). 30d.
+  algo_cross_language_30d: {
+    total_clicks: number;
+    cross_script_clicks: number;
+    cross_rate_pct: number;
+  } | null;
+  // Per-rank impressions/clicks/CTR over the query_id join — the replay
+  // gate: no search-ranking change ships without winning here first. 30d.
+  algo_search_funnel_30d: Array<{
+    rank_position: number;
+    impressions: number;
+    clicks: number;
+    ctr_pct: number;
+  }>;
 }
 
 export interface AdminAuditLogEntry {

@@ -109,6 +109,10 @@ export async function GET(): Promise<Response> {
     searchEmptyPrior7dRes,
     // Recovery-fired-but-still-empty rows → aggregate top failing keywords.
     searchFailedKeywords7dRes,
+    // ── Algo health (2026-07-05): moat metrics + replay funnel ──
+    conceptCoverageRes,
+    crossLanguageRes,
+    searchFunnelRes,
   ] = await Promise.all([
     supabase
       .from('piktag_profiles')
@@ -200,6 +204,12 @@ export async function GET(): Promise<Response> {
       .gte('created_at', sevenDaysAgo)
       .order('created_at', { ascending: false })
       .limit(200),
+    // Algo health RPCs (migration 20260705020000; service_role-only —
+    // the admin client here IS service-role). Coverage is all-time by
+    // design (it's a stock, not a flow); the other two use 30d windows.
+    supabase.rpc('admin_concept_coverage'),
+    supabase.rpc('admin_cross_language_match_rate', { p_days: 30 }),
+    supabase.rpc('admin_search_funnel', { p_days: 30 }),
   ]);
 
   const totalUsers = countOrZero(totalUsersRes as CountResult, 'total_users');
@@ -297,6 +307,65 @@ export async function GET(): Promise<Response> {
     .slice(0, 15)
     .map(([keyword, frequency]) => ({ keyword, frequency }));
 
+  // ── Algo health (moat metrics + replay funnel) ──────────────
+  // PostgREST serializes bigint/numeric as JSON numbers, but wrap in
+  // Number() defensively so a string never leaks into toLocaleString.
+  type CoverageRow = {
+    total_tags: unknown;
+    linked_tags: unknown;
+    tag_coverage_pct: unknown;
+    total_instances: unknown;
+    linked_instances: unknown;
+    instance_coverage_pct: unknown;
+  };
+  const coverageRow = rowsOrEmpty<CoverageRow>(
+    conceptCoverageRes as RowsResult<CoverageRow>,
+    'algo_concept_coverage',
+  )[0];
+  const algoConceptCoverage = coverageRow
+    ? {
+        total_tags: Number(coverageRow.total_tags ?? 0),
+        linked_tags: Number(coverageRow.linked_tags ?? 0),
+        tag_coverage_pct: Number(coverageRow.tag_coverage_pct ?? 0),
+        total_instances: Number(coverageRow.total_instances ?? 0),
+        linked_instances: Number(coverageRow.linked_instances ?? 0),
+        instance_coverage_pct: Number(coverageRow.instance_coverage_pct ?? 0),
+      }
+    : null;
+
+  type CrossLangRow = {
+    total_clicks: unknown;
+    cross_script_clicks: unknown;
+    cross_rate_pct: unknown;
+  };
+  const crossLangRow = rowsOrEmpty<CrossLangRow>(
+    crossLanguageRes as RowsResult<CrossLangRow>,
+    'algo_cross_language',
+  )[0];
+  const algoCrossLanguage = crossLangRow
+    ? {
+        total_clicks: Number(crossLangRow.total_clicks ?? 0),
+        cross_script_clicks: Number(crossLangRow.cross_script_clicks ?? 0),
+        cross_rate_pct: Number(crossLangRow.cross_rate_pct ?? 0),
+      }
+    : null;
+
+  type FunnelRow = {
+    rank_position: unknown;
+    impressions: unknown;
+    clicks: unknown;
+    ctr_pct: unknown;
+  };
+  const algoSearchFunnel = rowsOrEmpty<FunnelRow>(
+    searchFunnelRes as RowsResult<FunnelRow>,
+    'algo_search_funnel',
+  ).map((r) => ({
+    rank_position: Number(r.rank_position ?? 0),
+    impressions: Number(r.impressions ?? 0),
+    clicks: Number(r.clicks ?? 0),
+    ctr_pct: Number(r.ctr_pct ?? 0),
+  }));
+
   const body: AdminAnalytics = {
     total_users: totalUsers,
     total_active_users: activeUsersLast7d,
@@ -316,6 +385,9 @@ export async function GET(): Promise<Response> {
     search_recovery_pct_prior_7d: searchRecoveryPctPrior7d,
     search_empty_pct_prior_7d: searchEmptyPctPrior7d,
     failed_search_keywords_last_7d: failedSearchKeywords,
+    algo_concept_coverage: algoConceptCoverage,
+    algo_cross_language_30d: algoCrossLanguage,
+    algo_search_funnel_30d: algoSearchFunnel,
   };
 
   return NextResponse.json(body, {
