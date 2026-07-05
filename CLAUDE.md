@@ -1015,6 +1015,11 @@ official is excluded EVERYWHERE as candidate AND as broadcast actor
 tag-adds do NOT notify; official announcements would be a new deliberate
 feature, not a side effect. Avatar still needs uploading (founder).
 Content lives in normal piktag_* rows — edit via admin/SQL anytime.
+Tags replaced 2026-07-06 (20260706000000): the ten founder-picked brand
+hashtags DefineYourVibe / FindYourTribe / TagWhatMatters / NoFilter /
+AuraFarming / MainCharacterEnergy / POV / CoreMemory / SideQuest /
+BetaEra — English-everywhere brand voice, position-ordered. (Replaced
+the seed Startup / AI / tag.)
 `find_tag_similar_strangers` is dead code and was left unswept — add the
 two-hop is_official predicates if ever revived.
 
@@ -1392,6 +1397,19 @@ about the network, not Profile vanity).
   distinct tiers (#1, not cascaded). The old `get_tribe_*` RPCs are left in
   the DB (harmless, no caller) — don't be confused that nothing calls them.
 - Route renamed `TribeConstellation` → `NetworkGraph`; old screen file deleted.
+- **Contact tier added 2026-07-06** (founder: graph should feel 豐富 AND
+  nudge non-members to join): the owner's UN-promoted
+  `piktag_local_contacts` render as EDGE-LESS coral nodes —
+  `CONTACT_CORAL = '#ff5757'` (brand gradient stop 1; FIXED colour +
+  hardcoded white FG, not theme-mapped). Edge-less is deliberate: they
+  aren't connected to anyone, so repulsion settles them on the
+  periphery — an honest "orbiting the network" visual. Tap →
+  `LocalContactDetail`, whose locked CTA (寄我的聯絡資料給他) IS the
+  conversion push — don't add a separate invite CTA to the graph.
+  Capped at 30 most-recent (O(n²) layout). Contacts alone count as a
+  drawable graph (cold-start). Promoted contacts are EXCLUDED
+  (`promoted_to_connection_id IS NULL`) — they're already friend nodes.
+  Key `network.legendContact` ×19.
 
 ## Network graph is 2D — pseudo-3D was tried and REVERTED (2026-06-26)
 
