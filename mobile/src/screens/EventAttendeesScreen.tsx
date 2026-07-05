@@ -27,7 +27,7 @@ import { type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { findOrCreateTag } from '../lib/userTags';
+import { resolveTagIdsByName, attachPrivateTagsToConnections } from '../lib/userTags';
 import { trackFriendAdded } from '../lib/analytics';
 import InitialsAvatar from '../components/InitialsAvatar';
 
@@ -137,19 +137,9 @@ export default function EventAttendeesScreen({ navigation, route }: Props) {
         if (sessionMeta.location.trim()) tagNames.push(sessionMeta.location.trim());
         const connIds = [fwdId, revId].filter((x): x is string => !!x);
         if (tagNames.length > 0 && connIds.length > 0) {
-          const tagIds: string[] = [];
-          for (const name of tagNames) {
-            const id = await findOrCreateTag(name.startsWith('#') ? name.slice(1) : name);
-            if (id) tagIds.push(id);
-          }
-          if (tagIds.length > 0) {
-            const rows = connIds.flatMap((cid) =>
-              tagIds.map((tid) => ({ connection_id: cid, tag_id: tid, is_private: true })),
-            );
-            await supabase
-              .from('piktag_connection_tags')
-              .upsert(rows, { onConflict: 'connection_id,tag_id', ignoreDuplicates: true });
-          }
+          // Shared resolve + idempotent attach (lib/userTags ONE-source rule).
+          const tagIds = await resolveTagIdsByName(tagNames);
+          await attachPrivateTagsToConnections(connIds, tagIds);
         }
 
         try {

@@ -52,6 +52,7 @@ import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { joinEventRoom } from '../lib/eventRoom';
 
 type QrGroup = {
   id: string;
@@ -210,15 +211,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
 
   const openAttendedRoom = useCallback(
     async (sessionId: string) => {
-      try {
-        await supabase.rpc('set_event_visibility', {
-          p_session_id: sessionId,
-          p_visible: true,
-        });
-        navigation.navigate('EventAttendees', { sessionId });
-      } catch (e) {
-        console.warn('[QrGroupList] event room open failed:', e);
-      }
+      await joinEventRoom(navigation, sessionId);
     },
     [navigation],
   );

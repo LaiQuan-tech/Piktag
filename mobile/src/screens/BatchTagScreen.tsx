@@ -32,8 +32,7 @@ import { useTranslation } from 'react-i18next';
 import { Check, Tag } from 'lucide-react-native';
 import { type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
-import { supabase } from '../lib/supabase';
-import { findOrCreateTag } from '../lib/userTags';
+import { findOrCreateTag, attachPrivateTagsToConnections } from '../lib/userTags';
 import { normalizeTagName } from '../lib/normalizeTag';
 import {
   trackBurstTagPromptShown,
@@ -165,22 +164,13 @@ export default function BatchTagScreen({ navigation, route }: Props) {
   const canSave = !saving && selected.size > 0 && normalizeTagName(tagName).length > 0;
 
   // ── Save: burst mode → private connection tags (event-QR shape) ──
+  // Shared idempotent writer (lib/userTags) — the UNIQUE constraint +
+  // ignoreDuplicates makes re-tagging a no-op.
   const saveConnections = async (name: string) => {
     const tagId = await findOrCreateTag(name);
     if (!tagId) return;
     const ids = [...selected];
-    const { data: existing } = await supabase
-      .from('piktag_connection_tags')
-      .select('connection_id')
-      .eq('tag_id', tagId)
-      .in('connection_id', ids);
-    const has = new Set((existing ?? []).map((r: any) => r.connection_id));
-    const inserts = ids
-      .filter((id) => !has.has(id))
-      .map((id) => ({ connection_id: id, tag_id: tagId, is_private: true }));
-    if (inserts.length > 0) {
-      await supabase.from('piktag_connection_tags').insert(inserts);
-    }
+    await attachPrivateTagsToConnections(ids, [tagId]);
     trackBurstTagApplied(people.length, ids.length);
   };
 

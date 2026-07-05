@@ -16,6 +16,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { maybeAskPushPermission } from '../lib/pushNotifications';
+import { joinEventRoom } from '../lib/eventRoom';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -133,15 +134,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     const offer = roomOffer;
     setRoomOffer(null);
     if (!offer) return;
-    try {
-      await supabase.rpc('set_event_visibility', {
-        p_session_id: offer.sessionId,
-        p_visible: true,
-      });
-      navigation.navigate('EventAttendees', { sessionId: offer.sessionId });
-    } catch (e) {
-      console.warn('[UserDetail] event-room opt-in failed:', e);
-    }
+    await joinEventRoom(navigation, offer.sessionId);
   }, [roomOffer, navigation]);
   const [mutualTagModalVisible, setMutualTagModalVisible] = useState(false);
   const [isCloseFriend, setIsCloseFriend] = useState(false);

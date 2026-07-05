@@ -83,3 +83,42 @@ export async function addUserTagByName(
   const ok = await addUserTag(userId, tagId, position);
   return ok ? tagId : null;
 }
+
+/**
+ * Resolve a list of tag NAMES into piktag_tags ids, creating missing
+ * ones (leading `#` stripped, blanks skipped). The loop form of
+ * findOrCreateTag — extracted 2026-07-05 so batch surfaces (BatchTag,
+ * EventAttendees, …) stop growing their own copies (ONE-source rule).
+ */
+export async function resolveTagIdsByName(names: string[]): Promise<string[]> {
+  const ids: string[] = [];
+  for (const raw of names) {
+    const clean = (raw.startsWith('#') ? raw.slice(1) : raw).trim();
+    if (!clean) continue;
+    const id = await findOrCreateTag(clean);
+    if (id) ids.push(id);
+  }
+  return ids;
+}
+
+/**
+ * Attach tag ids to connection rows as PRIVATE tags (the owner-only
+ * "how/where we met" shape every event flow writes). Idempotent — the
+ * UNIQUE (connection_id, tag_id) constraint + ignoreDuplicates makes
+ * repeat calls no-ops. Canonical form lifted from UserDetailScreen's
+ * inline helper (which stays put for now — the live QR path isn't worth
+ * churning for pure dedup; see the code-consistency backlog).
+ */
+export async function attachPrivateTagsToConnections(
+  connIds: Array<string | null | undefined>,
+  tagIds: string[],
+): Promise<void> {
+  if (tagIds.length === 0) return;
+  for (const cid of connIds) {
+    if (!cid) continue;
+    await supabase.from('piktag_connection_tags').upsert(
+      tagIds.map((tid) => ({ connection_id: cid, tag_id: tid, is_private: true })),
+      { onConflict: 'connection_id,tag_id', ignoreDuplicates: true },
+    );
+  }
+}

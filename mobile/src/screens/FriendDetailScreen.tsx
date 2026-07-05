@@ -13,6 +13,7 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import { shareProfile } from '../lib/shareProfile';
+import { joinEventRoom } from '../lib/eventRoom';
 import { followUser } from '../lib/followUser';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -242,18 +243,10 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
   const handleOpenEventRoom = useCallback(async () => {
     if (!eventSessionId) return;
-    try {
-      // Tapping IS the visibility opt-in — the row's desc line states that
-      // other attendees will see you (labeled consent, same contract as the
-      // post-connect offer). Membership is validated server-side.
-      await supabase.rpc('set_event_visibility', {
-        p_session_id: eventSessionId,
-        p_visible: true,
-      });
-      navigation.navigate('EventAttendees', { sessionId: eventSessionId });
-    } catch (e) {
-      console.warn('[FriendDetail] event room open failed:', e);
-    }
+    // Tapping IS the visibility opt-in — the row's desc line states that
+    // other attendees will see you (labeled consent). The shared helper
+    // owns the opt-in → open sequence for every room entry.
+    await joinEventRoom(navigation, eventSessionId);
   }, [eventSessionId, navigation]);
   const [moreMenuVisible, setMoreMenuVisible] = useState(false);
 

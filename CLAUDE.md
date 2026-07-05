@@ -1296,6 +1296,32 @@ BatchTagScreen stays the single shared UI for all tiers.
   paths stable on device, then compare card_scan_latency p50/p95.
 Measure every lever against `card_scan_latency` p50/p95 (PostHog).
 
+## Code-consistency contracts + backlog (audit 2026-07-05)
+
+Shared helpers that new code MUST use (never re-inline):
+- `lib/userTags.ts`: `findOrCreateTag` / `resolveTagIdsByName` /
+  `attachPrivateTagsToConnections` — the ONE resolve-and-attach path for
+  private connection tags (BatchTag, EventAttendees consume these).
+- `lib/eventRoom.ts`: `joinEventRoom(navigation, sessionId)` — the ONE
+  opt-in→open sequence for every 這場的人 entry (UserDetail modal,
+  FriendDetail row, QrGroupList 我參加的 all route through it).
+- `components/InitialsAvatar` — never hand-roll an avatar-initials
+  fallback (BatchTag/EventAttendees were caught doing this and fixed).
+
+Known duplication accepted for now (post-launch consolidation targets —
+each touches the live QR-connect path, not worth churn right after the
+iOS release):
+1. UserDetailScreen's inline `ensureTagIdsByName` + `attachTagsToConnections`
+   duplicate the lib versions — migrate when next touching that screen.
+2. "Create a connection PAIR (fwd+rev rows + follow + tags)" exists in ~4
+   shapes: ScanResult.handleConfirm, UserDetail.handleAddFriendFromQr,
+   EventAttendees.ensureConnRow, lib/followUser + the promote SQL fn.
+   Post-launch: one `lib/connectUsers` with per-flow options.
+3. ManageTags / EditProfile still carry inline findOrCreateTag copies
+   (pre-existing note in lib/userTags).
+4. Ad-hoc date formatting (YYYY/M in ChatThread, M/D in ShareButton) —
+   fine at this scale; extract a util only if more call sites appear.
+
 ## Network graph replaced the invite-lineage Tribe (2026-06-25)
 
 Founder: the old "Tribe" (TribeConstellation + `get_tribe_lineage`/
