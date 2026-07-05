@@ -34,6 +34,8 @@ import { stripSearchStopwords, filterLoneStopwordTokens } from '../lib/searchSto
 import { ilikeEscape } from '../lib/normalizeTag';
 import { getSiblingTagIds, getTagNamesByIds } from '../lib/tagSiblings';
 import { extractSearchIntent } from '../lib/extractSearchIntent';
+import { semanticTagSearch } from '../lib/semanticTagSearch';
+import * as ExpoCrypto from 'expo-crypto';
 import { sanitizeQueryForTelemetry } from '../lib/sanitizeTelemetry';
 import { haversineKm } from '../lib/geo';
 import { COLORS, BORDER_RADIUS, type ColorPalette } from '../constants/theme';
@@ -1403,7 +1405,15 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           recoveryTriggered = true;
           setLlmRecovering(true);
           try {
-            const extracted = await extractSearchIntent(query.trim());
+            // Recovery layer 1 (algo #2, 2026-07-05): embedding → pgvector
+            // kNN over concept embeddings — an order of magnitude cheaper
+            // and faster than the Gemini extraction below. A miss (or
+            // timeout) falls straight through to layer 2; downstream is
+            // identical for both (same keywords contract).
+            let extracted = await semanticTagSearch(query.trim());
+            if (extracted.length === 0) {
+              extracted = await extractSearchIntent(query.trim());
+            }
             if (seq === searchSeqRef.current && extracted.length > 0) {
               // Pass A — direct name match on piktag_tags. Hits when a
               // Gemini-extracted keyword is itself a substring of (or
@@ -2015,6 +2025,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             extracted_keyword: keyword,
             clicked_user_id: profile.id,
             searcher_id: user.id,
+            // algo #4: joins this click back to the exact impression set.
+            query_id: searchQueryIdRef.current,
           })
           .then(({ error }) => {
             if (error) {
@@ -2482,6 +2494,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // same set is a no-op; a NEW search or tab-switch re-logs. A 3-second
   // floor on identical-signature re-logs handles late wave merges.
   const impressionSigRef = useRef<{ sig: string; at: number }>({ sig: '', at: 0 });
+  // Label chain (algo #4, 2026-07-05): one uuid per DISTINCT rendered
+  // result set, stamped on both the impression rows and any click rows
+  // that follow — so post-launch ranking work can join
+  // impression→click→message per executed query instead of guessing by
+  // time windows. Minted where the sig changes; read by the click logger.
+  const searchQueryIdRef = useRef<string | null>(null);
   useEffect(() => {
     if (!user?.id) return;
     if (loading || initialLoading) return;
@@ -2534,6 +2552,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       return;
     }
     impressionSigRef.current = { sig, at: now };
+    searchQueryIdRef.current = ExpoCrypto.randomUUID();
     const rows = ordered.map(({ profile, rank }) => ({
       searcher_id: user.id,
       target_user_id: profile.id,
@@ -2541,6 +2560,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       query_text: queryText,
       rank_position: rank,
       surface: 'search',
+      query_id: searchQueryIdRef.current,
     }));
     try {
       void supabase

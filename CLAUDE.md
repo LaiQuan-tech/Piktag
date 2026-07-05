@@ -1296,6 +1296,45 @@ BatchTagScreen stays the single shared UI for all tiers.
   paths stable on device, then compare card_scan_latency p50/p95.
 Measure every lever against `card_scan_latency` p50/p95 (PostHog).
 
+## Algorithm upgrades — the seven items (founder-approved 2026-07-05)
+
+All shipped in migration 20260705020000 + semantic-tag-search edge fn +
+SearchScreen wiring, EXCEPT where noted replay-gated:
+
+1. **IDF on recommendations (SHIPPED)**: enqueue_recommendation_notifications
+   scores candidates by SUM(ln(1+N/(1+holders))) per shared concept — rare
+   overlap outranks ubiquitous overlap (serendipity IS rare overlap).
+   **Search-side IDF is deliberately NOT shipped** — replay-gated: it must
+   win an admin_search_funnel/NDCG replay before touching search ranking
+   (deferred-tuning doctrine).
+2. **Vector recall fallback (SHIPPED)**: zero-result recovery now tries
+   `semanticTagSearch` (embedding → match_concepts_by_embedding pgvector
+   kNN over tag_concepts.embedding, service-role RPC) FIRST; Gemini
+   extract-search-intent is layer 2. Same {keywords} contract both layers.
+   NOTE: kNN RPC is LANGUAGE sql with `<=>` → search_path MUST include
+   `extensions` (the 2026-06-06 CI gotcha).
+3. **Moat metrics (SHIPPED, admin-only RPCs)**: admin_concept_coverage
+   (tag + instance linkage %, THE health number for cross-language
+   matching) and admin_cross_language_match_rate (clicks where query
+   script ≠ clicked-tag script — the unique-to-PikTag value, measured).
+   Wire into the admin dashboard when convenient; callable today.
+4. **Label chain (SHIPPED)**: query_id uuid on piktag_search_impressions +
+   piktag_search_learnings; SearchScreen mints one per rendered result set
+   (searchQueryIdRef) and stamps impressions AND clicks. Future ranking
+   work trains toward MESSAGE-after-search, never raw clicks/dwell.
+5. **Replay foundation (SHIPPED)**: admin_search_funnel(days) = per-rank
+   impressions/clicks/CTR over the query_id join. RULE: no search-ranking
+   change ships without winning here first.
+6. **Cross-script quota in recommendations (SHIPPED)**: daily picks =
+   top-2 by IDF score + the best cross-script candidate from ranks 3..12
+   when one exists (else plain #3). Guarantees the cross-language bridge
+   a seat without displacing clear wins.
+7. **Friend-source decay in search_users (SHIPPED — principle #4's
+   documented post-launch completion)**: friend weight 6 decays with a
+   12-month e-folding on MAX(connection_tags.created_at), floor 3 (never
+   below event tier); verified (30) deliberately undecayed. Function
+   otherwise byte-identical to the 20260612010000 version.
+
 ## Code-consistency contracts + backlog (audit 2026-07-05)
 
 Shared helpers that new code MUST use (never re-inline):
