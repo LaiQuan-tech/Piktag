@@ -1512,7 +1512,10 @@
     "title": "이 행사의 사람들",
     "connect": "친구 추가",
     "connected": "친구",
-    "empty": "아직 목록에 참여한 사람이 없어요 — 잠시 후 다시 확인해 보세요."
+    "empty": "아직 목록에 참여한 사람이 없어요 — 잠시 후 다시 확인해 보세요.",
+    "offerTitle": "이 행사의 다른 참가자도 볼까요?",
+    "myEventsSection": "내가 참여한 행사",
+    "myEventsHint": "탭하면 목록에 참여합니다 — 동의한 참가자끼리 서로 보고 바로 친구를 맺을 수 있어요."
   },
   "localContact": {
     "aiSuggestLabel": "AI 추천 태그 (탭하여 추가)",

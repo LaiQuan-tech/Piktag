@@ -1512,7 +1512,10 @@
     "title": "People here",
     "connect": "Connect",
     "connected": "Friends",
-    "empty": "No one else has joined the list yet — check back in a bit."
+    "empty": "No one else has joined the list yet — check back in a bit.",
+    "offerTitle": "See who else is here?",
+    "myEventsSection": "Events I joined",
+    "myEventsHint": "Tap to join the list — attendees who opted in can see each other and connect directly."
   },
   "localContact": {
     "aiSuggestLabel": "AI suggested tags (tap to add)",

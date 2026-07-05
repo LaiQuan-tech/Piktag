@@ -1512,7 +1512,10 @@
     "title": "Pessoas aqui",
     "connect": "Conectar",
     "connected": "Amigos",
-    "empty": "Ninguém mais entrou na lista ainda — volte daqui a pouco."
+    "empty": "Ninguém mais entrou na lista ainda — volte daqui a pouco.",
+    "offerTitle": "Ver quem mais está aqui?",
+    "myEventsSection": "Eventos que participei",
+    "myEventsHint": "Toque para entrar na lista — participantes que aceitaram podem se ver e conectar na hora."
   },
   "localContact": {
     "aiSuggestLabel": "Tags sugeridas por IA (toque para adicionar)",

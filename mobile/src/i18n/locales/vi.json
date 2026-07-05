@@ -1512,7 +1512,10 @@
     "title": "Mọi người ở đây",
     "connect": "Kết bạn",
     "connected": "Bạn bè",
-    "empty": "Chưa có ai khác tham gia danh sách — quay lại sau nhé."
+    "empty": "Chưa có ai khác tham gia danh sách — quay lại sau nhé.",
+    "offerTitle": "Xem thử còn ai ở đây nữa?",
+    "myEventsSection": "Sự kiện đã tham gia",
+    "myEventsHint": "Chạm để tham gia danh sách — những người tham dự đã đồng ý có thể thấy nhau và kết bạn ngay."
   },
   "localContact": {
     "aiSuggestLabel": "Thẻ do AI gợi ý (chạm để thêm)",

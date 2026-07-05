@@ -1512,7 +1512,10 @@
     "title": "Persone qui",
     "connect": "Collegati",
     "connected": "Amici",
-    "empty": "Nessun altro si è ancora unito alla lista — riprova tra poco."
+    "empty": "Nessun altro si è ancora unito alla lista — riprova tra poco.",
+    "offerTitle": "Vedere chi altro c'è?",
+    "myEventsSection": "Eventi a cui ho partecipato",
+    "myEventsHint": "Tocca per unirti alla lista: i partecipanti che hanno accettato si vedono e possono collegarsi subito."
   },
   "localContact": {
     "aiSuggestLabel": "Tag suggeriti dall’IA (tocca per aggiungere)",

@@ -27,6 +27,7 @@ import {
   AlertTriangle,
   UserPlus,
   MessageCircle,
+  Users,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS, type ColorPalette } from '../constants/theme';
@@ -122,6 +123,26 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const [followLoading, setFollowLoading] = useState(false);
   const [messageLoading, setMessageLoading] = useState(false);
   const [unfollowModalVisible, setUnfollowModalVisible] = useState(false);
+
+  // Event-room offer modal (UX fix 2026-07-05: the system Alert was too
+  // easy to reflex-dismiss — founder: "提示不夠明顯"). A branded modal
+  // with real visual weight replaces it; the consent copy is unchanged.
+  const [roomOffer, setRoomOffer] = useState<{ sessionId: string; friendName: string } | null>(null);
+
+  const handleJoinRoom = useCallback(async () => {
+    const offer = roomOffer;
+    setRoomOffer(null);
+    if (!offer) return;
+    try {
+      await supabase.rpc('set_event_visibility', {
+        p_session_id: offer.sessionId,
+        p_visible: true,
+      });
+      navigation.navigate('EventAttendees', { sessionId: offer.sessionId });
+    } catch (e) {
+      console.warn('[UserDetail] event-room opt-in failed:', e);
+    }
+  }, [roomOffer, navigation]);
   const [mutualTagModalVisible, setMutualTagModalVisible] = useState(false);
   const [isCloseFriend, setIsCloseFriend] = useState(false);
   const [moreMenuVisible, setMoreMenuVisible] = useState(false);
@@ -729,33 +750,12 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
       // session tags already cover the batch value; two prompts stack).
       const realSession = !!paramSid && !String(paramSid).startsWith('local_');
       if (realSession) {
-        Alert.alert(
-          t('scanResult.alertSuccessTitle'),
-          t('eventRoom.offerBody', {
-            name: profile?.full_name || '',
-            defaultValue:
-              '已和 {{name}} 成為好友。也看看這場的其他人？加入名單後，這場已同意的參加者能互相看到、直接加好友。',
-          }),
-          [
-            { text: t('batchTag.skip', { defaultValue: '先不用' }), style: 'cancel' },
-            {
-              text: t('eventRoom.offerYes', { defaultValue: '看看這場的人' }),
-              onPress: () => {
-                void (async () => {
-                  try {
-                    await supabase.rpc('set_event_visibility', {
-                      p_session_id: paramSid,
-                      p_visible: true,
-                    });
-                    navigation.navigate('EventAttendees', { sessionId: paramSid });
-                  } catch (e) {
-                    console.warn('[UserDetail] event-room opt-in failed:', e);
-                  }
-                })();
-              },
-            },
-          ],
-        );
+        // Branded modal instead of a system Alert (UX fix 2026-07-05) —
+        // this is the room feature's ONE first-impression moment.
+        setRoomOffer({
+          sessionId: String(paramSid),
+          friendName: profile?.full_name || '',
+        });
       } else {
         Alert.alert(
           t('scanResult.alertSuccessTitle'),
@@ -1655,6 +1655,51 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         {/* All Tags Section removed — tags now shown inline in profile section */}
       </ScrollView>
 
+      {/* Event-room offer — branded, high-visibility (replaces the old
+          system Alert; founder 2026-07-05 "提示不夠明顯"). */}
+      <Modal
+        visible={!!roomOffer}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setRoomOffer(null)}
+      >
+        <View style={styles.roomOverlay}>
+          <View style={styles.roomCard}>
+            <View style={styles.roomIconWrap}>
+              <Users size={30} color={colors.piktag500} />
+            </View>
+            <Text style={styles.roomTitle}>
+              {t('eventRoom.offerTitle', { defaultValue: '也看看這場的人？' })}
+            </Text>
+            <Text style={styles.roomBody}>
+              {t('eventRoom.offerBody', {
+                name: roomOffer?.friendName || '',
+                defaultValue:
+                  '已和 {{name}} 成為好友。也看看這場的其他人？加入名單後，這場已同意的參加者能互相看到、直接加好友。',
+              })}
+            </Text>
+            <TouchableOpacity
+              style={styles.roomPrimaryBtn}
+              activeOpacity={0.85}
+              onPress={() => { void handleJoinRoom(); }}
+            >
+              <Text style={styles.roomPrimaryText}>
+                {t('eventRoom.offerYes', { defaultValue: '看看這場的人' })}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.roomSkipBtn}
+              activeOpacity={0.7}
+              onPress={() => setRoomOffer(null)}
+            >
+              <Text style={styles.roomSkipText}>
+                {t('batchTag.skip', { defaultValue: '先不用' })}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       {/* Pick Tag Modal */}
       <Modal
         visible={pickTagModalVisible}
@@ -2347,6 +2392,68 @@ function makeStyles(c: ColorPalette) {
   // FriendDetailScreen for the rationale: the bottom-sheet's translucent
   // backdrop made users perceive the picker as inline content embedded
   // in the host page rather than a separate surface.
+  // Event-room offer modal (2026-07-05) — centred card with real weight.
+  roomOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+  roomCard: {
+    alignSelf: 'stretch',
+    backgroundColor: c.white,
+    borderRadius: 20,
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 16,
+    alignItems: 'center',
+  },
+  roomIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: c.piktag50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  roomTitle: {
+    fontSize: 19,
+    fontWeight: '700',
+    color: c.gray900,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  roomBody: {
+    fontSize: 14,
+    color: c.gray500,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  roomPrimaryBtn: {
+    alignSelf: 'stretch',
+    backgroundColor: c.piktag500,
+    borderRadius: 14,
+    paddingVertical: 15,
+    alignItems: 'center',
+  },
+  roomPrimaryText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  roomSkipBtn: {
+    alignSelf: 'stretch',
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  roomSkipText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: c.gray500,
+  },
   pickModalOverlay: {
     flex: 1,
     backgroundColor: c.white,

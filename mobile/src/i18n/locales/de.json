@@ -1512,7 +1512,10 @@
     "title": "Leute hier",
     "connect": "Verbinden",
     "connected": "Befreundet",
-    "empty": "Noch niemand auf der Liste — schau später wieder vorbei."
+    "empty": "Noch niemand auf der Liste — schau später wieder vorbei.",
+    "offerTitle": "Sehen, wer noch hier ist?",
+    "myEventsSection": "Meine Events",
+    "myEventsHint": "Antippen = der Liste beitreten — Teilnehmende, die zugestimmt haben, sehen einander und können sich direkt verbinden."
   },
   "localContact": {
     "aiSuggestLabel": "KI-Tag-Vorschläge (zum Hinzufügen tippen)",

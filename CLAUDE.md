@@ -1197,6 +1197,16 @@ and only organizers ever would). The rework, shipped pre-launch:
   still readable (RLS exposes is_active sessions only → host closing the
   event hides the row). Tapping IS the labeled visibility opt-in (desc
   line states others will see you) → set_event_visibility → EventAttendees.
+  **Prominence pass (founder feedback 2026-07-05: "提示不夠明顯 / 離開 app
+  找不到掃過的人"):** (a) the post-connect offer is now a BRANDED CENTRED
+  MODAL on UserDetail (icon + title + tier-2 primary button; the system
+  Alert was reflex-dismissed), same consent copy; (b) QrGroupListScreen
+  (the Event Tags page) gains a 「我參加的」 ListFooter section — every
+  ACTIVE session the viewer scanned into (from their connections'
+  scan_session_id, sessions hosted by OTHERS), row = event name + host ·
+  date · location, tap = labeled opt-in → EventAttendees. This is the
+  durable GLOBAL entry back into any room. Keys eventRoom.offerTitle/
+  myEventsSection/myEventsHint ×19.
 - **Revisit triggers:** % of new connections carrying event-context tags,
   searches hitting event tags, friend_added source='event_room' volume.
 

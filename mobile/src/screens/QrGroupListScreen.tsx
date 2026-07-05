@@ -76,6 +76,22 @@ export default function QrGroupListScreen({ navigation }: Props) {
   const { user } = useAuth();
 
   const [groups, setGroups] = useState<QrGroup[]>([]);
+
+  // 我參加的 (UX fix 2026-07-05, founder: "離開 app 後找不到掃過的人") —
+  // the attendee-side mirror of the host list above: every ACTIVE session
+  // the viewer scanned into (their own connection rows carry the
+  // scan_session_id; RLS only exposes is_active sessions, so closed
+  // events drop off automatically). Tapping a row IS the visibility
+  // opt-in (same labeled-consent contract as the FriendDetail row) and
+  // opens the room. This is the durable, global way back to 這場的人.
+  type AttendedSession = {
+    id: string;
+    name: string | null;
+    event_date: string | null;
+    event_location: string | null;
+    hostName: string | null;
+  };
+  const [attended, setAttended] = useState<AttendedSession[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Load my groups. Refetched on every focus so a new group created
@@ -138,10 +154,80 @@ export default function QrGroupListScreen({ navigation }: Props) {
     }
   }, [user]);
 
+  const loadAttended = useCallback(async () => {
+    if (!user) {
+      setAttended([]);
+      return;
+    }
+    try {
+      const { data: conns } = await supabase
+        .from('piktag_connections')
+        .select('scan_session_id')
+        .eq('user_id', user.id)
+        .not('scan_session_id', 'is', null);
+      const sids = [
+        ...new Set(
+          ((conns ?? []) as { scan_session_id: string | null }[])
+            .map((c) => c.scan_session_id)
+            .filter((s): s is string => !!s && !s.startsWith('local_')),
+        ),
+      ];
+      if (sids.length === 0) {
+        setAttended([]);
+        return;
+      }
+      // neq(host) = only sessions OTHERS host — my own live in `groups`.
+      const { data: sess } = await supabase
+        .from('piktag_scan_sessions')
+        .select('id, name, event_date, event_location, host_user_id')
+        .in('id', sids)
+        .neq('host_user_id', user.id);
+      const rows = ((sess ?? []) as any[]);
+      const hostIds = [...new Set(rows.map((r) => r.host_user_id).filter(Boolean))];
+      const hostNames = new Map<string, string>();
+      if (hostIds.length > 0) {
+        const { data: hosts } = await supabase
+          .from('piktag_profiles')
+          .select('id, full_name, username')
+          .in('id', hostIds);
+        for (const h of (hosts ?? []) as any[]) {
+          hostNames.set(h.id, h.full_name || h.username || '');
+        }
+      }
+      setAttended(
+        rows.map((r) => ({
+          id: String(r.id),
+          name: r.name ?? null,
+          event_date: r.event_date ?? null,
+          event_location: r.event_location ?? null,
+          hostName: hostNames.get(r.host_user_id) ?? null,
+        })),
+      );
+    } catch {
+      /* section simply stays hidden */
+    }
+  }, [user]);
+
+  const openAttendedRoom = useCallback(
+    async (sessionId: string) => {
+      try {
+        await supabase.rpc('set_event_visibility', {
+          p_session_id: sessionId,
+          p_visible: true,
+        });
+        navigation.navigate('EventAttendees', { sessionId });
+      } catch (e) {
+        console.warn('[QrGroupList] event room open failed:', e);
+      }
+    },
+    [navigation],
+  );
+
   useFocusEffect(
     useCallback(() => {
       loadGroups();
-    }, [loadGroups]),
+      void loadAttended();
+    }, [loadGroups, loadAttended]),
   );
 
 
@@ -459,11 +545,11 @@ export default function QrGroupListScreen({ navigation }: Props) {
             once we have a clearer pattern for "intent-driven
             people search". For now this tab is purely about
             listing + opening Vibes. */}
-        {loading && groups.length === 0 ? (
+        {loading && groups.length === 0 && attended.length === 0 ? (
           <View style={styles.loadingWrap}>
             <ActivityIndicator size="small" color={colors.piktag500} />
           </View>
-        ) : groups.length === 0 ? (
+        ) : groups.length === 0 && attended.length === 0 ? (
           listEmpty
         ) : (
           <DraggableFlatList
@@ -473,6 +559,49 @@ export default function QrGroupListScreen({ navigation }: Props) {
             onDragEnd={handleDragEnd}
             contentContainerStyle={styles.listContent}
             activationDistance={Platform.OS === 'ios' ? 10 : 5}
+            ListFooterComponent={
+              attended.length > 0 ? (
+                <View style={styles.attendedSection}>
+                  <Text style={styles.attendedTitle}>
+                    {t('eventRoom.myEventsSection', { defaultValue: '我參加的' })}
+                  </Text>
+                  <Text style={styles.attendedHint}>
+                    {t('eventRoom.myEventsHint', {
+                      defaultValue: '點開即加入名單 — 這場已同意的參加者能互相看到、直接加好友。',
+                    })}
+                  </Text>
+                  {attended.map((s) => {
+                    const sub = [s.hostName, s.event_date, s.event_location]
+                      .filter(Boolean)
+                      .join(' · ');
+                    return (
+                      <TouchableOpacity
+                        key={s.id}
+                        style={styles.attendedRow}
+                        activeOpacity={0.7}
+                        onPress={() => { void openAttendedRoom(s.id); }}
+                      >
+                        <View style={styles.attendedIconWrap}>
+                          <Users size={18} color={colors.piktag500} />
+                        </View>
+                        <View style={styles.attendedTextWrap}>
+                          <Text style={styles.attendedName} numberOfLines={1}>
+                            {s.name ||
+                              t('qrGroup.untitledFallback', { defaultValue: '未命名活動' })}
+                          </Text>
+                          {sub ? (
+                            <Text style={styles.attendedSub} numberOfLines={1}>
+                              {sub}
+                            </Text>
+                          ) : null}
+                        </View>
+                        <ChevronRight size={18} color={colors.gray400} />
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              ) : null
+            }
           />
         )}
       </SafeAreaView>
@@ -483,6 +612,60 @@ export default function QrGroupListScreen({ navigation }: Props) {
 function makeStyles(c: ColorPalette) {
   return StyleSheet.create({
   container: { flex: 1, backgroundColor: c.white },
+  // 我參加的 attendee section (UX fix 2026-07-05) — the durable global
+  // way back into 這場的人.
+  attendedSection: {
+    marginTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 24,
+  },
+  attendedTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: c.gray600,
+    letterSpacing: 0.2,
+    marginBottom: 4,
+  },
+  attendedHint: {
+    fontSize: 12,
+    color: c.gray400,
+    lineHeight: 17,
+    marginBottom: 10,
+  },
+  attendedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: c.gray200,
+    backgroundColor: c.white,
+    marginBottom: 8,
+  },
+  attendedIconWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: c.piktag50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  attendedTextWrap: {
+    flex: 1,
+    minWidth: 0,
+  },
+  attendedName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: c.gray900,
+  },
+  attendedSub: {
+    fontSize: 12,
+    color: c.gray400,
+    marginTop: 1,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

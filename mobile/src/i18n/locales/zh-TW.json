@@ -1512,7 +1512,10 @@
     "title": "這場的人",
     "connect": "加好友",
     "connected": "已是好友",
-    "empty": "還沒有其他人加入名單 — 晚點再回來看看。"
+    "empty": "還沒有其他人加入名單 — 晚點再回來看看。",
+    "offerTitle": "也看看這場的人？",
+    "myEventsSection": "我參加的",
+    "myEventsHint": "點開即加入名單 — 這場已同意的參加者能互相看到、直接加好友。"
   },
   "localContact": {
     "aiSuggestLabel": "AI 推薦標籤（點選加入）",

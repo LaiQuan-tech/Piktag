@@ -1512,7 +1512,10 @@
     "title": "Buradakiler",
     "connect": "Bağlan",
     "connected": "Arkadaş",
-    "empty": "Henüz listeye katılan yok — biraz sonra tekrar bak."
+    "empty": "Henüz listeye katılan yok — biraz sonra tekrar bak.",
+    "offerTitle": "Burada başka kimler var, bakalım mı?",
+    "myEventsSection": "Katıldığım etkinlikler",
+    "myEventsHint": "Dokun ve listeye katıl — onay veren katılımcılar birbirini görüp doğrudan bağlanabilir."
   },
   "localContact": {
     "aiSuggestLabel": "AI önerilen etiketler (eklemek için dokun)",
