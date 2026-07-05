@@ -12,6 +12,17 @@ by user journey (find → be found → meet → remember → ask → reconnect �
 warm); "network" jargon dropped. Subtitle / Promo / Keywords unchanged from
 Rev 1.
 
+Rev 3 — founder-approved **2026-07-06**: two NEW feature sections ×17 locales,
+covering what shipped after Rev 2 froze — **MEET THE WHOLE ROOM** (event room
++ burst batch tag, 2026-07-03; inserted before the card-scanner section) and
+**SEE YOUR NETWORK** (friend graph + coral not-yet-member contacts,
+2026-06-25/07-06; inserted before the AI-icebreaker section). de/fr/es/pt/it/
+ru/id were TRIMMED to fit ≤4000 (fr was already ~4150 BEFORE this rev — if fr
+was ever pasted into ASC it must have been truncated; re-paste it regardless).
+All 17 verified ≤4000 chars incl. newlines. Subtitle / Promo / Keywords
+unchanged. NOTE: Apple version-locks Description — paste these with the NEXT
+version submission; Google Play can be updated anytime.
+
 Rules baked into every locale below:
 - **Brand lines stay ENGLISH everywhere** (locked signatures): the opening
   `Tag yourself. Find anyone.` and the closing `Pick. Tag. Connect.` — never
@@ -80,6 +91,9 @@ Can't think of any? PikTag reads your bio and suggests them — done in seconds.
 QR CONTACT EXCHANGE
 One scan and you have each other — name, links, everything. No typing, no "what was your number again?"
 
+MEET THE WHOLE ROOM
+At an event, one QR doesn't just connect you to the host — opt in, and you can see and connect with everyone else in the room. Added five people in one night? PikTag offers to tag them all in one move.
+
 BUSINESS CARD SCANNER
 Scan a card in seconds. PikTag pulls out the contact details and suggests relevant tags automatically — built for conferences, meetups, and business trips where you meet ten people an hour.
 
@@ -88,6 +102,9 @@ Notes only you can see: "met at Jenny's wedding", "two cats", "great coffee recs
 
 ASK BROADCAST
 "Anyone know a good accountant?" Post an Ask once — it goes straight to the friends whose tags say they can help. No group-spamming. No asking around one by one.
+
+SEE YOUR NETWORK
+One tap turns your contacts into a living map — who knows whom, friends-of-friends you may know, and the people you've saved who haven't joined yet.
 
 AI CONVERSATION STARTERS
 Reaching out after months, or even years? PikTag writes personalized icebreakers from what you two share. No awkward openings. No blank message box. Just a thoughtful way to pick up where you left off.
@@ -162,6 +179,9 @@ PikTag 用人類真正記住一個人的方式，幫你記住他們——他做�
 QR 換聯絡資訊
 掃一下，你們就互相留下了——名字、連結，一次到位。不用打字，不用再問一次「你電話幾號？」
 
+認識全場
+在活動裡，掃一個 QR 不只認識主辦人——選擇加入後，整場的人都能互相看見、互相加好友。一晚認識五個人？PikTag 會提議一次幫他們全部貼好標籤。
+
 名片掃描
 幾秒掃完一張名片。PikTag 自動擷取聯絡資訊，還順手建議相關標籤——專為一小時認識十個人的研討會、聚會與出差而生。
 
@@ -170,6 +190,9 @@ QR 換聯絡資訊
 
 Ask 廣播
 「有人認識厲害的會計師嗎？」發一則 Ask，它會直接送到標籤對得上的朋友面前。不用洗版群組，不用一個一個問。
+
+看見你的人脈
+點一下，你的聯絡人變成一張活的地圖——誰認識誰、你可能認識的朋友的朋友、還有那些存了名片但還沒加入的人。
 
 AI 開場白
 隔了幾個月、甚至幾年才要重新聯絡？PikTag 會從你們的共同點，幫你寫出專屬的開場白。不尷尬、不用對著空白訊息框發呆，自然接回你們上次停下的地方。
@@ -244,6 +267,9 @@ PikTag 帮你用人类真正记人的方式去记人——记住他们做什么�
 QR 码交换联系方式
 扫一下，彼此的信息就都有了——姓名、链接，一应俱全。不用输入，也不用再问"你电话多少来着？"
 
+认识全场
+在活动里，扫一个 QR 不只认识主办人——选择加入后，全场的人都能互相看见、互相加好友。一晚认识五个人？PikTag 会提议一次帮他们全部打好标签。
+
 名片扫描
 几秒钟扫完一张名片。PikTag 自动提取联系方式，并推荐相关标签——专为会议、聚会和出差打造，一小时认识十个人也不怕。
 
@@ -252,6 +278,9 @@ QR 码交换联系方式
 
 Ask 广播
 "有人认识靠谱的会计师吗？"发一条 Ask，它会直接送达标签显示能帮上忙的朋友。不用刷屏群聊，也不用挨个去问。
+
+看见你的人脉
+点一下，你的联系人就变成一张活的地图——谁认识谁、你可能认识的朋友的朋友，还有那些存了名片但还没加入的人。
 
 AI 破冰开场
 隔了几个月甚至几年才联系？PikTag 会根据你们的共同点，为你写出个性化的开场白。不再尴尬，不再对着空白输入框发呆，自然地接上当年的话题。
@@ -326,6 +355,9 @@ PikTag は、人間が本来人を覚えるやり方そのままで覚えられ�
 QR で連絡先交換
 スキャンひとつで、お互いの情報がまるごと手に入ります——名前もリンクもすべて。入力は不要、「電話番号、何だったっけ？」ももう不要です。
 
+会場まるごとつながる
+イベントでは、QR ひとつでつながれるのは主催者だけではありません。参加を選べば、その場にいる全員をお互いに見つけて、つながることができます。一晩で5人と知り合った？　PikTag がまとめてタグ付けを提案します。
+
 名刺スキャン
 名刺を数秒でスキャン。PikTag が連絡先を読み取り、関連するタグまで自動で提案します。1時間に10人と出会うカンファレンスや交流会、出張のために作られた機能です。
 
@@ -334,6 +366,9 @@ QR で連絡先交換
 
 Ask 一斉リクエスト
 「いい会計士、誰か知らない？」Ask を一度投稿するだけで、タグから力になれそうな友人へまっすぐ届きます。グループチャットに連投する必要も、ひとりずつ聞いて回る必要もありません。
+
+人脈を見える化
+ワンタップで、連絡先が生きたマップに変わります——誰が誰を知っているのか、知り合いかもしれない「友達の友達」、そして名刺は保存したもののまだ参加していない人まで。
 
 AI 会話のきっかけ
 数か月ぶり、いや数年ぶりの連絡？　PikTag がふたりの共通点から、あなたのための切り出しの一言を書いてくれます。気まずい出だしも、真っ白なメッセージ欄とにらめっこすることもなし。あのときの続きを、自然に再開できます。
@@ -408,6 +443,9 @@ PikTag은 사람이 원래 사람을 기억하는 방식 그대로 기억하게 
 QR 연락처 교환
 한 번 스캔하면 서로의 정보가 전부 저장됩니다 — 이름, 링크까지 모두. 입력할 필요도, "번호가 뭐였죠?" 하고 다시 물을 필요도 없어요.
 
+그 자리 전체와 연결
+행사장에서 QR 하나로 연결되는 건 주최자만이 아닙니다. 참여를 선택하면 그 자리의 모든 사람을 서로 확인하고 친구가 될 수 있어요. 하룻밤에 다섯 명을 만났다면? PikTag이 한 번에 모두 태그하자고 제안합니다.
+
 명함 스캔
 명함을 몇 초 만에 스캔하세요. PikTag이 연락처를 추출하고 어울리는 태그까지 자동으로 추천합니다. 한 시간에 열 명을 만나는 콘퍼런스, 모임, 출장을 위해 만들어졌어요.
 
@@ -416,6 +454,9 @@ QR 연락처 교환
 
 Ask 브로드캐스트
 "괜찮은 회계사 아는 사람?" Ask를 한 번 올리면, 태그를 보고 도와줄 수 있는 친구들에게 곧장 전달됩니다. 단체방 도배도, 한 명씩 물어보고 다닐 필요도 없어요.
+
+내 인맥을 한눈에
+탭 한 번이면 연락처가 살아 있는 지도가 됩니다 — 누가 누구를 아는지, 알 수도 있는 친구의 친구, 그리고 저장해 뒀지만 아직 가입하지 않은 사람들까지.
 
 AI 대화 시작 도우미
 몇 달, 아니 몇 년 만의 연락인가요? PikTag이 두 사람의 공통점으로 맞춤형 첫마디를 써 드립니다. 어색한 인사말도, 텅 빈 메시지 창도 없이, 멈췄던 대화를 자연스럽게 이어 가세요.
@@ -458,7 +499,7 @@ DESCRIPTION:
 Tag yourself. Find anyone.
 Merk dir alle, die du triffst. Finde die richtige Person genau dann, wenn du sie brauchst.
 
-In „Der Teufel trägt Prada“ durchquert Miranda einen Saal voller wichtiger Leute und begrüßt jeden Einzelnen mit Namen. Ihr Geheimnis ist kein perfektes Gedächtnis – es sind die zwei Assistentinnen an ihrer Seite, die ihr leise zuflüstern, wer wer ist, sobald sich ein Gast nähert.
+In „Der Teufel trägt Prada“ durchquert Miranda einen Saal voller wichtiger Leute und begrüßt jeden Einzelnen mit Namen. Ihr Geheimnis ist kein perfektes Gedächtnis – es sind die zwei Assistentinnen an ihrer Seite, die ihr leise zuflüstern, wer wer ist.
 
 Die meisten von uns haben keine zwei Assistentinnen.
 
@@ -475,12 +516,12 @@ PikTag hilft dir, dich an Menschen so zu erinnern, wie Menschen sich wirklich an
 Denn das Problem war nie, dass du zu wenige Leute kennst.
 Das Problem ist, die zu vergessen, die du schon kennst – und nicht zu wissen, wie du das Gespräch wieder anfangen sollst.
 
-Entdecke die Menschen neu, die du längst kennst. Nimm wieder Kontakt zu alten Freunden und Kollegen auf. Und finde genau die richtige Person in dem Moment, in dem du sie brauchst.
+Entdecke neu, wen du längst kennst. Melde dich wieder bei alten Freunden und Kollegen. Und finde die richtige Person genau im richtigen Moment.
 
 FUNKTIONEN
 
 SUCHE NACH BEDARF
-Du brauchst einen Designer? Eine Startup-Gründerin? Jemanden, der sich mit Fotografie auskennt? Anwalt, Marketing-Profi, Investor, Ingenieur oder Mentor?
+Du brauchst einen Designer? Eine Startup-Gründerin? Einen Anwalt, Investor oder Mentor?
 Such nicht nach Namen. Such nach dem, was du brauchst.
 
 TAGGE DICH SELBST
@@ -490,17 +531,23 @@ Dir fällt nichts ein? PikTag liest deine Bio und schlägt dir Tags vor – fert
 QR-KONTAKTAUSTAUSCH
 Einmal scannen und ihr habt euch – Name, Links, alles. Kein Abtippen, kein „Wie war noch mal deine Nummer?“
 
+DEN GANZEN RAUM KENNENLERNEN
+Auf einem Event verbindet dich ein QR nicht nur mit dem Gastgeber — wer mitmacht, sieht den ganzen Raum und kann sich vernetzen. Fünf Leute an einem Abend? PikTag schlägt vor, alle auf einmal zu taggen.
+
 VISITENKARTEN-SCANNER
-Scanne eine Karte in Sekunden. PikTag liest die Kontaktdaten aus und schlägt automatisch passende Tags vor – gemacht für Konferenzen, Meetups und Geschäftsreisen, auf denen du zehn Leute pro Stunde triffst.
+Scanne eine Karte in Sekunden. PikTag liest die Kontaktdaten aus und schlägt automatisch passende Tags vor – gemacht für Konferenzen und Meetups, wo du zehn Leute pro Stunde triffst.
 
 PRIVATE TAGS
 Notizen, die nur du siehst: „auf Jennys Hochzeit kennengelernt“, „zwei Katzen“, „kennt die besten Cafés“. Die Details, die Menschen unvergesslich machen – und die privat bleiben.
 
 ASK-RUNDRUF
-„Kennt jemand einen guten Steuerberater?“ Poste ein Ask genau einmal – es geht direkt an die Freunde, deren Tags zeigen, dass sie helfen können. Kein Gruppen-Spam. Kein Herumfragen bei jedem Einzelnen.
+„Kennt jemand einen guten Steuerberater?“ Poste ein Ask genau einmal – es geht direkt an die Freunde, deren Tags zeigen, dass sie helfen können. Kein Gruppen-Spam, kein Herumfragen.
+
+DEIN NETZWERK SEHEN
+Ein Tipp verwandelt deine Kontakte in eine lebendige Karte — wer wen kennt, Freunde von Freunden, die du kennen könntest, und die Gespeicherten, die noch nicht dabei sind.
 
 KI-GESPRÄCHSSTARTER
-Du meldest dich nach Monaten oder sogar Jahren wieder? PikTag schreibt dir persönliche Eisbrecher aus dem, was euch verbindet. Kein holpriger Einstieg. Kein leeres Nachrichtenfeld. Nur ein durchdachter Weg, genau da weiterzumachen, wo ihr aufgehört habt.
+Du meldest dich nach Monaten oder sogar Jahren wieder? PikTag schreibt dir persönliche Eisbrecher aus dem, was euch verbindet. Kein leeres Nachrichtenfeld — mach einfach da weiter, wo ihr aufgehört habt.
 
 BEZIEHUNGS-ERINNERUNGEN
 Verpasse nie wieder einen Geburtstag – oder ein „Heute vor einem Jahr haben wir uns kennengelernt“. Kleine Momente der Aufmerksamkeit halten Beziehungen lebendig.
@@ -522,7 +569,7 @@ FÜR WEN IST PIKTAG?
 
 Der Einstieg ist kostenlos.
 
-Gute Beziehungen wachsen, wenn Menschen einander vorstellen. Wenn PikTag dir hilft, die richtigen Menschen wiederzufinden, teile es mit jemandem, dem es genauso helfen würde.
+Gute Beziehungen wachsen durchs Vorstellen. Hilft dir PikTag, die richtigen Menschen wiederzufinden, teile es mit jemandem, dem es auch helfen würde.
 
 Pick. Tag. Connect.
 
@@ -538,61 +585,67 @@ KEYWORDS: networking,contacts,tags,carte de visite,scan,QR,CRM,événement,salon
 
 DESCRIPTION:
 Tag yourself. Find anyone.
-Souvenez-vous de toutes les personnes que vous rencontrez. Retrouvez la bonne personne au moment où vous en avez besoin.
+Souvenez-vous de tous ceux que vous rencontrez. Retrouvez la bonne personne au bon moment.
 
-Dans « Le Diable s’habille en Prada », Miranda traverse une salle pleine de gens importants et salue chacun d’eux par son nom. Son secret n’est pas une mémoire infaillible — ce sont les deux assistantes à ses côtés, qui lui soufflent discrètement qui est qui à mesure que les invités s’avancent.
+Dans « Le Diable s’habille en Prada », Miranda traverse une salle pleine de gens importants et salue chacun d’eux par son nom. Son secret ? Pas une mémoire infaillible : deux assistantes à ses côtés, qui lui soufflent qui est qui.
 
 La plupart d’entre nous n’ont pas deux assistantes.
 
 Vous avez PikTag.
 
-Vous avez déjà croisé quelqu’un qui vous connaît visiblement, sans réussir à retrouver son nom ?
+Quelqu’un vous connaît visiblement, mais impossible de retrouver son nom ?
 Vous vous souvenez qu’il est designer.
 Qu’il vit à Paris.
 Qu’il a deux chats.
 Mais son nom ? Envolé.
 
-PikTag vous aide à vous souvenir des gens comme les humains s’en souviennent vraiment — par ce qu’ils font, ce qu’ils aiment et l’endroit où vous les avez rencontrés.
+PikTag vous aide à vous souvenir des gens comme les humains s’en souviennent vraiment — par ce qu’ils font, ce qu’ils aiment, où vous les avez rencontrés.
 
 Parce que le problème n’a jamais été de ne pas connaître assez de monde.
 Le problème, c’est d’oublier ceux que vous connaissez déjà — et de ne pas savoir comment relancer la conversation.
 
-Redécouvrez les personnes que vous connaissez déjà. Renouez avec d’anciens amis et collègues. Et trouvez exactement la bonne personne au moment où vous en avez besoin.
+Redécouvrez ceux que vous connaissez déjà. Renouez avec d’anciens amis et collègues. Trouvez la bonne personne au bon moment.
 
 FONCTIONNALITÉS
 
 RECHERCHE PAR BESOIN
-Besoin d’un designer ? D’un fondateur de startup ? De quelqu’un qui s’y connaît en photographie ? D’un avocat, d’un marketeur, d’un investisseur, d’un ingénieur ou d’un mentor ?
+Besoin d’un designer ? D’un fondateur de startup ? D’un avocat, d’un investisseur, d’un mentor ?
 Ne cherchez pas un nom. Cherchez ce dont vous avez besoin.
 
 TAGUEZ-VOUS
-Quand quelqu’un a besoin « d’une personne comme vous », que taperait-il dans la recherche ? Ajoutez ces mots comme tags : votre métier (#comptable), vos passions (#photographie), ce que vous vivez en ce moment (#rechercheemploi). Quand quelqu’un les cherche, c’est vous qui apparaissez.
-Rien ne vous vient ? PikTag lit votre bio et vous en suggère — c’est réglé en quelques secondes.
+Quand quelqu’un a besoin « d’une personne comme vous », que taperait-il ? Ajoutez ces mots comme tags : métier (#comptable), passions (#photographie), actualité (#rechercheemploi). Quand on les cherche, c’est vous qui apparaissez.
+Rien ne vous vient ? PikTag lit votre bio et vous en suggère en quelques secondes.
 
 ÉCHANGE DE CONTACTS PAR QR
-Un scan, et chacun a les coordonnées de l’autre — nom, liens, tout. Rien à taper, fini les « c’était quoi ton numéro, déjà ? ».
+Un scan, et chacun a les coordonnées de l’autre — nom, liens, tout. Rien à taper.
+
+RENCONTREZ TOUTE LA SALLE
+En événement, un QR ne vous connecte pas qu’à l’hôte : en participant, vous voyez toute la salle et pouvez vous connecter avec chacun. Cinq rencontres en une soirée ? PikTag propose de les taguer toutes d’un coup.
 
 SCANNER DE CARTES DE VISITE
-Scannez une carte en quelques secondes. PikTag en extrait les coordonnées et suggère automatiquement des tags pertinents — pensé pour les conférences, les meetups et les déplacements professionnels où l’on rencontre dix personnes en une heure.
+Scannez une carte en quelques secondes. PikTag en extrait les coordonnées et suggère des tags pertinents — pensé pour les conférences et les salons où l’on rencontre dix personnes en une heure.
 
 TAGS PRIVÉS
-Des notes visibles par vous seul : « rencontré au mariage de Jenny », « deux chats », « connaît les bonnes adresses de café ». Les détails qui rendent les gens mémorables — et qui restent privés.
+Des notes visibles par vous seul : « mariage de Jenny », « deux chats », « bonnes adresses de café ». Les détails qui rendent les gens mémorables — et qui restent privés.
 
 DIFFUSION D’UN ASK
-« Quelqu’un connaît un bon comptable ? » Publiez un Ask une seule fois — il arrive directement chez les amis dont les tags disent qu’ils peuvent aider. Pas de spam de groupe. Pas besoin de demander à chacun, un par un.
+« Quelqu’un connaît un bon comptable ? » Publiez un Ask une seule fois — il arrive directement chez les amis dont les tags disent qu’ils peuvent aider. Pas de spam de groupe, pas de porte-à-porte.
+
+VOYEZ VOTRE RÉSEAU
+Un geste transforme vos contacts en carte vivante — qui connaît qui, les amis d’amis à découvrir, et ceux qui n’ont pas encore rejoint PikTag.
 
 BRISE-GLACE PAR IA
-Vous reprenez contact après des mois, voire des années ? PikTag rédige des messages d’ouverture personnalisés à partir de ce que vous partagez tous les deux. Pas d’entrée en matière maladroite. Pas de page blanche. Juste une façon délicate de reprendre là où vous vous étiez arrêtés.
+Vous reprenez contact après des mois, voire des années ? PikTag rédige des messages d’ouverture personnalisés à partir de ce que vous partagez. Pas de page blanche : reprenez là où vous vous étiez arrêtés.
 
 RAPPELS RELATIONNELS
-Ne manquez plus jamais un anniversaire — ni un « nous nous sommes rencontrés il y a un an jour pour jour ». Ces petites attentions gardent les relations vivantes.
+Ne manquez plus un anniversaire — ni un « ça fait un an qu’on s’est rencontrés ». Ces petites attentions gardent les relations vivantes.
 
 POURQUOI PIKTAG ?
 
-Votre ancienne app de contacts répond à une question : « Est-ce que j’ai son numéro ? »
-PikTag répond à une bien meilleure : « Qui, parmi mes connaissances, peut m’aider sur ce sujet ? »
+Votre app de contacts répond à une question : « Est-ce que j’ai son numéro ? »
+PikTag répond à une meilleure : « Qui, parmi mes connaissances, peut m’aider ? »
 
-Mille contacts enregistrés ne servent à rien si vous ne savez plus qui est qui. Les tags, c’est le chemin qui vous ramène vers les personnes que vous avez déjà.
+Mille contacts enregistrés ne servent à rien si vous ne savez plus qui est qui. Les tags, c’est le chemin du retour vers les gens que vous avez déjà.
 
 POUR QUI EST PIKTAG ?
 - Entrepreneurs et fondateurs de startup
@@ -604,7 +657,7 @@ POUR QUI EST PIKTAG ?
 
 Gratuit pour commencer.
 
-Les belles relations naissent des mises en relation. Si PikTag vous aide à retrouver les bonnes personnes, partagez-le avec quelqu’un à qui il rendrait service aussi.
+Les belles relations naissent des mises en relation. Si PikTag vous aide, partagez-le avec quelqu’un à qui il servirait aussi.
 
 Pick. Tag. Connect.
 
@@ -622,7 +675,7 @@ DESCRIPTION:
 Tag yourself. Find anyone.
 Recuerda a todas las personas que conoces. Encuentra a la persona indicada justo cuando la necesitas.
 
-En «El diablo viste de Prada», Miranda cruza un salón lleno de gente importante y saluda a cada persona por su nombre. Su secreto no es una memoria perfecta: son las dos asistentes a su lado, que le susurran discretamente quién es quién a medida que se acerca cada invitado.
+En «El diablo viste de Prada», Miranda cruza un salón lleno de gente importante y saluda a cada persona por su nombre. Su secreto no es una memoria perfecta: son las dos asistentes a su lado, que le susurran discretamente quién es quién.
 
 La mayoría de nosotros no tenemos dos asistentes.
 
@@ -639,12 +692,12 @@ PikTag te ayuda a recordar a las personas como los humanos realmente recordamos:
 Porque el problema nunca fue que no conozcas a suficiente gente.
 El problema es olvidar a quienes ya conoces, y no saber cómo retomar la conversación.
 
-Redescubre a las personas que ya conoces. Reconecta con viejos amigos y colegas. Y encuentra exactamente a la persona indicada en el momento en que la necesitas.
+Redescubre a quienes ya conoces. Reconecta con viejos amigos y colegas. Y encuentra a la persona indicada justo cuando la necesitas.
 
 FUNCIONES
 
 BUSCA POR NECESIDAD
-¿Necesitas un diseñador? ¿Un fundador de startup? ¿Alguien que sepa de fotografía? ¿Un abogado, un especialista en marketing, un inversor, un ingeniero o un mentor?
+¿Necesitas un diseñador? ¿Un fundador de startup? ¿Un abogado, un inversor o un mentor?
 No busques por nombre. Busca lo que necesitas.
 
 PONTE TUS PROPIOS TAGS
@@ -654,17 +707,23 @@ Cuando alguien necesite «una persona como tú», ¿qué palabras buscaría? Añ
 INTERCAMBIO DE CONTACTOS POR QR
 Un escaneo y ya se tienen el uno al otro: nombre, enlaces, todo. Sin teclear nada y sin el «¿cuál era tu número?».
 
+CONOCE A TODA LA SALA
+En un evento, un QR no solo te conecta con el anfitrión: si eliges participar, ves a todos los demás asistentes y puedes conectar con ellos. ¿Cinco personas en una noche? PikTag te propone etiquetarlas todas de una vez.
+
 ESCÁNER DE TARJETAS DE PRESENTACIÓN
-Escanea una tarjeta en segundos. PikTag extrae los datos de contacto y sugiere tags relevantes automáticamente: pensado para conferencias, meetups y viajes de trabajo donde conoces a diez personas por hora.
+Escanea una tarjeta en segundos. PikTag extrae los datos de contacto y sugiere tags relevantes automáticamente: pensado para conferencias y meetups donde conoces a diez personas por hora.
 
 TAGS PRIVADOS
 Notas que solo tú puedes ver: «nos conocimos en la boda de Jenny», «dos gatos», «recomienda buenos cafés». Los detalles que hacen memorable a una persona, guardados en privado.
 
 DIFUSIÓN CON ASK
-«¿Alguien conoce un buen asesor contable?» Publica un Ask una sola vez y llega directo a los amigos cuyos tags dicen que pueden ayudar. Sin llenar grupos de spam. Sin preguntar a cada uno por separado.
+«¿Alguien conoce un buen asesor contable?» Publica un Ask una sola vez y llega directo a los amigos cuyos tags dicen que pueden ayudar. Sin spam en grupos ni preguntar uno por uno.
+
+VE TU RED
+Un toque convierte tus contactos en un mapa vivo: quién conoce a quién, amigos de amigos que quizá conozcas y las personas que guardaste pero que aún no se han unido.
 
 ROMPEHIELOS CON IA
-¿Vas a escribir después de meses, o incluso años? PikTag redacta mensajes iniciales personalizados a partir de lo que ambos comparten. Sin comienzos incómodos. Sin quedarte mirando un mensaje en blanco. Solo una forma considerada de retomar justo donde lo dejaron.
+¿Vas a escribir después de meses, o incluso años? PikTag redacta mensajes iniciales personalizados a partir de lo que ambos comparten. Sin mensajes en blanco: retoma justo donde lo dejaron.
 
 RECORDATORIOS DE RELACIONES
 No vuelvas a perderte un cumpleaños, ni un «hoy hace un año que nos conocimos». Los pequeños gestos de atención mantienen vivas las relaciones.
@@ -704,7 +763,7 @@ DESCRIPTION:
 Tag yourself. Find anyone.
 Lembre-se de todo mundo que você conhece. E encontre a pessoa certa na hora em que precisar.
 
-Em O Diabo Veste Prada, Miranda atravessa um salão cheio de gente importante e cumprimenta cada pessoa pelo nome. O segredo dela não é uma memória perfeita — são as duas assistentes ao seu lado, sussurrando discretamente quem é quem à medida que cada convidado se aproxima.
+Em O Diabo Veste Prada, Miranda atravessa um salão cheio de gente importante e cumprimenta cada pessoa pelo nome. O segredo dela não é uma memória perfeita — são as duas assistentes ao seu lado, sussurrando quem é quem.
 
 A maioria de nós não tem duas assistentes.
 
@@ -721,12 +780,12 @@ O PikTag ajuda você a lembrar das pessoas do jeito que a gente realmente lembra
 Porque o problema nunca foi você conhecer pouca gente.
 O problema é esquecer quem você já conhece — e não saber como retomar a conversa.
 
-Redescubra as pessoas que você já conhece. Reconecte-se com velhos amigos e colegas. E encontre exatamente a pessoa certa no momento em que precisar dela.
+Redescubra quem você já conhece. Reconecte-se com velhos amigos e colegas. E encontre a pessoa certa na hora em que precisar.
 
 RECURSOS
 
 BUSQUE PELO QUE VOCÊ PRECISA
-Precisa de um designer? De quem fundou uma startup? De alguém que entende de fotografia? De um advogado, profissional de marketing, investidor, engenheiro ou mentor?
+Precisa de um designer? De quem fundou uma startup? De um advogado, investidor ou mentor?
 Não busque pelo nome. Busque pelo que você precisa.
 
 TAGUEIE VOCÊ MESMO
@@ -736,17 +795,23 @@ Não vem nada à cabeça? O PikTag lê sua bio e sugere tags por você — pront
 TROCA DE CONTATOS POR QR
 Um escaneamento e cada um tem o contato do outro — nome, links, tudo. Sem digitação, sem "qual era seu número mesmo?"
 
+CONHEÇA A SALA INTEIRA
+Num evento, um QR não conecta você só ao anfitrião — ao optar por participar, você vê todo mundo na sala e pode se conectar com cada um. Conheceu cinco pessoas numa noite? O PikTag propõe taguear todas de uma vez.
+
 LEITOR DE CARTÕES DE VISITA
-Escaneie um cartão em segundos. O PikTag extrai os dados de contato e sugere tags relevantes automaticamente — feito para conferências, meetups e viagens de trabalho em que você conhece dez pessoas por hora.
+Escaneie um cartão em segundos. O PikTag extrai os dados de contato e sugere tags relevantes automaticamente — feito para conferências e meetups em que você conhece dez pessoas por hora.
 
 TAGS PRIVADAS
 Notas que só você vê: "nos conhecemos no casamento da Jenny", "dois gatos", "ótimas dicas de café". Os detalhes que tornam as pessoas memoráveis — guardados só para você.
 
 ASK PARA A SUA REDE
-"Alguém conhece um bom contador?" Publique um Ask uma única vez — ele chega direto aos amigos cujas tags mostram que eles podem ajudar. Sem encher grupos de mensagem. Sem perguntar de pessoa em pessoa.
+"Alguém conhece um bom contador?" Publique um Ask uma única vez — ele chega direto aos amigos cujas tags mostram que eles podem ajudar. Sem spam em grupo, sem perguntar um por um.
+
+VEJA SUA REDE
+Um toque transforma seus contatos num mapa vivo — quem conhece quem, amigos de amigos que você talvez conheça e as pessoas que você salvou mas que ainda não entraram.
 
 QUEBRA-GELO COM IA
-Vai retomar o contato depois de meses, ou até anos? O PikTag escreve quebra-gelos personalizados a partir do que vocês dois têm em comum. Sem aberturas constrangedoras. Sem caixa de mensagem em branco. Só um jeito atencioso de continuar de onde vocês pararam.
+Vai retomar o contato depois de meses, ou até anos? O PikTag escreve quebra-gelos personalizados a partir do que vocês têm em comum. Sem caixa de mensagem em branco: continue de onde vocês pararam.
 
 LEMBRETES DE RELACIONAMENTO
 Nunca mais perca um aniversário — nem um "hoje faz um ano que nos conhecemos". Pequenos gestos de atenção mantêm os relacionamentos vivos.
@@ -768,7 +833,7 @@ PARA QUEM É O PIKTAG?
 
 Grátis para começar.
 
-Bons relacionamentos crescem com apresentações. Se o PikTag ajudar você a se reconectar com as pessoas certas, compartilhe com alguém que também vai se beneficiar.
+Bons relacionamentos crescem com apresentações. Se o PikTag ajudar você a se reconectar com as pessoas certas, compartilhe com quem também vai se beneficiar.
 
 Pick. Tag. Connect.
 
@@ -786,7 +851,7 @@ DESCRIPTION:
 Tag yourself. Find anyone.
 Ricorda tutte le persone che incontri. E trova quella giusta quando ti serve.
 
-Ne Il diavolo veste Prada, Miranda attraversa una sala piena di persone importanti e saluta ognuna per nome. Il suo segreto non è una memoria infallibile — sono le due assistenti al suo fianco, che le suggeriscono sottovoce chi è chi a ogni ospite che si avvicina.
+Ne Il diavolo veste Prada, Miranda attraversa una sala piena di persone importanti e saluta ognuna per nome. Il suo segreto non è una memoria infallibile — sono le due assistenti al suo fianco, che le suggeriscono sottovoce chi è chi.
 
 La maggior parte di noi non ha due assistenti.
 
@@ -803,12 +868,12 @@ PikTag ti aiuta a ricordare le persone come le ricordiamo davvero — per quello
 Perché il problema non è mai stato conoscere troppo poche persone.
 Il problema è dimenticare quelle che già conosci — e non sapere come riaprire la conversazione.
 
-Riscopri le persone che già conosci. Ritrova vecchi amici e colleghi. E trova esattamente la persona giusta nel momento in cui ti serve.
+Riscopri chi conosci già. Ritrova vecchi amici e colleghi. E trova la persona giusta al momento giusto.
 
 FUNZIONALITÀ
 
 CERCA IN BASE A CIÒ CHE TI SERVE
-Ti serve un designer? Un founder di startup? Qualcuno che se ne intende di fotografia? Un avvocato, un esperto di marketing, un investitore, un ingegnere o un mentore?
+Ti serve un designer? Un founder di startup? Un avvocato, un investitore o un mentore?
 Non cercare per nome. Cerca in base a ciò che ti serve.
 
 TAGGA TE STESSO
@@ -818,17 +883,23 @@ Non ti viene in mente niente? PikTag legge la tua bio e te li suggerisce — pro
 SCAMBIO DI CONTATTI VIA QR
 Una scansione e avete i contatti l'uno dell'altro — nome, link, tutto. Niente da digitare, niente "com'era il tuo numero?"
 
+CONOSCI TUTTA LA SALA
+A un evento, un QR non ti collega solo all'organizzatore — se scegli di partecipare, vedi tutti gli altri presenti e puoi collegarti con loro. Cinque persone in una sera? PikTag ti propone di taggarle tutte in un colpo solo.
+
 SCANNER DI BIGLIETTI DA VISITA
-Scansiona un biglietto in pochi secondi. PikTag estrae i dati di contatto e suggerisce automaticamente i tag giusti — pensato per conferenze, meetup e trasferte di lavoro, dove incontri dieci persone all'ora.
+Scansiona un biglietto in pochi secondi. PikTag estrae i dati di contatto e suggerisce automaticamente i tag giusti — pensato per conferenze e meetup, dove incontri dieci persone all'ora.
 
 TAG PRIVATI
 Note che vedi solo tu: "conosciuto al matrimonio di Jenny", "due gatti", "ottimi consigli sul caffè". I dettagli che rendono le persone memorabili — e che restano privati.
 
 ASK ALLA TUA RETE
-"Qualcuno conosce un buon commercialista?" Pubblica un Ask una sola volta — arriva dritto agli amici i cui tag dicono che possono aiutarti. Niente spam nei gruppi. Niente giri di domande una persona alla volta.
+"Qualcuno conosce un buon commercialista?" Pubblica un Ask una sola volta — arriva dritto agli amici i cui tag dicono che possono aiutarti. Niente spam nei gruppi, niente domande una per una.
+
+VEDI LA TUA RETE
+Un tocco trasforma i tuoi contatti in una mappa viva — chi conosce chi, gli amici di amici che potresti conoscere e le persone salvate che non si sono ancora iscritte.
 
 ROMPIGHIACCIO CON L'IA
-Ti rifai vivo dopo mesi, o addirittura anni? PikTag scrive messaggi di apertura personalizzati a partire da ciò che avete in comune. Niente esordi imbarazzanti. Niente casella vuota davanti agli occhi. Solo un modo premuroso di riprendere da dove vi eravate lasciati.
+Ti rifai vivo dopo mesi, o addirittura anni? PikTag scrive messaggi di apertura personalizzati a partire da ciò che avete in comune. Niente casella vuota: riprendi da dove vi eravate lasciati.
 
 PROMEMORIA PER LE RELAZIONI
 Non perderti mai un compleanno — né un "ci siamo conosciuti esattamente un anno fa". Piccoli gesti di attenzione tengono vive le relazioni.
@@ -890,7 +961,7 @@ PikTag помогает запоминать людей так, как мы и �
 ВОЗМОЖНОСТИ
 
 ПОИСК ПО ПОТРЕБНОСТИ
-Нужен дизайнер? Основатель стартапа? Кто-то, кто разбирается в фотографии? Юрист, маркетолог, инвестор, инженер или наставник?
+Нужен дизайнер? Основатель стартапа? Юрист, инвестор или наставник?
 Ищите не по имени. Ищите по тому, что вам нужно.
 
 ОТМЕЧАЙТЕ СЕБЯ ТЕГАМИ
@@ -899,6 +970,9 @@ PikTag помогает запоминать людей так, как мы и �
 
 ОБМЕН КОНТАКТАМИ ПО QR
 Одно сканирование — и вы есть в контактах друг у друга: имя, ссылки, всё сразу. Ничего не нужно печатать, никаких «продиктуйте номер ещё раз».
+
+ПОЗНАКОМЬТЕСЬ СО ВСЕМ ЗАЛОМ
+На мероприятии один QR связывает вас не только с организатором — согласившись участвовать, вы видите всех в зале и можете добавить каждого. Пять знакомств за вечер? PikTag предложит отметить всех тегами разом.
 
 СКАНЕР ВИЗИТОК
 Сканируйте визитку за секунды. PikTag сам извлечёт контактные данные и предложит подходящие теги — создано для конференций, митапов и командировок, где вы знакомитесь с десятью людьми в час.
@@ -909,8 +983,11 @@ PikTag помогает запоминать людей так, как мы и �
 РАССЫЛКА ASK
 «Кто-нибудь знает хорошего бухгалтера?» Опубликуйте Ask один раз — и он попадёт прямо к тем друзьям, чьи теги говорят, что они могут помочь. Без спама в чатах. Без расспросов по одному.
 
+УВИДЬТЕ СВОЮ СЕТЬ
+Одно касание превращает ваши контакты в живую карту — кто кого знает, друзья друзей, которых вы, возможно, знаете, и сохранённые визитки тех, кто ещё не присоединился.
+
 ИИ-ПОДСКАЗКИ ДЛЯ НАЧАЛА РАЗГОВОРА
-Пишете человеку спустя месяцы, а то и годы? PikTag составит персональное первое сообщение на основе того, что вас объединяет. Никаких неловких вступлений. Никакого пустого окна сообщения. Просто внимательный способ продолжить с того места, где вы остановились.
+Пишете человеку спустя месяцы, а то и годы? PikTag составит персональное первое сообщение на основе того, что вас объединяет. Никакого пустого окна сообщения — просто продолжите с того места, где остановились.
 
 НАПОМИНАНИЯ О ВАЖНЫХ ДАТАХ
 Больше ни одного пропущенного дня рождения — и ни одного «ровно год назад мы познакомились». Маленькие знаки внимания сохраняют отношения живыми.
@@ -982,6 +1059,9 @@ Aklına bir şey gelmiyor mu? PikTag biyografini okur ve senin için etiket öne
 QR İLE İLETİŞİM PAYLAŞIMI
 Tek bir taramayla birbirinizin bilgileri sizde — isim, bağlantılar, her şey. Elle yazmak yok, "numaran neydi?" diye sormak yok.
 
+TÜM SALONLA TANIŞ
+Bir etkinlikte tek QR seni yalnızca ev sahibine bağlamaz — katılmayı seçersen salondaki herkesi görür, herkesle bağlantı kurabilirsin. Bir gecede beş kişiyle mi tanıştın? PikTag hepsini tek seferde etiketlemeyi önerir.
+
 KARTVİZİT TARAYICI
 Kartviziti saniyeler içinde tara. PikTag iletişim bilgilerini çıkarır ve uygun etiketleri otomatik olarak önerir — saatte on kişiyle tanıştığın konferanslar, buluşmalar ve iş seyahatleri için tasarlandı.
 
@@ -990,6 +1070,9 @@ Sadece senin görebildiğin notlar: "Zeynep'in düğününde tanıştık", "iki 
 
 ASK DUYURUSU
 "İyi bir muhasebeci tanıyan var mı?" Bir kez Ask paylaş, yeter — etiketlerine bakılırsa yardım edebilecek arkadaşlarına doğrudan ulaşır. Grupları spamlamak yok. Tek tek sorup durmak yok.
+
+AĞINI GÖR
+Tek dokunuş, kişilerini yaşayan bir haritaya dönüştürür — kim kimi tanıyor, tanıyor olabileceğin arkadaş arkadaşları ve kaydettiğin ama henüz katılmamış kişiler.
 
 YAPAY ZEKÂ SOHBET BAŞLATICILARI
 Aylar, hatta yıllar sonra mı yazıyorsun? PikTag, ikinizin ortak noktalarından kişiye özel açılış mesajları yazar. Garip girişler yok. Boş mesaj kutusu yok. Sadece kaldığın yerden devam etmenin düşünceli bir yolu.
@@ -1032,7 +1115,7 @@ DESCRIPTION:
 Tag yourself. Find anyone.
 Ingat semua orang yang kamu temui. Temukan orang yang tepat saat kamu membutuhkannya.
 
-Dalam The Devil Wears Prada, Miranda melintasi ruangan yang penuh orang penting dan menyapa mereka satu per satu dengan namanya. Rahasianya bukan ingatan yang sempurna — melainkan dua asisten di sisinya, yang diam-diam membisikkan siapa orangnya setiap kali ada tamu mendekat.
+Dalam The Devil Wears Prada, Miranda melintasi ruangan yang penuh orang penting dan menyapa mereka satu per satu dengan namanya. Rahasianya bukan ingatan yang sempurna — melainkan dua asisten di sisinya, yang diam-diam membisikkan siapa orangnya.
 
 Kebanyakan dari kita tidak punya dua asisten.
 
@@ -1049,12 +1132,12 @@ PikTag membantumu mengingat orang seperti cara manusia benar-benar mengingat —
 Karena masalahnya tidak pernah soal kurangnya kenalan.
 Masalahnya adalah melupakan orang-orang yang sudah kamu kenal — dan tidak tahu bagaimana memulai obrolan lagi.
 
-Temukan kembali orang-orang yang sudah kamu kenal. Sambung lagi dengan teman lama dan rekan kerja. Dan temukan orang yang benar-benar tepat di saat kamu membutuhkannya.
+Temukan kembali orang yang sudah kamu kenal. Sambung lagi dengan teman lama dan rekan kerja. Dan temukan orang yang tepat saat kamu butuh.
 
 FITUR
 
 CARI BERDASARKAN KEBUTUHAN
-Butuh desainer? Pendiri startup? Orang yang paham fotografi? Pengacara, pemasar, investor, insinyur, atau mentor?
+Butuh desainer? Pendiri startup? Pengacara, investor, atau mentor?
 Jangan cari berdasarkan nama. Cari berdasarkan apa yang kamu butuhkan.
 
 TAG DIRIMU SENDIRI
@@ -1064,8 +1147,11 @@ Bingung mau mulai dari mana? PikTag membaca bio-mu dan memberi saran tag — ber
 TUKAR KONTAK VIA QR
 Sekali pindai, kontak langsung tersimpan di kedua sisi — nama, tautan, semuanya. Tanpa mengetik, tanpa "nomormu berapa tadi?"
 
+KENALAN DENGAN SEISI RUANGAN
+Di sebuah acara, satu QR tidak hanya menghubungkanmu dengan tuan rumah — pilih ikut, dan kamu bisa terhubung dengan semua orang di ruangan. Kenalan lima orang semalam? PikTag menawarkan menandai semuanya sekaligus.
+
 PEMINDAI KARTU NAMA
-Pindai kartu nama dalam hitungan detik. PikTag mengambil detail kontaknya dan otomatis menyarankan tag yang relevan — dibuat untuk konferensi, meetup, dan perjalanan bisnis tempat kamu bertemu sepuluh orang dalam sejam.
+Pindai kartu nama dalam hitungan detik. PikTag mengambil detail kontaknya dan otomatis menyarankan tag yang relevan — dibuat untuk konferensi dan meetup tempat kamu bertemu sepuluh orang dalam sejam.
 
 TAG PRIBADI
 Catatan yang hanya bisa kamu lihat: "kenalan di nikahan Dina", "punya dua kucing", "jago rekomendasi kopi". Detail-detail yang membuat orang mudah diingat — tersimpan hanya untukmu.
@@ -1073,8 +1159,11 @@ Catatan yang hanya bisa kamu lihat: "kenalan di nikahan Dina", "punya dua kucing
 SIARAN ASK
 "Ada yang kenal akuntan bagus?" Posting satu Ask saja — langsung sampai ke teman-teman yang tag-nya menunjukkan mereka bisa membantu. Tanpa nge-spam grup. Tanpa tanya satu per satu.
 
+LIHAT JARINGANMU
+Satu ketukan mengubah kontakmu menjadi peta yang hidup — siapa kenal siapa, teman dari teman yang mungkin kamu kenal, dan orang-orang yang sudah kamu simpan tapi belum bergabung.
+
 PEMBUKA OBROLAN DARI AI
-Mau menyapa lagi setelah berbulan-bulan, bahkan bertahun-tahun? PikTag menuliskan pembuka obrolan yang personal dari kesamaan kalian berdua. Tanpa pembukaan yang canggung. Tanpa kotak pesan yang kosong. Hanya cara yang tulus untuk melanjutkan dari titik terakhir.
+Mau menyapa lagi setelah berbulan-bulan, bahkan bertahun-tahun? PikTag menuliskan pembuka obrolan yang personal dari kesamaan kalian. Tanpa kotak pesan kosong: lanjutkan saja dari titik terakhir.
 
 PENGINGAT HUBUNGAN
 Jangan pernah lewatkan ulang tahun — atau momen "tepat setahun lalu kita bertemu". Perhatian-perhatian kecil itulah yang menjaga hubungan tetap hidup.
@@ -1084,7 +1173,7 @@ KENAPA PikTag?
 Aplikasi kontak lamamu menjawab satu pertanyaan: "Apakah aku punya nomornya?"
 PikTag menjawab pertanyaan yang lebih baik: "Siapa kenalanku yang bisa membantu soal ini?"
 
-Seribu kontak tersimpan tidak ada gunanya kalau kamu tidak ingat siapa mereka. Tag adalah jalanmu kembali ke orang-orang yang sudah kamu miliki.
+Seribu kontak tak ada gunanya kalau kamu lupa siapa mereka. Tag adalah jalanmu kembali ke orang-orang yang sudah kamu miliki.
 
 UNTUK SIAPA PikTag?
 - Pengusaha dan pendiri startup
@@ -1146,6 +1235,9 @@ Chưa nghĩ ra tag nào? PikTag sẽ đọc phần giới thiệu của bạn v�
 ĐỔI THÔNG TIN LIÊN HỆ QUA QR
 Chỉ một lần quét là hai bên có đủ thông tin của nhau — tên, liên kết, tất cả. Không phải gõ tay, không còn "số của bạn là gì nhỉ?"
 
+KẾT NỐI CẢ KHÁN PHÒNG
+Tại sự kiện, một mã QR không chỉ kết nối bạn với người tổ chức — chọn tham gia, bạn sẽ thấy và kết nối được với mọi người trong phòng. Quen năm người trong một tối? PikTag sẽ đề nghị gắn tag cho tất cả chỉ trong một lần.
+
 QUÉT DANH THIẾP
 Quét danh thiếp trong vài giây. PikTag tự động trích xuất thông tin liên hệ và gợi ý các tag phù hợp — được thiết kế cho hội nghị, các buổi gặp gỡ và những chuyến công tác nơi bạn gặp mười người mỗi giờ.
 
@@ -1154,6 +1246,9 @@ Ghi chú chỉ mình bạn thấy: "gặp ở đám cưới của Lan", "nuôi h
 
 ĐĂNG ASK
 "Có ai biết kế toán giỏi không?" Đăng một Ask duy nhất — nó sẽ đến thẳng những người bạn mà tag của họ cho thấy họ có thể giúp. Không spam nhóm chat. Không phải đi hỏi từng người.
+
+NHÌN THẤY MẠNG LƯỚI CỦA BẠN
+Một chạm, danh bạ của bạn biến thành tấm bản đồ sống — ai quen ai, những người bạn của bạn bè mà có thể bạn quen, và những người bạn đã lưu nhưng chưa tham gia.
 
 AI GỢI Ý MỞ LỜI
 Nhắn lại sau nhiều tháng, thậm chí nhiều năm? PikTag viết sẵn lời mở đầu riêng cho hai bạn, dựa trên những điểm chung. Không còn câu mở đầu gượng gạo. Không còn ô tin nhắn trống trơn. Chỉ là một cách tinh tế để tiếp tục từ nơi hai bạn dừng lại.
@@ -1228,6 +1323,9 @@ PikTag ช่วยให้คุณจดจำผู้คนแบบที�
 แลกข้อมูลติดต่อด้วย QR
 สแกนครั้งเดียวก็ได้ข้อมูลของกันและกัน — ชื่อ ลิงก์ ครบทุกอย่าง ไม่ต้องพิมพ์ ไม่ต้องถามว่า "เบอร์อะไรนะ?"
 
+รู้จักคนทั้งงาน
+ในงานอีเวนต์ QR เดียวไม่ได้เชื่อมคุณแค่กับผู้จัดงาน — เมื่อเลือกเข้าร่วม คุณจะเห็นและเชื่อมต่อกับทุกคนในงานได้ รู้จักห้าคนในคืนเดียว? PikTag จะเสนอช่วยแท็กทุกคนให้ในครั้งเดียว
+
 สแกนนามบัตร
 สแกนนามบัตรได้ในไม่กี่วินาที PikTag ดึงข้อมูลติดต่อออกมาและแนะนำแท็กที่เกี่ยวข้องให้อัตโนมัติ — ออกแบบมาเพื่องานสัมมนา มีตอัพ และทริปธุรกิจที่คุณต้องเจอคนสิบคนต่อชั่วโมง
 
@@ -1236,6 +1334,9 @@ PikTag ช่วยให้คุณจดจำผู้คนแบบที�
 
 ประกาศ Ask
 "มีใครรู้จักนักบัญชีเก่ง ๆ บ้าง?" โพสต์ Ask ครั้งเดียว — ส่งตรงถึงเพื่อนที่แท็กบอกว่าช่วยได้ ไม่ต้องสแปมในกลุ่ม ไม่ต้องไล่ถามทีละคน
+
+เห็นเครือข่ายของคุณ
+แตะครั้งเดียว รายชื่อของคุณก็กลายเป็นแผนที่ที่มีชีวิต — ใครรู้จักใคร เพื่อนของเพื่อนที่คุณอาจรู้จัก และคนที่คุณบันทึกไว้แต่ยังไม่ได้เข้าร่วม
 
 AI ช่วยเปิดบทสนทนา
 จะทักหาหลังหายไปหลายเดือนหรือหลายปี? PikTag เขียนข้อความเปิดบทสนทนาแบบเฉพาะตัวจากสิ่งที่คุณสองคนมีร่วมกัน ไม่มีการเปิดบทแบบเก้อ ๆ ไม่มีกล่องข้อความว่างเปล่า มีแค่วิธีสานต่อจากจุดที่ค้างไว้อย่างใส่ใจ
@@ -1310,6 +1411,9 @@ Tag yourself. Find anyone.
 تبادل جهات الاتصال عبر QR
 مسحة واحدة وتحصلان على بيانات بعضكما — الاسم والروابط وكل شيء. بلا كتابة، وبلا «ما كان رقمك مرة أخرى؟»
 
+تعرّف على القاعة كلها
+في أي فعالية، رمز QR واحد لا يصلك بالمضيف وحده — اختر المشاركة لترى الجميع في القاعة وتتواصل معهم. تعرّفت على خمسة أشخاص في ليلة واحدة؟ يقترح PikTag وسمهم جميعًا بخطوة واحدة.
+
 ماسح بطاقات العمل
 امسح البطاقة في ثوانٍ. يستخرج PikTag بيانات الاتصال ويقترح وسومًا مناسبة تلقائيًا — صُمم للمؤتمرات واللقاءات ورحلات العمل حيث تقابل عشرة أشخاص في الساعة.
 
@@ -1318,6 +1422,9 @@ Tag yourself. Find anyone.
 
 بث Ask
 «هل يعرف أحدكم محاسبًا جيدًا؟» انشر Ask مرة واحدة — فيصل مباشرة إلى الأصدقاء الذين تقول وسومهم إنهم قادرون على المساعدة. بلا إزعاج للمجموعات، وبلا سؤال الناس واحدًا واحدًا.
+
+شاهد شبكتك
+لمسة واحدة تحوّل جهات اتصالك إلى خريطة حيّة — من يعرف من، وأصدقاء الأصدقاء الذين قد تعرفهم، ومن حفظت بياناتهم ولم ينضموا بعد.
 
 فواتح حديث بالذكاء الاصطناعي
 ستراسل شخصًا بعد شهور أو حتى سنوات؟ يكتب لك PikTag رسائل افتتاحية شخصية مبنية على ما يجمعكما. بلا بدايات محرجة، وبلا مربع رسالة فارغ. مجرد طريقة لبقة لاستئناف الحديث من حيث توقف.
@@ -1392,6 +1499,9 @@ PikTag आपको लोगों को वैसे याद रखने �
 QR से कॉन्टैक्ट एक्सचेंज
 एक स्कैन और एक-दूसरे की सारी जानकारी आपके पास — नाम, लिंक, सब कुछ। न कुछ टाइप करना, न "आपका नंबर क्या था फिर से?"
 
+पूरे हॉल से मिलिए
+किसी इवेंट में एक QR आपको सिर्फ़ होस्ट से नहीं जोड़ता — शामिल होना चुनिए, तो हॉल के सभी लोगों को देख सकते हैं और उनसे जुड़ सकते हैं। एक शाम में पाँच लोगों से मिले? PikTag सबको एक साथ टैग करने का सुझाव देता है।
+
 बिज़नेस कार्ड स्कैनर
 कार्ड सेकंडों में स्कैन कीजिए। PikTag कॉन्टैक्ट की जानकारी निकालता है और अपने आप सही टैग सुझाता है — उन कॉन्फ़्रेंस, मीटअप और बिज़नेस ट्रिप के लिए बना है जहाँ आप घंटे में दस लोगों से मिलते हैं।
 
@@ -1400,6 +1510,9 @@ QR से कॉन्टैक्ट एक्सचेंज
 
 Ask ब्रॉडकास्ट
 "कोई अच्छा अकाउंटेंट जानता है क्या?" एक बार Ask पोस्ट कीजिए — वह सीधे उन दोस्तों तक पहुँचता है जिनके टैग कहते हैं कि वे मदद कर सकते हैं। न ग्रुप में स्पैम, न एक-एक से पूछते फिरना।
+
+अपना नेटवर्क देखिए
+एक टैप से आपके संपर्क एक जीवंत नक्शे में बदल जाते हैं — कौन किसे जानता है, दोस्तों के वे दोस्त जिन्हें आप शायद जानते हों, और वे लोग जिन्हें आपने सेव किया है पर जो अभी जुड़े नहीं हैं।
 
 AI कन्वर्सेशन स्टार्टर्स
 महीनों या सालों बाद किसी से बात शुरू कर रहे हैं? PikTag आप दोनों की साझा बातों से पर्सनलाइज़्ड आइसब्रेकर लिख देता है। न अजीब-सी शुरुआत, न ख़ाली मैसेज बॉक्स। बस जहाँ बात छूटी थी, वहीं से सलीक़े से आगे बढ़ने का तरीक़ा।
