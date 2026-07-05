@@ -33,7 +33,25 @@ function providerClasses(p: string | null | undefined): string {
   }
 }
 
-function relativeTime(iso: string): string {
+// Absolute registration date + time in Taipei (founder call 2026-07-05
+// — the 註冊時間 column shows the actual date+time, not "N 小時前").
+// Also returns a short relative hint for the secondary line.
+function formatDateTime(iso: string): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleString('zh-TW', {
+    timeZone: 'Asia/Taipei',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+}
+
+function relativeHint(iso: string): string {
   if (!iso) return '';
   const then = new Date(iso).getTime();
   if (Number.isNaN(then)) return '';
@@ -268,8 +286,9 @@ export default function UsersPage() {
                   <td className="px-4 py-3 text-right tabular-nums text-slate-900">
                     {u.p_points ?? 0}
                   </td>
-                  <td className="px-4 py-3 text-slate-600">
-                    {relativeTime(u.created_at)}
+                  <td className="px-4 py-3 text-slate-600 whitespace-nowrap">
+                    <div className="tabular-nums">{formatDateTime(u.created_at)}</div>
+                    <div className="text-xs text-slate-400">{relativeHint(u.created_at)}</div>
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Link
