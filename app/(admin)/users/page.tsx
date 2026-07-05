@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AdminUser, PaginatedResponse } from '@/lib/admin-types';
 import TestAccountAction from '@/components/admin/TestAccountAction';
 
-type FilterKey = 'all' | 'verified' | 'inactive' | 'test';
+type FilterKey = 'all' | 'email' | 'apple' | 'google' | 'test';
 
 // Show everyone on one page (founder call 2026-07-05). The route caps at
 // 2000; filtering is done client-side over the full list.
@@ -143,8 +143,9 @@ export default function UsersPage() {
   const allItems = data?.items ?? [];
   // Client-side filter chips (all data is on one page).
   const items = useMemo(() => {
-    if (filter === 'verified') return allItems.filter((u) => u.email_verified);
-    if (filter === 'inactive') return allItems.filter((u) => !u.is_active);
+    if (filter === 'email') return allItems.filter((u) => u.provider === 'email');
+    if (filter === 'apple') return allItems.filter((u) => u.provider === 'apple');
+    if (filter === 'google') return allItems.filter((u) => u.provider === 'google');
     if (filter === 'test') return allItems.filter((u) => u.is_test_account);
     return allItems;
   }, [allItems, filter]);
@@ -177,8 +178,9 @@ export default function UsersPage() {
         {(
           [
             ['all', '全部'],
-            ['verified', '已驗證'],
-            ['inactive', '未啟用'],
+            ['email', 'Email'],
+            ['apple', 'Apple'],
+            ['google', 'Google'],
             ['test', testCount > 0 ? `測試帳號 (${testCount})` : '測試帳號'],
           ] as Array<[FilterKey, string]>
         ).map(([key, label]) => {
@@ -210,8 +212,6 @@ export default function UsersPage() {
               <th className="text-left font-medium px-4 py-3">使用者</th>
               <th className="text-left font-medium px-4 py-3">Email</th>
               <th className="text-center font-medium px-4 py-3">註冊方式</th>
-              <th className="text-center font-medium px-4 py-3">Email 驗證</th>
-              <th className="text-center font-medium px-4 py-3">是否啟用</th>
               <th className="text-right font-medium px-4 py-3">P-points</th>
               <th className="text-left font-medium px-4 py-3">註冊時間</th>
               <th className="text-right font-medium px-4 py-3 w-44">操作</th>
@@ -220,19 +220,19 @@ export default function UsersPage() {
           <tbody className="divide-y divide-slate-100">
             {loading ? (
               <tr>
-                <td colSpan={9} className="px-4 py-12 text-center text-slate-400">
+                <td colSpan={7} className="px-4 py-12 text-center text-slate-400">
                   載入中...
                 </td>
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan={9} className="px-4 py-12 text-center text-red-600">
+                <td colSpan={7} className="px-4 py-12 text-center text-red-600">
                   載入失敗：{error}
                 </td>
               </tr>
             ) : items.length === 0 ? (
               <tr>
-                <td colSpan={9} className="px-4 py-12 text-center text-slate-400">
+                <td colSpan={7} className="px-4 py-12 text-center text-slate-400">
                   找不到符合條件的用戶
                 </td>
               </tr>
@@ -276,24 +276,6 @@ export default function UsersPage() {
                     >
                       {providerLabel(u.provider)}
                     </span>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    {u.email_verified ? (
-                      <span className="text-emerald-600 font-medium">✓</span>
-                    ) : (
-                      <span className="text-slate-300">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    {u.is_active ? (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        ACTIVE
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200">
-                        DEACTIVATED
-                      </span>
-                    )}
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums text-slate-900">
                     {u.p_points ?? 0}
