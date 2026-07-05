@@ -170,6 +170,11 @@ grant execute on function public.admin_magic_moments_7d(timestamptz) to postgres
 -- panel MUST still show testers, so instead of filtering we add
 -- `is_test_account boolean` to RETURNS TABLE (right after is_active)
 -- and select `p.is_test_account` in the base CTE + final SELECT.
+--
+-- The RETURNS TABLE shape CHANGES (a new column), and CREATE OR REPLACE
+-- cannot change a function's return type (42P13). DROP the exact-signature
+-- function first — nothing else in the DB depends on it (client-only RPC).
+DROP FUNCTION IF EXISTS public.admin_recent_signups(int, int);
 CREATE OR REPLACE FUNCTION public.admin_recent_signups(
   p_days  int DEFAULT 7,
   p_limit int DEFAULT 200
