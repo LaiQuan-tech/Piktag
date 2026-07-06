@@ -24,13 +24,18 @@
 | 9 | 活動標籤改版成效 | 看三個數:新連結帶活動情境標籤比例、搜尋命中活動標籤次數、friend_added source='event_room' 量 | 數字冷 → 考慮把房間 opt-in 翻成 opt-out(要創辦人點頭) | ref-product-history 活動標籤 | 觀察中 |
 | 10 | Concept GC 合併 | 有「高相似 且 兩邊都有真實標籤」的合併候選(admin Tags 頁) | 才做合併;0-tag 單例不動 | ref-tag-algorithm GC 節 | 未達 |
 | 11 | vision-camera 即時 OCR | 1.0.8 出貨後,分支 spike | 驗收 = QR+名片雙路徑真機穩定,對比 card_scan_latency p50/p95 | ref-product-history 掃描速度 (d) | 未達 |
-| 12 | 付費批次標籤 | 創辦人啟動下一版時 | 免費/付費界線照 CLAUDE.md 硬規則;BatchTagScreen 是唯一共用 UI | ref-product-history 激活清單 | 等創辦人 |
+| 12 | 付費批次標籤 | (併入 #19 PikTag Pro) | 免費/付費界線照 CLAUDE.md 硬規則;BatchTagScreen 是唯一共用 UI | ref-product-history 激活清單 | 併入 #19 |
 | 13 | 跨語言媒合率首報 | 上線後數週,`admin_cross_language_match_rate()` 有量 | 主動報給創辦人(募資可用的數字);覆蓋率掉 = linker 出事 | ref-tag-algorithm 七條 #3 | 觀察中 |
 | 14 | RTL 版面 | ar 市場有真實 traction 才做 | I18nManager 全套;目前 ar 是 LTR 排版屬刻意 | ref-founder-style | 未達 |
 | 15 | 大字體破版 | 用戶回報 Dynamic Type 破版 | 逐元件 maxFontSizeMultiplier(全域法在 RN 0.81+React19 不可靠) | ref-founder-style 字級節 | 未達 |
 | 16 | 程式一致性合併 | 下次動到對應畫面時順手做,不專程 | connectUsers 統一 ×4 處、UserDetail inline tag helper 換 lib 版 | ref-product-history 一致性 | 未達 |
 | 17 | v2 小號上線時 | v2 開工 | 排序面檢查表加第 5 點 `is_alt=false`;掃 23 支函式加謂詞 | ref-future-plans | 等 v2 |
 | 18 | 店面文案 Rev 3 貼上 | 下次送審新版本(**等創辦人開口才動**) | ASC 貼 17 語系新 DESCRIPTION(fr 必重貼 —— 之前就超標);Play 隨時可貼 | store-assets/STORE_LISTING_FINAL.md | 材料已備 |
+| 19 | **PikTag Pro 啟動**(貴人王+批次標籤+CRM 進階,$5-8/mo 單一訂閱) | 門檻(暫定值,創辦人可調):WAU ≥500 且 週真實加好友 ≥200 且 推薦→加好友轉化 ≥10%(查法:PostHog WAU;friend_added 週計數;recommendation 通知→friend_added 歸因) | 啟動 Pro 設計 + IAP;免費=系統 cohort/付費=任選好友界線不變;冷啟動期不開賣 | ref-future-plans 收費節 | 未達 |
+| 20 | 真人認證徽章 | Pro 上線後,或 Ask/活動房間出現信任摩擦回報 | 低價($2-3/mo 或一次性);is_verified 只表真人,絕不與廣告主資格共用 flag | ref-future-plans 收費節 | 未達 |
+| 21 | 主辦方方案(B2B) | 同一 host 辦 ≥3 場活動,或主辦方主動詢價 | 大房間/名單匯出/品牌 QR/會後分析;向企業收費補貼用戶成長 | ref-future-plans 收費節 | 未達 |
+| 22 | 人氣王 → 標示贊助軌道 | **絕不以保證前三混排形式做**;僅當 v3 原語齊備(品質分 view、search_users 讀 dismissals)且 Pro 已驗證付費意願 | 獨立贊助區塊、明確標示、每查詢限 1-2 席、品質分把關 | ref-future-plans 收費節 + v3 節 | 未達 |
+| 23 | 商業檔案(business_profiles) | 賣車/賣房型「想被看到」請求累積 ≥3 起,或 #22 軌道啟動前 | v3 選項(b);個人標籤置頂需求導入此處,不做小配件 | ref-future-plans 收費節 | 未達 |
 
 ## 已結案(留檔防重做)
 - Admin 儀表板接 moat 指標 RPC — 2026-07-06 完成(be3c17e)。
