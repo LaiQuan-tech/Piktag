@@ -31,7 +31,6 @@ import { supabase } from '../../lib/supabase';
 import { normalizeTagName as sharedNormalizeTag, ilikeEscape } from '../../lib/normalizeTag';
 import { recordAiSuggestions, markAiSuggestionAccepted } from '../../lib/aiTagLogger';
 import { useAuth } from '../../hooks/useAuth';
-import { useRotatingPlaceholder } from '../../hooks/useRotatingPlaceholder';
 import type { AskFeedItem, MyActiveAsk } from '../../types/ask';
 // AskMatchSheet removed 2026-05-31 — founder direction
 // 「ask 發佈時的說明，這頁其實可不要，前一頁也有說明，再來就太多了」.
@@ -46,6 +45,17 @@ import type { AskFeedItem, MyActiveAsk } from '../../types/ask';
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const MAX_BODY = 150;
+
+// Template chips (composer, blank-body only) — six copy-and-edit starter
+// asks spanning the categories that got the most "didn't know what to
+// ask" feedback: professional referral, hire, gig, service intro, travel.
+// i18n keys ask.tpl1..tpl6.
+const ASK_TEMPLATE_KEYS = ['ask.tpl1', 'ask.tpl2', 'ask.tpl3', 'ask.tpl4', 'ask.tpl5', 'ask.tpl6'] as const;
+
+// bodyPlaceholder pool — one random pick per composer open (see the
+// visible-effect below), replacing the old bodyPromptHints ticker.
+// i18n keys ask.ph1..ph3.
+const ASK_PLACEHOLDER_KEYS = ['ask.ph1', 'ask.ph2', 'ask.ph3'] as const;
 
 // Apple Music "Recently played"-style carousel sizing. Each slide takes
 // ~78% of the screen width so the next slide always peeks ~20% on the
@@ -553,20 +563,16 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
   const modalStyles = useMemo(() => makeModalStyles(colors), [colors]);
   const { user } = useAuth();
 
-  // Rotating Ask placeholder — same shared hook as Search / the
-  // create-Tag / bio inputs. Cycles social/help/opportunity
-  // example asks so the user sees the breadth of "what your
-  // network is for" before typing. Static bodyPlaceholder is the
-  // locale fallback.
-  const bodyHints = useMemo(() => {
-    const raw = t('ask.bodyPromptHints', { returnObjects: true });
-    return Array.isArray(raw) && raw.length > 0 ? (raw as string[]) : null;
-  }, [t]);
-  const bodyPlaceholder = useRotatingPlaceholder(
-    bodyHints,
-    t('ask.bodyPlaceholder'),
-  );
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+
+  // Spec B — bodyPlaceholder is now one random ph1/ph2/ph3 example picked
+  // when the composer opens (see the visible-effect below), not a ticking
+  // rotation — a single well-chosen concrete example reads as "here's
+  // what to type" more clearly than text that shifts under the user
+  // while they're still deciding. Replaces the prior useRotatingPlaceholder
+  // + bodyPromptHints ticker for this field.
+  const [placeholderKeyIdx, setPlaceholderKeyIdx] = useState(0);
+  const bodyPlaceholder = t(ASK_PLACEHOLDER_KEYS[placeholderKeyIdx % ASK_PLACEHOLDER_KEYS.length]);
 
   const [body, setBody] = useState('');
   // Source of truth is the tag NAME, not its DB id — AI may suggest new names
@@ -586,6 +592,11 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
   const [aiTriedAndEmpty, setAiTriedAndEmpty] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Spec C — reach preview. null = not shown (no tags selected yet, or
+  // the RPC failed/timed out — failure is silent per spec, never blocks
+  // send). Debounced 400ms off the selected-tag set below.
+  const [reachCount, setReachCount] = useState<number | null>(null);
+
   useEffect(() => {
     if (visible) {
       // existingAsk wins (view/edit mode); else seed from caller
@@ -597,6 +608,9 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
       setCustomInput('');
       setAiLoading(false);
       setAiTriedAndEmpty(false);
+      setReachCount(null);
+      // Re-roll the ph1/ph2/ph3 placeholder pick for this open.
+      setPlaceholderKeyIdx(Math.floor(Math.random() * ASK_PLACEHOLDER_KEYS.length));
       Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, bounciness: 0, speed: 14 }).start();
     } else {
       Animated.timing(slideAnim, { toValue: SCREEN_HEIGHT, duration: 250, useNativeDriver: true }).start();
@@ -693,6 +707,15 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
     setAiTriedAndEmpty(false);
   }, []);
 
+  // Spec A — template chip tap. Fills body with the template text
+  // (still editable, not locked) and clears the stale AI-empty flag same
+  // as manual typing. Chips hide themselves once body is non-empty via
+  // the render condition below, so this never re-fires from a stray tap.
+  const applyTemplate = useCallback((text: string) => {
+    setBody(text.slice(0, MAX_BODY));
+    setAiTriedAndEmpty(false);
+  }, []);
+
   const toggleTag = useCallback((name: string) => {
     setSelectedNames(prev => {
       const next = new Set(prev);
@@ -700,6 +723,49 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
       return next;
     });
   }, []);
+
+  // Spec C — reach preview. Debounce 400ms after the selected-tag set
+  // settles, then resolve names → existing piktag_tags ids (read-only —
+  // unlike findOrCreateTagByName on submit, a brand-new AI/custom name
+  // that doesn't exist yet just can't preview a reach number, which is
+  // fine: it can't have any matches anyway) and call count_ask_tag_reach.
+  // Any failure (network, timeout, RPC error) silently clears the count —
+  // per spec this is a soft feedback line, never a blocker or an error.
+  useEffect(() => {
+    if (!visible || selectedNames.size === 0) {
+      setReachCount(null);
+      return;
+    }
+    let cancelled = false;
+    const names = [...selectedNames];
+    const timer = setTimeout(async () => {
+      try {
+        const { data: rows } = await supabase
+          .from('piktag_tags')
+          .select('id, name')
+          .in('name', names);
+        if (cancelled) return;
+        const ids = (rows ?? []).map((r: any) => r.id).filter(Boolean);
+        if (ids.length === 0) {
+          setReachCount(0);
+          return;
+        }
+        const { data, error } = await supabase.rpc('count_ask_tag_reach', { p_tag_ids: ids });
+        if (cancelled) return;
+        if (error || typeof data !== 'number') {
+          setReachCount(null);
+          return;
+        }
+        setReachCount(data);
+      } catch {
+        if (!cancelled) setReachCount(null);
+      }
+    }, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [visible, selectedNames]);
 
   // Add a custom tag from the input field. Auto-selects it. De-dupes against
   // both AI and other custom names so the same chip doesn't appear twice.
@@ -944,6 +1010,36 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
                 {t('ask.createSubtitle', { defaultValue: '一句話就好 — AI 會配上標籤，讓對的人（或朋友的朋友）看到。' })}
               </Text>
 
+              {/* Spec A — template chips. Only while body is empty: an
+                  outlined (secondary) row of six copy-and-edit starter
+                  asks, so a blank composer isn't the first thing the
+                  user has to solve. Tapping fills body (still editable)
+                  and the row disappears via the body.trim() check below. */}
+              {!body.trim() ? (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={modalStyles.templateScroll}
+                  contentContainerStyle={modalStyles.templateScrollContent}
+                >
+                  {ASK_TEMPLATE_KEYS.map((key) => {
+                    const label = t(key);
+                    return (
+                      <TouchableOpacity
+                        key={key}
+                        style={modalStyles.templateChip}
+                        onPress={() => applyTemplate(label)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={modalStyles.templateChipText} numberOfLines={1}>
+                          {label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              ) : null}
+
               {/* Body input */}
               <TextInput
                 style={modalStyles.input}
@@ -1048,6 +1144,41 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
                    explains, so repeating it was the redundancy the user
                    flagged. */}
               </View>
+
+              {/* Spec C — reach preview. Shown only once at least one tag
+                  is selected; before that there's nothing to preview.
+                  reachCount stays null (line hidden) on RPC failure/timeout
+                  — a soft feedback line must never look like an error or
+                  block sending. */}
+              {selectedNames.size > 0 && reachCount !== null ? (
+                reachCount > 0 ? (
+                  // Split on the interpolated count so the digit can be
+                  // highlighted piktag500 regardless of locale word order
+                  // (RTL/CJK phrasings don't all put the number first).
+                  (() => {
+                    const full = t('ask.reachCount', {
+                      n: reachCount,
+                      defaultValue: '{{n}} friends have matching tags for this',
+                    });
+                    const numStr = String(reachCount);
+                    const idx = full.indexOf(numStr);
+                    if (idx === -1) {
+                      return <Text style={modalStyles.reachHint}>{full}</Text>;
+                    }
+                    return (
+                      <Text style={modalStyles.reachHint}>
+                        {full.slice(0, idx)}
+                        <Text style={modalStyles.reachHintCount}>{numStr}</Text>
+                        {full.slice(idx + numStr.length)}
+                      </Text>
+                    );
+                  })()
+                ) : (
+                  <Text style={modalStyles.reachHint}>
+                    {t('ask.reachZero', { defaultValue: 'No matches yet — try a more specific or different tag' })}
+                  </Text>
+                )
+              ) : null}
 
               {/* Custom tag input */}
               <View style={modalStyles.customRow}>
@@ -1471,6 +1602,20 @@ function makeModalStyles(c: ColorPalette) {
   },
   title: { fontSize: 17, fontWeight: '700', color: c.gray900, marginBottom: 16 },
   subtitle: { fontSize: 13, color: c.gray500, lineHeight: 19, marginBottom: 16 },
+  // Spec A — template chips row. Outlined/secondary on purpose (per the
+  // CTA-tier doctrine, these are "copy me" suggestions, not the primary
+  // action) — never filled like the selected tagChip state below.
+  templateScroll: { marginBottom: 12, flexGrow: 0 },
+  templateScrollContent: { gap: 8 },
+  templateChip: {
+    borderWidth: 1.5,
+    borderColor: c.gray200,
+    borderRadius: 9999,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    maxWidth: 260,
+  },
+  templateChipText: { fontSize: 13, fontWeight: '500', color: c.gray700 },
   input: {
     borderWidth: 1.5, borderColor: c.gray200, borderRadius: 12,
     padding: 14, fontSize: 15, color: c.gray900,
@@ -1547,6 +1692,17 @@ function makeModalStyles(c: ColorPalette) {
   },
   tagChipText: { fontSize: 13, fontWeight: '500', color: c.gray700 },
   tagChipTextSelected: { color: '#fff' },
+  // Spec C — reach preview line, below the tag chips. Soft feedback only
+  // (never rendered as an error state) — piktag500 highlights just the
+  // count, the surrounding sentence stays gray500 like other hint text
+  // in this sheet (aiEmptyHint, viewMeta).
+  reachHint: {
+    fontSize: 13,
+    color: c.gray500,
+    marginTop: -4,
+    marginBottom: 16,
+  },
+  reachHintCount: { color: c.piktag500, fontWeight: '700' },
   customRow: {
     flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16,
   },

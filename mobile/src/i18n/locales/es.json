@@ -1424,7 +1424,18 @@
     "deleteFailed": "No se pudo borrar el ask",
     "shortPrompt": "¿Qué necesitas?",
     "rowIntro": "Publica un Ask — la IA encuentra a las personas adecuadas en tu red (y amigos de amigos).",
-    "deleteFailedHint": "Puede que esta solicitud ya se haya eliminado. Actualizando."
+    "deleteFailedHint": "Puede que esta solicitud ya se haya eliminado. Actualizando.",
+    "tpl1": "¿Alguien conoce a un buen contador?",
+    "tpl2": "Busco diseñador para un logo pequeño — ¿alguna recomendación?",
+    "tpl3": "¿Conocen a alguien que esté contratando ingenieros ahora?",
+    "tpl4": "¿Algún amigo fotógrafo libre el próximo mes para una sesión familiar?",
+    "tpl5": "¿Alguien me puede recomendar un agente hipotecario de confianza?",
+    "tpl6": "¿Quién estuvo en Japón hace poco? Planeo un viaje y necesito consejos.",
+    "ph1": "Ej. ¿Alguien conoce a un buen contador?",
+    "ph2": "Ej. ¿Conocen a alguien que programe en React Native?",
+    "ph3": "Ej. ¿Alguna recomendación de entrenador personal?",
+    "reachCount": "{{n}} amigos tienen etiquetas que coinciden con esto",
+    "reachZero": "Aún no hay coincidencias — prueba una etiqueta más específica o diferente"
   },
   "errorBoundary": {
     "title": "Algo salió mal",

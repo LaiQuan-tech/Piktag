@@ -1424,7 +1424,18 @@
     "deleteFailed": "Échec de la suppression de l'ask",
     "shortPrompt": "Tu veux quoi ?",
     "rowIntro": "Publiez un Ask — l'IA trouve les bonnes personnes dans votre réseau (et les amis d'amis).",
-    "deleteFailedHint": "Cette demande a peut-être déjà été supprimée. Actualisation."
+    "deleteFailedHint": "Cette demande a peut-être déjà été supprimée. Actualisation.",
+    "tpl1": "Quelqu’un connaît un bon comptable ?",
+    "tpl2": "Je cherche un designer pour un petit projet de logo — des recommandations ?",
+    "tpl3": "Vous connaissez quelqu’un qui recrute des ingénieurs en ce moment ?",
+    "tpl4": "Un ami photographe disponible le mois prochain pour une séance famille ?",
+    "tpl5": "Quelqu’un peut me recommander un courtier hypothécaire de confiance ?",
+    "tpl6": "Qui est allé au Japon récemment ? Je prépare un voyage et j’ai besoin de conseils.",
+    "ph1": "Ex. Quelqu’un connaît un bon comptable ?",
+    "ph2": "Ex. Vous connaissez quelqu’un qui code en React Native ?",
+    "ph3": "Ex. Des recommandations de coach sportif ?",
+    "reachCount": "{{n}} amis ont des tags qui correspondent à ça",
+    "reachZero": "Pas encore de correspondance — essayez un tag plus précis ou différent"
   },
   "errorBoundary": {
     "title": "Une erreur est survenue",

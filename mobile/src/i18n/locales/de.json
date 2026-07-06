@@ -1424,7 +1424,18 @@
     "createSubtitle": "Eine Zeile reicht — die KI vergibt die Tags, damit die richtigen Leute (oder ein Freund eines Freundes) es sehen.",
     "createFailed": "Dein Ask ging nicht raus — versuch es nochmal.",
     "shortPrompt": "Was brauchst du?",
-    "rowIntro": "Stell einen Ask — die KI findet die richtigen Leute in deinem Netzwerk (auch Freunde von Freunden)."
+    "rowIntro": "Stell einen Ask — die KI findet die richtigen Leute in deinem Netzwerk (auch Freunde von Freunden).",
+    "tpl1": "Kennt jemand einen guten Steuerberater?",
+    "tpl2": "Suche einen Designer für ein kleines Logo-Projekt — Empfehlungen?",
+    "tpl3": "Kennt ihr jemanden, der gerade Ingenieure einstellt?",
+    "tpl4": "Kennt jemand einen Fotografen, der nächsten Monat Zeit für ein Familienshooting hat?",
+    "tpl5": "Kann mir jemand einen vertrauenswürdigen Hypothekenmakler empfehlen?",
+    "tpl6": "Wer war kürzlich in Japan? Plane eine Reise und brauche Tipps.",
+    "ph1": "z. B. Kennt jemand einen guten Steuerberater?",
+    "ph2": "z. B. Kennt ihr jemanden, der React Native programmiert?",
+    "ph3": "z. B. Empfehlungen für einen Personal Trainer?",
+    "reachCount": "{{n}} Freunde haben passende Tags dafür",
+    "reachZero": "Noch keine Treffer — probiere ein spezifischeres oder anderes Tag"
   },
   "errorBoundary": {
     "title": "Etwas ist schiefgelaufen",

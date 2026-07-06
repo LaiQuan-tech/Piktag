@@ -1424,7 +1424,18 @@
     "createSubtitle": "Basta una riga — l'AI ci mette i tag, così la vedono le persone giuste (o un amico di un amico).",
     "createFailed": "Il tuo Ask non è partito — riprova.",
     "shortPrompt": "Cosa ti serve?",
-    "rowIntro": "Pubblica un Ask — l'IA trova le persone giuste nella tua rete (e amici di amici)."
+    "rowIntro": "Pubblica un Ask — l'IA trova le persone giuste nella tua rete (e amici di amici).",
+    "tpl1": "Qualcuno conosce un bravo commercialista?",
+    "tpl2": "Cerco un designer per un piccolo progetto di logo — consigli?",
+    "tpl3": "Conoscete qualcuno che sta assumendo ingegneri in questo momento?",
+    "tpl4": "Qualche amico fotografo libero il mese prossimo per un servizio di famiglia?",
+    "tpl5": "Qualcuno può presentarmi un mediatore di mutui di cui si fida?",
+    "tpl6": "Chi è stato in Giappone di recente? Sto pianificando un viaggio e servono consigli.",
+    "ph1": "Es. Qualcuno conosce un bravo commercialista?",
+    "ph2": "Es. Conoscete qualcuno che programma in React Native?",
+    "ph3": "Es. Consigli per un personal trainer?",
+    "reachCount": "{{n}} amici hanno tag corrispondenti a questo",
+    "reachZero": "Ancora nessuna corrispondenza — prova un tag più specifico o diverso"
   },
   "errorBoundary": {
     "title": "Ops, qualcosa non ha funzionato",

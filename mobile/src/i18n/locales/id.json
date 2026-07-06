@@ -1424,7 +1424,18 @@
     "deleteFailed": "Tidak bisa hapus ask",
     "shortPrompt": "Mau apa?",
     "rowIntro": "Posting Ask — AI mencari orang yang tepat dari jaringanmu (dan teman dari teman).",
-    "deleteFailedHint": "Permintaan ini mungkin sudah dihapus. Menyegarkan."
+    "deleteFailedHint": "Permintaan ini mungkin sudah dihapus. Menyegarkan.",
+    "tpl1": "Ada yang kenal akuntan yang bagus?",
+    "tpl2": "Lagi cari desainer buat proyek logo kecil — ada rekomendasi?",
+    "tpl3": "Ada yang tahu perusahaan lagi hiring engineer sekarang?",
+    "tpl4": "Ada teman fotografer yang free bulan depan buat foto keluarga?",
+    "tpl5": "Ada yang bisa kenalin broker KPR yang bisa dipercaya?",
+    "tpl6": "Siapa yang baru-baru ini ke Jepang? Lagi rencana trip, butuh tips.",
+    "ph1": "Mis. Ada yang kenal akuntan yang bagus?",
+    "ph2": "Mis. Ada yang kenal orang yang bisa React Native?",
+    "ph3": "Mis. Ada rekomendasi personal trainer?",
+    "reachCount": "{{n}} teman punya tag yang cocok untuk ini",
+    "reachZero": "Belum ada yang cocok — coba tag yang lebih spesifik atau berbeda"
   },
   "errorBoundary": {
     "title": "Terjadi kesalahan",

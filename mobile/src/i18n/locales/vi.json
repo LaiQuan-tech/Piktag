@@ -1424,7 +1424,18 @@
     "createSubtitle": "Chỉ một dòng — AI tự thêm tag để đúng người (hoặc bạn của bạn) nhìn thấy.",
     "createFailed": "Ask chưa gửi được — thử lại nhé.",
     "shortPrompt": "Bạn muốn gì?",
-    "rowIntro": "Đăng một Ask — AI tìm đúng người trong mạng lưới của bạn (và bạn của bạn bè)."
+    "rowIntro": "Đăng một Ask — AI tìm đúng người trong mạng lưới của bạn (và bạn của bạn bè).",
+    "tpl1": "Có ai biết kế toán viên nào uy tín không?",
+    "tpl2": "Đang tìm designer làm logo nhỏ — có ai giới thiệu không?",
+    "tpl3": "Có ai biết công ty nào đang tuyển kỹ sư không?",
+    "tpl4": "Có bạn nhiếp ảnh nào rảnh tháng sau để chụp ảnh gia đình không?",
+    "tpl5": "Có ai giới thiệu giúp môi giới vay mua nhà đáng tin không?",
+    "tpl6": "Ai mới đi Nhật gần đây không? Đang lên kế hoạch chuyến đi, cần mẹo hay.",
+    "ph1": "Ví dụ: Có ai biết kế toán viên nào tốt không?",
+    "ph2": "Ví dụ: Có ai biết ai code React Native không?",
+    "ph3": "Ví dụ: Có ai giới thiệu huấn luyện viên cá nhân không?",
+    "reachCount": "{{n}} bạn bè có thẻ khớp với câu này",
+    "reachZero": "Chưa có kết quả khớp — thử thẻ cụ thể hơn hoặc khác đi"
   },
   "errorBoundary": {
     "title": "Có gì đó trục trặc",

@@ -1424,7 +1424,18 @@
     "deleteFailed": "Ask silinemedi",
     "shortPrompt": "Ne lazım?",
     "rowIntro": "Bir Ask paylaş — yapay zekâ ağındaki (ve arkadaşlarının arkadaşları arasından) doğru kişileri bulur.",
-    "deleteFailedHint": "Bu istek zaten silinmiş olabilir. Yenileniyor."
+    "deleteFailedHint": "Bu istek zaten silinmiş olabilir. Yenileniyor.",
+    "tpl1": "İyi bir muhasebeci tanıyan var mı?",
+    "tpl2": "Küçük bir logo projesi için tasarımcı arıyorum — önerisi olan var mı?",
+    "tpl3": "Şu an mühendis alan birini tanıyan var mı?",
+    "tpl4": "Önümüzdeki ay aile fotoğrafı için müsait fotoğrafçı arkadaşı olan var mı?",
+    "tpl5": "Güvenilir bir mortgage danışmanıyla tanıştırabilecek var mı?",
+    "tpl6": "Yakın zamanda Japonya'ya giden var mı? Gezi planlıyorum, tavsiye lazım.",
+    "ph1": "Ör. İyi bir muhasebeci tanıyan var mı?",
+    "ph2": "Ör. React Native kodlayan birini tanıyan var mı?",
+    "ph3": "Ör. Kişisel antrenör önerisi olan var mı?",
+    "reachCount": "{{n}} arkadaşının buna uyan etiketi var",
+    "reachZero": "Henüz eşleşme yok — daha spesifik veya farklı bir etiket dene"
   },
   "errorBoundary": {
     "title": "Bir şeyler ters gitti",
