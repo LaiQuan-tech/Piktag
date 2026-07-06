@@ -1435,7 +1435,13 @@
     "ph2": "e.g. Who do you know that codes React Native?",
     "ph3": "e.g. Any personal trainer recommendations?",
     "reachCount": "{{n}} friends have matching tags for this",
-    "reachZero": "No matches yet — try a more specific or different tag"
+    "reachZero": "No matches yet — try a more specific or different tag",
+    "recommendPerson": "Recommend someone",
+    "recommendPickerTitle": "Pick a friend",
+    "recommendMsg": "For your Ask \"{{title}}\" — I recommend {{name}} (@{{username}}).",
+    "recommendSent": "Sent to the asker",
+    "recommendAlready": "You already recommended someone for this Ask",
+    "viewProfile": "View profile"
   },
   "errorBoundary": {
     "title": "Something went wrong",

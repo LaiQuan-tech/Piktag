@@ -1435,7 +1435,13 @@
     "ph2": "Mis. Ada yang kenal orang yang bisa React Native?",
     "ph3": "Mis. Ada rekomendasi personal trainer?",
     "reachCount": "{{n}} teman punya tag yang cocok untuk ini",
-    "reachZero": "Belum ada yang cocok — coba tag yang lebih spesifik atau berbeda"
+    "reachZero": "Belum ada yang cocok — coba tag yang lebih spesifik atau berbeda",
+    "recommendPerson": "Rekomendasikan seseorang",
+    "recommendPickerTitle": "Pilih teman",
+    "recommendMsg": "Untuk Ask kamu \"{{title}}\" — aku merekomendasikan {{name}} (@{{username}}).",
+    "recommendSent": "Terkirim ke penanya",
+    "recommendAlready": "Kamu sudah merekomendasikan seseorang untuk Ask ini",
+    "viewProfile": "Lihat profil"
   },
   "errorBoundary": {
     "title": "Terjadi kesalahan",

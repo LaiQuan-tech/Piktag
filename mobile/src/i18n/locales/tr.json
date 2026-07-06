@@ -1435,7 +1435,13 @@
     "ph2": "Ör. React Native kodlayan birini tanıyan var mı?",
     "ph3": "Ör. Kişisel antrenör önerisi olan var mı?",
     "reachCount": "{{n}} arkadaşının buna uyan etiketi var",
-    "reachZero": "Henüz eşleşme yok — daha spesifik veya farklı bir etiket dene"
+    "reachZero": "Henüz eşleşme yok — daha spesifik veya farklı bir etiket dene",
+    "recommendPerson": "Birini öner",
+    "recommendPickerTitle": "Bir arkadaş seç",
+    "recommendMsg": "Ask'in \"{{title}}\" için — {{name}} (@{{username}}) kişisini öneriyorum.",
+    "recommendSent": "Soranı bilgilendirdik",
+    "recommendAlready": "Bu Ask için zaten birini önerdin",
+    "viewProfile": "Profili gör"
   },
   "errorBoundary": {
     "title": "Bir şeyler ters gitti",

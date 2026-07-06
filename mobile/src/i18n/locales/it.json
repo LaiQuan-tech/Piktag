@@ -1435,7 +1435,13 @@
     "ph2": "Es. Conoscete qualcuno che programma in React Native?",
     "ph3": "Es. Consigli per un personal trainer?",
     "reachCount": "{{n}} amici hanno tag corrispondenti a questo",
-    "reachZero": "Ancora nessuna corrispondenza — prova un tag più specifico o diverso"
+    "reachZero": "Ancora nessuna corrispondenza — prova un tag più specifico o diverso",
+    "recommendPerson": "Consiglia qualcuno",
+    "recommendPickerTitle": "Scegli un amico",
+    "recommendMsg": "Per il tuo Ask \"{{title}}\" — consiglio {{name}} (@{{username}}).",
+    "recommendSent": "Inviato a chi ha chiesto",
+    "recommendAlready": "Hai già consigliato qualcuno per questo Ask",
+    "viewProfile": "Vedi profilo"
   },
   "errorBoundary": {
     "title": "Ops, qualcosa non ha funzionato",

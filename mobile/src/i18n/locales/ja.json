@@ -1435,7 +1435,13 @@
     "ph2": "例：React Native 書ける人知ってる？",
     "ph3": "例：おすすめのパーソナルトレーナーいる？",
     "reachCount": "この内容に合うタグを持つ友達が {{n}} 人います",
-    "reachZero": "まだマッチする友達がいません — もっと具体的か別のタグを試してみて"
+    "reachZero": "まだマッチする友達がいません — もっと具体的か別のタグを試してみて",
+    "recommendPerson": "誰かを推薦する",
+    "recommendPickerTitle": "友だちを選ぶ",
+    "recommendMsg": "あなたの Ask「{{title}}」に — {{name}}（@{{username}}）をおすすめします。",
+    "recommendSent": "質問した人に送りました",
+    "recommendAlready": "この Ask にはすでに誰かを推薦しています",
+    "viewProfile": "プロフィールを見る"
   },
   "errorBoundary": {
     "title": "問題が発生しました",

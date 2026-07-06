@@ -1435,7 +1435,13 @@
     "ph2": "Ví dụ: Có ai biết ai code React Native không?",
     "ph3": "Ví dụ: Có ai giới thiệu huấn luyện viên cá nhân không?",
     "reachCount": "{{n}} bạn bè có thẻ khớp với câu này",
-    "reachZero": "Chưa có kết quả khớp — thử thẻ cụ thể hơn hoặc khác đi"
+    "reachZero": "Chưa có kết quả khớp — thử thẻ cụ thể hơn hoặc khác đi",
+    "recommendPerson": "Giới thiệu một người",
+    "recommendPickerTitle": "Chọn một người bạn",
+    "recommendMsg": "Cho Ask \"{{title}}\" của bạn — tôi giới thiệu {{name}} (@{{username}}).",
+    "recommendSent": "Đã gửi cho người hỏi",
+    "recommendAlready": "Bạn đã giới thiệu một người cho Ask này rồi",
+    "viewProfile": "Xem hồ sơ"
   },
   "errorBoundary": {
     "title": "Có gì đó trục trặc",

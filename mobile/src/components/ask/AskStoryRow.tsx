@@ -10,6 +10,7 @@ import {
   TextInput,
   Animated,
   Easing,
+  FlatList,
   KeyboardAvoidingView,
   Keyboard,
   Platform,
@@ -17,6 +18,7 @@ import {
   ActionSheetIOS,
   Alert,
 } from 'react-native';
+import * as Crypto from 'expo-crypto';
 import BrandSpinner from '../loaders/BrandSpinner';
 import { Image } from 'expo-image';
 import { Plus, X, RefreshCw } from 'lucide-react-native';
@@ -30,6 +32,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
 import { normalizeTagName as sharedNormalizeTag, ilikeEscape } from '../../lib/normalizeTag';
 import { recordAiSuggestions, markAiSuggestionAccepted } from '../../lib/aiTagLogger';
+import { recordAskResponse } from '../../lib/searchLearning';
 import { useAuth } from '../../hooks/useAuth';
 import type { AskFeedItem, MyActiveAsk } from '../../types/ask';
 // AskMatchSheet removed 2026-05-31 — founder direction
@@ -171,6 +174,9 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
   // (matchSheetAskId state dropped — see AskMatchSheet removal note
   // at the import block above.)
   const [hiddenAuthorIds, setHiddenAuthorIds] = useState<Set<string>>(new Set());
+  // Friend ask currently open in the view sheet (answer-by-introduction
+  // entry point). null = sheet closed.
+  const [viewAsk, setViewAsk] = useState<AskFeedItem | null>(null);
 
   // IG-style "viewed" tracking. Tapping an ask marks it viewed; viewed
   // asks lose their gradient ring and sort to the end of the row, so
@@ -450,7 +456,13 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
                 activeOpacity={0.85}
                 onPress={() => {
                   markAskViewed(ask.ask_id);
-                  onPressUser(ask.author_id, ask.ask_id, ask.author_id);
+                  // Open the in-place view sheet instead of jumping
+                  // straight to the profile — the full body finally
+                  // becomes readable, and the sheet hosts the
+                  // recommend-someone secondary action. The profile
+                  // jump (and its 'view' analytics in the parent)
+                  // lives on as the sheet's primary CTA.
+                  setViewAsk(ask);
                 }}
                 onLongPress={() => handleAskLongPress(ask)}
                 delayLongPress={350}
@@ -497,7 +509,350 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
           onRefresh();
         }}
       />
+
+      <AskViewSheet
+        ask={viewAsk}
+        onClose={() => setViewAsk(null)}
+        onPressProfile={(ask) => {
+          // Continue the pre-sheet flow: the parent records the 'view'
+          // response and routes FriendDetail vs UserDetail.
+          setViewAsk(null);
+          onPressUser(ask.author_id, ask.ask_id, ask.author_id);
+        }}
+      />
     </>
+  );
+}
+
+// ── Friend-ask view sheet + recommend-someone picker ──
+//
+// The 76dp rail slots have no room for actions, so this bottom sheet is
+// the "story viewer" for a FRIEND's ask: author header, full body, tag
+// pills, then two CTAs — the original profile jump as the solid primary
+// and "recommend someone" (answer-by-introduction, North-Star referral
+// loop) as the outline secondary. Own asks never land here; the my-ask
+// slot opens AskCreateModal instead.
+//
+// The picker lists MEMBER friends only: piktag_connections joined to
+// piktag_profiles (same shape as burstTag.ts), minus official accounts
+// (hard rule — everyone auto-friends @piktag) and minus the ask author.
+// Local card-scanned contacts live outside piktag_connections, so
+// non-members can never leak into the recommendable set (privacy rule).
+
+type AskViewSheetProps = {
+  ask: AskFeedItem | null;
+  onClose: () => void;
+  onPressProfile: (ask: AskFeedItem) => void;
+};
+
+type RecommendCandidate = {
+  id: string;
+  full_name: string | null;
+  username: string | null;
+  avatar_url: string | null;
+};
+
+function AskViewSheet({ ask, onClose, onPressProfile }: AskViewSheetProps) {
+  const { t } = useTranslation();
+  const { colors } = useTheme();
+  const modalStyles = useMemo(() => makeModalStyles(colors), [colors]);
+  const { user } = useAuth();
+
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [friends, setFriends] = useState<RecommendCandidate[] | null>(null);
+  const [loadingFriends, setLoadingFriends] = useState(false);
+  const [filter, setFilter] = useState('');
+  const [sendingId, setSendingId] = useState<string | null>(null);
+
+  // Reset per ask so a previously opened picker (and its author-scoped
+  // exclusion) never leaks into the next ask.
+  useEffect(() => {
+    setPickerOpen(false);
+    setFriends(null);
+    setFilter('');
+    setSendingId(null);
+  }, [ask?.ask_id]);
+
+  const openPicker = useCallback(async () => {
+    if (!user || !ask) return;
+    setPickerOpen(true);
+    setLoadingFriends(true);
+    try {
+      const { data, error } = await supabase
+        .from('piktag_connections')
+        .select(
+          'connected_user:piktag_profiles!connected_user_id(id, full_name, username, avatar_url, is_official)',
+        )
+        .eq('user_id', user.id);
+      if (error) throw error;
+      const seen = new Set<string>();
+      const list: RecommendCandidate[] = [];
+      for (const row of (data ?? []) as any[]) {
+        const p = row.connected_user;
+        if (!p || p.is_official === true) continue;
+        if (p.id === ask.author_id || p.id === user.id) continue;
+        if (seen.has(p.id)) continue;
+        seen.add(p.id);
+        list.push({
+          id: p.id,
+          full_name: p.full_name ?? null,
+          username: p.username ?? null,
+          avatar_url: p.avatar_url ?? null,
+        });
+      }
+      setFriends(list);
+    } catch (e) {
+      // Visible failure + fall back to the view state — a silently
+      // empty list would read as "you have no friends".
+      setPickerOpen(false);
+      Alert.alert(
+        t('common.error', { defaultValue: 'Error' }),
+        e instanceof Error ? e.message : String(e),
+      );
+    } finally {
+      setLoadingFriends(false);
+    }
+  }, [user, ask, t]);
+
+  const filteredFriends = useMemo(() => {
+    if (!friends) return [];
+    const q = filter.trim().toLowerCase();
+    if (!q) return friends;
+    return friends.filter(
+      (f) =>
+        (f.full_name ?? '').toLowerCase().includes(q) ||
+        (f.username ?? '').toLowerCase().includes(q),
+    );
+  }, [friends, filter]);
+
+  const handleRecommend = useCallback(
+    async (friend: RecommendCandidate) => {
+      if (!user || !ask || sendingId) return;
+      setSendingId(friend.id);
+      try {
+        // Record FIRST — the UNIQUE(ask_id, responder_id, action) row is
+        // the dedupe gate. Message-first would re-message the author on
+        // every repeat attempt before we could learn it's a duplicate.
+        const result = await recordAskResponse({
+          askId: ask.ask_id,
+          authorId: ask.author_id,
+          action: 'recommend',
+          recommendedUserId: friend.id,
+        });
+        if (result === 'duplicate') {
+          setPickerOpen(false);
+          Alert.alert(
+            t('ask.recommendAlready', {
+              defaultValue: 'You already recommended someone for this Ask',
+            }),
+          );
+          return;
+        }
+
+        const title = (ask.title ?? '').trim() || ask.body.slice(0, 30);
+        const body = t('ask.recommendMsg', {
+          defaultValue: 'For your Ask "{{title}}" — I recommend {{name}} (@{{username}}).',
+          title,
+          name: friend.full_name || friend.username || '',
+          username: friend.username ?? '',
+        });
+
+        // Same send path as chat everywhere else: the
+        // get_or_create_conversation RPC, then a piktag_messages insert
+        // with client_nonce (mirrors useChatThread.doInsert /
+        // notificationRouter's reconnect_suggest branch).
+        const { data: conv, error: convErr } = await supabase.rpc(
+          'get_or_create_conversation',
+          { other_user_id: ask.author_id },
+        );
+        if (convErr) throw convErr;
+        const conversationId =
+          typeof conv === 'string'
+            ? conv
+            : ((conv as any)?.id ?? (conv as any)?.conversation_id);
+        if (!conversationId) throw new Error('get_or_create_conversation returned no id');
+        const { error: msgErr } = await supabase.from('piktag_messages').insert({
+          conversation_id: conversationId,
+          sender_id: user.id,
+          body,
+          client_nonce: Crypto.randomUUID(),
+        });
+        if (msgErr) throw msgErr;
+
+        onClose();
+        Alert.alert(t('ask.recommendSent', { defaultValue: 'Sent to the asker' }));
+      } catch (e) {
+        // NEVER silent: the user must know the introduction did not
+        // reach the asker.
+        Alert.alert(
+          t('common.error', { defaultValue: 'Error' }),
+          e instanceof Error ? e.message : String(e),
+        );
+      } finally {
+        setSendingId(null);
+      }
+    },
+    [user, ask, sendingId, t, onClose],
+  );
+
+  if (!ask) return null;
+  const isOwn = user?.id === ask.author_id;
+  const authorName = ask.author_full_name || ask.author_username || '?';
+
+  return (
+    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
+      <View style={modalStyles.overlay}>
+        <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
+        <View style={[modalStyles.sheet, pickerOpen && modalStyles.pickerSheet]}>
+          <View style={modalStyles.handleBar} />
+          {!pickerOpen ? (
+            <>
+              <View style={modalStyles.viewAuthorRow}>
+                {ask.author_avatar_url ? (
+                  <Image
+                    source={{ uri: ask.author_avatar_url }}
+                    style={modalStyles.viewAuthorAvatar}
+                    cachePolicy="memory-disk"
+                  />
+                ) : (
+                  <InitialsAvatar name={authorName} size={40} />
+                )}
+                <View style={{ flex: 1 }}>
+                  <Text style={modalStyles.viewAuthorName} numberOfLines={1}>
+                    {authorName}
+                  </Text>
+                  {ask.author_username ? (
+                    <Text style={modalStyles.viewAuthorUsername} numberOfLines={1}>
+                      @{ask.author_username}
+                    </Text>
+                  ) : null}
+                </View>
+              </View>
+
+              <View style={modalStyles.viewBodyWrap}>
+                {ask.title ? (
+                  <Text style={modalStyles.viewTitleText}>{ask.title}</Text>
+                ) : null}
+                <Text style={modalStyles.viewBody}>{ask.body}</Text>
+              </View>
+
+              {ask.ask_tag_names && ask.ask_tag_names.length > 0 ? (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={modalStyles.tagScroll}
+                  contentContainerStyle={modalStyles.tagScrollContent}
+                >
+                  {ask.ask_tag_names.map((name) => (
+                    <View
+                      key={`friend-view-${name}`}
+                      style={[modalStyles.tagChip, modalStyles.tagChipSelected]}
+                    >
+                      <Text style={[modalStyles.tagChipText, modalStyles.tagChipTextSelected]}>
+                        #{name}
+                      </Text>
+                    </View>
+                  ))}
+                </ScrollView>
+              ) : null}
+
+              <Text style={modalStyles.viewMeta}>
+                {t('ask.timeLeft', { hours: hoursLeft(ask.expires_at) })}
+              </Text>
+
+              {/* Primary (solid tier): the pre-sheet behavior — open the
+                  author's profile. */}
+              <TouchableOpacity
+                style={modalStyles.submitBtnFull}
+                onPress={() => onPressProfile(ask)}
+                activeOpacity={0.8}
+              >
+                <Text style={modalStyles.submitBtnText}>
+                  {t('connections.viewProfile', { defaultValue: 'View' })}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Secondary (outline tier): answer-by-introduction. Never
+                  shown on the viewer's own ask. */}
+              {!isOwn ? (
+                <TouchableOpacity
+                  style={modalStyles.recommendBtn}
+                  onPress={() => void openPicker()}
+                  activeOpacity={0.8}
+                >
+                  <Text style={modalStyles.recommendBtnText}>
+                    {t('ask.recommendPerson', { defaultValue: 'Recommend someone' })}
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+            </>
+          ) : (
+            <>
+              <Text style={modalStyles.title}>
+                {t('ask.recommendPickerTitle', { defaultValue: 'Pick a friend' })}
+              </Text>
+              <TextInput
+                style={modalStyles.pickerFilterInput}
+                value={filter}
+                onChangeText={setFilter}
+                placeholder={t('chat.searchPlaceholder', { defaultValue: 'Search' })}
+                placeholderTextColor={colors.gray400}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              {loadingFriends ? (
+                <View style={modalStyles.pickerLoading}>
+                  <BrandSpinner size={24} />
+                </View>
+              ) : (
+                <FlatList
+                  data={filteredFriends}
+                  keyExtractor={(item) => item.id}
+                  keyboardShouldPersistTaps="handled"
+                  ListEmptyComponent={
+                    <Text style={modalStyles.pickerEmpty}>
+                      {t('connections.emptyGuideTitle', { defaultValue: 'No connections yet' })}
+                    </Text>
+                  }
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={modalStyles.pickerRow}
+                      onPress={() => void handleRecommend(item)}
+                      disabled={sendingId !== null}
+                      activeOpacity={0.7}
+                    >
+                      {item.avatar_url ? (
+                        <Image
+                          source={{ uri: item.avatar_url }}
+                          style={modalStyles.pickerAvatarImg}
+                          cachePolicy="memory-disk"
+                        />
+                      ) : (
+                        <InitialsAvatar
+                          name={item.full_name || item.username || '?'}
+                          size={44}
+                        />
+                      )}
+                      <View style={{ flex: 1 }}>
+                        <Text style={modalStyles.pickerRowName} numberOfLines={1}>
+                          {item.full_name || item.username || '?'}
+                        </Text>
+                        {item.username ? (
+                          <Text style={modalStyles.pickerRowUsername} numberOfLines={1}>
+                            @{item.username}
+                          </Text>
+                        ) : null}
+                      </View>
+                      {sendingId === item.id ? <BrandSpinner size={16} /> : null}
+                    </TouchableOpacity>
+                  )}
+                />
+              )}
+            </>
+          )}
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -1773,6 +2128,63 @@ function makeModalStyles(c: ColorPalette) {
     fontSize: 15,
     fontWeight: '700',
     color: c.gray700,
+  },
+  // ── AskViewSheet (friend-ask viewer + recommend picker) ──
+  // Picker mode needs a fixed height so the FlatList can scroll inside
+  // the sheet; view mode keeps the natural (content-sized) height.
+  pickerSheet: { height: SCREEN_HEIGHT * 0.7 },
+  viewAuthorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+  },
+  viewAuthorAvatar: { width: 40, height: 40, borderRadius: 20 },
+  viewAuthorName: { fontSize: 15, fontWeight: '700', color: c.gray900 },
+  viewAuthorUsername: { fontSize: 12, color: c.gray500, marginTop: 1 },
+  viewTitleText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: c.gray900,
+    marginBottom: 4,
+  },
+  // Outline tier (CTA doctrine: secondary) — same visual weight as
+  // deleteBtnFull so it never competes with the solid primary above it.
+  recommendBtn: {
+    width: '100%',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: c.gray200,
+    marginTop: 10,
+  },
+  recommendBtnText: { fontSize: 15, fontWeight: '700', color: c.gray700 },
+  pickerFilterInput: {
+    borderWidth: 1.5,
+    borderColor: c.gray200,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: c.gray900,
+    marginBottom: 8,
+  },
+  pickerLoading: { paddingVertical: 24, alignItems: 'center' },
+  pickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 10,
+  },
+  pickerAvatarImg: { width: 44, height: 44, borderRadius: 22 },
+  pickerRowName: { fontSize: 15, fontWeight: '600', color: c.gray900 },
+  pickerRowUsername: { fontSize: 12, color: c.gray500, marginTop: 1 },
+  pickerEmpty: {
+    fontSize: 13,
+    color: c.gray500,
+    textAlign: 'center',
+    paddingVertical: 24,
   },
   });
 }

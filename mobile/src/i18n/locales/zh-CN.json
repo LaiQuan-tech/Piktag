@@ -1435,7 +1435,13 @@
     "ph2": "例：谁会 React Native？",
     "ph3": "例：推荐健身教练？",
     "reachCount": "有 {{n}} 位朋友的标签对得上这个",
-    "reachZero": "还没有朋友对上——试试更具体或不同的标签"
+    "reachZero": "还没有朋友对上——试试更具体或不同的标签",
+    "recommendPerson": "推荐一个人",
+    "recommendPickerTitle": "选一位朋友",
+    "recommendMsg": "关于你的 Ask“{{title}}”——我推荐 {{name}}（@{{username}}）。",
+    "recommendSent": "已发给发问者",
+    "recommendAlready": "你已经为这条 Ask 推荐过人了",
+    "viewProfile": "看资料"
   },
   "errorBoundary": {
     "title": "出错了",

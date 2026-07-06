@@ -1435,7 +1435,13 @@
     "ph2": "مثال: حد يعرف يبرمج React Native؟",
     "ph3": "مثال: في ترشيح لمدرب شخصي؟",
     "reachCount": "في {{n}} أصدقاء عندهم تاجات تناسب السؤال ده",
-    "reachZero": "لسه مفيش تطابق — جرّب تاج أدق أو مختلف"
+    "reachZero": "لسه مفيش تطابق — جرّب تاج أدق أو مختلف",
+    "recommendPerson": "أوصِ بشخص",
+    "recommendPickerTitle": "اختر صديقًا",
+    "recommendMsg": "بخصوص Ask «{{title}}» — أوصي بـ {{name}} (@{{username}}).",
+    "recommendSent": "أُرسل إلى صاحب السؤال",
+    "recommendAlready": "لقد أوصيت بشخص لهذا الـ Ask بالفعل",
+    "viewProfile": "عرض الملف الشخصي"
   },
   "errorBoundary": {
     "title": "حدث خطأ ما",

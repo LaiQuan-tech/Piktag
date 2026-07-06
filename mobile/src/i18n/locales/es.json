@@ -1435,7 +1435,13 @@
     "ph2": "Ej. ¿Conocen a alguien que programe en React Native?",
     "ph3": "Ej. ¿Alguna recomendación de entrenador personal?",
     "reachCount": "{{n}} amigos tienen etiquetas que coinciden con esto",
-    "reachZero": "Aún no hay coincidencias — prueba una etiqueta más específica o diferente"
+    "reachZero": "Aún no hay coincidencias — prueba una etiqueta más específica o diferente",
+    "recommendPerson": "Recomendar a alguien",
+    "recommendPickerTitle": "Elige un amigo",
+    "recommendMsg": "Para tu Ask \"{{title}}\" — recomiendo a {{name}} (@{{username}}).",
+    "recommendSent": "Enviado a quien preguntó",
+    "recommendAlready": "Ya recomendaste a alguien para este Ask",
+    "viewProfile": "Ver perfil"
   },
   "errorBoundary": {
     "title": "Algo salió mal",

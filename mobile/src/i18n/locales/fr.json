@@ -1435,7 +1435,13 @@
     "ph2": "Ex. Vous connaissez quelqu’un qui code en React Native ?",
     "ph3": "Ex. Des recommandations de coach sportif ?",
     "reachCount": "{{n}} amis ont des tags qui correspondent à ça",
-    "reachZero": "Pas encore de correspondance — essayez un tag plus précis ou différent"
+    "reachZero": "Pas encore de correspondance — essayez un tag plus précis ou différent",
+    "recommendPerson": "Recommander quelqu'un",
+    "recommendPickerTitle": "Choisir un ami",
+    "recommendMsg": "Pour ton Ask « {{title}} » — je recommande {{name}} (@{{username}}).",
+    "recommendSent": "Envoyé à l'auteur de la demande",
+    "recommendAlready": "Tu as déjà recommandé quelqu'un pour ce Ask",
+    "viewProfile": "Voir le profil"
   },
   "errorBoundary": {
     "title": "Une erreur est survenue",

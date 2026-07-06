@@ -1435,7 +1435,13 @@
     "ph2": "예: 리액트 네이티브 할 줄 아는 사람?",
     "ph3": "예: 추천할만한 퍼스널 트레이너 있어요?",
     "reachCount": "이 질문에 맞는 태그를 가진 친구가 {{n}}명 있어요",
-    "reachZero": "아직 매칭되는 친구가 없어요 — 더 구체적이거나 다른 태그로 시도해보세요"
+    "reachZero": "아직 매칭되는 친구가 없어요 — 더 구체적이거나 다른 태그로 시도해보세요",
+    "recommendPerson": "누군가 추천하기",
+    "recommendPickerTitle": "친구 선택",
+    "recommendMsg": "당신의 Ask「{{title}}」에 — {{name}}(@{{username}})님을 추천합니다.",
+    "recommendSent": "질문한 사람에게 보냈어요",
+    "recommendAlready": "이 Ask에는 이미 누군가를 추천했어요",
+    "viewProfile": "프로필 보기"
   },
   "errorBoundary": {
     "title": "문제가 발생했습니다",
