@@ -122,7 +122,7 @@
 | 不確定創辦人會怎麼判;要推回需求;動 CTA/表單/分數呈現 | `docs/claude/ref-founder-style.md` |
 | 動 migration/CI/Auth 信件/DNS/Gemini/admin 後台 | `docs/claude/ref-infra-ops.md` |
 | 動既有功能(官方帳號、掃描器、活動標籤、人脈圖、nav、聊天、批次標籤) | `docs/claude/ref-product-history.md` |
-| 被問 v2 小號、變現、拍賣、付費功能 | `docs/claude/ref-future-plans.md` |
+| 被問 v2 小號、變現、拍賣、付費功能 | `docs/MONETIZATION_ROADMAP.md`(藍圖)+ `docs/claude/ref-future-plans.md`(決策脈絡) |
 | 要派 subagent、選 model/effort、驗收別人的產出 | `docs/claude/10-DISPATCH.md` |
 | 拿不準:升級模型?算完成?問使用者?放棄重來? | `docs/claude/20-JUDGMENT.md` |
 | 要寫派工 prompt(搜尋/實作/重構/研究/審查) | `docs/claude/30-TEMPLATES.md` |

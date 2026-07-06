@@ -262,6 +262,8 @@ _(Founder explicitly asked the North Star be remembered — 2026-05.)_
 
 ## 收費模式評估(founder-approved 為正式決策點,2026-07-06)
 
+> 正式藍圖(創辦人核定版,含時序與不做清單):`docs/MONETIZATION_ROADMAP.md`
+
 創辦人提出五案,評估結論(完整推理見當日對話;本節為裁決記錄):
 
 1. **貴人王($5/mo,主動媒合新朋友)— 贊成,五案最優。** 賣「更多核心
