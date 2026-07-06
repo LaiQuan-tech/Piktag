@@ -1,0 +1,83 @@
+# ref — 基礎設施與維運:admin 後台、Auth 信件、DNS、CI 陷阱、Gemini 模型、live-DB 探測
+
+> 本檔內容 2026-07-06 自 CLAUDE.md 原文搬出(逐字,未改寫)。完整舊版:docs/claude/archive/CLAUDE-2026-07-06-full.md
+> 檔內「see above / 上文」類指涉以舊版為準。
+
+## Infra & ops — admin backend, auth emails, DNS (set 2026-06-07)
+
+- **Ops/营运 data lives in the admin backend, NEVER the user app.** Founder
+  verbatim: *"app 別做不關使用者的事情"* + *"所有營運的資料,你要顯示都顯示
+  在後台"*. So:
+    - The user app must NOT push internal telemetry. We REMOVED the
+      concept-health digest, the linker-stall alert, AND the growth-pulse
+      pushes (new-signup / first-friend triggers `notify_admin_new_signup`
+      / `notify_admin_first_connection` were dropped). The
+      `notify-admin-growth` edge fn + its `admin_alert` event are now
+      dormant/unused — don't revive into the app.
+    - Anything ops-facing goes in the **piktag-admin** Next.js app
+      (`admin.pikt.ag`). Concept-graph health + GC merge candidates render
+      on its **Tags page** (`app/(admin)/tags/page.tsx`) via read-only RPCs
+      `admin_concept_graph_health()` + `admin_report_concept_merge_candidates()`
+      (service-role; SECURITY DEFINER; 20260605060000).
+- **Supabase Auth config is managed AS CODE**, not in the dashboard:
+  `.github/workflows/supabase-auth-config.yml` PATCHes the Management API
+  (`/v1/projects/<ref>/config/auth`) on push to `mobile/supabase/auth/**`.
+  It sets `site_url`, **read-merge-writes** `uri_allow_list` (so existing
+  OAuth/deep-link redirect URLs are never clobbered), the recovery email
+  subject + template, and SMTP (when `SMTP_*` secrets exist). **NEVER use
+  `supabase config push`** — it's declarative and would reset the
+  dashboard-only Apple/Google OAuth providers.
+- **Password reset uses the token_hash flow, NOT the PKCE ConfirmationURL.**
+  Mobile is `flowType:'pkce'`, so a `{{ .ConfirmationURL }}` link
+  (`/auth/v1/verify?token=pkce_…`) needs the code_verifier stored in the
+  app's SecureStore — opening it in any browser fails ("invalid/expired")
+  100% of the time. Fix: the recovery email links to
+  `https://pikt.ag/reset-password?token_hash={{ .TokenHash }}&type=recovery`
+  and `landing/src/pages/ResetPassword.tsx` calls
+  `verifyOtp({type:'recovery', token_hash})` **at submit** (so email
+  link-scanners can't pre-burn the one-time token). `recovery-email.html`
+  is **English-only** (founder call — Supabase sends one template to all
+  users regardless of app language; per-locale emails would need a custom
+  edge-fn send pipeline, out of scope).
+- **Branded sender via Resend custom SMTP** — `noreply@pikt.ag`, "PikTag".
+  Secrets in GitHub Actions: `SMTP_HOST=smtp.resend.com`, `SMTP_PORT=587`,
+  `SMTP_USER=resend`, `SMTP_PASS=<resend api key>`, `SMTP_SENDER_NAME=PikTag`,
+  `SMTP_ADMIN_EMAIL=noreply@pikt.ag`. pikt.ag is verified in Resend (DKIM/
+  SPF/MX/DMARC records live at Dynadot).
+- **DNS facts.** `pikt.ag` is registered at **Dynadot**; DNS hosted on
+  Dynadot's nameservers (`ns1/ns2.dyna-ns.net`) — **NOT** Vercel
+  (`vercel domains inspect` shows the intended-NS ✘). So subdomain/email
+  records (admin A 76.76.21.21, Resend DKIM/SPF/MX/DMARC on
+  `resend._domainkey` + `send` + `_dmarc`) must be added **by hand in the
+  Dynadot DNS panel** — browser automation of Dynadot does NOT work (its
+  page never reaches `document_idle`, so every screenshot/read times out).
+  Vercel CLI is authed as `lqtech2026`; the Vercel apex + a `*` wildcard
+  ALIAS exist in Vercel's zone but are dormant until NS points at Vercel.
+- **CI gotcha — pgvector `<=>` + search_path.** A `LANGUAGE sql` function
+  using the `<=>` cosine operator MUST `SET search_path = public,
+  extensions` (pgvector lives in `extensions`). A bare `search_path =
+  public` throws 42883 at CREATE time, and because it's validated eagerly
+  it FAILS the whole migration → `supabase db push` stops there and every
+  later migration silently never applies. (This blocked the entire
+  060000→140000 stack for hours on 2026-06-06.) plpgsql bodies are
+  late-bound and don't hit this.
+- **Gemini model ids — ONLY the 2.5 family is live (verified 2026-06-07
+  by direct probe of the project key).** Google RETIRED
+  `gemini-2.0-flash`, `gemini-2.0-flash-lite`, `gemini-2.0-flash-001`,
+  `gemini-1.5-flash`, `gemini-1.5-pro`, and the dated 2.5 previews — they
+  return **404 "no longer available"**. The ONLY live chat models for this
+  key are **`gemini-2.5-flash`** (quality) and **`gemini-2.5-flash-lite`**
+  (the fast/cheap one — use it where speed matters: card-scan tagging,
+  scan OCR-structuring). `gemini-flash-latest` also resolves but points at
+  a thinking model (slower) — avoid. Embeddings stay `gemini-embedding-001`.
+  Why this bit hard: every edge-fn model chain led with now-dead ids, so
+  calls silently fell through to whatever live model was deeper in the
+  chain — and suggest-tags' `fast` chain had NO live model at all →
+  **503 on every card scan** (the "0 AI tags" bug, 2026-06-07). Two rules:
+  (1) NEVER put a non-2.5 model id in a chain. (2) For 2.5 models, set
+  `generationConfig.thinkingConfig.thinkingBudget = 0` on latency-
+  sensitive calls (2.5 has thinking on by default; scan-business-card
+  already does `if (model.startsWith('gemini-2.5'))`). When Google ships
+  the next generation, re-probe before adding ids (a quick `{diag:true}`-
+  style per-model status loop, then remove it).
+
