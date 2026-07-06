@@ -11,6 +11,7 @@
           { "/": "/reset-password*", "exclude": true, "comment": "Supabase password recovery — MUST stay in Safari" },
           { "/": "/download*", "exclude": true, "comment": "Download CTA / app store routing" },
           { "/": "/delete-account*", "exclude": true, "comment": "Delete-account form" },
+          { "/": "/a/*", "exclude": true, "comment": "Ask share-reply page — non-members answer without the app; must stay in the browser even for users who have the app installed" },
           { "/": "/*", "comment": "Everything else (/i/code, /u/foo, /tag/bar, /username) opens the app for installed users" }
         ]
       }

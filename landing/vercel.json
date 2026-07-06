@@ -18,6 +18,7 @@
 
     { "source": "/i/:code",         "destination": "/api/i/:code" },
     { "source": "/tag/:tagname",    "destination": "/api/tag/:tagname" },
+    { "source": "/a/:askId",        "destination": "/api/a/:askId" },
 
     { "source": "/privacy",         "destination": "/privacy.html" },
     { "source": "/terms",           "destination": "/terms.html" },
