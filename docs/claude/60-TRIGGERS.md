@@ -30,7 +30,7 @@
 | 15 | 大字體破版 | 用戶回報 Dynamic Type 破版 | 逐元件 maxFontSizeMultiplier(全域法在 RN 0.81+React19 不可靠) | ref-founder-style 字級節 | 未達 |
 | 16 | 程式一致性合併 | 下次動到對應畫面時順手做,不專程 | connectUsers 統一 ×4 處、UserDetail inline tag helper 換 lib 版 | ref-product-history 一致性 | 未達 |
 | 17 | v2 小號上線時 | v2 開工 | 排序面檢查表加第 5 點 `is_alt=false`;掃 23 支函式加謂詞 | ref-future-plans | 等 v2 |
-| 18 | 店面文案 Rev 3 貼上 | 下次送審新版本 | ASC 貼 17 語系新 DESCRIPTION(fr 必重貼 —— 之前就超標);Play 隨時可貼 | store-assets/STORE_LISTING_FINAL.md | **可執行** |
+| 18 | 店面文案 Rev 3 貼上 | 下次送審新版本(**等創辦人開口才動**) | ASC 貼 17 語系新 DESCRIPTION(fr 必重貼 —— 之前就超標);Play 隨時可貼 | store-assets/STORE_LISTING_FINAL.md | 材料已備 |
 
 ## 已結案(留檔防重做)
 - Admin 儀表板接 moat 指標 RPC — 2026-07-06 完成(be3c17e)。

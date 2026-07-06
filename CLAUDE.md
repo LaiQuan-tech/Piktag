@@ -70,9 +70,13 @@
   不隨主題變。
 
 **品牌鎖定字**
-- `Pick. Tag. Connect.`(全語系英文,不譯不改)與 hook line
-  `Tag yourself. Find anyone.`。主市場 = 北美:文案範例城市按市場在地化
-  (en=Seattle,只有 zh-TW 留台北),絕不把台灣範例輸出到其他語系。
+- `Pick. Tag. Connect.` 全語系鎖英文,五面同步(landing hero.description
+  ×19、SplashOverlay、QrGroupList header、scan.html、download.html ——
+  動一處動全部)。hook line `Tag yourself. Find anyone.` **不對稱**:
+  mobile brandTagline 鎖英文,但 landing hero.title1+title2 **逐語系在地化**
+  (zh-TW「自己標自己,誰都找得到。」是創辦人核准的,不是違規,別修掉)。
+  全文 → ref-founder-style.md 品牌節。主市場 = 北美:文案範例城市按市場
+  在地化(en=Seattle,只有 zh-TW 留台北),絕不把台灣範例輸出到其他語系。
 - @piktag 的標籤是教學面:任何調整保住維度覆蓋(身份/技能/興趣/MBTI),
   不可退回全口號。
 
@@ -83,8 +87,9 @@
   是**別的 session 的 WIP —— 絕不 stage**。
 - **Git**:只 stage 明確路徑,禁 `git add -A`/`git add .`。push 被拒 →
   `git pull --rebase --autostash origin main`,rebase 後確認自己的 migration
-  時間戳仍是尾巴。mobile commits 盡量合批(TestFlight 有每日上傳上限)。
-  每次改動:tsc 0 錯 → commit → push → 看 CI。
+  時間戳仍是尾巴。每次改動完成即 commit(先 tsc 0 錯);mobile 的 **push**
+  合批 —— 觸發 TestFlight build 的是 push 不是 commit(每日上傳有上限)。
+  push 後看 CI。
 - **Migrations**:**只放 `mobile/supabase/migrations/`**(root 的 supabase/
   不部署)。14 位時間戳、冪等(IF NOT EXISTS / CREATE OR REPLACE /
   ON CONFLICT)。寫時間戳前先 `ls mobile/supabase/migrations/ | tail -3`。

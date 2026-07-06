@@ -593,3 +593,36 @@ don't quietly regress them:
   EVERY store submission. Step 6 (chat push routing) and step 9 (delete →
   re-register resurrection) exist because those exact bugs shipped once.
 
+
+---
+
+## Brand voice — locked phrases
+
+- **Primary market is NORTH AMERICA, not Taiwan** (founder 2026-06-11,
+  reinforcing the 2026-06-04 quick-pick call "台灣不是主戰場"). Concretely
+  for COPY: in-copy examples (cities, names, scenarios) localize PER
+  MARKET — the EN master uses US examples (Seattle, not Taipei); only the
+  zh-TW locale keeps 台北. Never export Taiwan-centric examples into other
+  locales' copy (store listing, landing, app strings). The reader must
+  feel "this is about MY life", and the default reader is North American.
+
+- **"Pick. Tag. Connect."** is the locked brand signature (founder
+  approved 2026-06-09, replacing the prior **"PikTag to connect."**
+  which was a grammatically-awkward subjectless fragment). Three clean
+  imperatives that ALSO spell the brand phonetically (PikTag = Pick +
+  Tag) and name the product flow. **English-everywhere — do NOT
+  translate** (the Pick/Tag wordplay only works in English) and do NOT
+  modify without explicit founder approval. It's the constant brand
+  signature paired with the logo; the hook line is the rotating
+  creative (it survived the "Tag the Vibe, Keep the Tribe" →
+  "Tag yourself. Find anyone." swap). Lives IDENTICALLY across every
+  surface — landing `hero.description` (all 19 locale JSONs carry the
+  same English string, NOT localized), mobile SplashOverlay +
+  QrGroupList header, and landing/public scan.html + download.html;
+  when you touch one, touch all. (History: "PikTag to connect." was the
+  locked signature 2026-05-30 → 2026-06-09.)
+- **"Tag yourself. Find anyone."** is the current hook line
+  (2026-05-30, replacing "Tag the Vibe, Keep the Tribe"). Mobile
+  brandTagline is English-everywhere; landing hero.title1+title2
+  is localized per locale (founder-approved zh-TW: "自己標自己，
+  誰都找得到。"). See commit 107130a for the full 5-surface align.

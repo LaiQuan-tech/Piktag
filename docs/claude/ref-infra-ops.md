@@ -81,3 +81,18 @@
   the next generation, re-probe before adding ids (a quick `{diag:true}`-
   style per-model status loop, then remove it).
 
+
+## Live-DB 探測(寫 SQL / 依賴 schema 前必跑)
+
+```bash
+KEY=$(npx supabase projects api-keys --project-ref kbwfdskulxnhjckdvghj -o json \
+  | python3 -c "import json,sys; print(next(k['api_key'] for k in json.load(sys.stdin) if k['name']=='service_role'))")
+curl -s "https://kbwfdskulxnhjckdvghj.supabase.co/rest/v1/<table>?select=<col>&limit=1" \
+  -H "apikey: $KEY" -H "Authorization: Bearer $KEY"
+```
+- 回 `[]` 或資料列 = 欄位存在;回 `42703` 錯誤 = 欄位不存在;`42P01` = 表不存在。
+- RPC 探測:POST `…/rest/v1/rpc/<fn>` 同兩個 header + JSON body。
+- 文件與探測結果衝突:**以探測為準,立刻回寫修文件**(實例:文件曾稱
+  `piktag_user_tags.source` 存在,2026-07-06 探測證偽 —— source 是從
+  owning table 推導的,不是欄位)。
+- 用完 key 的暫存檔要刪;key 絕不進 commit。
