@@ -1,0 +1,38 @@
+# 60 — 延後觸發總帳(創辦人問「接下來做什麼」先讀這裡)
+
+> 這些是散落在歷史決策裡的「條件到了就要做/要提醒創辦人」義務。
+> 弱模型不會自己想起來 —— 所以收成一本帳。
+> 維護規則:狀態欄可自行更新(40-MAINTENANCE 第 1 節);新增延後決策時
+> 同步在此登記。iOS 已於 2026-07 上線,「上線後 N 個月」從此起算。
+
+## 怎麼用
+創辦人問 roadmap / 接下來 / 有什麼該做 → 逐條檢查「條件」欄(多數有
+檢查指令),把**已達標**的條目主動端給創辦人。平時不用背。
+
+## 帳目
+
+| # | 事項 | 觸發條件(怎麼查) | 動作 | 詳情在 | 狀態 |
+|---|---|---|---|---|---|
+| 1 | 搜尋權重係數調參 | 上線 ≥3 個月 且 完成搜尋 ≥500 次(`select count(*) from piktag_search_telemetry`) | 跑 admin_search_funnel 重放,top-3 與 7-10 名轉化差不多 → 重調權重 | ref-tag-algorithm 延後調參 #1 | 未達 |
+| 2 | 搜尋面 IDF | **重放門檻**:IDF 版在 admin_search_funnel 上贏過現行排序 | 才准把 IDF 加進 search_users | ref-tag-algorithm 演算法七條 #1 | 未達(推薦面已上) |
+| 3 | TagDetail 排序升級加權和 | 標籤頁平均 endorser_count ≥2 | 換 `mutual*5 + endorser*2` | ref-tag-algorithm #2 | 未達 |
+| 4 | 熱門標籤加背書維度 | 任一標籤總背書 ≥50 | usage*1 + search*0.5 + endorser*0.3 次要 tiebreak | ref-tag-algorithm #3 | 未達 |
+| 5 | AI 建議校準分析 | 上線 ≥30 天 且 piktag_ai_tag_suggestions ≥1000 筆 | 按 position 分桶算 accept rate;平的 → 升級 suggest-tags 回真信心值 | ref-tag-algorithm #4(SQL 在 a6ab9c8 commit msg) | 未達 |
+| 6 | 自標籤過期刷新 | 上線滿 1 年 | 對「舊自標 0 背書但他標高背書」用戶加密 endorsement cron,不自動重排 | ref-tag-algorithm #5 | 未達 |
+| 7 | EditProfile 維度多樣 AI 建議 | semantic_type 分類穩定 且 用戶活躍建檔(**創辦人明示要被提醒**) | context:'self_profile' 的 prompt 變體,絕不動名片掃描路徑 | ref-tag-algorithm #6 | 未達 |
+| 8 | 精靈第三步降門檻 | tags→links 步流失 >30%(PostHog wizard_step_completed 漏斗) | **已預先批准**:≥3 連結放寬到 ≥1 或可跳過,直接執行不用再問 | ref-founder-style 上線契約 | 未達 |
+| 9 | 活動標籤改版成效 | 看三個數:新連結帶活動情境標籤比例、搜尋命中活動標籤次數、friend_added source='event_room' 量 | 數字冷 → 考慮把房間 opt-in 翻成 opt-out(要創辦人點頭) | ref-product-history 活動標籤 | 觀察中 |
+| 10 | Concept GC 合併 | 有「高相似 且 兩邊都有真實標籤」的合併候選(admin Tags 頁) | 才做合併;0-tag 單例不動 | ref-tag-algorithm GC 節 | 未達 |
+| 11 | vision-camera 即時 OCR | 1.0.8 出貨後,分支 spike | 驗收 = QR+名片雙路徑真機穩定,對比 card_scan_latency p50/p95 | ref-product-history 掃描速度 (d) | 未達 |
+| 12 | 付費批次標籤 | 創辦人啟動下一版時 | 免費/付費界線照 CLAUDE.md 硬規則;BatchTagScreen 是唯一共用 UI | ref-product-history 激活清單 | 等創辦人 |
+| 13 | 跨語言媒合率首報 | 上線後數週,`admin_cross_language_match_rate()` 有量 | 主動報給創辦人(募資可用的數字);覆蓋率掉 = linker 出事 | ref-tag-algorithm 七條 #3 | 觀察中 |
+| 14 | RTL 版面 | ar 市場有真實 traction 才做 | I18nManager 全套;目前 ar 是 LTR 排版屬刻意 | ref-founder-style | 未達 |
+| 15 | 大字體破版 | 用戶回報 Dynamic Type 破版 | 逐元件 maxFontSizeMultiplier(全域法在 RN 0.81+React19 不可靠) | ref-founder-style 字級節 | 未達 |
+| 16 | 程式一致性合併 | 下次動到對應畫面時順手做,不專程 | connectUsers 統一 ×4 處、UserDetail inline tag helper 換 lib 版 | ref-product-history 一致性 | 未達 |
+| 17 | v2 小號上線時 | v2 開工 | 排序面檢查表加第 5 點 `is_alt=false`;掃 23 支函式加謂詞 | ref-future-plans | 等 v2 |
+| 18 | 店面文案 Rev 3 貼上 | 下次送審新版本 | ASC 貼 17 語系新 DESCRIPTION(fr 必重貼 —— 之前就超標);Play 隨時可貼 | store-assets/STORE_LISTING_FINAL.md | **可執行** |
+
+## 已結案(留檔防重做)
+- Admin 儀表板接 moat 指標 RPC — 2026-07-06 完成(be3c17e)。
+- 官方帳號標籤 v2 + 教學 bio — 2026-07-06 完成(20260706010000)。
+- 人脈圖聯絡人層 — 2026-07-06 完成(6506b05)。
