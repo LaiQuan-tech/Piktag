@@ -34,6 +34,7 @@ export const KNOWN_NOTIFICATION_TYPES = [
   'tag_trending',
   'contact_sync_nudge', // growth nudge: find friends from your contacts
   'contact_joined', // your saved local contact registered — auto-connected, tags carried over
+  'ask_web_reply', // non-member replied to your Ask via the pikt.ag/a/<id> share page
   // matches (AI / discovery)
   'recommendation',
   'tag_convergence',

@@ -1088,7 +1088,9 @@
     "tabMemories": "Erinnerungen",
     "hideRow": "Diese Mitteilung ausblenden",
     "dontSuggestPerson": "{{name}} nicht mehr vorschlagen",
-    "thisPerson": "diese Person"
+    "thisPerson": "diese Person",
+    "askWebReplyTitle": "Neue Antwort von außerhalb",
+    "askWebReplyBody": "{{name}} hat auf deinen Ask geantwortet"
   },
   "scanResult": {
     "headerTitle": "Freund hinzufügen",
@@ -1441,7 +1443,14 @@
     "recommendMsg": "Für dein Ask „{{title}}\" — ich empfehle {{name}} (@{{username}}).",
     "recommendSent": "An den Fragenden gesendet",
     "recommendAlready": "Du hast für dieses Ask bereits jemanden empfohlen",
-    "viewProfile": "Profil ansehen"
+    "viewProfile": "Profil ansehen",
+    "shareOutside": "Außerhalb von PikTag teilen",
+    "shareText": "Ich suche: {{body}} — kennst du jemanden? {{url}}",
+    "webRepliesTitle": "Antworten von außerhalb",
+    "saveAsContact": "Als Kontakt speichern",
+    "savedAsContact": "Gespeichert",
+    "saveContactFailed": "Dieser Kontakt konnte nicht gespeichert werden. Versuch es erneut.",
+    "webReplyNote": "Hat auf meinen Ask geantwortet: {{title}}"
   },
   "errorBoundary": {
     "title": "Etwas ist schiefgelaufen",

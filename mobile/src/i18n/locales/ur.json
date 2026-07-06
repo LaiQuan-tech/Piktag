@@ -1088,7 +1088,9 @@
     "tabMemories": "یادیں",
     "hideRow": "یہ اطلاع چھپائیں",
     "dontSuggestPerson": "{{name}} کو دوبارہ تجویز نہ کریں",
-    "thisPerson": "یہ شخص"
+    "thisPerson": "یہ شخص",
+    "askWebReplyTitle": "باہر سے نیا جواب",
+    "askWebReplyBody": "{{name}} نے آپ کے Ask کا جواب دیا"
   },
   "scanResult": {
     "headerTitle": "دوست شامل کریں",
@@ -1441,7 +1443,14 @@
     "recommendMsg": "آپ کے Ask \"{{title}}\" کے لیے — میں {{name}} (@{{username}}) کی سفارش کرتا ہوں۔",
     "recommendSent": "پوچھنے والے کو بھیج دیا",
     "recommendAlready": "آپ اس Ask کے لیے پہلے ہی کسی کی سفارش کر چکے ہیں",
-    "viewProfile": "پروفائل دیکھیں"
+    "viewProfile": "پروفائل دیکھیں",
+    "shareOutside": "PikTag سے باہر شیئر کریں",
+    "shareText": "میں ڈھونڈ رہا ہوں: {{body}} — کیا آپ کسی کو جانتے ہیں؟ {{url}}",
+    "webRepliesTitle": "باہر سے موصول جوابات",
+    "saveAsContact": "رابطے کے طور پر محفوظ کریں",
+    "savedAsContact": "محفوظ ہو گیا",
+    "saveContactFailed": "یہ رابطہ محفوظ نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
+    "webReplyNote": "میرے Ask کا جواب دیا: {{title}}"
   },
   "errorBoundary": {
     "title": "کچھ گڑبڑ ہو گئی",

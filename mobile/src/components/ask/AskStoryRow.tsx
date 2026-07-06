@@ -17,6 +17,7 @@ import {
   Dimensions,
   ActionSheetIOS,
   Alert,
+  Share,
 } from 'react-native';
 import * as Crypto from 'expo-crypto';
 import BrandSpinner from '../loaders/BrandSpinner';
@@ -34,6 +35,7 @@ import { normalizeTagName as sharedNormalizeTag, ilikeEscape } from '../../lib/n
 import { recordAiSuggestions, markAiSuggestionAccepted } from '../../lib/aiTagLogger';
 import { recordAskResponse } from '../../lib/searchLearning';
 import { useAuth } from '../../hooks/useAuth';
+import { useLocalContacts, normalizePhone } from '../../hooks/useLocalContacts';
 import type { AskFeedItem, MyActiveAsk } from '../../types/ask';
 // AskMatchSheet removed 2026-05-31 — founder direction
 // 「ask 發佈時的說明，這頁其實可不要，前一頁也有說明，再來就太多了」.
@@ -80,6 +82,33 @@ type AskStoryRowProps = {
 
 function hoursLeft(expiresAt: string): number {
   return Math.max(0, Math.round((new Date(expiresAt).getTime() - Date.now()) / 3600000));
+}
+
+// Share-outside-PikTag URL contract (ask activation item 5,
+// 2026-07-06 founder-approved): the landing page at this path reads
+// the ask via the public get_ask_public RPC and lets a non-member
+// reply through submit_ask_web_reply — no lang param, no query
+// string, just the bare ask id.
+function buildAskShareUrl(askId: string): string {
+  return `https://pikt.ag/a/${askId}`;
+}
+
+const SHARE_BODY_SNIPPET_LEN = 80;
+
+// Minimal relative-time formatter for the web-replies list. Mirrors
+// NotificationsScreen's formatTimeAgo shape but there's no shared
+// util to import (that one is a private helper in the screen file),
+// so this is a small self-contained copy scoped to this component.
+function formatReplyTimeAgo(dateString: string, t: (key: string, options?: any) => string): string {
+  const diffMs = Date.now() - new Date(dateString).getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  if (diffMins < 1) return t('notifications.timeJustNow');
+  if (diffMins < 60) return t('notifications.timeMinutesAgo', { count: diffMins });
+  if (diffHours < 24) return t('notifications.timeHoursAgo', { count: diffHours });
+  if (diffDays === 1) return t('notifications.timeYesterday');
+  return t('notifications.timeDaysAgo', { count: diffDays });
 }
 
 // ── Rotating gradient avatar ring ─────────────────────────────────────
@@ -858,6 +887,19 @@ function AskViewSheet({ ask, onClose, onPressProfile }: AskViewSheetProps) {
 
 // ── Create/Edit Ask Modal ──
 
+// Row shape from piktag_ask_web_replies (migration 20260706030000).
+// RLS restricts SELECT to author_id = auth.uid(), so any row this
+// client can fetch already belongs to the viewer's own ask.
+type WebReply = {
+  id: string;
+  ask_id: string;
+  author_id: string;
+  replier_name: string;
+  contact: string;
+  message: string;
+  created_at: string;
+};
+
 type AskCreateModalProps = {
   visible: boolean;
   onClose: () => void;
@@ -917,8 +959,96 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const modalStyles = useMemo(() => makeModalStyles(colors), [colors]);
   const { user } = useAuth();
+  const { add: addLocalContact } = useLocalContacts();
 
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+
+  // ── Share outside PikTag + web-replies (ask activation item 5) ──
+  const [webReplies, setWebReplies] = useState<WebReply[]>([]);
+  const [savedReplyIds, setSavedReplyIds] = useState<Set<string>>(new Set());
+  const [savingReplyId, setSavingReplyId] = useState<string | null>(null);
+
+  // Fetch this ask's outside-PikTag replies whenever the view-own sheet
+  // opens for an active ask. RLS already scopes SELECT to author_id =
+  // auth.uid(), so no extra filter is needed beyond ask_id.
+  useEffect(() => {
+    if (!visible || !existingAsk) {
+      setWebReplies([]);
+      setSavedReplyIds(new Set());
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from('piktag_ask_web_replies')
+        .select('id, ask_id, author_id, replier_name, contact, message, created_at')
+        .eq('ask_id', existingAsk.id)
+        .order('created_at', { ascending: false });
+      if (cancelled) return;
+      if (!error && data) setWebReplies(data as WebReply[]);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [visible, existingAsk]);
+
+  const shareAskOutside = useCallback(
+    async (ask: { id: string; body: string; title: string | null }) => {
+      const url = buildAskShareUrl(ask.id);
+      const summary = (ask.title || ask.body).trim();
+      const snippet =
+        summary.length <= SHARE_BODY_SNIPPET_LEN
+          ? summary
+          : summary.slice(0, SHARE_BODY_SNIPPET_LEN - 1) + '…';
+      const message = t('ask.shareText', {
+        body: snippet,
+        url,
+        defaultValue: 'I am looking for: {{body}} — know anyone? {{url}}',
+      });
+      try {
+        await Share.share({
+          message,
+          url: Platform.OS === 'ios' ? url : undefined,
+        });
+      } catch {
+        // user cancelled — no feedback needed
+      }
+    },
+    [t],
+  );
+
+  const handleSaveReplyAsContact = useCallback(
+    async (reply: WebReply) => {
+      if (savingReplyId) return;
+      setSavingReplyId(reply.id);
+      try {
+        const isEmail = reply.contact.includes('@');
+        const noteTitle = existingAsk?.title || existingAsk?.body || '';
+        const ok = await addLocalContact({
+          name: reply.replier_name,
+          email: isEmail ? reply.contact : null,
+          phone: isEmail ? null : normalizePhone(reply.contact),
+          note: t('ask.webReplyNote', {
+            title: noteTitle,
+            defaultValue: 'Replied to my Ask: {{title}}',
+          }),
+        });
+        if (!ok) {
+          throw new Error('save failed');
+        }
+        setSavedReplyIds((prev) => new Set(prev).add(reply.id));
+      } catch (err) {
+        console.warn('save ask web reply as contact failed:', err);
+        Alert.alert(
+          t('common.error', { defaultValue: 'Error' }),
+          t('ask.saveContactFailed', { defaultValue: 'Could not save this contact. Try again.' }),
+        );
+      } finally {
+        setSavingReplyId(null);
+      }
+    },
+    [savingReplyId, existingAsk, addLocalContact, t],
+  );
 
   // Spec B — bodyPlaceholder is now one random ph1/ph2/ph3 example picked
   // when the composer opens (see the visible-effect below), not a ticking
@@ -1207,6 +1337,23 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
       // the parent's handler ignores the arg.
       onCreated(askData.id);
       onClose();
+
+      // Ask activation item 5 (founder-approved 2026-07-06): offer the
+      // outside-PikTag share right at the moment of publish, when
+      // intent is highest — but never force it. A plain "OK" dismiss
+      // is the default button; sharing is one extra tap away.
+      Alert.alert(
+        t('ask.postAsk', { defaultValue: 'Ask posted' }),
+        undefined,
+        [
+          { text: t('common.confirm', { defaultValue: 'OK' }), style: 'cancel' },
+          {
+            text: t('ask.shareOutside', { defaultValue: 'Share outside PikTag' }),
+            onPress: () =>
+              void shareAskOutside({ id: askData.id, body: body.trim(), title: null }),
+          },
+        ],
+      );
     } catch (err) {
       console.warn('Ask create failed:', err);
       // Was silently swallowed: spinner stopped, modal stayed open
@@ -1220,7 +1367,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
     } finally {
       setSaving(false);
     }
-  }, [user, body, selectedNames, existingAsk, onCreated, onClose, t, aiSuggestionIds]);
+  }, [user, body, selectedNames, existingAsk, onCreated, onClose, t, aiSuggestionIds, shareAskOutside]);
 
   const handleDelete = useCallback(async () => {
     if (!existingAsk) return;
@@ -1290,7 +1437,16 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
             // surface is read-only: show what their ask currently is,
             // expose the delete CTA, nothing else. Two-step flow >
             // ambiguous "delete + post" double-button row.
-            <>
+            //
+            // Wrapped in a ScrollView (added alongside the web-replies
+            // list below) — that list is unbounded, so this mode now
+            // needs the same scroll-inside-maxHeight-sheet behavior
+            // create-mode already had.
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ flexGrow: 1 }}
+            >
               <Text style={modalStyles.title}>{t('ask.yourAskTitle', { defaultValue: '你目前的 Ask' })}</Text>
 
               <View style={modalStyles.viewBodyWrap}>
@@ -1323,6 +1479,83 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
                 {t('ask.timeLeft', { hours: hoursLeft(existingAsk.expires_at) })}
               </Text>
 
+              {/* Share outside PikTag — outline tier (secondary to
+                  delete's… actually delete is destructive-adjacent, so
+                  this reads as the row's "real" secondary action). Ask
+                  activation item 5: the reply loop only exists if the
+                  asker actually sends the link somewhere. */}
+              <TouchableOpacity
+                style={modalStyles.shareOutsideBtn}
+                onPress={() =>
+                  void shareAskOutside({
+                    id: existingAsk.id,
+                    body: existingAsk.body,
+                    title: existingAsk.title,
+                  })
+                }
+                activeOpacity={0.8}
+              >
+                <Text style={modalStyles.shareOutsideBtnText}>
+                  {t('ask.shareOutside', { defaultValue: 'Share outside PikTag' })}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Web replies — non-members who answered via the share
+                  page. Whole section hidden when empty (per spec) so a
+                  fresh Ask with zero outside replies doesn't show a
+                  hollow "Replies from outside" header. */}
+              {webReplies.length > 0 ? (
+                <View style={modalStyles.webRepliesSection}>
+                  <Text style={modalStyles.webRepliesTitle}>
+                    {t('ask.webRepliesTitle', { defaultValue: 'Replies from outside' })}
+                  </Text>
+                  {webReplies.map((reply) => {
+                    const saved = savedReplyIds.has(reply.id);
+                    const savingThis = savingReplyId === reply.id;
+                    return (
+                      <View key={reply.id} style={modalStyles.webReplyRow}>
+                        <View style={modalStyles.webReplyHeaderRow}>
+                          <Text style={modalStyles.webReplyName} numberOfLines={1}>
+                            {reply.replier_name}
+                          </Text>
+                          <Text style={modalStyles.webReplyTime}>
+                            {formatReplyTimeAgo(reply.created_at, t)}
+                          </Text>
+                        </View>
+                        <Text style={modalStyles.webReplyMessage}>{reply.message}</Text>
+                        <Text style={modalStyles.webReplyContact} numberOfLines={1}>
+                          {reply.contact}
+                        </Text>
+                        <TouchableOpacity
+                          style={[
+                            modalStyles.saveContactBtn,
+                            saved && modalStyles.saveContactBtnSaved,
+                          ]}
+                          onPress={() => void handleSaveReplyAsContact(reply)}
+                          disabled={saved || savingThis}
+                          activeOpacity={0.8}
+                        >
+                          {savingThis ? (
+                            <BrandSpinner size={16} />
+                          ) : (
+                            <Text
+                              style={[
+                                modalStyles.saveContactBtnText,
+                                saved && modalStyles.saveContactBtnTextSaved,
+                              ]}
+                            >
+                              {saved
+                                ? t('ask.savedAsContact', { defaultValue: 'Saved' })
+                                : t('ask.saveAsContact', { defaultValue: 'Save as contact' })}
+                            </Text>
+                          )}
+                        </TouchableOpacity>
+                      </View>
+                    );
+                  })}
+                </View>
+              ) : null}
+
               <TouchableOpacity
                 style={modalStyles.deleteBtnFull}
                 onPress={handleDelete}
@@ -1335,7 +1568,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
                   <Text style={modalStyles.deleteBtnFullText}>{t('ask.deleteAsk')}</Text>
                 )}
               </TouchableOpacity>
-            </>
+            </ScrollView>
           ) : (
             // ── Create mode ──
             //
@@ -2129,6 +2362,62 @@ function makeModalStyles(c: ColorPalette) {
     fontWeight: '700',
     color: c.gray700,
   },
+  // ── Share outside PikTag + web replies (ask activation item 5) ──
+  // Outline tier, same visual weight as deleteBtnFull/recommendBtn —
+  // this is a secondary action on the view-own sheet, not the CTA.
+  shareOutsideBtn: {
+    width: '100%',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: c.gray200,
+    marginBottom: 12,
+  },
+  shareOutsideBtnText: { fontSize: 15, fontWeight: '700', color: c.gray700 },
+  webRepliesSection: { marginBottom: 16, gap: 10 },
+  webRepliesTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: c.gray500,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+    marginBottom: 2,
+  },
+  webReplyRow: {
+    backgroundColor: c.backgroundSecondary,
+    borderWidth: 1,
+    borderColor: c.border,
+    borderRadius: 12,
+    padding: 12,
+    gap: 4,
+  },
+  webReplyHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  webReplyName: { flex: 1, fontSize: 14, fontWeight: '700', color: c.gray900 },
+  webReplyTime: { fontSize: 11, color: c.gray400 },
+  webReplyMessage: { fontSize: 14, color: c.gray700, lineHeight: 19 },
+  webReplyContact: { fontSize: 12, color: c.gray500 },
+  saveContactBtn: {
+    alignSelf: 'flex-start',
+    marginTop: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: c.piktag500,
+    minWidth: 92,
+    alignItems: 'center',
+  },
+  saveContactBtnSaved: {
+    borderColor: c.gray200,
+  },
+  saveContactBtnText: { fontSize: 12, fontWeight: '700', color: c.piktag500 },
+  saveContactBtnTextSaved: { color: c.gray400 },
   // ── AskViewSheet (friend-ask viewer + recommend picker) ──
   // Picker mode needs a fixed height so the FlatList can scroll inside
   // the sheet; view mode keeps the natural (content-sized) height.

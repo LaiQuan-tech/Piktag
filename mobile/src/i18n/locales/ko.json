@@ -1088,7 +1088,9 @@
     "tabMemories": "추억",
     "hideRow": "이 알림 숨기기",
     "dontSuggestPerson": "앞으로 {{name}} 추천 안 함",
-    "thisPerson": "이 사람"
+    "thisPerson": "이 사람",
+    "askWebReplyTitle": "외부에서 새 답변",
+    "askWebReplyBody": "{{name}} 님이 당신의 Ask에 답변했어요"
   },
   "scanResult": {
     "headerTitle": "친구 추가",
@@ -1441,7 +1443,14 @@
     "recommendMsg": "당신의 Ask「{{title}}」에 — {{name}}(@{{username}})님을 추천합니다.",
     "recommendSent": "질문한 사람에게 보냈어요",
     "recommendAlready": "이 Ask에는 이미 누군가를 추천했어요",
-    "viewProfile": "프로필 보기"
+    "viewProfile": "프로필 보기",
+    "shareOutside": "PikTag 밖으로 공유",
+    "shareText": "찾고 있어요: {{body}} — 아는 사람 있나요? {{url}}",
+    "webRepliesTitle": "외부에서 온 답변",
+    "saveAsContact": "연락처로 저장",
+    "savedAsContact": "저장됨",
+    "saveContactFailed": "이 연락처를 저장하지 못했어요. 다시 시도해 주세요.",
+    "webReplyNote": "내 Ask에 답변함: {{title}}"
   },
   "errorBoundary": {
     "title": "문제가 발생했습니다",

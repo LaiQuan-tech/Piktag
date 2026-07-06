@@ -131,6 +131,17 @@ export async function routeFromNotification(
     return;
   }
 
+  // ask_web_reply — a non-member replied to the viewer's own Ask via
+  // the pikt.ag/a/<id> share page. The reply lives inside the
+  // view-own AskCreateModal (opened by tapping the "your Ask" circle
+  // on the rail), same entry point as ask_prompt/ask_bridge — no
+  // dedicated Ask detail screen exists yet, so route to HomeTab and
+  // let the user tap their own Ask circle to see the web-replies list.
+  if (type === 'ask_web_reply') {
+    navigation.navigate('Main', { screen: 'HomeTab' } as any);
+    return;
+  }
+
   // tag_combo — weekly digest of over-represented tag pairs in
   // the viewer's network. Route to TagDetail of the FIRST tag
   // so the user lands somewhere they can act on the discovery.

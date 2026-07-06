@@ -71,7 +71,8 @@ function filterNotifications(
           n.type === 'vibe_shift' ||
           n.type === 'ask_posted' ||
           n.type === 'tag_trending' ||
-          n.type === 'contact_sync_nudge'
+          n.type === 'contact_sync_nudge' ||
+          n.type === 'ask_web_reply'
       );
     case 'matches':
       // ★ North-Star tab: AI-driven discovery / re-activation.
@@ -163,6 +164,22 @@ function getNotificationDisplay(
       username: '',
       body: t('notifications.types.contact_joined.body', {
         name: savedName,
+        defaultValue: item.body || '',
+      }),
+    };
+  }
+
+  // Non-member replied to the viewer's Ask via the pikt.ag/a/<id>
+  // share page (ask activation item 5, 2026-07-06). Self-directed —
+  // the replier isn't a PikTag user, so there's no actor avatar/
+  // username row; data.replier_name is the only identity we have.
+  if (type === 'ask_web_reply') {
+    const replierName =
+      (typeof data.replier_name === 'string' && data.replier_name.trim()) || '';
+    return {
+      username: '',
+      body: t('notifications.askWebReplyBody', {
+        name: replierName,
         defaultValue: item.body || '',
       }),
     };

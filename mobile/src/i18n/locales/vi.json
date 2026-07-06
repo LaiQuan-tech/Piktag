@@ -1088,7 +1088,9 @@
     "tabMemories": "Kỷ niệm",
     "hideRow": "Ẩn thông báo này",
     "dontSuggestPerson": "Đừng gợi ý {{name}} nữa",
-    "thisPerson": "người này"
+    "thisPerson": "người này",
+    "askWebReplyTitle": "Có phản hồi mới từ bên ngoài",
+    "askWebReplyBody": "{{name}} đã trả lời Ask của bạn"
   },
   "scanResult": {
     "headerTitle": "Thêm bạn",
@@ -1441,7 +1443,14 @@
     "recommendMsg": "Cho Ask \"{{title}}\" của bạn — tôi giới thiệu {{name}} (@{{username}}).",
     "recommendSent": "Đã gửi cho người hỏi",
     "recommendAlready": "Bạn đã giới thiệu một người cho Ask này rồi",
-    "viewProfile": "Xem hồ sơ"
+    "viewProfile": "Xem hồ sơ",
+    "shareOutside": "Chia sẻ ra ngoài PikTag",
+    "shareText": "Mình đang tìm: {{body}} — bạn có biết ai không? {{url}}",
+    "webRepliesTitle": "Phản hồi từ bên ngoài",
+    "saveAsContact": "Lưu làm liên hệ",
+    "savedAsContact": "Đã lưu",
+    "saveContactFailed": "Không thể lưu liên hệ này. Thử lại nhé.",
+    "webReplyNote": "Đã trả lời Ask của tôi: {{title}}"
   },
   "errorBoundary": {
     "title": "Có gì đó trục trặc",

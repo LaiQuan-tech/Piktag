@@ -1088,7 +1088,9 @@
     "tabMemories": "回忆",
     "hideRow": "隐藏这则通知",
     "dontSuggestPerson": "以后不要推荐 {{name}}",
-    "thisPerson": "这个人"
+    "thisPerson": "这个人",
+    "askWebReplyTitle": "圈外有人回复了",
+    "askWebReplyBody": "{{name}} 回复了你的 Ask"
   },
   "scanResult": {
     "headerTitle": "加为好友",
@@ -1441,7 +1443,14 @@
     "recommendMsg": "关于你的 Ask“{{title}}”——我推荐 {{name}}（@{{username}}）。",
     "recommendSent": "已发给发问者",
     "recommendAlready": "你已经为这条 Ask 推荐过人了",
-    "viewProfile": "看资料"
+    "viewProfile": "看资料",
+    "shareOutside": "分享到圈外",
+    "shareText": "我在找：{{body}} —— 你认识谁吗？{{url}}",
+    "webRepliesTitle": "圈外回复",
+    "saveAsContact": "存为联系人",
+    "savedAsContact": "已保存",
+    "saveContactFailed": "无法保存该联系人，请再试一次。",
+    "webReplyNote": "回复过我的 Ask：{{title}}"
   },
   "errorBoundary": {
     "title": "出错了",

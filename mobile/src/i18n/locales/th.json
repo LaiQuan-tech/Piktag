@@ -1088,7 +1088,9 @@
     "tabMemories": "ความทรงจำ",
     "hideRow": "ซ่อนการแจ้งเตือนนี้",
     "dontSuggestPerson": "ไม่ต้องแนะนำ {{name}} อีก",
-    "thisPerson": "คนนี้"
+    "thisPerson": "คนนี้",
+    "askWebReplyTitle": "มีคำตอบใหม่จากภายนอก",
+    "askWebReplyBody": "{{name}} ตอบกลับ Ask ของคุณ"
   },
   "scanResult": {
     "headerTitle": "เพิ่มเพื่อน",
@@ -1441,7 +1443,14 @@
     "recommendMsg": "สำหรับ Ask ของคุณ \"{{title}}\" — ฉันแนะนำ {{name}} (@{{username}})",
     "recommendSent": "ส่งให้ผู้ถามแล้ว",
     "recommendAlready": "คุณแนะนำใครบางคนสำหรับ Ask นี้ไปแล้ว",
-    "viewProfile": "ดูโปรไฟล์"
+    "viewProfile": "ดูโปรไฟล์",
+    "shareOutside": "แชร์นอก PikTag",
+    "shareText": "ฉันกำลังหา: {{body}} — รู้จักใครไหม? {{url}}",
+    "webRepliesTitle": "คำตอบจากภายนอก",
+    "saveAsContact": "บันทึกเป็นผู้ติดต่อ",
+    "savedAsContact": "บันทึกแล้ว",
+    "saveContactFailed": "ไม่สามารถบันทึกผู้ติดต่อนี้ได้ ลองใหม่อีกครั้ง",
+    "webReplyNote": "ตอบกลับ Ask ของฉัน: {{title}}"
   },
   "errorBoundary": {
     "title": "เกิดข้อผิดพลาด",

@@ -1088,7 +1088,9 @@
     "tabMemories": "Souvenirs",
     "hideRow": "Masquer cette notification",
     "dontSuggestPerson": "Ne plus suggérer {{name}}",
-    "thisPerson": "cette personne"
+    "thisPerson": "cette personne",
+    "askWebReplyTitle": "Nouvelle réponse de l'extérieur",
+    "askWebReplyBody": "{{name}} a répondu à votre Ask"
   },
   "scanResult": {
     "headerTitle": "Ajouter un ami",
@@ -1441,7 +1443,14 @@
     "recommendMsg": "Pour ton Ask « {{title}} » — je recommande {{name}} (@{{username}}).",
     "recommendSent": "Envoyé à l'auteur de la demande",
     "recommendAlready": "Tu as déjà recommandé quelqu'un pour ce Ask",
-    "viewProfile": "Voir le profil"
+    "viewProfile": "Voir le profil",
+    "shareOutside": "Partager en dehors de PikTag",
+    "shareText": "Je recherche : {{body}} — vous connaissez quelqu'un ? {{url}}",
+    "webRepliesTitle": "Réponses de l'extérieur",
+    "saveAsContact": "Enregistrer comme contact",
+    "savedAsContact": "Enregistré",
+    "saveContactFailed": "Impossible d'enregistrer ce contact. Réessayez.",
+    "webReplyNote": "A répondu à mon Ask : {{title}}"
   },
   "errorBoundary": {
     "title": "Une erreur est survenue",

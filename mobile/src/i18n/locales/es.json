@@ -1088,7 +1088,9 @@
     "tabMemories": "Recuerdos",
     "hideRow": "Ocultar esta notificación",
     "dontSuggestPerson": "No volver a sugerir a {{name}}",
-    "thisPerson": "esta persona"
+    "thisPerson": "esta persona",
+    "askWebReplyTitle": "Nueva respuesta de fuera",
+    "askWebReplyBody": "{{name}} respondió a tu Ask"
   },
   "scanResult": {
     "headerTitle": "Añadir amigo",
@@ -1441,7 +1443,14 @@
     "recommendMsg": "Para tu Ask \"{{title}}\" — recomiendo a {{name}} (@{{username}}).",
     "recommendSent": "Enviado a quien preguntó",
     "recommendAlready": "Ya recomendaste a alguien para este Ask",
-    "viewProfile": "Ver perfil"
+    "viewProfile": "Ver perfil",
+    "shareOutside": "Compartir fuera de PikTag",
+    "shareText": "Estoy buscando: {{body}} — ¿conoces a alguien? {{url}}",
+    "webRepliesTitle": "Respuestas de fuera",
+    "saveAsContact": "Guardar como contacto",
+    "savedAsContact": "Guardado",
+    "saveContactFailed": "No se pudo guardar este contacto. Intenta de nuevo.",
+    "webReplyNote": "Respondió a mi Ask: {{title}}"
   },
   "errorBoundary": {
     "title": "Algo salió mal",

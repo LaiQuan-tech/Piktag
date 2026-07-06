@@ -1088,7 +1088,9 @@
     "tabMemories": "ذكريات",
     "hideRow": "إخفاء هذا الإشعار",
     "dontSuggestPerson": "لا تقترح {{name}} مرّة أخرى",
-    "thisPerson": "هذا الشخص"
+    "thisPerson": "هذا الشخص",
+    "askWebReplyTitle": "رد جديد من الخارج",
+    "askWebReplyBody": "رد {{name}} على طلبك"
   },
   "scanResult": {
     "headerTitle": "إضافة صديق",
@@ -1441,7 +1443,14 @@
     "recommendMsg": "بخصوص Ask «{{title}}» — أوصي بـ {{name}} (@{{username}}).",
     "recommendSent": "أُرسل إلى صاحب السؤال",
     "recommendAlready": "لقد أوصيت بشخص لهذا الـ Ask بالفعل",
-    "viewProfile": "عرض الملف الشخصي"
+    "viewProfile": "عرض الملف الشخصي",
+    "shareOutside": "مشاركة خارج PikTag",
+    "shareText": "أبحث عن: {{body}} — هل تعرف أحدًا؟ {{url}}",
+    "webRepliesTitle": "ردود من الخارج",
+    "saveAsContact": "حفظ كجهة اتصال",
+    "savedAsContact": "تم الحفظ",
+    "saveContactFailed": "تعذر حفظ جهة الاتصال هذه. حاول مرة أخرى.",
+    "webReplyNote": "رد على طلبي: {{title}}"
   },
   "errorBoundary": {
     "title": "حدث خطأ ما",

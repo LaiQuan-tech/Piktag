@@ -1088,7 +1088,9 @@
     "tabMemories": "Memories",
     "hideRow": "Hide this notification",
     "dontSuggestPerson": "Don't suggest {{name}} again",
-    "thisPerson": "this person"
+    "thisPerson": "this person",
+    "askWebReplyTitle": "New reply from outside",
+    "askWebReplyBody": "{{name}} replied to your Ask"
   },
   "scanResult": {
     "headerTitle": "Add Friend",
@@ -1441,7 +1443,14 @@
     "recommendMsg": "For your Ask \"{{title}}\" — I recommend {{name}} (@{{username}}).",
     "recommendSent": "Sent to the asker",
     "recommendAlready": "You already recommended someone for this Ask",
-    "viewProfile": "View profile"
+    "viewProfile": "View profile",
+    "shareOutside": "Share outside PikTag",
+    "shareText": "I am looking for: {{body}} — know anyone? {{url}}",
+    "webRepliesTitle": "Replies from outside",
+    "saveAsContact": "Save as contact",
+    "savedAsContact": "Saved",
+    "saveContactFailed": "Could not save this contact. Try again.",
+    "webReplyNote": "Replied to my Ask: {{title}}"
   },
   "errorBoundary": {
     "title": "Something went wrong",

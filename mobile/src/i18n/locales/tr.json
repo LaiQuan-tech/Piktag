@@ -1088,7 +1088,9 @@
     "tabMemories": "Anılar",
     "hideRow": "Bu bildirimi gizle",
     "dontSuggestPerson": "{{name}} bir daha önerme",
-    "thisPerson": "bu kişiyi"
+    "thisPerson": "bu kişiyi",
+    "askWebReplyTitle": "Dışarıdan yeni yanıt",
+    "askWebReplyBody": "{{name}} Ask'ına yanıt verdi"
   },
   "scanResult": {
     "headerTitle": "Arkadaş Ekle",
@@ -1441,7 +1443,14 @@
     "recommendMsg": "Ask'in \"{{title}}\" için — {{name}} (@{{username}}) kişisini öneriyorum.",
     "recommendSent": "Soranı bilgilendirdik",
     "recommendAlready": "Bu Ask için zaten birini önerdin",
-    "viewProfile": "Profili gör"
+    "viewProfile": "Profili gör",
+    "shareOutside": "PikTag dışında paylaş",
+    "shareText": "Şunu arıyorum: {{body}} — birini tanıyor musun? {{url}}",
+    "webRepliesTitle": "Dışarıdan gelen yanıtlar",
+    "saveAsContact": "Kişi olarak kaydet",
+    "savedAsContact": "Kaydedildi",
+    "saveContactFailed": "Bu kişi kaydedilemedi. Tekrar deneyin.",
+    "webReplyNote": "Ask'ıma yanıt verdi: {{title}}"
   },
   "errorBoundary": {
     "title": "Bir şeyler ters gitti",

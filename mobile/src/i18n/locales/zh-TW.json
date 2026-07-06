@@ -1072,7 +1072,9 @@
     "tabMemories": "回憶",
     "hideRow": "隱藏這則通知",
     "dontSuggestPerson": "以後不要推薦 {{name}}",
-    "thisPerson": "這個人"
+    "thisPerson": "這個人",
+    "askWebReplyTitle": "圈外有人回覆了",
+    "askWebReplyBody": "{{name}} 回覆了你的 Ask"
   },
   "scanResult": {
     "headerTitle": "加為好友",
@@ -1441,7 +1443,14 @@
     "recommendMsg": "關於你的 Ask「{{title}}」——我推薦 {{name}}（@{{username}}）。",
     "recommendSent": "已傳給發問者",
     "recommendAlready": "你已經為這則 Ask 推薦過人了",
-    "viewProfile": "看檔案"
+    "viewProfile": "看檔案",
+    "shareOutside": "分享到圈外",
+    "shareText": "我在找：{{body}} —— 你認識誰嗎？{{url}}",
+    "webRepliesTitle": "圈外回覆",
+    "saveAsContact": "存成聯絡人",
+    "savedAsContact": "已存",
+    "saveContactFailed": "無法儲存這位聯絡人，請再試一次。",
+    "webReplyNote": "回覆過我的 Ask：{{title}}"
   },
   "errorBoundary": {
     "title": "發生錯誤",

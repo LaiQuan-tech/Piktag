@@ -1088,7 +1088,9 @@
     "tabMemories": "Kenangan",
     "hideRow": "Sembunyikan notifikasi ini",
     "dontSuggestPerson": "Jangan sarankan {{name}} lagi",
-    "thisPerson": "orang ini"
+    "thisPerson": "orang ini",
+    "askWebReplyTitle": "Balasan baru dari luar",
+    "askWebReplyBody": "{{name}} membalas Ask kamu"
   },
   "scanResult": {
     "headerTitle": "Tambah Teman",
@@ -1441,7 +1443,14 @@
     "recommendMsg": "Untuk Ask kamu \"{{title}}\" — aku merekomendasikan {{name}} (@{{username}}).",
     "recommendSent": "Terkirim ke penanya",
     "recommendAlready": "Kamu sudah merekomendasikan seseorang untuk Ask ini",
-    "viewProfile": "Lihat profil"
+    "viewProfile": "Lihat profil",
+    "shareOutside": "Bagikan di luar PikTag",
+    "shareText": "Aku sedang mencari: {{body}} — kenal seseorang? {{url}}",
+    "webRepliesTitle": "Balasan dari luar",
+    "saveAsContact": "Simpan sebagai kontak",
+    "savedAsContact": "Tersimpan",
+    "saveContactFailed": "Kontak ini gagal disimpan. Coba lagi.",
+    "webReplyNote": "Membalas Ask saya: {{title}}"
   },
   "errorBoundary": {
     "title": "Terjadi kesalahan",

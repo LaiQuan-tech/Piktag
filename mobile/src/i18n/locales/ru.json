@@ -1088,7 +1088,9 @@
     "tabMemories": "Память",
     "hideRow": "Скрыть это уведомление",
     "dontSuggestPerson": "Больше не предлагать {{name}}",
-    "thisPerson": "этого человека"
+    "thisPerson": "этого человека",
+    "askWebReplyTitle": "Новый ответ со стороны",
+    "askWebReplyBody": "{{name}} ответил(а) на ваш Ask"
   },
   "scanResult": {
     "headerTitle": "Добавить друга",
@@ -1441,7 +1443,14 @@
     "recommendMsg": "Для вашего Ask «{{title}}» — рекомендую {{name}} (@{{username}}).",
     "recommendSent": "Отправлено автору вопроса",
     "recommendAlready": "Вы уже порекомендовали кого-то для этого Ask",
-    "viewProfile": "Открыть профиль"
+    "viewProfile": "Открыть профиль",
+    "shareOutside": "Поделиться вне PikTag",
+    "shareText": "Я ищу: {{body}} — знаете кого-нибудь? {{url}}",
+    "webRepliesTitle": "Ответы со стороны",
+    "saveAsContact": "Сохранить как контакт",
+    "savedAsContact": "Сохранено",
+    "saveContactFailed": "Не удалось сохранить этот контакт. Попробуйте снова.",
+    "webReplyNote": "Ответил(а) на мой Ask: {{title}}"
   },
   "errorBoundary": {
     "title": "Что-то пошло не так",

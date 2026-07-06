@@ -1088,7 +1088,9 @@
     "tabMemories": "স্মৃতি",
     "hideRow": "এই নোটিফিকেশন লুকান",
     "dontSuggestPerson": "{{name}} কে আর সাজেস্ট করবেন না",
-    "thisPerson": "এই ব্যক্তি"
+    "thisPerson": "এই ব্যক্তি",
+    "askWebReplyTitle": "বাইরে থেকে নতুন উত্তর",
+    "askWebReplyBody": "{{name}} আপনার Ask-এ উত্তর দিয়েছেন"
   },
   "scanResult": {
     "headerTitle": "বন্ধু যোগ করুন",
@@ -1441,7 +1443,14 @@
     "recommendMsg": "আপনার Ask \"{{title}}\"-এর জন্য — আমি {{name}} (@{{username}})-কে সুপারিশ করছি।",
     "recommendSent": "যিনি জিজ্ঞাসা করেছেন তাঁকে পাঠানো হয়েছে",
     "recommendAlready": "আপনি এই Ask-এর জন্য ইতিমধ্যে কাউকে সুপারিশ করেছেন",
-    "viewProfile": "প্রোফাইল দেখুন"
+    "viewProfile": "প্রোফাইল দেখুন",
+    "shareOutside": "PikTag-এর বাইরে শেয়ার করুন",
+    "shareText": "আমি খুঁজছি: {{body}} — কাউকে চেনেন? {{url}}",
+    "webRepliesTitle": "বাইরের উত্তর",
+    "saveAsContact": "কন্টাক্ট হিসেবে সংরক্ষণ করুন",
+    "savedAsContact": "সংরক্ষিত হয়েছে",
+    "saveContactFailed": "এই কন্টাক্ট সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।",
+    "webReplyNote": "আমার Ask-এ উত্তর দিয়েছেন: {{title}}"
   },
   "errorBoundary": {
     "title": "কিছু ভুল হয়েছে",

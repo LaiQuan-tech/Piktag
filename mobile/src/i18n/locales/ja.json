@@ -1088,7 +1088,9 @@
     "tabMemories": "思い出",
     "hideRow": "この通知を非表示",
     "dontSuggestPerson": "今後 {{name}} を提案しない",
-    "thisPerson": "この人"
+    "thisPerson": "この人",
+    "askWebReplyTitle": "外部から新しい返信",
+    "askWebReplyBody": "{{name}}さんがあなたのAskに返信しました"
   },
   "scanResult": {
     "headerTitle": "友達追加",
@@ -1441,7 +1443,14 @@
     "recommendMsg": "あなたの Ask「{{title}}」に — {{name}}（@{{username}}）をおすすめします。",
     "recommendSent": "質問した人に送りました",
     "recommendAlready": "この Ask にはすでに誰かを推薦しています",
-    "viewProfile": "プロフィールを見る"
+    "viewProfile": "プロフィールを見る",
+    "shareOutside": "PikTagの外にシェア",
+    "shareText": "探しています：{{body}} —— 心当たりある人いますか？{{url}}",
+    "webRepliesTitle": "外部からの返信",
+    "saveAsContact": "連絡先として保存",
+    "savedAsContact": "保存済み",
+    "saveContactFailed": "この連絡先を保存できませんでした。もう一度お試しください。",
+    "webReplyNote": "あなたのAskに返信しました：{{title}}"
   },
   "errorBoundary": {
     "title": "問題が発生しました",
