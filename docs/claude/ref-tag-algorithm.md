@@ -237,7 +237,7 @@ They MUST NOT invade each other's surfaces.**
 | Surface | Order by | Why |
 |---|---|---|
 | Own profile tag list | rules (`is_pinned` → `position` → `created_at`) | user-curated identity expression |
-| Other person's profile | rules (same) | their identity, viewer should see consistent snapshot — not a per-viewer dynamic re-sort |
+| Other person's profile (FriendDetail) | **hybrid(2026-07-06 探測證實,本表原記載已過時)**:hidden last → is_pinned → viewer-picked → pickCount → isMutual → position(FriendDetailScreen.tsx ~556) | 出貨行為:社群 pick 會動態上浮,owner 的置頂永遠最優先;原「rules only」記載與程式碼不符,創辦人 2026-07-06 確認以出貨行為為準(置頂=付費功能的前提) |
 | Search results | **weights** (already shipped: 4-source priority cascade + endorser tiebreaker) | algorithm decision, no user intent to violate |
 | TagDetail explore tab | `mutual_tag_count DESC, endorser_count DESC, id` (shipped) | weighted but mutual-first respects viewer-relevance over pure consensus |
 | Popular tags list | rules (`usage_count` + `search_count`) | cold-start has 0 endorsers, weight component sleeps |
