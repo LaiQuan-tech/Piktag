@@ -55,10 +55,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { shouldShowPhonePrompt, dismissPhonePrompt } from '../lib/phonePrompt';
 import AskStoryRow from '../components/ask/AskStoryRow';
 import type { Connection, ConnectionTag } from '../types';
+import { OFFICIAL_ACCOUNT_ID } from '../lib/officialDemoAsk';
 
 // PikTag official account (fixed UUID, auto-friended at wizard completion).
 // Used to detect the "only friend is @piktag" cold-start state.
-const OFFICIAL_USER_ID = '00000000-0000-4000-a000-000000000001';
+const OFFICIAL_USER_ID = OFFICIAL_ACCOUNT_ID;
 
 type ConnectionWithTags = Connection & {
   tags: string[];

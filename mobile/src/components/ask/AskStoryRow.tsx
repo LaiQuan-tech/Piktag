@@ -37,6 +37,7 @@ import { recordAskResponse } from '../../lib/searchLearning';
 import { useAuth } from '../../hooks/useAuth';
 import { useLocalContacts, normalizePhone } from '../../hooks/useLocalContacts';
 import type { AskFeedItem, MyActiveAsk } from '../../types/ask';
+import { isOfficialDemoAsk, getDemoAskText } from '../../lib/officialDemoAsk';
 // AskMatchSheet removed 2026-05-31 — founder direction
 // 「ask 發佈時的說明，這頁其實可不要，前一頁也有說明，再來就太多了」.
 // The AskCreateModal subtitle already tells the user that matching
@@ -473,6 +474,10 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
           {visibleAsks.map((ask) => {
             const name = ask.author_full_name || ask.author_username || '?';
             const viewed = viewedAskIds.has(ask.ask_id);
+            const isDemo = isOfficialDemoAsk(ask.author_id);
+            const railPreviewText = isDemo
+              ? getDemoAskText(t).title || getDemoAskText(t).body
+              : ask.title || ask.body;
             const avatar = ask.author_avatar_url ? (
               <Image source={{ uri: ask.author_avatar_url }} style={styles.circleAvatarImg} cachePolicy="memory-disk" />
             ) : (
@@ -520,7 +525,7 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
                   style={[styles.circleBody, viewed && styles.circleBodyViewed]}
                   numberOfLines={1}
                 >
-                  {ask.title || ask.body}
+                  {railPreviewText}
                 </Text>
               </TouchableOpacity>
             );
@@ -727,6 +732,8 @@ function AskViewSheet({ ask, onClose, onPressProfile }: AskViewSheetProps) {
   if (!ask) return null;
   const isOwn = user?.id === ask.author_id;
   const authorName = ask.author_full_name || ask.author_username || '?';
+  const isDemo = isOfficialDemoAsk(ask.author_id);
+  const demoText = isDemo ? getDemoAskText(t) : null;
 
   return (
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>
@@ -759,10 +766,19 @@ function AskViewSheet({ ask, onClose, onPressProfile }: AskViewSheetProps) {
               </View>
 
               <View style={modalStyles.viewBodyWrap}>
-                {ask.title ? (
-                  <Text style={modalStyles.viewTitleText}>{ask.title}</Text>
-                ) : null}
-                <Text style={modalStyles.viewBody}>{ask.body}</Text>
+                {demoText ? (
+                  <>
+                    <Text style={modalStyles.viewTitleText}>{demoText.title}</Text>
+                    <Text style={modalStyles.viewBody}>{demoText.body}</Text>
+                  </>
+                ) : (
+                  <>
+                    {ask.title ? (
+                      <Text style={modalStyles.viewTitleText}>{ask.title}</Text>
+                    ) : null}
+                    <Text style={modalStyles.viewBody}>{ask.body}</Text>
+                  </>
+                )}
               </View>
 
               {ask.ask_tag_names && ask.ask_tag_names.length > 0 ? (
@@ -786,7 +802,9 @@ function AskViewSheet({ ask, onClose, onPressProfile }: AskViewSheetProps) {
               ) : null}
 
               <Text style={modalStyles.viewMeta}>
-                {t('ask.timeLeft', { hours: hoursLeft(ask.expires_at) })}
+                {isDemo
+                  ? t('ask.demoBadge', { defaultValue: 'Demo Ask' })
+                  : t('ask.timeLeft', { hours: hoursLeft(ask.expires_at) })}
               </Text>
 
               {/* Primary (solid tier): the pre-sheet behavior — open the

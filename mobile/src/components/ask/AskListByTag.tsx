@@ -6,6 +6,7 @@ import { COLORS, type ColorPalette } from '../../constants/theme';
 import { useTheme } from '../../context/ThemeContext';
 import { useAsksByTag } from '../../hooks/useAsksByTag';
 import InitialsAvatar from '../InitialsAvatar';
+import { isOfficialDemoAsk, getDemoAskText } from '../../lib/officialDemoAsk';
 
 type AskListByTagProps = {
   tagId: string | null | undefined;
@@ -47,9 +48,16 @@ export default function AskListByTag({ tagId, onPressAsk }: AskListByTagProps) {
       <Text style={styles.sectionTitle}>{sectionTitle}</Text>
       {asks.map((ask) => {
         const name = ask.author_full_name || ask.author_username || '?';
-        const text = ask.title || ask.body;
+        const isDemo = isOfficialDemoAsk(ask.author_id);
+        const text = isDemo
+          ? getDemoAskText(t).title || getDemoAskText(t).body
+          : ask.title || ask.body;
         const h = hoursLeft(ask.expires_at);
-        const time = h > 0 ? t('ask.timeLeft', { hours: h }) : t('ask.expired');
+        const time = isDemo
+          ? t('ask.demoBadge', { defaultValue: 'Demo Ask' })
+          : h > 0
+            ? t('ask.timeLeft', { hours: h })
+            : t('ask.expired');
         return (
           <TouchableOpacity
             key={ask.ask_id}

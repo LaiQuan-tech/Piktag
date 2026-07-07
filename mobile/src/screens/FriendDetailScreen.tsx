@@ -72,6 +72,7 @@ import { useAskFeed } from '../hooks/useAskFeed';
 import type { Connection, PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
 import { isSafeBiolinkUrl } from '../lib/platforms';
+import { isOfficialDemoAsk, getDemoAskText } from '../lib/officialDemoAsk';
 
 // How many scan-event tags to show before the "show all" toggle kicks in.
 // Picked so a typical 2-3 event meeting still shows everything inline,
@@ -1122,27 +1123,51 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           {friendActiveAsk ? (
             <View style={styles.askCard}>
               <View style={styles.askHeader}>
-                <Text style={styles.askLabel}>{t('ask.askingNow')}</Text>
-                <Text style={styles.askMeta}>
-                  {t('ask.timeLeft', {
-                    hours: Math.max(
-                      0,
-                      Math.round(
-                        (new Date(friendActiveAsk.expires_at).getTime() - Date.now()) /
-                          3600000,
-                      ),
-                    ),
-                  })}
-                </Text>
+                {isOfficialDemoAsk(friendActiveAsk.author_id) ? (
+                  // Official account's Ask is a 10-year-long demo row —
+                  // its real expires_at is meaningless and a live
+                  // countdown against it produces absurd output (tens of
+                  // thousands of hours left). Show a single static badge
+                  // instead of any countdown/status text.
+                  <Text style={styles.askLabel}>{t('ask.demoBadge', { defaultValue: 'Demo Ask' })}</Text>
+                ) : (
+                  <>
+                    <Text style={styles.askLabel}>{t('ask.askingNow')}</Text>
+                    <Text style={styles.askMeta}>
+                      {t('ask.timeLeft', {
+                        hours: Math.max(
+                          0,
+                          Math.round(
+                            (new Date(friendActiveAsk.expires_at).getTime() - Date.now()) /
+                              3600000,
+                          ),
+                        ),
+                      })}
+                    </Text>
+                  </>
+                )}
               </View>
-              {friendActiveAsk.title ? (
-                <Text style={styles.askTitle} numberOfLines={2}>
-                  {friendActiveAsk.title}
-                </Text>
-              ) : null}
-              <Text style={styles.askBody} numberOfLines={3}>
-                {friendActiveAsk.body}
-              </Text>
+              {isOfficialDemoAsk(friendActiveAsk.author_id) ? (
+                <>
+                  <Text style={styles.askTitle} numberOfLines={2}>
+                    {getDemoAskText(t).title}
+                  </Text>
+                  <Text style={styles.askBody} numberOfLines={3}>
+                    {getDemoAskText(t).body}
+                  </Text>
+                </>
+              ) : (
+                <>
+                  {friendActiveAsk.title ? (
+                    <Text style={styles.askTitle} numberOfLines={2}>
+                      {friendActiveAsk.title}
+                    </Text>
+                  ) : null}
+                  <Text style={styles.askBody} numberOfLines={3}>
+                    {friendActiveAsk.body}
+                  </Text>
+                </>
+              )}
               {friendActiveAsk.ask_tag_names.length > 0 ? (
                 <View style={styles.askTagsRow}>
                   {friendActiveAsk.ask_tag_names.slice(0, 6).map((tagName) => (
