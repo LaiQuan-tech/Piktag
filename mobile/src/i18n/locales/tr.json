@@ -502,7 +502,8 @@
     "statFriendsA11y": "Arkadaşlarımı gör",
     "statFollowersA11y": "Takipçilerimi gör",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "officialBio": "Etiketler, insanların seni bulma yoludur — iş, yetenekler, hobiler, MBTI, seni sen yapan her şey. Profiline dokunup kendi etiketlerini ekle."
   },
   "editProfile": {
     "headerTitle": "Profili Düzenle",

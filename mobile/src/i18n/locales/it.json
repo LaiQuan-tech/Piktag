@@ -502,7 +502,8 @@
     "statFriendsA11y": "Vedi i miei amici",
     "statFollowersA11y": "Vedi i miei follower",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "officialBio": "I tag sono il modo in cui gli altri ti trovano — lavoro, competenze, hobby, MBTI, tutto ciò che ti rappresenta. Tocca il tuo profilo per aggiungere i tuoi."
   },
   "editProfile": {
     "headerTitle": "Modifica profilo",

@@ -502,7 +502,8 @@
     "statFriendsA11y": "আমার বন্ধু দেখুন",
     "statFollowersA11y": "আমার ফলোয়ার দেখুন",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "officialBio": "ট্যাগ হলো মানুষ যেভাবে আপনাকে খুঁজে পায় — চাকরি, দক্ষতা, শখ, MBTI, আপনার যা কিছু। আপনার প্রোফাইলে ট্যাপ করে নিজের ট্যাগ যোগ করুন।"
   },
   "editProfile": {
     "headerTitle": "প্রোফাইল এডিট",

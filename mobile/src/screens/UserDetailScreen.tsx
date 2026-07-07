@@ -52,6 +52,7 @@ import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVis
 import { isSafeBiolinkUrl } from '../lib/platforms';
 import { shareProfile } from '../lib/shareProfile';
 import { followUser } from '../lib/followUser';
+import { isOfficialAccount, getOfficialBio } from '../lib/officialDemoAsk';
 
 type UserDetailScreenProps = {
   navigation: any;
@@ -1315,7 +1316,11 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const username = profile.username || '';
   const verified = profile.is_verified || false;
   const headline = profile.headline || '';
-  const bio = profile.bio || '';
+  // @piktag's stored bio is English-only teaching copy ("Tags are how
+  // people find you..."). Like the demo Ask, it should teach in the
+  // viewer's own device language rather than leak the DB row's literal
+  // English — regular users' self-written bios pass through untouched.
+  const bio = isOfficialAccount(profile.id) ? getOfficialBio(t) : (profile.bio || '');
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>

@@ -502,7 +502,8 @@
     "statFriendsA11y": "عرض أصدقائي",
     "statFollowersA11y": "عرض متابعيّ",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "officialBio": "الوسوم هي الطريقة التي يجدك بها الآخرون — الوظيفة، المهارات، الهوايات، MBTI، أي شيء يمثّلك. اضغط على ملفك الشخصي لإضافة وسومك."
   },
   "editProfile": {
     "headerTitle": "تعديل الملف الشخصي",

@@ -502,7 +502,8 @@
     "statFriendsA11y": "Xem bạn bè của tôi",
     "statFollowersA11y": "Xem người theo dõi của tôi",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "officialBio": "Tag là cách người khác tìm thấy bạn — công việc, kỹ năng, sở thích, MBTI, bất cứ điều gì thuộc về bạn. Nhấn vào hồ sơ của bạn để thêm tag nhé."
   },
   "editProfile": {
     "headerTitle": "Sửa hồ sơ",

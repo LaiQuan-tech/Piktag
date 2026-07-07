@@ -502,7 +502,8 @@
     "statFriendsA11y": "ดูเพื่อนของฉัน",
     "statFollowersA11y": "ดูผู้ติดตามของฉัน",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "officialBio": "แท็กคือวิธีที่คนอื่นจะเจอคุณ — งาน ทักษะ งานอดิเรก MBTI หรืออะไรก็ตามที่เป็นคุณ แตะโปรไฟล์ของคุณเพื่อเพิ่มแท็กของคุณเอง"
   },
   "editProfile": {
     "headerTitle": "แก้ไขโปรไฟล์",

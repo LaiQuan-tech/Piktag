@@ -502,7 +502,8 @@
     "statFriendsA11y": "查看我的朋友",
     "statFollowersA11y": "查看我的追踪者",
     "statTribeA11y": "查看 Tribe 星图",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "officialBio": "标签是别人找到你的方式——职业、技能、兴趣、MBTI，任何代表你的东西。点开你的档案，加上你的标签。"
   },
   "editProfile": {
     "headerTitle": "编辑个人信息",

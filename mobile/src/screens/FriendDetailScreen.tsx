@@ -72,7 +72,7 @@ import { useAskFeed } from '../hooks/useAskFeed';
 import type { Connection, PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
 import { isSafeBiolinkUrl } from '../lib/platforms';
-import { isOfficialDemoAsk, getDemoAskText } from '../lib/officialDemoAsk';
+import { isOfficialDemoAsk, isOfficialAccount, getOfficialBio, getDemoAskText } from '../lib/officialDemoAsk';
 
 // How many scan-event tags to show before the "show all" toggle kicks in.
 // Picked so a typical 2-3 event meeting still shows everything inline,
@@ -1112,8 +1112,15 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           {/* Headline */}
           {profile?.headline ? <Text style={styles.headline}>{profile.headline}</Text> : null}
 
-          {/* Bio (max 3 lines) */}
-          {profile?.bio ? <Text style={styles.bio} numberOfLines={3}>{profile.bio}</Text> : null}
+          {/* Bio (max 3 lines). @piktag's stored bio is English-only
+              teaching copy — render it in the viewer's device language
+              instead, same reasoning as the demo Ask below. Regular
+              friends' self-written bios are untouched. */}
+          {isOfficialAccount(profile?.id) ? (
+            <Text style={styles.bio} numberOfLines={3}>{getOfficialBio(t)}</Text>
+          ) : profile?.bio ? (
+            <Text style={styles.bio} numberOfLines={3}>{profile.bio}</Text>
+          ) : null}
 
           {/* Friend's active Ask — conversation hook, not a CTA. See the
               friendActiveAsk memo above for the framing. No respond

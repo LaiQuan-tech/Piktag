@@ -19,7 +19,17 @@ export const OFFICIAL_ACCOUNT_ID = '00000000-0000-4000-a000-000000000001';
  *     viewer's own language.
  */
 export function isOfficialDemoAsk(authorId: string | null | undefined): boolean {
-  return authorId === OFFICIAL_ACCOUNT_ID;
+  return isOfficialAccount(authorId);
+}
+
+/**
+ * General-purpose official-account check for non-Ask surfaces (profile bio,
+ * badges, etc). isOfficialDemoAsk is kept as a semantic alias for Ask call
+ * sites and now just delegates here — OFFICIAL_ACCOUNT_ID stays the single
+ * source of truth in this file.
+ */
+export function isOfficialAccount(userId: string | null | undefined): boolean {
+  return userId === OFFICIAL_ACCOUNT_ID;
 }
 
 export function getDemoAskText(t: TFunction): { title: string; body: string } {
@@ -30,4 +40,19 @@ export function getDemoAskText(t: TFunction): { title: string; body: string } {
         'Looking for a React Native developer for a side project — who do you know?',
     }),
   };
+}
+
+/**
+ * The official @piktag account's bio in the DB is teaching copy written in
+ * English ("Tags are how people find you..."). Like the demo Ask, this is
+ * instructional content aimed at every new user regardless of the account's
+ * stored language — so it should render in the viewer's own device language
+ * rather than the DB row's literal (English) bio. Regular users' bios are
+ * never touched by this function.
+ */
+export function getOfficialBio(t: TFunction): string {
+  return t('profile.officialBio', {
+    defaultValue:
+      "Tags are how people find you — job, skills, hobbies, MBTI, anything that's you. Tap your profile to add yours.",
+  });
 }

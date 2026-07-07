@@ -502,7 +502,8 @@
     "statFriendsA11y": "Посмотреть моих друзей",
     "statFollowersA11y": "Посмотреть моих подписчиков",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "officialBio": "Теги — это то, как тебя находят другие: работа, навыки, увлечения, MBTI, всё, что тебя описывает. Открой свой профиль и добавь свои теги."
   },
   "editProfile": {
     "headerTitle": "Редактирование профиля",

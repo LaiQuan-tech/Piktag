@@ -502,7 +502,8 @@
     "statFriendsA11y": "自分の友達を見る",
     "statFollowersA11y": "自分のフォロワーを見る",
     "statTribeA11y": "Tribe 星図を見る",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "officialBio": "タグは、あなたが人に見つけてもらうための手がかりです——仕事、スキル、趣味、MBTIなど、あなたらしさを表すもの。プロフィールを開いて、自分のタグを追加しましょう。"
   },
   "editProfile": {
     "headerTitle": "プロフィール編集",

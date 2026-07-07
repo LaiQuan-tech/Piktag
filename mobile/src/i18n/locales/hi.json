@@ -502,7 +502,8 @@
     "statFriendsA11y": "मेरे दोस्त देखें",
     "statFollowersA11y": "मेरे फ़ॉलोअर देखें",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "officialBio": "टैग ही वह तरीका है जिससे लोग आपको ढूंढ पाते हैं — नौकरी, स्किल्स, शौक, MBTI, जो भी आप हैं। अपनी प्रोफ़ाइल खोलकर अपने टैग जोड़ें।"
   },
   "editProfile": {
     "headerTitle": "प्रोफ़ाइल संपादित करें",

@@ -502,7 +502,8 @@
     "statFriendsA11y": "查看我的朋友",
     "statFollowersA11y": "查看我的追蹤者",
     "statTribeA11y": "查看 Tribe 星圖",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "officialBio": "標籤是別人找到你的方式——職業、技能、興趣、MBTI，任何代表你的東西。點開你的檔案，加上你的標籤。"
   },
   "editProfile": {
     "headerTitle": "編輯個人資訊",

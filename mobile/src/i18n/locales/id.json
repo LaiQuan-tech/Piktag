@@ -502,7 +502,8 @@
     "statFriendsA11y": "Lihat teman saya",
     "statFollowersA11y": "Lihat pengikut saya",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "officialBio": "Tag adalah cara orang lain menemukanmu — pekerjaan, skill, hobi, MBTI, apa pun yang mencerminkan dirimu. Ketuk profilmu untuk menambahkan tag."
   },
   "editProfile": {
     "headerTitle": "Edit Profil",
