@@ -256,7 +256,15 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
   const name = escapeHtml(profile.full_name || profile.username || '#PikTag User');
   const username = escapeHtml(profile.username || '');
   const headline = profile.headline ? escapeHtml(profile.headline) : '';
-  const bio = profile.bio ? escapeHtml(profile.bio) : '';
+  // @piktag's bio is an English-only teaching blurb stored in the DB
+  // ("Tags are how people find you..."). Non-English visitors should see
+  // it localized — every other user's bio is left exactly as they wrote
+  // it. No is_official column is fetched for this page (see the SELECT
+  // above), so the official account is identified by its fixed username.
+  const isOfficialAccount = profile.username === 'piktag';
+  const bio = isOfficialAccount
+    ? escapeHtml(locale.officialBio || profile.bio || '')
+    : (profile.bio ? escapeHtml(profile.bio) : '');
   const avatarUrl =
     profile.avatar_url ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=f3f4f6&color=6b7280&size=200`;
