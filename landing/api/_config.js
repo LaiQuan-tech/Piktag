@@ -97,6 +97,8 @@ const TRANSLATIONS = {
     askDownloadCta: 'Download PikTag',
     askAskedBy: 'asked',
     askPageTitleSuffix: 'Ask on #PikTag',
+    askDemoTitle: 'React Native developer',
+    askDemoBody: 'Looking for a React Native developer for a side project — who do you know?',
   },
   'zh-TW': {
     htmlLang: 'zh-TW',
@@ -140,6 +142,8 @@ const TRANSLATIONS = {
     askDownloadCta: '下載 PikTag',
     askAskedBy: '提問',
     askPageTitleSuffix: '在 #PikTag 上的 Ask',
+    askDemoTitle: '找 React Native 工程師',
+    askDemoBody: '想找一位 React Native 工程師一起做 side project——你認識誰嗎？',
   },
   'zh-CN': {
     htmlLang: 'zh-CN',
@@ -183,6 +187,8 @@ const TRANSLATIONS = {
     askDownloadCta: '下载 PikTag',
     askAskedBy: '提问',
     askPageTitleSuffix: '在 #PikTag 上的 Ask',
+    askDemoTitle: '找 React Native 工程师',
+    askDemoBody: '想找一位 React Native 工程师一起做 side project——你认识谁吗？',
   },
   ja: {
     htmlLang: 'ja',
@@ -226,6 +232,8 @@ const TRANSLATIONS = {
     askDownloadCta: 'PikTagをダウンロード',
     askAskedBy: '質問',
     askPageTitleSuffix: '#PikTagのAsk',
+    askDemoTitle: 'React Nativeエンジニアを探しています',
+    askDemoBody: 'サイドプロジェクトを手伝ってくれるReact Nativeエンジニアを探しています——誰か知り合いはいますか？',
   },
   ko: {
     htmlLang: 'ko',
@@ -269,6 +277,8 @@ const TRANSLATIONS = {
     askDownloadCta: 'PikTag 다운로드',
     askAskedBy: '질문',
     askPageTitleSuffix: '#PikTag의 Ask',
+    askDemoTitle: 'React Native 개발자 찾기',
+    askDemoBody: '사이드 프로젝트를 함께할 React Native 개발자를 찾고 있어요 — 아는 분 있나요?',
   },
   es: {
     htmlLang: 'es',
@@ -312,6 +322,8 @@ const TRANSLATIONS = {
     askDownloadCta: 'Descargar PikTag',
     askAskedBy: 'pregunta',
     askPageTitleSuffix: 'Ask en #PikTag',
+    askDemoTitle: 'Desarrollador de React Native',
+    askDemoBody: 'Busco un desarrollador de React Native para un proyecto paralelo — ¿conoces a alguien?',
   },
   fr: {
     htmlLang: 'fr',
@@ -355,6 +367,8 @@ const TRANSLATIONS = {
     askDownloadCta: 'Télécharger PikTag',
     askAskedBy: 'question',
     askPageTitleSuffix: 'Ask sur #PikTag',
+    askDemoTitle: 'Développeur React Native',
+    askDemoBody: "Je cherche un développeur React Native pour un projet perso — tu connais quelqu'un ?",
   },
   pt: {
     htmlLang: 'pt',
@@ -398,6 +412,8 @@ const TRANSLATIONS = {
     askDownloadCta: 'Baixar PikTag',
     askAskedBy: 'pergunta',
     askPageTitleSuffix: 'Ask no #PikTag',
+    askDemoTitle: 'Desenvolvedor React Native',
+    askDemoBody: 'Procuro um desenvolvedor React Native para um projeto paralelo — você conhece alguém?',
   },
   ru: {
     htmlLang: 'ru',
@@ -441,6 +457,8 @@ const TRANSLATIONS = {
     askDownloadCta: 'Скачать PikTag',
     askAskedBy: 'вопрос',
     askPageTitleSuffix: 'Ask в #PikTag',
+    askDemoTitle: 'Ищу React Native разработчика',
+    askDemoBody: 'Ищу React Native разработчика для проекта на стороне — знаешь кого-нибудь?',
   },
   ar: {
     htmlLang: 'ar',
@@ -484,6 +502,8 @@ const TRANSLATIONS = {
     askDownloadCta: 'تنزيل PikTag',
     askAskedBy: 'سؤال',
     askPageTitleSuffix: 'Ask على #PikTag',
+    askDemoTitle: 'مطوّر React Native',
+    askDemoBody: 'أبحث عن مطوّر React Native لمشروع جانبي — هل تعرف أحدًا؟',
   },
   hi: {
     htmlLang: 'hi',
@@ -527,6 +547,8 @@ const TRANSLATIONS = {
     askDownloadCta: 'PikTag डाउनलोड करें',
     askAskedBy: 'सवाल',
     askPageTitleSuffix: '#PikTag पर Ask',
+    askDemoTitle: 'React Native डेवलपर की तलाश',
+    askDemoBody: 'एक साइड प्रोजेक्ट के लिए React Native डेवलपर ढूंढ रहा हूँ — क्या आप किसी को जानते हैं?',
   },
   id: {
     htmlLang: 'id',
@@ -570,6 +592,8 @@ const TRANSLATIONS = {
     askDownloadCta: 'Unduh PikTag',
     askAskedBy: 'pertanyaan',
     askPageTitleSuffix: 'Ask di #PikTag',
+    askDemoTitle: 'Developer React Native',
+    askDemoBody: 'Sedang mencari developer React Native untuk proyek sampingan — ada yang kamu kenal?',
   },
   th: {
     htmlLang: 'th',
@@ -613,6 +637,8 @@ const TRANSLATIONS = {
     askDownloadCta: 'ดาวน์โหลด PikTag',
     askAskedBy: 'คำถาม',
     askPageTitleSuffix: 'Ask บน #PikTag',
+    askDemoTitle: 'หานักพัฒนา React Native',
+    askDemoBody: 'กำลังหานักพัฒนา React Native มาช่วยทำโปรเจกต์เสริม — รู้จักใครไหม?',
   },
   tr: {
     htmlLang: 'tr',
@@ -656,6 +682,8 @@ const TRANSLATIONS = {
     askDownloadCta: 'PikTag\'i indir',
     askAskedBy: 'soru',
     askPageTitleSuffix: '#PikTag\'te Ask',
+    askDemoTitle: 'React Native geliştirici arıyorum',
+    askDemoBody: 'Yan proje için bir React Native geliştirici arıyorum — tanıdığın biri var mı?',
   },
   bn: {
     htmlLang: 'bn',
@@ -699,6 +727,8 @@ const TRANSLATIONS = {
     askDownloadCta: 'PikTag ডাউনলোড করুন',
     askAskedBy: 'প্রশ্ন',
     askPageTitleSuffix: '#PikTag এ Ask',
+    askDemoTitle: 'React Native ডেভেলপার খুঁজছি',
+    askDemoBody: 'একটা সাইড প্রজেক্টের জন্য React Native ডেভেলপার খুঁজছি — আপনি কাউকে চেনেন?',
   },
   de: {
     htmlLang: 'de',
@@ -742,6 +772,8 @@ const TRANSLATIONS = {
     askDownloadCta: 'PikTag herunterladen',
     askAskedBy: 'Frage',
     askPageTitleSuffix: 'Ask auf #PikTag',
+    askDemoTitle: 'React-Native-Entwickler gesucht',
+    askDemoBody: 'Ich suche einen React-Native-Entwickler für ein Nebenprojekt — kennst du jemanden?',
   },
   it: {
     htmlLang: 'it',
@@ -785,6 +817,8 @@ const TRANSLATIONS = {
     askDownloadCta: 'Scarica PikTag',
     askAskedBy: 'domanda',
     askPageTitleSuffix: 'Ask su #PikTag',
+    askDemoTitle: 'Sviluppatore React Native',
+    askDemoBody: 'Cerco uno sviluppatore React Native per un progetto secondario — conosci qualcuno?',
   },
   vi: {
     htmlLang: 'vi',
@@ -828,6 +862,8 @@ const TRANSLATIONS = {
     askDownloadCta: 'Tải PikTag',
     askAskedBy: 'câu hỏi',
     askPageTitleSuffix: 'Ask trên #PikTag',
+    askDemoTitle: 'Tìm lập trình viên React Native',
+    askDemoBody: 'Đang tìm một lập trình viên React Native để làm dự án tay trái — bạn có quen ai không?',
   },
   ur: {
     htmlLang: 'ur',
@@ -871,6 +907,8 @@ const TRANSLATIONS = {
     askDownloadCta: 'PikTag ڈاؤن لوڈ کریں',
     askAskedBy: 'سوال',
     askPageTitleSuffix: '#PikTag پر Ask',
+    askDemoTitle: 'React Native ڈویلپر کی تلاش',
+    askDemoBody: 'ایک سائیڈ پراجیکٹ کے لیے React Native ڈویلپر ڈھونڈ رہا ہوں — کیا آپ کسی کو جانتے ہیں؟',
   },
 };
 

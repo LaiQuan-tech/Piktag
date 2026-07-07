@@ -71,8 +71,15 @@ module.exports = async function handler(req, res) {
 function renderAskPage(askId, ask, locale, analyticsSnippet) {
   const authorName = escapeHtml(ask.author_name || 'PikTag user');
   const authorUsername = ask.author_username ? escapeHtml(ask.author_username) : '';
-  const title = escapeHtml(ask.title || '');
-  const body = ask.body ? escapeHtml(ask.body) : '';
+  // The official @piktag demo Ask is seeded in English in the DB. For
+  // non-English visitors it should teach-by-example in their own language,
+  // unlike real users' Asks (whose DB text IS their own language and should
+  // render as-is). Override title/body with the localized demo copy only
+  // for the official account; everyone else keeps the raw DB text.
+  const isOfficialDemoAsk = ask.author_username === 'piktag';
+  const title = escapeHtml((isOfficialDemoAsk ? locale.askDemoTitle : ask.title) || '');
+  const rawBody = isOfficialDemoAsk ? locale.askDemoBody : ask.body;
+  const body = rawBody ? escapeHtml(rawBody) : '';
   const tagNames = Array.isArray(ask.tag_names) ? ask.tag_names : [];
   const isExpired = !!ask.is_expired;
   const avatarUrl = ask.author_avatar_url ||
