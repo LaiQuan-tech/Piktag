@@ -28,9 +28,30 @@ const GRAY_ZONE_FLOOR = 0.70;
 const BATCH_SIZE = 50;
 const HIERARCHY_BATCH = 20;
 
+// ROOT-CAUSE FIX (2026-07-07 hang): the three Gemini fetches below had
+// no timeout. When an upstream call hangs, its `await` never returns, so
+// the Deno worker is killed by the platform wall-clock limit BEFORE the
+// `finally` block that releases linker_run_lock ever runs — leaving the
+// lock stuck and every later cron run skipping (lock looks <STALE_LOCK_MIN
+// old). AbortController caps each call so a hung upstream throws instead,
+// the surrounding try/catch returns null/[], and the lock always releases.
+async function fetchWithTimeout(
+  url: string,
+  init: RequestInit,
+  timeoutMs: number,
+): Promise<Response> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function generateEmbedding(text: string, apiKey: string): Promise<number[] | null> {
   try {
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent',
       {
         method: 'POST',
@@ -42,7 +63,8 @@ async function generateEmbedding(text: string, apiKey: string): Promise<number[]
           model: 'models/gemini-embedding-001',
           content: { parts: [{ text }] },
         }),
-      }
+      },
+      8000,
     );
 
     if (!response.ok) {
@@ -73,7 +95,7 @@ Tags: ${tagNames.join(', ')}
 Respond ONLY in JSON array format, no markdown:
 [{"tag":"媽祖","parent":"民間信仰","semantic_type":"interest"},{"tag":"工程師","parent":null,"semantic_type":"career"}]`;
 
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
       {
         method: 'POST',
@@ -85,7 +107,8 @@ Respond ONLY in JSON array format, no markdown:
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: { temperature: 0.1, maxOutputTokens: 4096 },
         }),
-      }
+      },
+      15000,
     );
 
     if (!response.ok) {
@@ -137,7 +160,7 @@ ${list}
 
 Reply with ONLY the number of the matching concept, or 0 if none is a true synonym.`;
 
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
       {
         method: 'POST',
@@ -155,6 +178,7 @@ Reply with ONLY the number of the matching concept, or 0 if none is a true synon
           generationConfig: { temperature: 0, maxOutputTokens: 1024 },
         }),
       },
+      15000,
     );
 
     if (!response.ok) {
@@ -218,7 +242,11 @@ serve(async (req) => {
     // exists to fix). The conditional UPDATE below is atomic at the
     // row level: only one caller wins, the loser sees 0 rows and
     // bails. 10-min stale window self-heals a crashed run.
-    const STALE_LOCK_MIN = 10;
+    // Lowered 10→3 (2026-07-07): with fetchWithTimeout above, a run now
+    // finishes or errors within seconds and releases the lock cleanly, so
+    // a genuinely-stuck lock (e.g. worker OOM-killed mid-run) should be
+    // reclaimable fast. 3 min is comfortably above a healthy run's wall time.
+    const STALE_LOCK_MIN = 3;
     const staleCutoff = new Date(Date.now() - STALE_LOCK_MIN * 60 * 1000).toISOString();
     const { data: lockClaim, error: lockErr } = await supabase
       .from('linker_run_lock')
