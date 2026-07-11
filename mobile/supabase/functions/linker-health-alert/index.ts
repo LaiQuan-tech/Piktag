@@ -189,12 +189,44 @@ serve(async (req) => {
     embedProbe.error = String(e).slice(0, 200);
   }
 
+  // ── Step 3 (diagnostic, 2026-07-11): invoke the linker DIRECTLY and
+  // relay its verbatim response. External triggers kept losing the lock
+  // race against pg_cron, so ground truth about WHY runs link zero tags
+  // was unreadable. This fn holds both the service key (clear the lock)
+  // and CRON_SECRET (authorized call), so it can guarantee a real run and
+  // capture {processed, linked, created} or the actual error.
+  let linkerRelay: Record<string, unknown> | null = null;
+  if (unhealthy) {
+    try {
+      await supabase.from('linker_run_lock').update({ locked_at: null }).eq('id', 1);
+      const ctrl2 = new AbortController();
+      const timer2 = setTimeout(() => ctrl2.abort(), 120000);
+      try {
+        const r = await fetch(`${supabaseUrl}/functions/v1/auto-link-concepts`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${expected}`,
+          },
+          signal: ctrl2.signal,
+        });
+        const body = await r.text().catch(() => '');
+        linkerRelay = { status: r.status, body: body.slice(0, 600) };
+      } finally {
+        clearTimeout(timer2);
+      }
+    } catch (e) {
+      linkerRelay = { error: String(e).slice(0, 300) };
+    }
+  }
+
   return new Response(
     JSON.stringify({
       healthy,
       coverage_pct: coveragePct,
       oldest_unlinked_hours: oldestUnlinkedHours,
       embed_probe: embedProbe,
+      linker_relay: linkerRelay,
     }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
   );
