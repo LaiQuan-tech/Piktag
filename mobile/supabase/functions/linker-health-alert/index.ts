@@ -213,6 +213,7 @@ serve(async (req) => {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${expected}`,
           },
+          body: JSON.stringify({ force: true }),
           signal: ctrl2.signal,
         });
         const body = await r.text().catch(() => '');
