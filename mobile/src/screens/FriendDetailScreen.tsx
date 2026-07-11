@@ -1228,7 +1228,16 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                   key={tag.tagId}
                   style={styles.tagChip}
                   activeOpacity={0.6}
-                  onPress={() => navigation.navigate('TagDetail', { tagId: tag.tagId, tagName: tag.name })}
+                  // displayLabel carries the localized official-account
+                  // label through so TagDetailScreen's header doesn't
+                  // flash the raw (possibly foreign-language) tagName.
+                  onPress={() =>
+                    navigation.navigate('TagDetail', {
+                      tagId: tag.tagId,
+                      tagName: tag.name,
+                      ...(officialLabel ? { displayLabel: officialLabel } : {}),
+                    })
+                  }
                 >
                   <Text style={styles.tagChipText}>
                     #{officialLabel || tag.name}

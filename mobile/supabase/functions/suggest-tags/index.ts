@@ -45,12 +45,51 @@ const MODEL_FALLBACK_CHAIN = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'] as co
 // dead and silently fell through to 2.5-flash).
 const FAST_MODEL_CHAIN = ['gemini-2.5-flash-lite', 'gemini-2.5-flash'] as const;
 
+// Locale code (matches mobile/src/i18n's 19 supported codes) -> the
+// language name inserted into the prompt's "Keywords MUST be written in
+// ${lang}" instruction. 2026-07-11: card-scan suggestions were following
+// the LANGUAGE PRINTED ON THE CARD (callers regex-sniffed the bio text)
+// instead of the language the SCANNING user reads — an English-UI user
+// scanning a Chinese card got Chinese tags back. `locale` carries the
+// scanning user's app language (i18n.language) so suggestions are always
+// legible to them; proper nouns / tech terms are still allowed through in
+// their original form via the existing prompt carve-out below. Kept as a
+// separate optional field (not a replacement for `lang`) so old clients
+// that only send `lang` are completely unaffected.
+const LOCALE_LANGUAGE_MAP: Record<string, string> = {
+  'zh-TW': '繁體中文',
+  'zh-CN': '简体中文',
+  en: 'English',
+  ja: '日本語',
+  ko: '한국어',
+  es: 'español',
+  fr: 'français',
+  de: 'Deutsch',
+  ar: 'العربية',
+  hi: 'हिन्दी',
+  bn: 'বাংলা',
+  pt: 'português',
+  ru: 'русский',
+  id: 'Bahasa Indonesia',
+  th: 'ภาษาไทย',
+  tr: 'Türkçe',
+  vi: 'Tiếng Việt',
+  ur: 'اردو',
+  it: 'italiano',
+};
+
 type SuggestBody = {
   bio?: string;
   name?: string;
   location?: string;
   existingTags?: string;
   lang?: string;
+  // Scanning/requesting user's app language code (e.g. 'en', 'zh-TW',
+  // 'ja' — see LOCALE_LANGUAGE_MAP). When recognized, takes priority over
+  // `lang` for the prompt's language instruction. Optional and additive —
+  // omitted or unrecognized falls straight through to the existing `lang`
+  // / content-detection behavior below, so old callers are unaffected.
+  locale?: string;
   // `true` = latency-optimized path (card-scan contact tagging): flash-lite
   // model, a lean person-focused prompt, fewer + capped tokens. Other
   // callers (event-QR mix, EditProfile, ManageTags, Ask) omit it.
@@ -177,7 +216,9 @@ serve(async (req) => {
     const name = (body.name ?? '').trim().slice(0, MAX_INPUT);
     const location = (body.location ?? '').trim().slice(0, MAX_INPUT);
     const existingTags = (body.existingTags ?? '').trim().slice(0, MAX_INPUT);
-    const lang = (body.lang ?? 'the same language as the content').trim().slice(0, 50);
+    const localeCode = (body.locale ?? '').trim().slice(0, 10);
+    const localeLang = LOCALE_LANGUAGE_MAP[localeCode];
+    const lang = (localeLang ?? body.lang ?? 'the same language as the content').trim().slice(0, 50);
     const date = (body.date ?? '').trim().slice(0, 32);
     const locationDetail = (body.locationDetail ?? '').trim().slice(0, MAX_INPUT);
     const popularNearby = (body.popularNearby ?? '').trim().slice(0, MAX_INPUT);

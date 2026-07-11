@@ -1420,8 +1420,14 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                     style={styles.tagChip}
                     activeOpacity={0.6}
                     onPress={() => {
-                      // Navigate to tag detail - need to find tag id first
-                      navigation.navigate('TagDetail', { tagName: rawName });
+                      // Navigate to tag detail - need to find tag id first.
+                      // displayLabel carries the localized official-account
+                      // label through so TagDetailScreen's header doesn't
+                      // flash the raw (possibly foreign-language) tagName.
+                      navigation.navigate('TagDetail', {
+                        tagName: rawName,
+                        ...(officialLabel ? { displayLabel: officialLabel } : {}),
+                      });
                     }}
                   >
                     <Text style={styles.tagChipText}>{officialLabel ? `#${officialLabel}` : tag}</Text>

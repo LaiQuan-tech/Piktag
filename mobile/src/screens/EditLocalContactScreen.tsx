@@ -91,7 +91,7 @@ type CardData = {
 };
 
 export default function EditLocalContactScreen({ navigation, route }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const contactId: string | undefined = route.params?.contactId;
@@ -405,21 +405,20 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       if (!ctx) return;
       setAiLoading(true);
       try {
-        const lang = /[一-鿿]/.test(ctx)
-          ? '繁體中文'
-          : /[぀-ヿ]/.test(ctx)
-          ? '日本語'
-          : /[가-힯]/.test(ctx)
-          ? '한국어'
-          : /[฀-๿]/.test(ctx)
-          ? 'ภาษาไทย'
-          : 'the same language as the content';
+        // Suggested tags must follow the SCANNING user's app language, not
+        // the card's printed language (founder 2026-07-11: an English-UI
+        // user scanning a Chinese card was getting Chinese tag suggestions
+        // they couldn't read). `locale` lets the edge fn map to a language
+        // name via its own 19-locale table; passing the raw i18n code (not
+        // a guessed name) keeps that mapping in one place. The edge fn
+        // falls back to content-based detection if `locale` is unset/
+        // unrecognized, so this is safe even mid-rollout.
         const { data, error } = await supabase.functions.invoke<{ suggestions?: string[] }>(
           'suggest-tags',
           // fast: flash-lite + lean person-prompt + capped tokens — a card
           // scan is mid-event, so the suggestion should land quickly
           // (founder 2026-06-07: the result page felt a beat slow).
-          { body: { bio, name: nm, existingTags: tags.join(', '), lang, fast: true } },
+          { body: { bio, name: nm, existingTags: tags.join(', '), locale: i18n.language, fast: true } },
         );
         if (!error && Array.isArray(data?.suggestions)) {
           const taken = new Set(tags.map((x) => x.toLowerCase()));

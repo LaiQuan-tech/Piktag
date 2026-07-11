@@ -81,6 +81,13 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
   const paramTagId = route.params?.tagId;
   const tagName = route.params?.tagName;
   const initialTab = route.params?.initialTab as TabKey | undefined;
+  // Optional caller-supplied localized label (e.g. the official @piktag
+  // demo tag's viewer-language display text — "Photography" vs the real
+  // tagName "攝影"). HEADER DISPLAY ONLY: every query, the sibling-resolve
+  // effect, explore fetch, and the Ask list all key on the real tagName /
+  // resolvedTagId below, unchanged. Falls back to tagName when absent, so
+  // non-official callers (the vast majority) are byte-for-byte unaffected.
+  const displayLabel = route.params?.displayLabel as string | undefined;
 
   const [resolvedTagId, setResolvedTagId] = useState<string | null>(paramTagId || null);
   // Default tab is "connections" (friends-first) — matches how people
@@ -608,7 +615,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         <View style={styles.headerCenter}>
           <View style={styles.tagBadge}>
             <Hash size={18} color={colors.piktag600} strokeWidth={2.5} />
-            <Text style={styles.tagTitle}>{tagName || t('tagDetail.unknownTag')}</Text>
+            <Text style={styles.tagTitle}>{displayLabel || tagName || t('tagDetail.unknownTag')}</Text>
           </View>
           {tagSemanticType && (
             <Text style={styles.tagSemanticLabel}>
