@@ -148,8 +148,35 @@ serve(async (req) => {
         embedProbe.http_status = resp.status;
         if (resp.ok) {
           const j = await resp.json();
-          embedProbe.ok = Array.isArray(j.embedding?.values) && j.embedding.values.length > 0;
-          embedProbe.dims = j.embedding?.values?.length ?? 0;
+          const vec: number[] = j.embedding?.values ?? [];
+          embedProbe.ok = Array.isArray(vec) && vec.length > 0;
+          embedProbe.dims = vec.length;
+
+          // Step 2: the NEXT stage of the linker pipeline — pgvector
+          // similarity search. The 2026-06 42883 incident hit exactly this
+          // class of function (LANGUAGE sql + <=> without extensions on the
+          // search_path), so when embedding succeeds but linking is still
+          // zero, this is the prime suspect. Report its verdict verbatim.
+          if (embedProbe.ok) {
+            try {
+              const { data: cands, error: simErr } = await supabase.rpc(
+                'find_similar_concepts',
+                {
+                  query_embedding: JSON.stringify(vec),
+                  similarity_threshold: 0.5,
+                  max_results: 3,
+                },
+              );
+              if (simErr) {
+                embedProbe.similar_error = `${simErr.code ?? ''} ${simErr.message ?? ''}`.slice(0, 300);
+              } else {
+                embedProbe.similar_ok = true;
+                embedProbe.similar_candidates = Array.isArray(cands) ? cands.length : 0;
+              }
+            } catch (e) {
+              embedProbe.similar_error = String(e).slice(0, 200);
+            }
+          }
         } else {
           const bodyText = await resp.text().catch(() => '');
           embedProbe.error = bodyText.slice(0, 300);
