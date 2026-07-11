@@ -257,32 +257,31 @@ serve(async (req) => {
     // finishes or errors within seconds and releases the lock cleanly, so
     // a genuinely-stuck lock (e.g. worker OOM-killed mid-run) should be
     // reclaimable fast. 3 min is comfortably above a healthy run's wall time.
+    // PHANTOM-SKIP FIX (2026-07-11): the previous PostgREST-side claim
+    // (.update().eq().or(...).select()) SET locked_at yet returned an
+    // empty representation, so every run false-skipped as "another run
+    // in progress" — the linker starved itself indefinitely while the
+    // engine underneath was healthy. Claim is now an atomic SQL RPC
+    // (claim_linker_lock, migration 20260711040000): true = we own the
+    // run, false = someone genuinely does.
     const STALE_LOCK_MIN = 3;
-    const staleCutoff = new Date(Date.now() - STALE_LOCK_MIN * 60 * 1000).toISOString();
-    const { data: lockClaim, error: lockErr } = await supabase
-      .from('linker_run_lock')
-      .update({ locked_at: new Date().toISOString() })
-      .eq('id', 1)
-      .or(`locked_at.is.null,locked_at.lt.${staleCutoff}`)
-      .select('locked_at');
+    const { data: claimed, error: lockErr } = await supabase.rpc(
+      'claim_linker_lock',
+      { p_stale_minutes: STALE_LOCK_MIN },
+    );
     if (lockErr) {
-      console.warn('linker_run_lock claim error (proceeding without lock):', lockErr.message);
-      // Fail OPEN — if the lock table is unreachable for some reason
-      // we'd rather process tags than stop entirely. The race only
-      // matters when two runs ACTUALLY overlap, which itself is rare.
-    } else if (!lockClaim || lockClaim.length === 0) {
+      console.warn('claim_linker_lock error (proceeding without lock):', lockErr.message);
+      // Fail OPEN — if the lock is unreachable we'd rather process tags
+      // than stop entirely. The race only matters when two runs ACTUALLY
+      // overlap, which itself is rare.
+    } else if (claimed === false) {
       if (!forceRun) {
         return new Response(
-          JSON.stringify({
-            skipped: true,
-            reason: 'another linker run in progress',
-            lock_claim_rows: lockClaim ? lockClaim.length : null,
-            lock_err: lockErr ? String(lockErr) : null,
-          }),
+          JSON.stringify({ skipped: true, reason: 'another linker run in progress' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
         );
       }
-      console.warn('force mode: proceeding despite empty lock claim');
+      console.warn('force mode: proceeding despite busy lock');
     }
     // Always release on exit, success or error.
     const releaseLock = async () => {
