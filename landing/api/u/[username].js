@@ -299,8 +299,23 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
     ...tags,
     ...eventTagsExtra.filter((t) => !seenTags.has(t.toLowerCase())),
   ];
+  // @piktag's two demo tags (攝影/咖啡) are a teaching example, not real
+  // profile data — an English visitor recoiling from unreadable Chinese
+  // pills on the official account's page defeats the whole point of the
+  // demo. Display-only localization: the href still points at the
+  // original tag name (so /tag/攝影 stays the canonical page and the
+  // underlying tag concept is unchanged), only the visible label swaps
+  // per visitor locale. Every other user's tags render exactly as
+  // stored — this mapping is gated on isOfficialAccount.
+  const getDisplayTagName = (t) => {
+    if (isOfficialAccount) {
+      if (t === '攝影') return locale.officialTagPhotography || t;
+      if (t === '咖啡') return locale.officialTagCoffee || t;
+    }
+    return t;
+  };
   const tagsHtml = mergedTags.length > 0
-    ? `<div class="tags">${mergedTags.map((t) => `<a href="/tag/${encodeURIComponent(t)}" class="tag">#${escapeHtml(t)}</a>`).join('')}</div>`
+    ? `<div class="tags">${mergedTags.map((t) => `<a href="/tag/${encodeURIComponent(t)}" class="tag">#${escapeHtml(getDisplayTagName(t))}</a>`).join('')}</div>`
     : '';
 
   const biolinksHtml = biolinks.length > 0

@@ -100,6 +100,8 @@ const TRANSLATIONS = {
     askDemoTitle: 'React Native developer',
     askDemoBody: 'Looking for a React Native developer for a side project — who do you know?',
     officialBio: "Tags are how people find you — job, skills, hobbies, MBTI, anything that's you. Tap your profile to add yours.",
+    officialTagPhotography: 'Photography',
+    officialTagCoffee: 'Coffee',
   },
   'zh-TW': {
     htmlLang: 'zh-TW',
@@ -146,6 +148,8 @@ const TRANSLATIONS = {
     askDemoTitle: '找 React Native 工程師',
     askDemoBody: '想找一位 React Native 工程師一起做 side project——你認識誰嗎？',
     officialBio: '標籤是別人找到你的方式——職業、技能、興趣、MBTI，任何代表你的東西。點開你的檔案，加上你的標籤。',
+    officialTagPhotography: '攝影',
+    officialTagCoffee: '咖啡',
   },
   'zh-CN': {
     htmlLang: 'zh-CN',
@@ -192,6 +196,8 @@ const TRANSLATIONS = {
     askDemoTitle: '找 React Native 工程师',
     askDemoBody: '想找一位 React Native 工程师一起做 side project——你认识谁吗？',
     officialBio: '标签是别人找到你的方式——职业、技能、兴趣、MBTI，任何代表你的东西。点开你的档案，加上你的标签。',
+    officialTagPhotography: '摄影',
+    officialTagCoffee: '咖啡',
   },
   ja: {
     htmlLang: 'ja',
@@ -238,6 +244,8 @@ const TRANSLATIONS = {
     askDemoTitle: 'React Nativeエンジニアを探しています',
     askDemoBody: 'サイドプロジェクトを手伝ってくれるReact Nativeエンジニアを探しています——誰か知り合いはいますか？',
     officialBio: "タグは、あなたが人に見つけてもらうための手がかりです——仕事、スキル、趣味、MBTIなど、あなたらしさを表すもの。プロフィールを開いて、自分のタグを追加しましょう。",
+    officialTagPhotography: '写真',
+    officialTagCoffee: 'コーヒー',
   },
   ko: {
     htmlLang: 'ko',
@@ -284,6 +292,8 @@ const TRANSLATIONS = {
     askDemoTitle: 'React Native 개발자 찾기',
     askDemoBody: '사이드 프로젝트를 함께할 React Native 개발자를 찾고 있어요 — 아는 분 있나요?',
     officialBio: '태그는 사람들이 당신을 찾는 방법이에요 — 직업, 스킬, 취미, MBTI 등 당신을 나타내는 무엇이든요. 프로필을 눌러 태그를 추가해 보세요.',
+    officialTagPhotography: '사진',
+    officialTagCoffee: '커피',
   },
   es: {
     htmlLang: 'es',
@@ -330,6 +340,8 @@ const TRANSLATIONS = {
     askDemoTitle: 'Desarrollador de React Native',
     askDemoBody: 'Busco un desarrollador de React Native para un proyecto paralelo — ¿conoces a alguien?',
     officialBio: "Las etiquetas son cómo la gente te encuentra — trabajo, habilidades, hobbies, MBTI, cualquier cosa que te represente. Toca tu perfil para agregar las tuyas.",
+    officialTagPhotography: 'Fotografía',
+    officialTagCoffee: 'Café',
   },
   fr: {
     htmlLang: 'fr',
@@ -376,6 +388,8 @@ const TRANSLATIONS = {
     askDemoTitle: 'Développeur React Native',
     askDemoBody: "Je cherche un développeur React Native pour un projet perso — tu connais quelqu'un ?",
     officialBio: "Les tags, c'est ce qui permet aux autres de te trouver — métier, compétences, loisirs, MBTI, tout ce qui te définit. Touche ton profil pour ajouter les tiens.",
+    officialTagPhotography: 'Photographie',
+    officialTagCoffee: 'Café',
   },
   pt: {
     htmlLang: 'pt',
@@ -422,6 +436,8 @@ const TRANSLATIONS = {
     askDemoTitle: 'Desenvolvedor React Native',
     askDemoBody: 'Procuro um desenvolvedor React Native para um projeto paralelo — você conhece alguém?',
     officialBio: "As tags são a forma como as pessoas te encontram — trabalho, habilidades, hobbies, MBTI, qualquer coisa que seja você. Toque no seu perfil para adicionar as suas.",
+    officialTagPhotography: 'Fotografia',
+    officialTagCoffee: 'Café',
   },
   ru: {
     htmlLang: 'ru',
@@ -468,6 +484,8 @@ const TRANSLATIONS = {
     askDemoTitle: 'Ищу React Native разработчика',
     askDemoBody: 'Ищу React Native разработчика для проекта на стороне — знаешь кого-нибудь?',
     officialBio: "Теги — это то, как тебя находят другие: работа, навыки, увлечения, MBTI, всё, что тебя описывает. Открой свой профиль и добавь свои теги.",
+    officialTagPhotography: 'Фотография',
+    officialTagCoffee: 'Кофе',
   },
   ar: {
     htmlLang: 'ar',
@@ -514,6 +532,8 @@ const TRANSLATIONS = {
     askDemoTitle: 'مطوّر React Native',
     askDemoBody: 'أبحث عن مطوّر React Native لمشروع جانبي — هل تعرف أحدًا؟',
     officialBio: 'الوسوم هي الطريقة التي يجدك بها الآخرون — الوظيفة، المهارات، الهوايات، MBTI، أي شيء يمثّلك. اضغط على ملفك الشخصي لإضافة وسومك.',
+    officialTagPhotography: 'التصوير',
+    officialTagCoffee: 'قهوة',
   },
   hi: {
     htmlLang: 'hi',
@@ -560,6 +580,8 @@ const TRANSLATIONS = {
     askDemoTitle: 'React Native डेवलपर की तलाश',
     askDemoBody: 'एक साइड प्रोजेक्ट के लिए React Native डेवलपर ढूंढ रहा हूँ — क्या आप किसी को जानते हैं?',
     officialBio: "टैग ही वह तरीका है जिससे लोग आपको ढूंढ पाते हैं — नौकरी, स्किल्स, शौक, MBTI, जो भी आप हैं। अपनी प्रोफ़ाइल खोलकर अपने टैग जोड़ें।",
+    officialTagPhotography: 'फोटोग्राफी',
+    officialTagCoffee: 'कॉफ़ी',
   },
   id: {
     htmlLang: 'id',
@@ -606,6 +628,8 @@ const TRANSLATIONS = {
     askDemoTitle: 'Developer React Native',
     askDemoBody: 'Sedang mencari developer React Native untuk proyek sampingan — ada yang kamu kenal?',
     officialBio: "Tag adalah cara orang lain menemukanmu — pekerjaan, skill, hobi, MBTI, apa pun yang mencerminkan dirimu. Ketuk profilmu untuk menambahkan tag.",
+    officialTagPhotography: 'Fotografi',
+    officialTagCoffee: 'Kopi',
   },
   th: {
     htmlLang: 'th',
@@ -652,6 +676,8 @@ const TRANSLATIONS = {
     askDemoTitle: 'หานักพัฒนา React Native',
     askDemoBody: 'กำลังหานักพัฒนา React Native มาช่วยทำโปรเจกต์เสริม — รู้จักใครไหม?',
     officialBio: "แท็กคือวิธีที่คนอื่นจะเจอคุณ — งาน ทักษะ งานอดิเรก MBTI หรืออะไรก็ตามที่เป็นคุณ แตะโปรไฟล์ของคุณเพื่อเพิ่มแท็กของคุณเอง",
+    officialTagPhotography: 'การถ่ายภาพ',
+    officialTagCoffee: 'กาแฟ',
   },
   tr: {
     htmlLang: 'tr',
@@ -698,6 +724,8 @@ const TRANSLATIONS = {
     askDemoTitle: 'React Native geliştirici arıyorum',
     askDemoBody: 'Yan proje için bir React Native geliştirici arıyorum — tanıdığın biri var mı?',
     officialBio: "Etiketler, insanların seni bulma yoludur — iş, yetenekler, hobiler, MBTI, seni sen yapan her şey. Profiline dokunup kendi etiketlerini ekle.",
+    officialTagPhotography: 'Fotoğrafçılık',
+    officialTagCoffee: 'Kahve',
   },
   bn: {
     htmlLang: 'bn',
@@ -744,6 +772,8 @@ const TRANSLATIONS = {
     askDemoTitle: 'React Native ডেভেলপার খুঁজছি',
     askDemoBody: 'একটা সাইড প্রজেক্টের জন্য React Native ডেভেলপার খুঁজছি — আপনি কাউকে চেনেন?',
     officialBio: "ট্যাগ হলো মানুষ যেভাবে আপনাকে খুঁজে পায় — চাকরি, দক্ষতা, শখ, MBTI, আপনার যা কিছু। আপনার প্রোফাইলে ট্যাপ করে নিজের ট্যাগ যোগ করুন।",
+    officialTagPhotography: 'ফটোগ্রাফি',
+    officialTagCoffee: 'কফি',
   },
   de: {
     htmlLang: 'de',
@@ -790,6 +820,8 @@ const TRANSLATIONS = {
     askDemoTitle: 'React-Native-Entwickler gesucht',
     askDemoBody: 'Ich suche einen React-Native-Entwickler für ein Nebenprojekt — kennst du jemanden?',
     officialBio: "Tags sind der Weg, wie dich andere finden — Job, Fähigkeiten, Hobbys, MBTI, alles, was dich ausmacht. Tippe auf dein Profil, um deine eigenen hinzuzufügen.",
+    officialTagPhotography: 'Fotografie',
+    officialTagCoffee: 'Kaffee',
   },
   it: {
     htmlLang: 'it',
@@ -836,6 +868,8 @@ const TRANSLATIONS = {
     askDemoTitle: 'Sviluppatore React Native',
     askDemoBody: 'Cerco uno sviluppatore React Native per un progetto secondario — conosci qualcuno?',
     officialBio: "I tag sono il modo in cui gli altri ti trovano — lavoro, competenze, hobby, MBTI, tutto ciò che ti rappresenta. Tocca il tuo profilo per aggiungere i tuoi.",
+    officialTagPhotography: 'Fotografia',
+    officialTagCoffee: 'Caffè',
   },
   vi: {
     htmlLang: 'vi',
@@ -882,6 +916,8 @@ const TRANSLATIONS = {
     askDemoTitle: 'Tìm lập trình viên React Native',
     askDemoBody: 'Đang tìm một lập trình viên React Native để làm dự án tay trái — bạn có quen ai không?',
     officialBio: "Tag là cách người khác tìm thấy bạn — công việc, kỹ năng, sở thích, MBTI, bất cứ điều gì thuộc về bạn. Nhấn vào hồ sơ của bạn để thêm tag nhé.",
+    officialTagPhotography: 'Nhiếp ảnh',
+    officialTagCoffee: 'Cà phê',
   },
   ur: {
     htmlLang: 'ur',
@@ -928,6 +964,8 @@ const TRANSLATIONS = {
     askDemoTitle: 'React Native ڈویلپر کی تلاش',
     askDemoBody: 'ایک سائیڈ پراجیکٹ کے لیے React Native ڈویلپر ڈھونڈ رہا ہوں — کیا آپ کسی کو جانتے ہیں؟',
     officialBio: "ٹیگز وہ طریقہ ہیں جن سے لوگ آپ کو ڈھونڈتے ہیں — نوکری، ہنر، شوق، MBTI، جو کچھ بھی آپ ہیں۔ اپنی پروفائل کھول کر اپنے ٹیگز شامل کریں۔",
+    officialTagPhotography: 'فوٹوگرافی',
+    officialTagCoffee: 'کافی',
   },
 };
 
