@@ -71,13 +71,17 @@ jobs:
             -H "Content-Type: application/json"
 
   # Backend-only health check for the concept linker (auto-link-concepts).
-  # Two-layer alerting: the edge function emails the founder directly via
-  # Resend when unhealthy (tag_coverage_pct < 60 or oldest unlinked tag
-  # > 24h stale — see linker-health-alert/index.ts), AND this job fails the
-  # workflow (exit 1) on an unhealthy verdict so GitHub Actions' own
-  # failure-notification email is a second, independent heartbeat. Ops-only
-  # by design — does not touch piktag_notifications or any user-facing
-  # pipeline (founder 2026-07: alerts stay off the app event stream).
+  # Two-layer alerting: the admin dashboard's LinkerHealthBanner is the
+  # primary visibility surface (reads algo_concept_coverage.tag_coverage_pct
+  # off GET /api/admin/analytics), AND this job fails the workflow (exit 1)
+  # on an unhealthy verdict (tag_coverage_pct < 60 or oldest unlinked tag
+  # > 24h stale — see linker-health-alert/index.ts) so GitHub Actions' own
+  # failure-notification email is a second, independent heartbeat. The edge
+  # fn itself no longer emails on every unhealthy run (founder 2026-07-11:
+  # too noisy) — it only returns the JSON this job's `jq .healthy` reads.
+  # Ops-only by design — does not touch piktag_notifications or any
+  # user-facing pipeline (founder 2026-07: alerts stay off the app event
+  # stream).
   linker-health-alert:
     runs-on: ubuntu-latest
     if: github.event.schedule == '0 1 * * *' || github.event_name == 'workflow_dispatch'

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import Sidebar from '@/components/admin/Sidebar';
 import Header from '@/components/admin/Header';
+import LinkerHealthBanner from '@/components/admin/LinkerHealthBanner';
 
 export const metadata: Metadata = {
   title: 'PikTag Admin',
@@ -27,6 +28,7 @@ export default async function AdminLayout({
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <Header adminEmail={user.email} />
+        <LinkerHealthBanner />
         <main className="flex-1 p-8">{children}</main>
       </div>
     </div>
