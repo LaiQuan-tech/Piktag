@@ -1645,5 +1645,9 @@
     "footnote": "Ağını yalnızca sen görebilirsin.",
     "emptyCta": "Arkadaş ekle",
     "zoomHint": "Yakınlaştırmak için sıkıştır · sürükle"
+  },
+  "showcaseTag": {
+    "photography": "Fotoğrafçılık",
+    "coffee": "Kahve"
   }
 }

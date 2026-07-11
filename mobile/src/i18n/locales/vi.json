@@ -1645,5 +1645,9 @@
     "footnote": "Chỉ bạn mới thấy mạng lưới của mình.",
     "emptyCta": "Thêm bạn bè",
     "zoomHint": "Chụm để thu phóng · kéo để di chuyển"
+  },
+  "showcaseTag": {
+    "photography": "Nhiếp ảnh",
+    "coffee": "Cà phê"
   }
 }

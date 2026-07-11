@@ -1645,5 +1645,9 @@
     "footnote": "Only you can see your own network.",
     "emptyCta": "Add friends",
     "zoomHint": "Pinch to zoom · drag to pan"
+  },
+  "showcaseTag": {
+    "photography": "Photography",
+    "coffee": "Coffee"
   }
 }

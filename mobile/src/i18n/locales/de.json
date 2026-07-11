@@ -1645,5 +1645,9 @@
     "footnote": "Nur du siehst dein eigenes Netzwerk.",
     "emptyCta": "Freunde hinzufügen",
     "zoomHint": "Zwei Finger zum Zoomen · ziehen zum Verschieben"
+  },
+  "showcaseTag": {
+    "photography": "Fotografie",
+    "coffee": "Kaffee"
   }
 }

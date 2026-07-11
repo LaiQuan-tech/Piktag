@@ -1645,5 +1645,9 @@
     "footnote": "Hanya kamu yang bisa melihat jaringanmu.",
     "emptyCta": "Tambah teman",
     "zoomHint": "Cubit untuk zoom · seret untuk geser"
+  },
+  "showcaseTag": {
+    "photography": "Fotografi",
+    "coffee": "Kopi"
   }
 }

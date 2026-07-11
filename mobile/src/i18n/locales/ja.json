@@ -1645,5 +1645,9 @@
     "footnote": "人脈図はあなただけが見られます。",
     "emptyCta": "友達を追加",
     "zoomHint": "ピンチで拡大 · ドラッグで移動"
+  },
+  "showcaseTag": {
+    "photography": "写真",
+    "coffee": "コーヒー"
   }
 }

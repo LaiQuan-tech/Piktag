@@ -1645,5 +1645,9 @@
     "footnote": "只有你看得到自己的人脈圖。",
     "emptyCta": "加好友",
     "zoomHint": "雙指縮放 · 拖曳移動"
+  },
+  "showcaseTag": {
+    "photography": "攝影",
+    "coffee": "咖啡"
   }
 }

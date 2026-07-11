@@ -72,7 +72,7 @@ import { useAskFeed } from '../hooks/useAskFeed';
 import type { Connection, PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
 import { isSafeBiolinkUrl } from '../lib/platforms';
-import { isOfficialDemoAsk, isOfficialAccount, getOfficialBio, getDemoAskText } from '../lib/officialDemoAsk';
+import { isOfficialDemoAsk, isOfficialAccount, getOfficialBio, getDemoAskText, getOfficialTagLabel } from '../lib/officialDemoAsk';
 
 // How many scan-event tags to show before the "show all" toggle kicks in.
 // Picked so a typical 2-3 event meeting still shows everything inline,
@@ -1203,7 +1203,15 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               tag-fetch phase (see fetchFriend → friendTags map). */}
           {tags.length > 0 && (
             <View style={styles.tagsWrap}>
-              {tags.map((tag) => (
+              {tags.map((tag) => {
+                // Official @piktag account's two showcase tags (攝影/咖啡)
+                // display in the viewer's own language — display text only,
+                // tap still navigates on the real tag.tagId/tag.name so it
+                // resolves to the same concept-linked tag.
+                const officialLabel = isOfficialAccount(profile?.id)
+                  ? getOfficialTagLabel(tag.name, t)
+                  : null;
+                return (
                 // Profile-tag display contract (founder, definitive —
                 // re-affirmed 2026-05-23 after a brief reversal): ALL
                 // chips on this page are GRAY, regardless of mutual /
@@ -1223,10 +1231,11 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                   onPress={() => navigation.navigate('TagDetail', { tagId: tag.tagId, tagName: tag.name })}
                 >
                   <Text style={styles.tagChipText}>
-                    #{tag.name}
+                    #{officialLabel || tag.name}
                   </Text>
                 </TouchableOpacity>
-              ))}
+                );
+              })}
             </View>
           )}
 

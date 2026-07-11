@@ -1645,5 +1645,9 @@
     "footnote": "Toi seul vois ton réseau.",
     "emptyCta": "Ajouter des amis",
     "zoomHint": "Pincez pour zoomer · glissez pour déplacer"
+  },
+  "showcaseTag": {
+    "photography": "Photographie",
+    "coffee": "Café"
   }
 }

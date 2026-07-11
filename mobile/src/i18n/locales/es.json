@@ -1645,5 +1645,9 @@
     "footnote": "Solo tú ves tu propia red.",
     "emptyCta": "Agregar amigos",
     "zoomHint": "Pellizca para acercar · arrastra para mover"
+  },
+  "showcaseTag": {
+    "photography": "Fotografía",
+    "coffee": "Café"
   }
 }

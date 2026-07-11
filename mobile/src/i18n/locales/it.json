@@ -1645,5 +1645,9 @@
     "footnote": "Solo tu vedi la tua rete.",
     "emptyCta": "Aggiungi amici",
     "zoomHint": "Pizzica per zoomare · trascina per spostare"
+  },
+  "showcaseTag": {
+    "photography": "Fotografia",
+    "coffee": "Caffè"
   }
 }

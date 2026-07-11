@@ -53,7 +53,7 @@ import { isSafeBiolinkUrl } from '../lib/platforms';
 import { shareProfile } from '../lib/shareProfile';
 import { followUser } from '../lib/followUser';
 import { trackFriendAdded } from '../lib/analytics';
-import { isOfficialAccount, getOfficialBio } from '../lib/officialDemoAsk';
+import { isOfficialAccount, getOfficialBio, getOfficialTagLabel } from '../lib/officialDemoAsk';
 
 type UserDetailScreenProps = {
   navigation: any;
@@ -1405,19 +1405,29 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           {/* Tags — flat inline clickable chips */}
           {tags.length > 0 && (
             <View style={styles.tagsWrap}>
-              {tags.map((tag, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.tagChip}
-                  activeOpacity={0.6}
-                  onPress={() => {
-                    // Navigate to tag detail - need to find tag id first
-                    navigation.navigate('TagDetail', { tagName: tag.replace('#', '') });
-                  }}
-                >
-                  <Text style={styles.tagChipText}>{tag}</Text>
-                </TouchableOpacity>
-              ))}
+              {tags.map((tag, index) => {
+                const rawName = tag.replace('#', '');
+                // Official @piktag account's two showcase tags (攝影/咖啡)
+                // display in the viewer's own language — display text only,
+                // tap still navigates on the real underlying tag name so it
+                // resolves to the same concept-linked tag.
+                const officialLabel = isOfficialAccount(profile?.id)
+                  ? getOfficialTagLabel(rawName, t)
+                  : null;
+                return (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.tagChip}
+                    activeOpacity={0.6}
+                    onPress={() => {
+                      // Navigate to tag detail - need to find tag id first
+                      navigation.navigate('TagDetail', { tagName: rawName });
+                    }}
+                  >
+                    <Text style={styles.tagChipText}>{officialLabel ? `#${officialLabel}` : tag}</Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           )}
 

@@ -56,3 +56,26 @@ export function getOfficialBio(t: TFunction): string {
       "Tags are how people find you — job, skills, hobbies, MBTI, anything that's you. Tap your profile to add yours.",
   });
 }
+
+/**
+ * The official @piktag account carries two demo tags stored in the DB as
+ * literal Chinese strings ('攝影', '咖啡') so its profile always has
+ * something to show off the cross-language tag-matching story. Rendering
+ * those literal strings to every viewer defeats the point — a Japanese
+ * viewer should see 写真, an English viewer Photography, etc. This map is
+ * keyed on the DB's stored tag name and returns the viewer-language label
+ * to *display*; callers must keep passing the original tag.id/tag.name to
+ * navigation/lookups so tapping the chip still resolves to the same
+ * concept-linked tag row. Returns null for any tag that isn't one of the
+ * two showcase tags (i.e. "don't override" — render tag.name as-is).
+ */
+const OFFICIAL_TAG_LABEL_KEYS: Record<string, string> = {
+  '攝影': 'showcaseTag.photography',
+  '咖啡': 'showcaseTag.coffee',
+};
+
+export function getOfficialTagLabel(tagName: string, t: TFunction): string | null {
+  const key = OFFICIAL_TAG_LABEL_KEYS[tagName];
+  if (!key) return null;
+  return t(key);
+}

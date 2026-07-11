@@ -1645,5 +1645,9 @@
     "footnote": "내 인맥은 나만 볼 수 있어요.",
     "emptyCta": "친구 추가",
     "zoomHint": "손가락으로 확대 · 드래그로 이동"
+  },
+  "showcaseTag": {
+    "photography": "사진",
+    "coffee": "커피"
   }
 }
