@@ -68,7 +68,7 @@ export type ScanCardInput = {
   onQuickFields?: (quick: QuickFields) => void;
 };
 
-export type QuickFields = { phone?: string; email?: string; website?: string };
+export type QuickFields = { phone?: string; mobile?: string; email?: string; website?: string };
 
 /**
  * Regex-mine the unambiguous contact fields out of raw OCR text.
@@ -94,12 +94,39 @@ export function extractQuickFields(text: string): QuickFields {
   // Phone: first digit-run with 8-15 digits; date-shaped strings
   // ("2026.06.03" would otherwise pass the 8-digit bar) are rejected.
   const candidates = withoutEmails.match(/\+?\d[\d\s().\-]{6,}\d/g) ?? [];
+  const isTaiwanMobile = (d: string) => /^09\d{8}$/.test(d) || /^8869\d{8}$/.test(d);
   for (const c of candidates) {
     const trimmed = c.trim();
     if (/^\d{4}[./-]\d{1,2}[./-]\d{1,2}$/.test(trimmed)) continue;
     const digits = trimmed.replace(/\D/g, '');
+    // Skip a clearly-mobile number here so it lands in the `mobile`
+    // field ONLY (below), not duplicated into `phone`. A lone mobile is
+    // the common case on TW personal cards. Falls through to phone if no
+    // non-mobile number exists — Gemini reconciles the ambiguous tail.
+    if (isTaiwanMobile(digits)) continue;
     if (digits.length >= 8 && digits.length <= 15) {
       out.phone = trimmed;
+      break;
+    }
+  }
+
+  // Mobile (2026-07-12, additive — never touches the `phone` loop
+  // above): separately recognise a Taiwan mobile among the SAME
+  // digit-run candidates by its distinctive shape (local 09-prefix,
+  // 10 digits, or international +886 9…). Independent loop so a card
+  // with both a landline and a mobile surfaces both quick fields
+  // instead of the mobile losing to whichever number OCR listed
+  // first. If the only number on the card happens to look like a
+  // mobile, it lands in BOTH `phone` and `mobile` here — harmless
+  // duplication for the ~1-2s until Gemini's authoritative result
+  // (which puts a lone, ambiguous number in `phone` only) arrives and
+  // overwrites per the caller's contract.
+  for (const c of candidates) {
+    const trimmed = c.trim();
+    if (/^\d{4}[./-]\d{1,2}[./-]\d{1,2}$/.test(trimmed)) continue;
+    const digits = trimmed.replace(/\D/g, '');
+    if (isTaiwanMobile(digits)) {
+      out.mobile = trimmed;
       break;
     }
   }

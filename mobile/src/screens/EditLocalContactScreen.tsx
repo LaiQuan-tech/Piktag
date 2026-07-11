@@ -78,7 +78,11 @@ type CardData = {
   full_name: string | null;
   job_title: string | null;
   company: string | null;
+  // Landline/office (redefined 2026-07-12 — see edge fn header).
   phone: string | null;
+  // Mobile/cell — new 2026-07-12, lands in its own form field so a
+  // card with BOTH doesn't lose the mobile to a manual retype.
+  mobile?: string | null;
   email: string | null;
   // Edge fn started returning address on 2026-05-23. Optional in
   // case the edge fn hasn't been redeployed yet → the prefill code
@@ -121,6 +125,16 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   );
   const [phoneNational, setPhoneNational] = useState<string>(
     () => splitTelUrl(existing?.phone_normalized).national,
+  );
+  // Mobile/cell — same (country, national) pair pattern as phone above,
+  // backed by its own column (mobile_normalized, migration
+  // 20260712000000). Kept fully parallel/independent of the phone state
+  // so existing phone logic is untouched.
+  const [mobileCountry, setMobileCountry] = useState<Country>(
+    () => splitTelUrl(existing?.mobile_normalized).country ?? getDefaultCountry(i18n.language),
+  );
+  const [mobileNational, setMobileNational] = useState<string>(
+    () => splitTelUrl(existing?.mobile_normalized).national,
   );
   const [email, setEmail] = useState(existing?.email_lower ?? '');
   // The local-contact fields are aligned 1:1 with a member's profile
@@ -242,6 +256,9 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       const phoneSeed = splitTelUrl(existing.phone_normalized);
       setPhoneCountry(phoneSeed.country ?? getDefaultCountry(i18n.language));
       setPhoneNational(phoneSeed.national);
+      const mobileSeed = splitTelUrl(existing.mobile_normalized);
+      setMobileCountry(mobileSeed.country ?? getDefaultCountry(i18n.language));
+      setMobileNational(mobileSeed.national);
       setEmail(existing.email_lower ?? '');
       setBirthday(birthdayForInput(existing.birthday));
       setHeadline(existing.headline ?? existing.note ?? '');
@@ -264,6 +281,13 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     const tel = buildTelUrl(phoneCountry, phoneNational);
     return tel ? tel.replace(/^tel:/, '') : '';
   }, [phoneCountry, phoneNational]);
+
+  // Same derivation for the mobile field — bare E.164 written to
+  // mobile_normalized on save.
+  const mobileStored = useMemo(() => {
+    const tel = buildTelUrl(mobileCountry, mobileNational);
+    return tel ? tel.replace(/^tel:/, '') : '';
+  }, [mobileCountry, mobileNational]);
 
   // Pick a photo from the library and upload to the `avatars`
   // bucket. Mirrors EditProfile's pattern (same MIME + size limits,
@@ -523,7 +547,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       // exactly what the quick pass wrote so applyPrefill below can let
       // Gemini's authoritative values REPLACE them, while never touching
       // a value the USER edited in the meantime.
-      const quickApplied = { phone: '', email: '', website: '' };
+      const quickApplied = { phone: '', mobile: '', email: '', website: '' };
       const handleQuickFields = (quick: QuickFields) => {
         if (quick.email) {
           setEmail((cur) => {
@@ -546,6 +570,15 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             if (scanned.country) setPhoneCountry(scanned.country);
             quickApplied.phone = scanned.national.replace(/\D/g, '');
             return quickApplied.phone;
+          });
+        }
+        if (quick.mobile) {
+          const scanned = splitTelUrl(quick.mobile);
+          setMobileNational((cur) => {
+            if (cur.trim()) return cur;
+            if (scanned.country) setMobileCountry(scanned.country);
+            quickApplied.mobile = scanned.national.replace(/\D/g, '');
+            return quickApplied.mobile;
           });
         }
       };
@@ -609,6 +642,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
 
       const cardName = (card.full_name ?? '').trim();
       const cardPhone = (card.phone ?? '').trim();
+      const cardMobile = (card.mobile ?? '').trim();
       const cardEmail = (card.email ?? '').trim();
       const cardAddress = (card.address ?? '').trim();
       const cardWebsite = (card.website ?? '').trim();
@@ -634,6 +668,17 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             // quick pass wrote.
             if (cur.trim() && cur !== quickApplied.phone) return cur;
             if (scanned.country) setPhoneCountry(scanned.country);
+            return scanned.national.replace(/\D/g, '');
+          });
+        }
+        // Same no-overwrite-user-input guard, mirrored for mobile — fully
+        // independent of the phone field above so a card with both fills
+        // both without either clobbering the other.
+        if (cardMobile) {
+          const scanned = splitTelUrl(cardMobile);
+          setMobileNational((cur) => {
+            if (cur.trim() && cur !== quickApplied.mobile) return cur;
+            if (scanned.country) setMobileCountry(scanned.country);
             return scanned.national.replace(/\D/g, '');
           });
         }
@@ -804,6 +849,9 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           // create path's normalizePhone output + the dial/dedup/promote
           // consumers — the old "store the raw typed text" path is gone.
           phone_normalized: phoneStored || null,
+          // Bare E.164 from the mobile picker pair — same derivation as
+          // phoneStored, written to its own column (mobile_normalized).
+          mobile_normalized: mobileStored || null,
           email_lower: email.trim().toLowerCase() || null,
           birthday: birthdayNorm,
           headline: headline.trim() || null,
@@ -818,6 +866,10 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           // Bare E.164 from the picker pair; add() runs it back through
           // normalizePhone (a no-op for an already-`+`-prefixed value).
           phone: phoneStored || null,
+          // add() runs this back through normalizePhone too (see
+          // useLocalContacts.add) — a no-op for an already-`+`-prefixed
+          // value, same as phone above.
+          mobile: mobileStored || null,
           email: email.trim() || null,
           birthday: birthdayNorm,
           headline: headline.trim() || null,
@@ -845,7 +897,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     } finally {
       setSaving(false);
     }
-  }, [name, phoneStored, email, birthday, headline, address, website, tags, avatarUrl, isEdit, contactId, add, update, navigation, t, aiSuggestionIds]);
+  }, [name, phoneStored, mobileStored, email, birthday, headline, address, website, tags, avatarUrl, isEdit, contactId, add, update, navigation, t, aiSuggestionIds]);
 
   const handleDelete = useCallback(() => {
     if (!contactId) return;
@@ -1014,6 +1066,22 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
                 national={phoneNational}
                 onChangeCountry={setPhoneCountry}
                 onChangeNational={setPhoneNational}
+              />
+            </View>
+
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>
+                {t('localContact.mobileLabel', { defaultValue: 'Mobile' })}
+              </Text>
+              {/* Same shared field as 電話 above, own (country, national)
+                  pair → mobile_normalized. Cards that print both a
+                  landline and a mobile now keep both instead of the
+                  mobile getting silently dropped (2026-07-12). */}
+              <PhoneNumberInput
+                country={mobileCountry}
+                national={mobileNational}
+                onChangeCountry={setMobileCountry}
+                onChangeNational={setMobileNational}
               />
             </View>
 

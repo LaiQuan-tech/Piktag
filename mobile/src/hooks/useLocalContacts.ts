@@ -20,6 +20,11 @@ export type LocalContact = {
   id: string;
   owner_user_id: string;
   phone_normalized: string | null;
+  // Mobile/cell number, separate from the landline in phone_normalized
+  // (migration 20260712000000_local_contact_mobile_phone.sql). A card
+  // scan can carry both — the promotion trigger matches phone OR
+  // mobile OR email, so this is a full third match arm, not cosmetic.
+  mobile_normalized: string | null;
   email_lower: string | null;
   name: string;
   avatar_url: string | null;
@@ -55,6 +60,7 @@ export type LocalContact = {
 export type AddLocalContactInput = {
   name: string;
   phone?: string | null;
+  mobile?: string | null;
   email?: string | null;
   tags?: string[];
   avatar_url?: string | null;
@@ -125,6 +131,7 @@ export function useLocalContacts() {
     async (input: AddLocalContactInput): Promise<LocalContact | null> => {
       if (!user) return null;
       const phone = normalizePhone(input.phone || null);
+      const mobile = normalizePhone(input.mobile || null);
       const email = input.email ? input.email.trim().toLowerCase() : null;
       try {
         const { data, error } = await supabase
@@ -133,6 +140,7 @@ export function useLocalContacts() {
             owner_user_id: user.id,
             name: input.name.trim(),
             phone_normalized: phone,
+            mobile_normalized: mobile,
             email_lower: email,
             tags: input.tags ?? [],
             avatar_url: input.avatar_url ?? null,

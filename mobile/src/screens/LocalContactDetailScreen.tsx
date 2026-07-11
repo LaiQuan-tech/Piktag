@@ -25,7 +25,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Phone, Mail, MapPin, Globe, Gift, ExternalLink } from 'lucide-react-native';
+import { ArrowLeft, Phone, Smartphone, Mail, MapPin, Globe, Gift, ExternalLink } from 'lucide-react-native';
 import { toBirthdayDate } from '../lib/birthday';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -220,7 +220,7 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
             (rectangular, gray200 border, icon + label + ExternalLink
             arrow). Tap = tel: / mailto:. Mirrors what a member friend
             with biolinks looks like, 1:1. */}
-        {(existing.phone_normalized || existing.email_lower || existing.address || existing.website) && (
+        {(existing.phone_normalized || existing.mobile_normalized || existing.email_lower || existing.address || existing.website) && (
           <View style={styles.linkBioSection}>
             {existing.phone_normalized && (
               <TouchableOpacity
@@ -237,6 +237,25 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
                 <Phone size={22} color={colors.gray900} strokeWidth={2.2} />
                 <Text style={styles.linkCardText} numberOfLines={1}>
                   {t('localContact.linkPhone', { defaultValue: '電話' })}
+                </Text>
+                <ExternalLink size={16} color={colors.gray400} />
+              </TouchableOpacity>
+            )}
+            {existing.mobile_normalized && (
+              <TouchableOpacity
+                style={styles.linkCard}
+                activeOpacity={0.7}
+                onPress={() =>
+                  Linking.openURL(`tel:${existing.mobile_normalized}`).catch(
+                    () => {},
+                  )
+                }
+                accessibilityLabel={existing.mobile_normalized}
+                accessibilityRole="link"
+              >
+                <Smartphone size={22} color={colors.gray900} strokeWidth={2.2} />
+                <Text style={styles.linkCardText} numberOfLines={1}>
+                  {t('localContact.mobileLabel', { defaultValue: 'Mobile' })}
                 </Text>
                 <ExternalLink size={16} color={colors.gray400} />
               </TouchableOpacity>

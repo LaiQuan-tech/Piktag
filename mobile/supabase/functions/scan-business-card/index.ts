@@ -82,6 +82,13 @@ const MODEL_FALLBACK_CHAIN = ['gemini-2.5-flash-lite', 'gemini-2.5-flash'] as co
 // output, dropping it from the schema means the decoder can't spend any
 // time on it. If a generated bio is ever wanted, do it lazily/async in a
 // SEPARATE call — never here.
+// 2026-07-12 mobile split (founder: cards with BOTH a landline and a
+// mobile were dropping the mobile — the user had to retype it by
+// hand, defeating the point of scanning). `phone` is now the
+// LANDLINE/office number; `mobile` is new. Both nullable (mobile is
+// intentionally NOT in any `required` list — see prompt below for the
+// disambiguation rule). Old clients that don't read `mobile` simply
+// ignore the extra field — fully backward-compatible.
 const CARD_RESPONSE_SCHEMA = {
   type: 'object',
   properties: {
@@ -89,6 +96,7 @@ const CARD_RESPONSE_SCHEMA = {
     job_title: { type: 'string', nullable: true },
     company:   { type: 'string', nullable: true },
     phone:     { type: 'string', nullable: true },
+    mobile:    { type: 'string', nullable: true },
     email:     { type: 'string', nullable: true },
     address:   { type: 'string', nullable: true },
     website:   { type: 'string', nullable: true },
@@ -100,7 +108,7 @@ const CARD_RESPONSE_SCHEMA = {
   // Stable field order out of the model — purely cosmetic for the
   // logs, but free.
   propertyOrdering: [
-    'full_name', 'job_title', 'company', 'phone',
+    'full_name', 'job_title', 'company', 'phone', 'mobile',
     'email', 'address', 'website', 'instagram', 'facebook',
     'linkedin', 'line',
   ],
@@ -128,7 +136,14 @@ type CardData = {
   full_name: string | null;
   job_title: string | null;
   company: string | null;
+  // Landline / office number (Tel, 電話, company switchboard, area-code
+  // prefixed). Redefined 2026-07-12 — was "any phone number found";
+  // now specifically the NON-mobile one so it can coexist with `mobile`
+  // below. See CARD_RESPONSE_SCHEMA header for the backward-compat note.
   phone: string | null;
+  // Mobile / cell number (Mobile, Cell, 手機, M:). New 2026-07-12.
+  // Null when the card has no distinguishable mobile number.
+  mobile: string | null;
   email: string | null;
   // Mailing/office address as printed on the card — often present
   // on traditional cards (especially TW/JP business style). The
@@ -146,6 +161,7 @@ const EMPTY: CardData = {
   job_title: null,
   company: null,
   phone: null,
+  mobile: null,
   email: null,
   address: null,
   website: null,
@@ -194,6 +210,7 @@ function extractCardObject(text: string): CardData | null {
       job_title: pick('job_title'),
       company: pick('company'),
       phone: pick('phone'),
+      mobile: pick('mobile'),
       email: pick('email'),
       address: pick('address'),
       website: pick('website'),
@@ -330,7 +347,13 @@ serve(async (req) => {
       `  "full_name": string|null,   // person's name, not the company`,
       `  "job_title": string|null,   // e.g. "資深產品經理"`,
       `  "company":   string|null,`,
-      `  "phone":     string|null,   // digits + country code if shown, e.g. "+886 912 345 678"`,
+      `  "phone":     string|null,   // LANDLINE/office number only — "Tel", "電話", a company`,
+      `                              // switchboard, or a fax-adjacent fixed line (often prefixed`,
+      `                              // by an area code in parentheses, e.g. "(02) 2345 6789" or`,
+      `                              // "+886 2 2345 6789"). Digits + country code if shown.`,
+      `  "mobile":    string|null,   // MOBILE/cell number only — labeled "Mobile", "Cell", "手機",`,
+      `                              // "M:", or a Taiwan number starting 09 (e.g. "0912 345 678")`,
+      `                              // or its international form "+886 9xx xxx xxx".`,
       `  "email":     string|null,`,
       `  "address":   string|null,   // mailing/office address EXACTLY as printed (single line ok); null if unclear`,
       `  "website":   string|null,   // company / personal site, full domain`,
@@ -344,6 +367,13 @@ serve(async (req) => {
       `account part (instagram.com/foobar → "foobar"). If a field`,
       `isn't on the card, null. Do not invent plausible-looking`,
       `handles from the person's name.`,
+      ``,
+      `Phone vs mobile: many cards (Chinese, Japanese, and English`,
+      `alike) print BOTH a landline and a mobile — put each in its own`,
+      `field ("phone" = landline, "mobile" = cell), never combine them`,
+      `or duplicate one number into both. If the card has only ONE`,
+      `number and you cannot tell whether it's a landline or a mobile,`,
+      `play it safe and put it in "phone", leaving "mobile" null.`,
       // Text mode: append the OCR dump as the final block so the model
       // has the source text to structure. Image mode sends the photo
       // as an inline_data part instead (see `parts` below).

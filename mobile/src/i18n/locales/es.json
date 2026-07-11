@@ -1585,6 +1585,7 @@
     "fieldBirthday": "Cumpleaños (opcional)",
     "birthdayPlaceholder": "MM-DD o YYYY-MM-DD",
     "linkPhone": "Teléfono",
+    "mobileLabel": "Móvil",
     "linkEmail": "Correo",
     "linkAddress": "Dirección",
     "linkWebsite": "Sitio web",

@@ -1585,6 +1585,7 @@
     "fieldBirthday": "생일 (선택)",
     "birthdayPlaceholder": "MM-DD 또는 YYYY-MM-DD",
     "linkPhone": "전화",
+    "mobileLabel": "휴대전화",
     "linkEmail": "이메일",
     "linkAddress": "주소",
     "linkWebsite": "웹사이트",

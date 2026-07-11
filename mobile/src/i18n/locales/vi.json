@@ -1585,6 +1585,7 @@
     "fieldBirthday": "Ngày sinh (không bắt buộc)",
     "birthdayPlaceholder": "MM-DD hoặc YYYY-MM-DD",
     "linkPhone": "Điện thoại",
+    "mobileLabel": "Di động",
     "linkEmail": "Email",
     "linkAddress": "Địa chỉ",
     "linkWebsite": "Trang web",

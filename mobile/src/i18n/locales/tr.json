@@ -1585,6 +1585,7 @@
     "fieldBirthday": "Doğum günü (isteğe bağlı)",
     "birthdayPlaceholder": "AA-GG veya YYYY-AA-GG",
     "linkPhone": "Telefon",
+    "mobileLabel": "Cep Telefonu",
     "linkEmail": "E-posta",
     "linkAddress": "Adres",
     "linkWebsite": "Web sitesi",

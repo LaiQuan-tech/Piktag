@@ -1585,6 +1585,7 @@
     "fieldBirthday": "生日（选填）",
     "birthdayPlaceholder": "MM-DD 或 YYYY-MM-DD",
     "linkPhone": "电话",
+    "mobileLabel": "手机",
     "linkEmail": "邮箱",
     "linkAddress": "地址",
     "linkWebsite": "网址",

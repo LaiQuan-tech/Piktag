@@ -1585,6 +1585,7 @@
     "fieldBirthday": "জন্মদিন (ঐচ্ছিক)",
     "birthdayPlaceholder": "MM-DD অথবা YYYY-MM-DD",
     "linkPhone": "ফোন",
+    "mobileLabel": "মোবাইল",
     "linkEmail": "ইমেইল",
     "linkAddress": "ঠিকানা",
     "linkWebsite": "ওয়েবসাইট",
