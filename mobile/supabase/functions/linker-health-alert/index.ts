@@ -114,11 +114,60 @@ serve(async (req) => {
   // linker must not trip the workflow's exit-1 heartbeat.
   const healthy = !unhealthy;
 
+  // ── Embedding probe (diagnostic, 2026-07-11 outage) ──────────────────
+  // Fires ONE embedContent call with the live GEMINI_API_KEY and reports
+  // the exact upstream verdict, plus a key FINGERPRINT (length + whitespace
+  // + prefix check — never the key material) so a paste-with-newline in the
+  // dashboard is distinguishable from a dead key or a retired model. The
+  // probe result rides the JSON response, which the daily-cron workflow
+  // prints — readable straight from the Actions log.
+  const embedProbe: Record<string, unknown> = { ok: false };
+  try {
+    const rawKey = Deno.env.get('GEMINI_API_KEY') ?? '';
+    const trimmed = rawKey.trim();
+    embedProbe.key_present = rawKey.length > 0;
+    embedProbe.key_len = rawKey.length;
+    embedProbe.key_has_whitespace = rawKey !== trimmed;
+    embedProbe.key_prefix_ok = trimmed.startsWith('AIzaSy');
+    if (trimmed) {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 8000);
+      try {
+        const resp = await fetch(
+          'https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': trimmed },
+            body: JSON.stringify({
+              model: 'models/gemini-embedding-001',
+              content: { parts: [{ text: 'probe' }] },
+            }),
+            signal: ctrl.signal,
+          },
+        );
+        embedProbe.http_status = resp.status;
+        if (resp.ok) {
+          const j = await resp.json();
+          embedProbe.ok = Array.isArray(j.embedding?.values) && j.embedding.values.length > 0;
+          embedProbe.dims = j.embedding?.values?.length ?? 0;
+        } else {
+          const bodyText = await resp.text().catch(() => '');
+          embedProbe.error = bodyText.slice(0, 300);
+        }
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+  } catch (e) {
+    embedProbe.error = String(e).slice(0, 200);
+  }
+
   return new Response(
     JSON.stringify({
       healthy,
       coverage_pct: coveragePct,
       oldest_unlinked_hours: oldestUnlinkedHours,
+      embed_probe: embedProbe,
     }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
   );
