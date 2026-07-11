@@ -117,3 +117,23 @@ curl -s "https://kbwfdskulxnhjckdvghj.supabase.co/rest/v1/<table>?select=<col>&l
   Google AI Studio 配額/帳單),Claude 讀不到 secret 無法代修。診斷確認法:看
   Supabase edge fn logs 的「embedding upstream error: HTTP XXX」(401=key、
   429=配額、403=帳單)。
+
+- [2026-07-11] 觸發:Google 標記 API key 公開外洩 → 根因:**public repo
+  (LaiQuan-tech/Piktag)commit 了 `dist/`(Expo web build)**,舊版
+  ManageTagsScreen 曾把 Gemini key 硬編進 client 直呼,build 產物把 key
+  inline 進 bundle,commit 到公開 repo 就被掃到(順帶 Google Places key)。
+  規則:**`dist/` 等 build 產物永遠不 commit**(已 gitignore);client 端
+  絕不硬編 API key,一律走 edge fn(現在 ManageTagsScreen 走 suggest-tags,
+  已修)。移除檔案**擋不掉歷史**——key 進過 public repo 就當作永久外洩,
+  **唯一有效解是 Google console 換 key**;新 key 設 application/API 限制,
+  server key 只進 Supabase secret。app.json/google-services.json 的
+  Maps/Firebase client key 也在公開 repo,要靠簽章限制鎖死。
+- [2026-07-11] 觸發:核心引擎(embedding linker)靜默停擺三週無人知 →
+  根因:2026-06-06 移除了 linker 停擺告警(對:ops 不該在 app/user 通知
+  流),但**沒有在後台補上替代監控**,16 天後 embedding 掛掉就沒有任何
+  告警。教訓:**移除一個監控時,要嘛確認有別的東西涵蓋、要嘛同時建替代**,
+  不能只拆不補。修法:後台 edge fn `linker-health-alert`(CRON_SECRET-gated,
+  每天 daily-cron 觸發)覆蓋率 <60% 或最舊未連 >24h 就 email 創辦人
+  (Resend,noreply@pikt.ag → lqtech2026)+ workflow exit 1 雙心跳;純後台、
+  不寫 piktag_notifications。**concept 覆蓋率(admin_concept_coverage)是
+  embedding 健康的 canary**,admin.pikt.ag 的 Algo Health 卡片也看得到。
