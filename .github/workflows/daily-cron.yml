@@ -69,3 +69,27 @@ jobs:
             "https://kbwfdskulxnhjckdvghj.supabase.co/functions/v1/clear-stale-badges" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json"
+
+  # Backend-only health check for the concept linker (auto-link-concepts).
+  # Two-layer alerting: the edge function emails the founder directly via
+  # Resend when unhealthy (tag_coverage_pct < 60 or oldest unlinked tag
+  # > 24h stale — see linker-health-alert/index.ts), AND this job fails the
+  # workflow (exit 1) on an unhealthy verdict so GitHub Actions' own
+  # failure-notification email is a second, independent heartbeat. Ops-only
+  # by design — does not touch piktag_notifications or any user-facing
+  # pipeline (founder 2026-07: alerts stay off the app event stream).
+  linker-health-alert:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 1 * * *' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Trigger linker-health-alert
+        run: |
+          response=$(curl --fail-with-body --silent --show-error -X POST \
+            "https://kbwfdskulxnhjckdvghj.supabase.co/functions/v1/linker-health-alert" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json")
+          echo "$response"
+          echo "$response" | jq -e '.healthy == true' > /dev/null || {
+            echo "linker health check reported unhealthy — failing workflow as second-layer heartbeat"
+            exit 1
+          }
