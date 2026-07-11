@@ -137,3 +137,17 @@ curl -s "https://kbwfdskulxnhjckdvghj.supabase.co/rest/v1/<table>?select=<col>&l
   (Resend,noreply@pikt.ag → lqtech2026)+ workflow exit 1 雙心跳;純後台、
   不寫 piktag_notifications。**concept 覆蓋率(admin_concept_coverage)是
   embedding 健康的 canary**,admin.pikt.ag 的 Algo Health 卡片也看得到。
+- [2026-07-11] 觸發:key 修好、探針證明 embed+pgvector 全通,linker 卻仍零連結,
+  每次都回「another linker run in progress」→ 根因:**PostgREST 幽靈鎖**——
+  `.update({locked_at}).eq('id',1).or('locked_at.is.null,…').select()` 的
+  UPDATE 會執行(鎖被設上)但 RETURNING 回空陣列,程式誤判「有人在跑」而
+  自我跳過,無限輪空。規則:**mutex/條件更新絕不用 PostgREST 過濾鏈拼,
+  一律寫成原子 SQL RPC**(`claim_linker_lock()` → UPDATE…RETURN FOUND,
+  migration 20260711040000)。診斷法(可複用):linker-health-alert 的
+  三層探針——(1) embed probe(key 指紋+HTTP 狀態)、(2) find_similar_concepts
+  verdict、(3) relay:清鎖+帶 `{force:true}` 直接調用 linker 本尊、轉述其
+  verbatim 回應。force 模式(CRON_SECRET-gated)保留在 auto-link-concepts,
+  探針在不健康時會自動 force 一輪 = **自癒**。整案時間軸:6/22 Gemini API
+  未啟用+key 死 → 7/11 換 key(途中 secret 一度被貼成佔位字「你的KE�」5 字元,
+  探針的 key_len 指紋抓到)→ key 好了仍不動 → 幽靈鎖 → 原子宣告修復 →
+  三輪 force 排空 103 → **覆蓋率 56.7% → 100%**。
