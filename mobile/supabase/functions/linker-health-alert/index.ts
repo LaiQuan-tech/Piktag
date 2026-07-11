@@ -198,7 +198,12 @@ serve(async (req) => {
   let linkerRelay: Record<string, unknown> | null = null;
   if (unhealthy) {
     try {
-      await supabase.from('linker_run_lock').update({ locked_at: null }).eq('id', 1);
+      const clearRes = await supabase
+        .from('linker_run_lock')
+        .update({ locked_at: null })
+        .eq('id', 1)
+        .select('locked_at');
+      const before = await supabase.from('linker_run_lock').select('locked_at').eq('id', 1).single();
       const ctrl2 = new AbortController();
       const timer2 = setTimeout(() => ctrl2.abort(), 120000);
       try {
@@ -211,7 +216,15 @@ serve(async (req) => {
           signal: ctrl2.signal,
         });
         const body = await r.text().catch(() => '');
-        linkerRelay = { status: r.status, body: body.slice(0, 600) };
+        const after = await supabase.from('linker_run_lock').select('locked_at').eq('id', 1).single();
+        linkerRelay = {
+          status: r.status,
+          body: body.slice(0, 600),
+          clear_rows: Array.isArray(clearRes.data) ? clearRes.data.length : null,
+          clear_error: clearRes.error?.message ?? null,
+          lock_before_invoke: before.data?.locked_at ?? (before.error ? `ERR:${before.error.message}` : null),
+          lock_after_invoke: after.data?.locked_at ?? (after.error ? `ERR:${after.error.message}` : null),
+        };
       } finally {
         clearTimeout(timer2);
       }
