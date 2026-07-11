@@ -784,6 +784,8 @@
     "language": "ভাষা",
     "darkMode": "ডার্ক মোড",
     "shareLocation": "লোকেশন শেয়ার",
+    "personalizedRecs": "ব্যক্তিগতকৃত সুপারিশ",
+    "personalizedRecsDesc": "আপনার ট্যাগ ও পাবলিক লিংক ব্যবহার করে এমন মানুষদের প্রস্তাব করে যাদের আপনি চিনতে পারেন",
     "aboutPiktag": "PikTag সম্পর্কে",
     "privacyPolicy": "গোপনীয়তা নীতি",
     "termsOfService": "সেবার শর্তাবলী",

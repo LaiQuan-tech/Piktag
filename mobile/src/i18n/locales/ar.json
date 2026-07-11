@@ -784,6 +784,8 @@
     "language": "اللغة",
     "darkMode": "الوضع الداكن",
     "shareLocation": "مشاركة الموقع",
+    "personalizedRecs": "توصيات مخصصة",
+    "personalizedRecsDesc": "يستخدم وسومك وروابطك العامة لاقتراح أشخاص قد تعرفهم",
     "aboutPiktag": "حول PikTag",
     "privacyPolicy": "سياسة الخصوصية",
     "termsOfService": "شروط الخدمة",

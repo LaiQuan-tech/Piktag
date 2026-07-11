@@ -37,6 +37,11 @@ type SettingsScreenProps = {
 
 type SettingsItem = {
   label: string;
+  /** Optional small helper line under the label — used when the label
+   *  alone can't carry the semantics (e.g. 個人化推薦 vs the notif
+   *  category "AI 配對推薦": this one governs whether the user's DATA
+   *  is used in matching, that one governs whether we NOTIFY them). */
+  description?: string;
   onPress?: () => void;
   rightElement?: React.ReactNode;
   textColor?: string;
@@ -107,6 +112,14 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   const [notifSocial, setNotifSocial] = useState(true);
   const [notifMatches, setNotifMatches] = useState(true);
   const [notifMemories, setNotifMemories] = useState(true);
+  // Personalized-recommendations opt-out (founder-approved, 2026-07-11).
+  // Maps to piktag_profiles.personalized_recs; the server enforces it
+  // inside the recommendation pipeline — this Switch is the user-facing
+  // choice, not the enforcement point. iOS-compliance user control:
+  // OFF = "don't use my data to compute matches for me". Distinct from
+  // notif_matches, which only governs whether we NOTIFY about matches.
+  // Default ON to match the column DEFAULT.
+  const [personalizedRecs, setPersonalizedRecs] = useState(true);
   // `isDark` is the live theme state; `setThemeMode` persists the
   // choice (ThemeContext writes it to AsyncStorage and re-applies on
   // launch). The dark-mode Switch is driven directly off `isDark` —
@@ -147,6 +160,9 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             setNotifSocial((data as any).notif_social !== false);
             setNotifMatches((data as any).notif_matches !== false);
             setNotifMemories((data as any).notif_memories !== false);
+            // Same null/undefined-tolerant read: rows predating the
+            // personalized_recs migration count as opted-in.
+            setPersonalizedRecs((data as any).personalized_recs !== false);
             // NOTE: deliberately NOT calling changeLanguageSafe from the
             // DB value here — see the comment at currentLanguage init.
             // The chip mirrors live i18n. If the user previously made an
@@ -171,8 +187,9 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     loadSettings();
   }, [user]);
 
-  // Shared notification-category toggle. Optimistic flip → DB write
-  // → revert on real failure. Missing-column errors are tolerated
+  // Shared boolean-column toggle on piktag_profiles (notification
+  // categories + personalized recommendations). Optimistic flip → DB
+  // write → revert on real failure. Missing-column errors are tolerated
   // either direction:
   //   • Column not yet added (stale binary, migration not landed):
   //       Postgres returns 42703 + "column does not exist".
@@ -183,9 +200,9 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   // Both should leave the optimistic flip in place so the toggle
   // doesn't visibly snap back to the user — the on-screen state is
   // the user's intent even if the column to persist it is gone.
-  const updateNotifCategory = useCallback(
+  const updateProfileToggle = useCallback(
     async (
-      column: 'notif_social' | 'notif_matches' | 'notif_memories',
+      column: 'notif_social' | 'notif_matches' | 'notif_memories' | 'personalized_recs',
       newValue: boolean,
       setter: (v: boolean) => void,
       prev: boolean,
@@ -217,11 +234,13 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   );
 
   const handleNotifSocialToggle = () =>
-    updateNotifCategory('notif_social', !notifSocial, setNotifSocial, notifSocial);
+    updateProfileToggle('notif_social', !notifSocial, setNotifSocial, notifSocial);
   const handleNotifMatchesToggle = () =>
-    updateNotifCategory('notif_matches', !notifMatches, setNotifMatches, notifMatches);
+    updateProfileToggle('notif_matches', !notifMatches, setNotifMatches, notifMatches);
   const handleNotifMemoriesToggle = () =>
-    updateNotifCategory('notif_memories', !notifMemories, setNotifMemories, notifMemories);
+    updateProfileToggle('notif_memories', !notifMemories, setNotifMemories, notifMemories);
+  const handlePersonalizedRecsToggle = () =>
+    updateProfileToggle('personalized_recs', !personalizedRecs, setPersonalizedRecs, personalizedRecs);
 
   const handleShareLocationToggle = async () => {
     // Re-entrancy guard — see locationToggleBusyRef declaration. A
@@ -486,8 +505,9 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
       ],
     },
     {
-      // Credential + account-level privacy only (修改密碼 + 分享所在地點).
-      // Destructive 登出 / 停用 / 刪除 stay separate at the page bottom.
+      // Credential + account-level privacy only (修改密碼 + 分享所在地點
+      // + 個人化推薦). Destructive 登出 / 停用 / 刪除 stay separate at
+      // the page bottom.
       title: t('settings.groupAccount'),
       items: [
         { label: t('settings.changePassword', { defaultValue: '修改密碼' }), onPress: () => {
@@ -546,6 +566,25 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
               disabled={locationToggleBusy}
               trackColor={{ false: colors.gray200, true: colors.piktag300 }}
               thumbColor={shareLocation ? colors.piktag500 : colors.gray400}
+            />
+          ),
+        },
+        // Personalized recommendations — account-level PRIVACY choice
+        // ("use my data to compute matches"), deliberately in this group
+        // and not under 通知 (notif_matches there only governs whether
+        // we notify). The description line carries that distinction.
+        {
+          label: t('settings.personalizedRecs', { defaultValue: '個人化推薦' }),
+          description: t('settings.personalizedRecsDesc', {
+            defaultValue: '用你的標籤與公開連結，為你挑選可能認識的人',
+          }),
+          onPress: handlePersonalizedRecsToggle,
+          rightElement: (
+            <Switch
+              value={personalizedRecs}
+              onValueChange={handlePersonalizedRecsToggle}
+              trackColor={{ false: colors.gray200, true: colors.piktag300 }}
+              thumbColor={personalizedRecs ? colors.piktag500 : colors.gray400}
             />
           ),
         },
@@ -690,14 +729,32 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                   onPress={item.onPress}
                   activeOpacity={0.6}
                 >
-                  <Text
-                    style={[
-                      styles.settingsItemText,
-                      item.textColor ? { color: item.textColor } : undefined,
-                    ]}
-                  >
-                    {item.label}
-                  </Text>
+                  {item.description ? (
+                    // Wrapped variant only when a description exists —
+                    // keeps every legacy row's layout byte-identical.
+                    <View style={styles.settingsItemTextWrap}>
+                      <Text
+                        style={[
+                          styles.settingsItemText,
+                          item.textColor ? { color: item.textColor } : undefined,
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
+                      <Text style={styles.settingsItemDescription}>
+                        {item.description}
+                      </Text>
+                    </View>
+                  ) : (
+                    <Text
+                      style={[
+                        styles.settingsItemText,
+                        item.textColor ? { color: item.textColor } : undefined,
+                      ]}
+                    >
+                      {item.label}
+                    </Text>
+                  )}
                   {item.rightElement || (
                     <ChevronRight size={20} color={colors.gray400} />
                   )}
@@ -882,6 +939,16 @@ function makeStyles(c: ColorPalette) {
     fontSize: 16,
     color: c.gray900,
     fontWeight: '500',
+  },
+  settingsItemTextWrap: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  settingsItemDescription: {
+    fontSize: 12,
+    color: c.gray500,
+    marginTop: 2,
+    lineHeight: 16,
   },
   logoutButton: {
     marginTop: 48,

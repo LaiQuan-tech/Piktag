@@ -784,6 +784,8 @@
     "language": "언어",
     "darkMode": "다크 모드",
     "shareLocation": "위치 공유",
+    "personalizedRecs": "맞춤 추천",
+    "personalizedRecsDesc": "태그와 공개 링크를 바탕으로 알 수도 있는 사람을 추천합니다",
     "aboutPiktag": "PikTag 정보",
     "privacyPolicy": "개인정보 처리방침",
     "termsOfService": "이용약관",

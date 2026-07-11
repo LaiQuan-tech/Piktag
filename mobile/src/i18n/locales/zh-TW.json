@@ -784,6 +784,8 @@
     "language": "語言",
     "darkMode": "深色模式",
     "shareLocation": "分享所在地點",
+    "personalizedRecs": "個人化推薦",
+    "personalizedRecsDesc": "用你的標籤與公開連結，為你挑選可能認識的人",
     "aboutPiktag": "關於 PikTag",
     "privacyPolicy": "隱私權政策",
     "termsOfService": "服務條款",

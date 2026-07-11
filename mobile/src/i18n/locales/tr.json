@@ -784,6 +784,8 @@
     "language": "Dil",
     "darkMode": "Karanlık Mod",
     "shareLocation": "Konumu Paylaş",
+    "personalizedRecs": "Kişiselleştirilmiş öneriler",
+    "personalizedRecsDesc": "Tanıyor olabileceğiniz kişileri önermek için etiketlerinizi ve herkese açık bağlantılarınızı kullanır",
     "aboutPiktag": "PikTag Hakkında",
     "privacyPolicy": "Gizlilik Politikası",
     "termsOfService": "Hizmet Şartları",

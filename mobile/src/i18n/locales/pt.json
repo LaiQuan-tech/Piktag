@@ -784,6 +784,8 @@
     "language": "Idioma",
     "darkMode": "Modo escuro",
     "shareLocation": "Compartilhar localização",
+    "personalizedRecs": "Recomendações personalizadas",
+    "personalizedRecsDesc": "Usa suas tags e links públicos para sugerir pessoas que você talvez conheça",
     "aboutPiktag": "Sobre o PikTag",
     "privacyPolicy": "Política de privacidade",
     "termsOfService": "Termos de serviço",

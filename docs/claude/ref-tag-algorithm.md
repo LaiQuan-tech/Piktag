@@ -387,3 +387,41 @@ SearchScreen wiring, EXCEPT where noted replay-gated:
    below event tier); verified (30) deliberately undecayed. Function
    otherwise byte-identical to the 20260612010000 version.
 
+
+## Biolink 興趣訊號(2026-07-11)
+
+- **訊號定義**:用戶公開 biolink 的 distinct platform 組合(例:
+  {github, spotify, twitch}),每個 platform 以 IDF 加權
+  `LN(1 + N / (1 + holders))` —— 與推薦 cron 的 concept IDF 同款公式
+  (20260705020000 的 mutual_score)。用途**只限**推薦 cron 排序的
+  tiebreaker:concept IDF 主權重(mutual_score)不動,affinity 只在
+  主分數同分/近似時決定先後。不是新的召回來源,不會讓零共同標籤的
+  人進推薦。
+
+- **隱私紅線(fail-closed)**:只採 `visibility = 'public'` AND
+  `is_active = true`,而且**雙邊一致**(viewer 和 candidate 兩側都用
+  同一條件),NULL 一律不採。理由:推薦排序本身就是洩漏面 ——
+  若 friends/private 連結計入計分,收件人可以從「這個人為什麼排前面」
+  反推候選人**藏了**什麼平台。任何放寬(哪怕只放寬自己那一側)都是
+  把私密設定變成可觀測訊號,禁止。
+
+- **排除的 platform key**(無興趣訊號價值或屬敏感類):
+  `phone` / `email` / `custom` / `website` / `blog` / `portfolio`
+  (通訊與 generic 連結,人人都有,零區辨力)+ payment/排程類
+  (`calendly` / `cal` / `venmo` / `cashapp` / `paypal` / `patreon` /
+  `kofi` / `buymeacoffee` / `stripe` / `alipay`)。此清單**複寫**於
+  migration 20260711010000 —— `mobile/src/lib/platforms.ts` 的分類
+  (`cat` 欄)若有增改,必須同步該 migration 的排除清單,兩處不一致
+  = 訊號悄悄吃進不該吃的 key。
+
+- **personalized_recs 契約**:`piktag_profiles.personalized_recs = false`
+  = 該用戶**不參與個人化推薦計算**(雙向:不作為收件人被個人化,也不
+  以推斷型訊號的形式被計入)。未來任何**推斷型訊號**要進 Ask 匹配或
+  其他 Recommended 面時,必須先讀此欄。`match_ask_to_friends` 現在
+  **刻意不閘**:用戶主動發 Ask 請求、匹配只消耗顯式標籤(自己打的),
+  不涉推斷 —— 這是設計,不要「補上」。
+
+- **不碰 search_users**:搜尋面照舊走 replay 門檻(60-TRIGGERS #2,
+  admin_search_funnel 沒贏不准動)。biolink 訊號進搜尋排序 = 搜尋權重
+  改動,同樣受該門檻管轄。
+

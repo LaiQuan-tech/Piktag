@@ -36,6 +36,8 @@
 | 21 | 主辦方方案(B2B) | 同一 host 辦 ≥3 場活動,或主辦方主動詢價 | 大房間/名單匯出/品牌 QR/會後分析;向企業收費補貼用戶成長 | ref-future-plans 收費節 | 未達 |
 | 22 | 人氣王 → 標示贊助軌道 | **絕不以保證前三混排形式做**;僅當 v3 原語齊備(品質分 view、search_users 讀 dismissals)且 Pro 已驗證付費意願 | 獨立贊助區塊、明確標示、每查詢限 1-2 席、品質分把關 | ref-future-plans 收費節 + v3 節 | 未達 |
 | 23 | 商業檔案(business_profiles) | 賣車/賣房型「想被看到」請求累積 ≥3 起,或 #22 軌道啟動前 | v3 選項(b);個人標籤置頂需求導入此處,不做小配件 | ref-future-plans 收費節 | 未達 |
+| 24 | 贊助標籤上線時建 personalized_ads 欄 | Phase 3 贊助標籤(#22 軌道)開工 | 建 `piktag_profiles.personalized_ads` 欄,與 personalized_recs **並列**:一顆管推薦個人化、一顆管廣告個人化,**永不共用 flag**;贊助管線只讀 personalized_ads | ref-tag-algorithm Biolink 興趣訊號節 | 等 Phase 3 |
+| 25 | 推薦 affinity tiebreaker 成效檢查 | 上線 2-4 週後跑 `admin_recommendation_funnel(30)`:affinity>0 與 =0 兩群 read/轉化**無差異** | 提「mutual_score 改 ROUND(,1) 分桶」升級案給創辦人;**不得逕行改主排序** | ref-tag-algorithm Biolink 興趣訊號節 | 觀察中 |
 
 ## 已結案(留檔防重做)
 - Admin 儀表板接 moat 指標 RPC — 2026-07-06 完成(be3c17e)。

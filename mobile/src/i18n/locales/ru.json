@@ -784,6 +784,8 @@
     "language": "Язык",
     "darkMode": "Тёмная тема",
     "shareLocation": "Делиться местоположением",
+    "personalizedRecs": "Персональные рекомендации",
+    "personalizedRecsDesc": "Использует твои теги и публичные ссылки, чтобы предлагать людей, которых ты можешь знать",
     "aboutPiktag": "О PikTag",
     "privacyPolicy": "Политика конфиденциальности",
     "termsOfService": "Условия использования",

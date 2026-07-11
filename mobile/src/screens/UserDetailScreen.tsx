@@ -52,6 +52,7 @@ import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVis
 import { isSafeBiolinkUrl } from '../lib/platforms';
 import { shareProfile } from '../lib/shareProfile';
 import { followUser } from '../lib/followUser';
+import { trackFriendAdded } from '../lib/analytics';
 import { isOfficialAccount, getOfficialBio } from '../lib/officialDemoAsk';
 
 type UserDetailScreenProps = {
@@ -730,6 +731,11 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         console.warn('[UserDetail] auto-follow on QR scan failed:', followErr);
       }
 
+      // North-Star funnel event: this branch only runs behind
+      // `paramSid && !connectionId && !isFollowing`, i.e. a genuinely
+      // new QR-origin connect, so 'qr' is accurate here.
+      trackFriendAdded({ source: 'qr' });
+
       // First friend-add success = the contextual moment for the deferred
       // one-shot OS push-permission ask (wired here because THIS is the
       // live QR-connect path; ScanResult's copy only serves legacy QRs).
@@ -1212,6 +1218,15 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         if (connId && connId !== connectionId) {
           setConnectionId(connId);
         }
+
+        // North-Star funnel event, previously missing on this whole
+        // screen. Route params carry no entry origin (search, tag
+        // detail, chat, followers, network graph all navigate here with
+        // just { userId }), so we report the honest generic bucket
+        // rather than guessing a specific source. The QR branch above
+        // returns early through handleAddFriendFromQr, which fires
+        // source:'qr' itself — no double-count.
+        trackFriendAdded({ source: 'user_detail' });
 
         // 方向二: plain personal-QR adds (no sid) also pick up the scanned
         // person's active event context. No-op for organic (search) visits

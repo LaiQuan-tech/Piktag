@@ -784,6 +784,8 @@
     "language": "Bahasa",
     "darkMode": "Mode Gelap",
     "shareLocation": "Bagikan Lokasi",
+    "personalizedRecs": "Rekomendasi yang dipersonalisasi",
+    "personalizedRecsDesc": "Menggunakan tag dan tautan publik Anda untuk menyarankan orang yang mungkin Anda kenal",
     "aboutPiktag": "Tentang PikTag",
     "privacyPolicy": "Kebijakan Privasi",
     "termsOfService": "Ketentuan Layanan",

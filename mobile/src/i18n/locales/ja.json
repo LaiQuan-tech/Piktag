@@ -784,6 +784,8 @@
     "language": "言語",
     "darkMode": "ダークモード",
     "shareLocation": "位置情報を共有",
+    "personalizedRecs": "パーソナライズされたおすすめ",
+    "personalizedRecsDesc": "タグと公開リンクをもとに、知り合いかもしれない人を提案します",
     "aboutPiktag": "PikTagについて",
     "privacyPolicy": "プライバシーポリシー",
     "termsOfService": "利用規約",

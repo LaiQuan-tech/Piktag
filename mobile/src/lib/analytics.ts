@@ -48,8 +48,16 @@ export const trackQrScanned = (props: { type: 'invite' | 'profile' | 'unknown' }
   posthog?.capture('qr_scanned', props);
 
 /** User successfully added a friend connection. 'event_room' = the
- *  attendee↔attendee connect from the 這場的人 list (方向三). */
-export const trackFriendAdded = (props: { source: 'qr' | 'search' | 'contact' | 'invite' | 'event_room' }) =>
+ *  attendee↔attendee connect from the 這場的人 list (方向三).
+ *  'user_detail' = the plain follow button on the public profile screen
+ *  — entry origin isn't carried on route params (search / tag detail /
+ *  chat / followers all land there identically), so this is the honest
+ *  generic bucket. 'recommendation' = adds originating from a
+ *  personalized-recommendation surface (wire it when that surface
+ *  passes an explicit origin). */
+export const trackFriendAdded = (props: {
+  source: 'qr' | 'search' | 'contact' | 'invite' | 'event_room' | 'user_detail' | 'recommendation';
+}) =>
   posthog?.capture('friend_added', props);
 
 /** User sent a chat message. */
