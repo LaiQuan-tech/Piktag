@@ -13,7 +13,6 @@
 // SMTP uses; pikt.ag domain is verified in Resend).
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -30,66 +29,6 @@ function timingSafeEqual(a: string, b: string): boolean {
   let diff = 0;
   for (let i = 0; i < ae.length; i++) diff |= ae[i] ^ be[i];
   return diff === 0;
-}
-
-// Concept-linker health check, appended to the founder's real-time signup
-// email. WHY here and not on the app push: the founder purged ops telemetry
-// from the app notification feed / Expo push TWICE — 2026-06-06
-// (20260605130000, which also DROPPED the original notify_linker_stall cron)
-// and 2026-06-17 (20260617010000): "operational data belongs in the admin
-// backend, NOT pushed to the founder's phone." Email to lqtech2026@gmail.com
-// is the founder's sanctioned real-time ops channel (2026-07-03), so a
-// linker-down alert rides HERE. Silent when healthy (no line appended).
-// Fail-soft: any error returns null — an ops check must NEVER break the
-// signup email.
-async function linkerHealthWarning(): Promise<string | null> {
-  try {
-    const url = Deno.env.get('SUPABASE_URL');
-    const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    if (!url || !key) return null;
-    const supabase = createClient(url, key);
-
-    // Coverage from the moat RPC (service_role-granted, cheap COUNTs).
-    let coveragePct: number | null = null;
-    const { data: cov } = await supabase.rpc('admin_concept_coverage');
-    if (Array.isArray(cov) && cov.length > 0 && cov[0]) {
-      const v = Number((cov[0] as { tag_coverage_pct?: unknown }).tag_coverage_pct);
-      if (Number.isFinite(v)) coveragePct = v;
-    }
-
-    // Oldest-unlinked age from the health VIEW (kept read-only, granted to
-    // service_role). Guarded separately so a coverage read still fires if
-    // the view read fails.
-    let oldestHours: number | null = null;
-    try {
-      const { data: health } = await supabase
-        .from('tag_concept_link_health')
-        .select('oldest_unlinked_at')
-        .maybeSingle();
-      const oldest = (health as { oldest_unlinked_at?: string | null } | null)?.oldest_unlinked_at;
-      if (oldest) {
-        const ageMs = Date.now() - new Date(oldest).getTime();
-        if (Number.isFinite(ageMs) && ageMs > 0) oldestHours = ageMs / 3_600_000;
-      }
-    } catch {
-      // view unreadable — fall back to coverage-only signal
-    }
-
-    const coverageBad = coveragePct !== null && coveragePct < 60;
-    const staleBad = oldestHours !== null && oldestHours > 24;
-    if (!coverageBad && !staleBad) return null;
-
-    const parts: string[] = [];
-    if (coveragePct !== null) {
-      parts.push(`concept coverage ${coveragePct}%${coverageBad ? ' (below 60%)' : ''}`);
-    }
-    if (staleBad && oldestHours !== null) {
-      parts.push(`oldest unlinked tag ${Math.floor(oldestHours)}h old`);
-    }
-    return `Linker health: ${parts.join(', ')} — embeddings may be down; check the concept linker / Gemini quota.`;
-  } catch {
-    return null; // never block the signup email over an ops check
-  }
 }
 
 serve(async (req) => {
@@ -151,19 +90,11 @@ serve(async (req) => {
     // 21st/50th/100th… signup, so this email says "possible bot wave"
     // rather than spamming one mail per bot. Normal volume renders the
     // per-signup email.
-    // If the concept linker is down, surface it AT THE TOP of this email
-    // (the founder's proven "I will see it" channel). Silent when healthy.
-    const linkerWarn = await linkerHealthWarning();
-    const warnHtml = linkerWarn
-      ? `<p style="color:#b91c1c"><strong>${linkerWarn}</strong></p>\n`
-      : '';
-    const warnText = linkerWarn ? `${linkerWarn}\n\n` : '';
-
     const isFlood = lastHour > 20;
     const subject = isFlood
       ? `PikTag 疑似機器人潮：過去一小時 ${lastHour} 筆註冊`
       : `PikTag 新註冊：${email}`;
-    const html = warnHtml + (isFlood
+    const html = isFlood
       ? [
           `<p><strong>過去一小時有 ${lastHour} 筆註冊</strong>，超過正常量，疑似機器人潮。</p>`,
           `<p>為避免灌爆信箱，我們不會每筆都寄——只在第 21、50、100… 筆提醒你一次。</p>`,
@@ -176,10 +107,10 @@ serve(async (req) => {
           `<strong>User ID：</strong>${userId}<br/>`,
           `<strong>時間：</strong>${when}（台北）</p>`,
           `<p><a href="${adminUrl}">在後台查看這位使用者</a></p>`,
-        ].join('\n'));
-    const text = warnText + (isFlood
+        ].join('\n');
+    const text = isFlood
       ? `過去一小時有 ${lastHour} 筆註冊，疑似機器人潮。\n最新一筆: ${email}（${when} 台北）\n批次審查: ${signupsUrl}`
-      : `有新使用者註冊 PikTag。\nEmail: ${email}\nUser ID: ${userId}\n時間: ${when}（台北）\n後台: ${adminUrl}`);
+      : `有新使用者註冊 PikTag。\nEmail: ${email}\nUser ID: ${userId}\n時間: ${when}（台北）\n後台: ${adminUrl}`;
 
     const resp = await fetch('https://api.resend.com/emails', {
       method: 'POST',
