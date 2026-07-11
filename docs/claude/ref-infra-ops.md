@@ -96,3 +96,24 @@ curl -s "https://kbwfdskulxnhjckdvghj.supabase.co/rest/v1/<table>?select=<col>&l
   `piktag_user_tags.source` 存在,2026-07-06 探測證偽 —— source 是從
   owning table 推導的,不是欄位)。
 - 用完 key 的暫存檔要刪;key 絕不進 commit。
+
+## 踩坑補遺
+
+- [2026-07-11] 觸發:概念覆蓋率掉破 60%、官方新標籤全是 concept 孤兒 → 根因:
+  concept linker 的 embedding 呼叫**自 2026-06-22 起全數失敗**(tag_concepts 最後
+  一筆 mint 停在 06-22;之後只有不需 Gemini 的 alias 連結還活)。表層症狀是
+  `linker_run_lock` 卡死(fetch 無 timeout → 上游 hang → Deno worker 被 wall-clock
+  強殺 → finally 的 releaseLock 跑不到 → 鎖永久佔用)。**兩層病**:(1) hang 已修
+  (auto-link-concepts/index.ts 三個 Gemini fetch 加 AbortController,commit
+  「AbortController timeout on Gemini fetches」);(2) 底層是 **GEMINI_API_KEY
+  死掉/配額爆**——假 key 測 gemini-embedding-001 與 gemini-2.5-flash 都回
+  400「API key not valid」證明**端點與模型都活著**,問題在那把真 key。
+  規則:**concept 覆蓋率(admin_concept_coverage)是 embedding 健康的 canary**——
+  掉了先懷疑 Gemini key/配額,不要只當冷啟動。**九支 fn 共用同一把 GEMINI_API_KEY**
+  (auto-link-concepts / generate-embedding / semantic-tag-search / scan-business-card /
+  suggest-tags / extract-search-intent / generate-icebreaker / generate-ask-title /
+  notification-tag-suggest)——key 全死則**掃名片也掛**(北極星路徑),key 若只是
+  embedding 配額爆則 2.5-flash 那幾支還活。修 key 是創辦人端(Supabase secret +
+  Google AI Studio 配額/帳單),Claude 讀不到 secret 無法代修。診斷確認法:看
+  Supabase edge fn logs 的「embedding upstream error: HTTP XXX」(401=key、
+  429=配額、403=帳單)。
