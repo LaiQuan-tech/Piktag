@@ -35,6 +35,7 @@ import {
   Circle,
   Plus,
   ScanLine,
+  Waypoints,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS, type ColorPalette } from '../constants/theme';
@@ -1132,6 +1133,25 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             </View>
           </View>
           <View style={styles.headerRight}>
+            {/* Network-graph entry point (founder 2026-07-12): the ONLY
+                previous entry was the subtitle "N 位好友" link below the
+                title, which testing showed was too easy to miss. This
+                header icon surfaces the same destination (NetworkGraph)
+                at the top-level tap target every other header action
+                lives at. Kept in piktag500 (not the gray/white the other
+                icons use) so it visibly reads as a distinct, brand-lit
+                discovery feature rather than blending into the utility
+                icons. The subtitle link stays untouched — two doors to
+                the same room. */}
+            <TouchableOpacity
+              style={styles.headerIconBtn}
+              activeOpacity={0.6}
+              onPress={() => navigation.navigate('NetworkGraph')}
+              accessibilityLabel={t('network.title', { defaultValue: '你的人脈' })}
+              accessibilityRole="button"
+            >
+              <Waypoints size={24} color={colors.piktag500} />
+            </TouchableOpacity>
             {/* "+" add-contact action sheet was removed after user
                 feedback that the Connections page was too busy at
                 first glance. The same three entry points (search /

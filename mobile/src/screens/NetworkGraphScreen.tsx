@@ -66,6 +66,14 @@ type GraphData = {
   bridges: Bridge[];
   bridge_edges: [string, string][];
   contacts: ContactNode[];
+  // Contact↔friend bridges (founder 2026-07-12, get_contact_bridges()):
+  // [contact_id, friend_id] pairs where a member friend ALSO saved this
+  // same coral contact in their own address book. Feeds the force layout
+  // as an extra edge so the shared contact gets pulled in between the
+  // members who both know them — the "two populations become one net"
+  // visual. Purely additive: contacts with no bridge stay edge-less on
+  // the periphery exactly as before.
+  contact_bridges: [string, string][];
 };
 type Props = { navigation: any };
 
@@ -82,7 +90,7 @@ type LaidNode = {
 };
 type Seg = { x1: number; y1: number; x2: number; y2: number };
 
-const EMPTY: GraphData = { friends: [], edges: [], bridges: [], bridge_edges: [], contacts: [] };
+const EMPTY: GraphData = { friends: [], edges: [], bridges: [], bridge_edges: [], contacts: [], contact_bridges: [] };
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 4;
 // Brand-gradient coral — the not-yet-member tier. FIXED brand colour
@@ -109,7 +117,11 @@ export default function NetworkGraphScreen({ navigation }: Props) {
       // table (same predicate shape as phonePrompt/ConnectionsScreen:
       // un-promoted rows only — promoted contacts already ARE friend
       // nodes, drawing both would double-count the person).
-      const [{ data: res, error }, contactsRes] = await Promise.all([
+      // Contact bridges (get_contact_bridges(), founder 2026-07-12) run
+      // in the same wave — it's owner-scoped and param-less like the
+      // other two, and a failure here must never block the graph (same
+      // "silent degrade" contract as the friend-graph RPC below).
+      const [{ data: res, error }, contactsRes, bridgesRes] = await Promise.all([
         supabase.rpc('get_friend_graph'),
         supabase
           .from('piktag_local_contacts')
@@ -118,16 +130,28 @@ export default function NetworkGraphScreen({ navigation }: Props) {
           .is('promoted_to_connection_id', null)
           .order('created_at', { ascending: false })
           .limit(MAX_CONTACTS),
+        supabase.rpc('get_contact_bridges'),
       ]);
       const contacts = Array.isArray(contactsRes.data)
         ? (contactsRes.data as ContactNode[]).filter((cNode) => !!cNode.name?.trim())
+        : [];
+      if (bridgesRes.error) {
+        const isMissing =
+          (bridgesRes.error as any).code === 'PGRST202' ||
+          /could not find the function|does not exist/i.test(bridgesRes.error.message);
+        if (!isMissing) console.warn('[NetworkGraph] contact bridges fetch failed:', bridgesRes.error);
+      }
+      const contactBridges: [string, string][] = Array.isArray(bridgesRes.data)
+        ? (bridgesRes.data as { contact_id: string; friend_id: string }[])
+            .filter((row) => !!row?.contact_id && !!row?.friend_id)
+            .map((row) => [row.contact_id, row.friend_id])
         : [];
       if (error) {
         const isMissing =
           (error as any).code === 'PGRST202' ||
           /could not find the function|does not exist/i.test(error.message);
         if (!isMissing) console.warn('[NetworkGraph] fetch failed:', error);
-        setData({ ...EMPTY, contacts });
+        setData({ ...EMPTY, contacts, contact_bridges: contactBridges });
       } else if (res) {
         setData({
           friends: Array.isArray(res.friends) ? res.friends : [],
@@ -135,6 +159,7 @@ export default function NetworkGraphScreen({ navigation }: Props) {
           bridges: Array.isArray(res.bridges) ? res.bridges : [],
           bridge_edges: Array.isArray(res.bridge_edges) ? res.bridge_edges : [],
           contacts,
+          contact_bridges: contactBridges,
         });
       }
     } finally {
@@ -145,7 +170,7 @@ export default function NetworkGraphScreen({ navigation }: Props) {
   useEffect(() => { fetchGraph(); }, [fetchGraph]);
 
   // ─── 2D force-directed layout (run once) ─────────────────────────────
-  const { nodes, friendLines, bridgeLines, size } = useMemo(() => {
+  const { nodes, friendLines, bridgeLines, contactBridgeLines, size } = useMemo(() => {
     const canvas = Math.min(Dimensions.get('window').width - 24, 360);
     const pad = 42;
     const maxDeg = data.friends.reduce((m, f) => Math.max(m, f.deg), 0);
@@ -158,8 +183,11 @@ export default function NetworkGraphScreen({ navigation }: Props) {
       ...data.bridges.map((b, idx) => ({
         i: data.friends.length + idx, id: b.id, type: 'bridge' as const, x: 0, y: 0, r: 11,
       })),
-      // Edge-less by design — repulsion pushes them to the periphery,
-      // a coral halo of not-yet-members around the purple network.
+      // Edge-less BY DEFAULT — repulsion pushes them to the periphery, a
+      // coral halo of not-yet-members around the purple network. A
+      // contact with a bridge (get_contact_bridges(): a friend also
+      // saved this same person) is the one exception — its extra edge
+      // (cbE below) pulls it in among the members instead.
       ...data.contacts.map((lc, idx) => ({
         i: data.friends.length + data.bridges.length + idx, id: lc.id,
         type: 'contact' as const, x: 0, y: 0, r: 11,
@@ -167,7 +195,7 @@ export default function NetworkGraphScreen({ navigation }: Props) {
       })),
     ];
     const n = laid.length;
-    if (n === 0) return { nodes: [] as LaidNode[], friendLines: [] as Seg[], bridgeLines: [] as Seg[], size: canvas };
+    if (n === 0) return { nodes: [] as LaidNode[], friendLines: [] as Seg[], bridgeLines: [] as Seg[], contactBridgeLines: [] as Seg[], size: canvas };
 
     const indexOf = new Map<string, number>();
     laid.forEach((nd, i) => indexOf.set(nd.id, i));
@@ -181,6 +209,18 @@ export default function NetworkGraphScreen({ navigation }: Props) {
       const ib = indexOf.get(bid), iff = indexOf.get(fid);
       if (ib !== undefined && iff !== undefined) bE.push([ib, iff]);
     }
+    // Contact bridges (get_contact_bridges()): a coral contact both the
+    // viewer AND a member friend saved. Same "both ends must be laid"
+    // guard as bridge_edges above — only maps to a real edge when the
+    // friend is actually rendered on this graph. Feeding these into the
+    // SAME force-layout `edges` list (below) is what pulls a bridged
+    // contact off the coral periphery and in among the members — an
+    // un-bridged contact never gets an entry here and stays edge-less.
+    const cbE: [number, number][] = [];
+    for (const [contactId, friendId] of data.contact_bridges) {
+      const ic = indexOf.get(contactId), ifr = indexOf.get(friendId);
+      if (ic !== undefined && ifr !== undefined) cbE.push([ic, ifr]);
+    }
 
     const cx = canvas / 2, cy = canvas / 2;
     const px = new Array<number>(n), py = new Array<number>(n);
@@ -191,7 +231,7 @@ export default function NetworkGraphScreen({ navigation }: Props) {
     }
 
     const k = 1.05 * Math.sqrt((canvas * canvas) / n); // generous spread
-    const edges = [...fE, ...bE];
+    const edges = [...fE, ...bE, ...cbE];
     const ITER = 220;
     let temp = canvas * 0.16;
     const cool = temp / (ITER + 1);
@@ -260,7 +300,8 @@ export default function NetworkGraphScreen({ navigation }: Props) {
 
     const fLines = fE.map(([a, b]) => ({ x1: px[a], y1: py[a], x2: px[b], y2: py[b] }));
     const bLines = bE.map(([a, b]) => ({ x1: px[a], y1: py[a], x2: px[b], y2: py[b] }));
-    return { nodes: laid, friendLines: fLines, bridgeLines: bLines, size: canvas };
+    const cbLines = cbE.map(([a, b]) => ({ x1: px[a], y1: py[a], x2: px[b], y2: py[b] }));
+    return { nodes: laid, friendLines: fLines, bridgeLines: bLines, contactBridgeLines: cbLines, size: canvas };
   }, [data]);
 
   // ─── Pinch-zoom + pan + a gentle fly-in (container-level — reliable) ──
@@ -371,6 +412,17 @@ export default function NetworkGraphScreen({ navigation }: Props) {
                 {bridgeLines.map((ln, i) => (
                   <Line key={`b-${i}`} x1={ln.x1} y1={ln.y1} x2={ln.x2} y2={ln.y2}
                     stroke={colors.gray400} strokeWidth={2} strokeDasharray="4,5" opacity={0.6} />
+                ))}
+                {/* Contact↔friend bridges (get_contact_bridges(), founder
+                    2026-07-12) — dashed CORAL, same weight/dash as the
+                    gray bridge line above so both "shared with someone"
+                    hints read as one visual family, just colour-coded to
+                    which side that someone is on. Fixed brand colour, not
+                    theme-mapped (same doctrine as the coral contact node
+                    fill). */}
+                {contactBridgeLines.map((ln, i) => (
+                  <Line key={`cb-${i}`} x1={ln.x1} y1={ln.y1} x2={ln.x2} y2={ln.y2}
+                    stroke={CONTACT_CORAL} strokeWidth={2} strokeDasharray="4,5" opacity={0.55} />
                 ))}
 
                 {/* Nodes */}
