@@ -55,7 +55,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { shouldShowPhonePrompt, dismissPhonePrompt } from '../lib/phonePrompt';
 import AskStoryRow from '../components/ask/AskStoryRow';
 import type { Connection, ConnectionTag } from '../types';
-import { OFFICIAL_ACCOUNT_ID } from '../lib/officialDemoAsk';
+import { OFFICIAL_ACCOUNT_ID, isOfficialDemoAsk, getDemoAskText } from '../lib/officialDemoAsk';
 
 // PikTag official account (fixed UUID, auto-friended at wizard completion).
 // Used to detect the "only friend is @piktag" cold-start state.
@@ -846,9 +846,15 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     const m = new Map<string, string>();
     for (const a of askFeedItems || []) {
       if (!a?.author_id || !a?.body) continue;
+      // Official @piktag demo Ask stores English body in the DB; swap in
+      // the viewer-language demo text so the pill matches the rail + detail
+      // localization (getDemoAskText). Regular asks use their real body.
+      const rawBody = isOfficialDemoAsk(a.author_id)
+        ? (getDemoAskText(t).body || a.body)
+        : a.body;
       // Collapse whitespace + truncate. ellipsis ASCII to keep
       // the renderable width tight on iOS Pinyin Mono Dot.
-      const oneLine = a.body.replace(/\s+/g, ' ').trim();
+      const oneLine = rawBody.replace(/\s+/g, ' ').trim();
       const preview =
         oneLine.length > ASK_PREVIEW_LEN
           ? oneLine.slice(0, ASK_PREVIEW_LEN).trimEnd() + '…'
@@ -856,7 +862,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       m.set(a.author_id, preview);
     }
     return m;
-  }, [askFeedItems]);
+  }, [askFeedItems, t]);
 
   // --- Optimized: useCallback renderItem with memoized ConnectionItem ---
   const renderItem = useCallback(({ item }: { item: ConnectionWithTags }) => {
