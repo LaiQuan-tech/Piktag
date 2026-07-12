@@ -70,6 +70,8 @@ const CLEANUPS: TableCleanup[] = [
   { table: 'piktag_user_tags', column: 'user_id' },
   { table: 'piktag_connections', column: 'user_id' },
   { table: 'piktag_connections', column: 'connected_user_id' },
+  { table: 'piktag_follows', column: 'follower_id' },
+  { table: 'piktag_follows', column: 'following_id' },
   { table: 'piktag_pending_connections', column: 'host_user_id' },
   { table: 'piktag_pending_connections', column: 'scanner_user_id' },
   { table: 'piktag_close_friends', column: 'user_id' },
