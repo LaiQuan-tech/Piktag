@@ -65,6 +65,13 @@ export type Platform = {
    *  options. Only `custom` (relabeled as "Link") survives in the
    *  picker. */
   legacy?: boolean;
+  /** When true, the "account" is an un-clickable ID (e.g. a WeChat
+   *  personal 微信號) — there's no openable URL for it. The save path
+   *  stores the bare ID verbatim (buildPlatformUrl short-circuits and
+   *  skips the isSafeBiolinkUrl allowlist, since a scheme-less ID can
+   *  never pass it), the profile card renders "Label: id", and tapping
+   *  copies the ID to the clipboard instead of Linking.openURL. */
+  idMode?: boolean;
 };
 
 export const PLATFORMS: Platform[] = [
@@ -96,7 +103,14 @@ export const PLATFORMS: Platform[] = [
   // paste their personal QR-page URL (or pay URL). Legacy rows saved
   // with the old `weixin://` prefix continue to open via the
   // `/^[a-z]+:/i` scheme check in buildPlatformUrl.
-  { key: 'wechat',     cat: 'communication', label: 'WeChat',     prefix: 'https://',                          placeholder: 'WeChat QR / pay URL',      domains: ['weixin.qq.com'] },
+  // WeChat personal accounts have NO tappable link — the only portable
+  // handle is the 微信號 (WeChat ID). idMode: true stores the bare ID
+  // (prefix '' so the two prefix-concat save paths in EditProfile emit a
+  // clean `armand7951`, not `https://armand7951`), renders it as
+  // "WeChat: <id>", and copies-on-tap instead of opening a URL. Fixes the
+  // 2026-07 input-防呆 violation where a typed ID silently produced the
+  // dead link `https://armand7951`.
+  { key: 'wechat',     cat: 'communication', label: 'WeChat',     prefix: '',                                  placeholder: 'editProfile.wechatIdPlaceholder', domains: ['weixin.qq.com'], idMode: true },
   // KakaoTalk: paste-mode. A typed bare handle no longer auto-prefixes
   // (open.kakao.com/o/<handle> only works for the EXACT openchat URL
   // the user generated, not an arbitrary username) — placeholder
@@ -214,6 +228,16 @@ export const PLATFORM_MAP: Record<string, Platform> = PLATFORMS.reduce(
   },
   {} as Record<string, Platform>,
 );
+
+/**
+ * True for platforms whose "account" is a copy-only ID with no
+ * openable URL (currently only WeChat's 微信號). Callers use this to
+ * branch: render the bare ID as "Label: id" and copy-on-tap instead of
+ * Linking.openURL. See the `idMode` field doc on the Platform type.
+ */
+export function isIdModePlatform(key: string): boolean {
+  return !!PLATFORM_MAP[key]?.idMode;
+}
 
 /**
  * Quick-pick chip row in the biolink form. ORDER MATTERS — items
@@ -702,6 +726,11 @@ export function buildPlatformUrl(key: string, account: string): string {
     const out = `https://youtube.com/channel/${trimmed}`;
     return isSafeBiolinkUrl(out) ? out : '';
   }
+  // idMode (WeChat): the value is a bare ID, not a URL. Store it
+  // verbatim and DON'T run isSafeBiolinkUrl — a scheme-less ID can
+  // never pass the allowlist and would be fail-closed to ''. `trimmed`
+  // is already normalizeBiolinkInput(key, account)'d and non-empty.
+  if (p.idMode) return trimmed;
   // If the user pasted something that already starts with the prefix
   // (or with any scheme), don't double-prefix.
   let out: string;

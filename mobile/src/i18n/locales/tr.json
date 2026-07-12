@@ -265,6 +265,7 @@
   "connections": {
     "friendsLabel": "arkadaş",
     "closeFriendsLabel": "yakın arkadaşlar",
+    "networkLink": "Ağ",
     "followUpTitle": "İletişim zamanı",
     "followUp3d": "3 gün önce tanıştınız, selam verin",
     "followUp7d": "Bir hafta oldu, sohbet edin",
@@ -618,6 +619,10 @@
     "uploadFailTitle": "Yükleme başarısız",
     "tryAgainLater": "Daha sonra tekrar deneyin",
     "alertBiolinkAddError": "İletişim yöntemi eklenemedi. Lütfen daha sonra tekrar deneyin.",
+    "wechatIdLabel": "WeChat ID",
+    "wechatIdPlaceholder": "WeChat ID'n",
+    "idCopiedTitle": "Kopyalandı",
+    "idCopiedMessage": "WeChat ID kopyalandı — seni eklemek için WeChat'te ara",
     "alertBiolinkEmptyAccount": "Lütfen önce numarayı veya hesabı girin."
   },
   "friendDetail": {

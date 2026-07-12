@@ -266,6 +266,7 @@
     "addedFriend": "+ {{name}}",
     "friendsLabel": "amici",
     "closeFriendsLabel": "amici stretti",
+    "networkLink": "Rete",
     "followUpTitle": "È ora di farsi sentire",
     "followUp3d": "Vi siete conosciuti 3 giorni fa, mandagli un saluto",
     "followUp7d": "È passata una settimana, fatti due chiacchiere",
@@ -618,6 +619,10 @@
     "uploadFailTitle": "Caricamento non riuscito",
     "tryAgainLater": "Riprova più tardi",
     "alertBiolinkAddError": "Impossibile aggiungere il metodo di contatto. Riprova più tardi.",
+    "wechatIdLabel": "WeChat ID",
+    "wechatIdPlaceholder": "Il tuo WeChat ID",
+    "idCopiedTitle": "Copiato",
+    "idCopiedMessage": "WeChat ID copiato: cercalo su WeChat per aggiungerti",
     "alertBiolinkEmptyAccount": "Inserisci prima il numero o l'account."
   },
   "friendDetail": {

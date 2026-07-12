@@ -71,7 +71,8 @@ import { useAuth } from '../hooks/useAuth';
 import { useAskFeed } from '../hooks/useAskFeed';
 import type { Connection, PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
-import { isSafeBiolinkUrl } from '../lib/platforms';
+import { isIdModePlatform, isSafeBiolinkUrl } from '../lib/platforms';
+import { openOrCopyBiolink } from '../lib/biolinks';
 import { isOfficialDemoAsk, isOfficialAccount, getOfficialBio, getDemoAskText, getOfficialTagLabel } from '../lib/officialDemoAsk';
 
 // How many scan-event tags to show before the "show all" toggle kicks in.
@@ -902,12 +903,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     }
   };
 
-  const handleOpenLink = async (url: string, biolinkId: string) => {
-    // Scheme allowlist gate — silent no-op for old/bad rows that carry
-    // a scheme outside the allowlist (`javascript:` / `intent:` etc.).
-    // Also short-circuits the click-tracking insert so we don't credit
-    // a "click" on a URL we refused to open.
-    if (!isSafeBiolinkUrl(url)) return;
+  const handleOpenLink = async (link: Biolink) => {
+    // Interactable = a copy-mode ID (WeChat) OR an openable safe URL.
+    // Non-interactable rows (scheme outside the allowlist) skip BOTH
+    // tracking and action — don't credit a "click" on a link we refuse
+    // to act on. The copy-vs-open branch itself lives in openOrCopyBiolink.
+    if (!isIdModePlatform(link.platform) && !isSafeBiolinkUrl(link.url)) return;
     // Track click
     if (user) {
       supabase
@@ -916,15 +917,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         // notify_biolink_click trigger DOES notify the owner (existing
         // behaviour). Stranger/public clicks (UserDetailScreen) use
         // 'user_detail' and are recorded silently.
-        .insert({ biolink_id: biolinkId, clicker_user_id: user.id, source: 'friend_detail' })
+        .insert({ biolink_id: link.id, clicker_user_id: user.id, source: 'friend_detail' })
         .then(({ error }) => {
           if (error) console.warn('Biolink click tracking failed:', error.message);
         });
     }
-    Linking.openURL(url).catch((err) => {
-      console.warn('Failed to open URL:', err);
-      Alert.alert(t('common.error'), t('friendDetail.alertOpenLinkError'));
-    });
+    await openOrCopyBiolink({ platform: link.platform, url: link.url, id: link.id }, t);
   };
 
   // CRM Reminder handlers
@@ -1556,7 +1554,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             other-people profiles. */}
         <BiolinkSocialSection
           biolinks={biolinks}
-          onPress={(link) => handleOpenLink(link.url, link.id)}
+          onPress={(link) => handleOpenLink(link)}
           variant="highlight"
         />
 

@@ -266,6 +266,7 @@
     "addedFriend": "+ {{name}}",
     "friendsLabel": "دوست",
     "closeFriendsLabel": "قریبی دوست",
+    "networkLink": "نیٹ ورک",
     "followUpTitle": "حال احوال کا وقت ہے",
     "followUp3d": "3 دن پہلے ملے تھے، سلام کر لیں",
     "followUp7d": "ایک ہفتہ ہو گیا، حال پوچھ لیں",
@@ -618,6 +619,10 @@
     "uploadFailTitle": "اپ لوڈ ناکام",
     "tryAgainLater": "بعد میں دوبارہ کوشش کریں",
     "alertBiolinkAddError": "رابطہ کا طریقہ شامل نہیں ہو سکا۔ براہ کرم بعد میں دوبارہ کوشش کریں۔",
+    "wechatIdLabel": "WeChat ID",
+    "wechatIdPlaceholder": "آپ کی WeChat ID",
+    "idCopiedTitle": "کاپی ہو گیا",
+    "idCopiedMessage": "WeChat ID کاپی ہو گیا، اسے WeChat میں سرچ کر کے آپ کو شامل کیا جا سکتا ہے",
     "alertBiolinkEmptyAccount": "براہ کرم پہلے نمبر یا اکاؤنٹ درج کریں۔"
   },
   "friendDetail": {

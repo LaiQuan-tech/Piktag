@@ -265,6 +265,7 @@
   "connections": {
     "friendsLabel": "друзья",
     "closeFriendsLabel": "близкие друзья",
+    "networkLink": "Сеть",
     "followUpTitle": "Пора напомнить о себе",
     "followUp3d": "Познакомились 3 дня назад — напиши привет",
     "followUp7d": "Прошла неделя — пора пообщаться",
@@ -618,6 +619,10 @@
     "uploadFailTitle": "Ошибка загрузки",
     "tryAgainLater": "Повторите попытку позже",
     "alertBiolinkAddError": "Не удалось добавить способ связи. Повторите попытку позже.",
+    "wechatIdLabel": "WeChat ID",
+    "wechatIdPlaceholder": "Твой WeChat ID",
+    "idCopiedTitle": "Скопировано",
+    "idCopiedMessage": "WeChat ID скопирован — найди его в WeChat, чтобы добавить тебя",
     "alertBiolinkEmptyAccount": "Сначала введите номер или аккаунт."
   },
   "friendDetail": {

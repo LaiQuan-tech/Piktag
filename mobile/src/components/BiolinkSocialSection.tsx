@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import PlatformIcon from './PlatformIcon';
 import { useTheme } from '../context/ThemeContext';
 import { type ColorPalette } from '../constants/theme';
-import { getPlatformLabel } from '../lib/platforms';
+import { getPlatformLabel, isIdModePlatform } from '../lib/platforms';
 import type { Biolink } from '../types';
 
 /**
@@ -145,9 +145,15 @@ export default function BiolinkSocialSection({
                     Founder caught the EN-viewer regression 2026-06-03;
                     the 2026-05-31 partial fix here used `bl.label ||
                     derived` which only helped when label was null. */}
-                {bl.platform === 'custom'
-                  ? (bl.label || getPlatformLabel(bl.platform, t))
-                  : getPlatformLabel(bl.platform, t)}
+                {/* idMode platforms (WeChat) have no openable URL — the
+                    card shows the bare 微信號 as "WeChat: <id>" so it's
+                    readable at a glance; tapping copies it (see
+                    openOrCopyBiolink). */}
+                {isIdModePlatform(bl.platform)
+                  ? `${getPlatformLabel(bl.platform, t)}: ${bl.url}`
+                  : bl.platform === 'custom'
+                    ? (bl.label || getPlatformLabel(bl.platform, t))
+                    : getPlatformLabel(bl.platform, t)}
               </Text>
               <ExternalLink size={variant === 'compact' ? 14 : 16} color={colors.gray400} />
             </TouchableOpacity>

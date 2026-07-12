@@ -265,6 +265,7 @@
   "connections": {
     "friendsLabel": "친구",
     "closeFriendsLabel": "친한 친구",
+    "networkLink": "인맥",
     "followUpTitle": "안부 전할 시간",
     "followUp3d": "3일 전에 만났어요, 안부를 전하세요",
     "followUp7d": "일주일이 지났어요, 근황을 물어보세요",
@@ -618,6 +619,10 @@
     "uploadFailTitle": "업로드 실패",
     "tryAgainLater": "잠시 후 다시 시도해 주세요",
     "alertBiolinkAddError": "연락 방법을 추가하지 못했습니다. 나중에 다시 시도해 주세요.",
+    "wechatIdLabel": "WeChat ID",
+    "wechatIdPlaceholder": "나의 WeChat ID",
+    "idCopiedTitle": "복사됨",
+    "idCopiedMessage": "WeChat ID가 복사되었습니다. WeChat에서 검색하면 회원님을 추가할 수 있어요",
     "alertBiolinkEmptyAccount": "번호 또는 계정을 먼저 입력해 주세요."
   },
   "friendDetail": {

@@ -1100,13 +1100,10 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                 accessibilityRole="button"
                 accessibilityLabel={t('network.openLabel', { defaultValue: '查看人脈圖' })}
               >
-                <Text style={[styles.headerSubtitle, isDark && { color: '#FFFFFF' }]}>
-                  <Text style={styles.headerCount}>{sortedConnections.length}</Text>{' '}{t('connections.friendsLabel', { defaultValue: 'friends' })}
-                  {closeFriendCount > 0 && (
-                    <Text>{'  ·  '}<Text style={styles.headerCount}>{closeFriendCount}</Text>{' '}{t('connections.closeFriendsLabel', { defaultValue: '摯友' })}</Text>
-                  )}
+                <Text style={styles.networkLinkText}>
+                  {t('connections.networkLink', { defaultValue: '人脈網' })}
                 </Text>
-                <ChevronRight size={14} color={isDark ? '#FFFFFF' : colors.gray400} />
+                <ChevronRight size={14} color={colors.piktag600} />
               </TouchableOpacity>
               {unreviewedCount > 0 && (
                 <TouchableOpacity
@@ -1799,6 +1796,11 @@ function makeStyles(c: ColorPalette) {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
+  },
+  networkLinkText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: c.piktag600,
   },
   unreviewedLink: {
     fontSize: 14,

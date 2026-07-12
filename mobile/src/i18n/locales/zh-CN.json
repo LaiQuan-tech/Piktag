@@ -266,6 +266,7 @@
     "addedFriend": "+ {{name}}",
     "friendsLabel": "位朋友",
     "closeFriendsLabel": "位挚友",
+    "networkLink": "人脉网",
     "followUpTitle": "该跟进了",
     "followUp3d": "认识 3 天了，打个招呼",
     "followUp7d": "已经一周了，聊聊近况",
@@ -618,6 +619,10 @@
     "uploadFailTitle": "上传失败",
     "tryAgainLater": "请稍后再试",
     "alertBiolinkAddError": "新增联系方式失败，请稍后再试。",
+    "wechatIdLabel": "微信号",
+    "wechatIdPlaceholder": "你的微信号",
+    "idCopiedTitle": "已复制",
+    "idCopiedMessage": "微信号已复制,到微信搜索即可加你",
     "alertBiolinkEmptyAccount": "请先输入号码或账号。"
   },
   "friendDetail": {

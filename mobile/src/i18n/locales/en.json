@@ -266,6 +266,7 @@
     "addedFriend": "+ {{name}}",
     "friendsLabel": "friends",
     "closeFriendsLabel": "close friends",
+    "networkLink": "Connect",
     "followUpTitle": "Time to follow up",
     "followUp3d": "Met 3 days ago, say hi",
     "followUp7d": "It's been a week, catch up",
@@ -618,6 +619,10 @@
     "uploadFailTitle": "Upload failed",
     "tryAgainLater": "Please try again later",
     "alertBiolinkAddError": "Couldn't add contact method. Please try again later.",
+    "wechatIdLabel": "WeChat ID",
+    "wechatIdPlaceholder": "Your WeChat ID",
+    "idCopiedTitle": "Copied",
+    "idCopiedMessage": "WeChat ID copied — search it in WeChat to add you",
     "alertBiolinkEmptyAccount": "Please enter the number or handle first."
   },
   "friendDetail": {

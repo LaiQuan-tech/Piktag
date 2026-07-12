@@ -266,6 +266,7 @@
     "addedFriend": "+ {{name}}",
     "friendsLabel": "bạn bè",
     "closeFriendsLabel": "bạn thân",
+    "networkLink": "Mạng lưới",
     "followUpTitle": "Đến lúc hỏi thăm rồi nè",
     "followUp3d": "Gặp 3 ngày trước rồi, nhắn chào một câu nhé",
     "followUp7d": "Cả tuần rồi đó, trò chuyện lại thôi",
@@ -618,6 +619,10 @@
     "uploadFailTitle": "Tải lên thất bại",
     "tryAgainLater": "Vui lòng thử lại sau",
     "alertBiolinkAddError": "Không thể thêm phương thức liên lạc. Vui lòng thử lại sau.",
+    "wechatIdLabel": "WeChat ID",
+    "wechatIdPlaceholder": "WeChat ID của bạn",
+    "idCopiedTitle": "Đã sao chép",
+    "idCopiedMessage": "Đã sao chép WeChat ID — tìm trên WeChat để thêm bạn",
     "alertBiolinkEmptyAccount": "Vui lòng nhập số hoặc tài khoản trước."
   },
   "friendDetail": {

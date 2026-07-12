@@ -265,6 +265,7 @@
   "connections": {
     "friendsLabel": "বন্ধু",
     "closeFriendsLabel": "ঘনিষ্ঠ বন্ধু",
+    "networkLink": "নেটওয়ার্ক",
     "followUpTitle": "যোগাযোগের সময়",
     "followUp3d": "3 দিন আগে দেখা হয়েছিল, হাই বলুন",
     "followUp7d": "এক সপ্তাহ হয়ে গেছে, কথা বলুন",
@@ -618,6 +619,10 @@
     "uploadFailTitle": "আপলোড ব্যর্থ",
     "tryAgainLater": "পরে চেষ্টা করুন",
     "alertBiolinkAddError": "যোগাযোগের পদ্ধতি যোগ করা ব্যর্থ হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন।",
+    "wechatIdLabel": "WeChat ID",
+    "wechatIdPlaceholder": "আপনার WeChat ID",
+    "idCopiedTitle": "কপি হয়েছে",
+    "idCopiedMessage": "WeChat ID কপি হয়েছে — WeChat-এ সার্চ করে আপনাকে যোগ করা যাবে",
     "alertBiolinkEmptyAccount": "প্রথমে নম্বর বা অ্যাকাউন্ট প্রবেশ করান।"
   },
   "friendDetail": {

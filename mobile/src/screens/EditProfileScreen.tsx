@@ -62,7 +62,9 @@ import {
   stripPlatformPrefix as platformStripPrefix,
   buildPlatformUrl as platformBuildUrl,
   getPlatformLabel,
+  isIdModePlatform,
 } from '../lib/platforms';
+import { openOrCopyBiolink } from '../lib/biolinks';
 
 // Tag-management constants — moved here so EditProfileScreen owns
 // the full tag editing surface (add / remove / drag / cap).
@@ -258,7 +260,7 @@ const PopularTagChip = React.memo(function PopularTagChip({
 // is eliminated by construction.
 type BiolinkRowProps = {
   link: Biolink;
-  onOpenLink: (url: string) => void;
+  onOpenLink: (link: Biolink) => void;
   onEdit: (link: Biolink) => void;
   onDelete: (link: Biolink) => void;
 };
@@ -288,7 +290,7 @@ const BiolinkRow = React.memo(function BiolinkRow({
     () => platformStripPrefix(link.url, detectPlatformFromUrl(link.url) ?? link.platform),
     [link.url, link.platform],
   );
-  const handlePress = useCallback(() => onOpenLink(link.url), [onOpenLink, link.url]);
+  const handlePress = useCallback(() => onOpenLink(link), [onOpenLink, link]);
   const handleEdit = useCallback(() => onEdit(link), [onEdit, link]);
   const handleDelete = useCallback(() => onDelete(link), [onDelete, link]);
 
@@ -1085,9 +1087,13 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
     // and unmounts with this modal, so there's no orphan overlay to close.)
   };
 
-  const handleOpenLink = useCallback((url: string) => {
-    if (url) Linking.openURL(url).catch(() => {});
-  }, []);
+  const handleOpenLink = useCallback((link: Biolink) => {
+    // Route through the shared helper so the WeChat 微信號 (idMode)
+    // copies to the clipboard instead of opening a dead link, and every
+    // other row goes through the same isSafeBiolinkUrl gate as the
+    // profile screens (this handler previously had NO gate at all).
+    void openOrCopyBiolink({ platform: link.platform, url: link.url, id: link.id }, t);
+  }, [t]);
 
   const getIconUrl = (url: string): string | null => {
     try {
@@ -2589,7 +2595,9 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 <Text style={styles.fieldLabel}>
                   {biolinkForm.platform === 'phone'
                     ? t('editProfile.phoneLabel')
-                    : t('editProfile.urlLabel')}
+                    : isIdModePlatform(biolinkForm.platform)
+                      ? t('editProfile.wechatIdLabel', { defaultValue: '微信號' })
+                      : t('editProfile.urlLabel')}
                 </Text>
                 {biolinkForm.platform === 'phone' ? (
                   // Phone gets the country-code chip + national-number input

@@ -27,7 +27,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthProfile } from '../context/AuthContext';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
-import { isSafeBiolinkUrl } from '../lib/platforms';
+import { openOrCopyBiolink } from '../lib/biolinks';
 import QrCodeModal from '../components/QrCodeModal';
 import RingedAvatar from '../components/RingedAvatar';
 import { AskCreateModal } from '../components/ask/AskStoryRow';
@@ -243,23 +243,14 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
   // --- Callbacks ---
 
-  const handleOpenBiolink = useCallback((url: string) => {
-    if (!url) return;
-    // Defensive scheme prepend — covers legacy `custom` biolink
-    // rows saved before buildPlatformUrl learned to auto-prepend
-    // https:// (2026-05-31 fix). Without this, tapping a bare-
-    // domain biolink looks completely dead — iOS Linking.openURL
-    // silently refuses URLs without a scheme. Founder verbatim
-    // "圖片並排最右邊，根本沒有網址可以前往，這簡直是我們產品
-    // 存在的基本價值都做不到".
-    const safeUrl = /^[a-z]+:/i.test(url) ? url : `https://${url}`;
-    // Scheme allowlist gate — saved rows the user already trusted, but
-    // an old/bad row could carry a hostile scheme (`javascript:`,
-    // `intent:`, etc.). Silent no-op on fail: these aren't user-facing
-    // typo errors, they're stale data — no alert needed.
-    if (!isSafeBiolinkUrl(safeUrl)) return;
-    Linking.openURL(safeUrl).catch(() => {});
-  }, []);
+  const handleOpenBiolink = useCallback((bl: Biolink) => {
+    // Copy-or-open is centralised in openOrCopyBiolink: WeChat (idMode)
+    // copies its bare 微信號 to the clipboard, everything else gates on
+    // the isSafeBiolinkUrl allowlist and opens. Routing through the
+    // shared helper also kills the old double-prefix bug where a bare
+    // ID got `https://` prepended and opened as a dead `https://<id>`.
+    void openOrCopyBiolink({ platform: bl.platform, url: bl.url, id: bl.id }, t);
+  }, [t]);
 
   const handleTagPress = useCallback((tagId: string, tagName: string) => {
     navigation.navigate('TagDetail', { tagId, tagName });
@@ -511,7 +502,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             case the founder pivots back. */}
         <BiolinkSocialSection
           biolinks={activeBiolinks}
-          onPress={(bl) => handleOpenBiolink(bl.url)}
+          onPress={(bl) => handleOpenBiolink(bl)}
           variant="highlight"
         />
 

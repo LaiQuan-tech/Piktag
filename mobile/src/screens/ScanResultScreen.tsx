@@ -24,7 +24,8 @@ import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import PlatformIcon from '../components/PlatformIcon';
 import SectionTitle from '../components/SectionTitle';
-import { getPlatformLabel, isSafeBiolinkUrl } from '../lib/platforms';
+import { getPlatformLabel, isIdModePlatform, isSafeBiolinkUrl } from '../lib/platforms';
+import { openOrCopyBiolink } from '../lib/biolinks';
 import type { PiktagProfile, Biolink } from '../types';
 
 type ScanResultParams = {
@@ -168,22 +169,21 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
   // "someone clicked your {{platform}} link" notification. The
   // scanner is the clicker; fire-and-forget so a tracking hiccup
   // never blocks the deep link.
-  const openBiolink = (biolinkId: string, url: string) => {
-    if (!url) return;
-    // Scheme allowlist gate — silent no-op for old/bad rows whose
-    // scheme is outside the allowlist. Also short-circuits click
-    // tracking so we don't credit a "click" on a URL we refused to
-    // open.
-    if (!isSafeBiolinkUrl(url)) return;
+  const openBiolink = (link: Biolink) => {
+    // Interactable = a copy-mode ID (WeChat) OR an openable safe URL.
+    // Non-interactable rows (scheme outside the allowlist) skip BOTH
+    // tracking and action — don't credit a "click" on a link we refuse
+    // to act on. The copy-vs-open branch itself lives in openOrCopyBiolink.
+    if (!isIdModePlatform(link.platform) && !isSafeBiolinkUrl(link.url)) return;
     if (user) {
       supabase
         .from('piktag_biolink_clicks')
-        .insert({ biolink_id: biolinkId, clicker_user_id: user.id })
+        .insert({ biolink_id: link.id, clicker_user_id: user.id })
         .then(({ error }) => {
           if (error) console.warn('Biolink click tracking failed:', error.message);
         });
     }
-    Linking.openURL(url).catch(() => {});
+    void openOrCopyBiolink({ platform: link.platform, url: link.url, id: link.id }, t);
   };
 
   // Synchronous double-tap guard: `disabled={submitting}` lags
@@ -517,7 +517,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
                   key={bl.id}
                   style={styles.socialBtn}
                   activeOpacity={0.7}
-                  onPress={() => openBiolink(bl.id, bl.url)}
+                  onPress={() => openBiolink(bl)}
                   accessibilityRole="button"
                   accessibilityLabel={getPlatformLabel(bl.platform, t)}
                 >

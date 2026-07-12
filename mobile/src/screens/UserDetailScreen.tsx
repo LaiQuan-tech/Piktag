@@ -49,7 +49,8 @@ import { useAskFeed } from '../hooks/useAskFeed';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import type { PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
-import { isSafeBiolinkUrl } from '../lib/platforms';
+import { isIdModePlatform, isSafeBiolinkUrl } from '../lib/platforms';
+import { openOrCopyBiolink } from '../lib/biolinks';
 import { shareProfile } from '../lib/shareProfile';
 import { followUser } from '../lib/followUser';
 import { trackFriendAdded } from '../lib/analytics';
@@ -1252,12 +1253,12 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     }
   };
 
-  const handleOpenLink = (url: string, biolinkId: string) => {
-    // Scheme allowlist gate — silent no-op for old/bad rows whose
-    // scheme is outside the allowlist (`javascript:` / `intent:` etc.).
-    // Also short-circuits the click-tracking insert so we don't credit
-    // a click on a URL we refused to open.
-    if (!url || !isSafeBiolinkUrl(url)) return;
+  const handleOpenLink = (link: Biolink) => {
+    // Interactable = a copy-mode ID (WeChat) OR an openable safe URL.
+    // Non-interactable rows (scheme outside the allowlist) skip BOTH
+    // tracking and action — don't credit a click on a link we refuse to
+    // act on. The copy-vs-open branch itself lives in openOrCopyBiolink.
+    if (!isIdModePlatform(link.platform) && !isSafeBiolinkUrl(link.url)) return;
     // Track the click. This is a NON-friend / scanned / public profile
     // view, so source='user_detail' — the strategically valuable
     // install-funnel "a stranger tapped your link" signal that wasn't
@@ -1267,12 +1268,12 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     if (authUser) {
       supabase
         .from('piktag_biolink_clicks')
-        .insert({ biolink_id: biolinkId, clicker_user_id: authUser.id, source: 'user_detail' })
+        .insert({ biolink_id: link.id, clicker_user_id: authUser.id, source: 'user_detail' })
         .then(({ error }) => {
           if (error) console.warn('Biolink click tracking failed:', error.message);
         });
     }
-    Linking.openURL(url).catch(() => {});
+    void openOrCopyBiolink({ platform: link.platform, url: link.url, id: link.id }, t);
   };
 
   if (loading) {
@@ -1677,7 +1678,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             Visual variant 'highlight' matches FriendDetailScreen. */}
         <BiolinkSocialSection
           biolinks={biolinks}
-          onPress={(link) => handleOpenLink(link.url, link.id)}
+          onPress={(link) => handleOpenLink(link)}
           variant="highlight"
         />
 

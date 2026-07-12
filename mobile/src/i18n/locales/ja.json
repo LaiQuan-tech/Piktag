@@ -265,6 +265,7 @@
   "connections": {
     "friendsLabel": "友達",
     "closeFriendsLabel": "親しい友達",
+    "networkLink": "人脈",
     "followUpTitle": "フォローアップの時間",
     "followUp3d": "3日前に出会いました、挨拶しましょう",
     "followUp7d": "1週間経ちました、近況を聞きましょう",
@@ -618,6 +619,10 @@
     "uploadFailTitle": "アップロード失敗",
     "tryAgainLater": "後でもう一度お試しください",
     "alertBiolinkAddError": "連絡方法を追加できませんでした。後ほど再度お試しください。",
+    "wechatIdLabel": "WeChat ID",
+    "wechatIdPlaceholder": "あなたの WeChat ID",
+    "idCopiedTitle": "コピーしました",
+    "idCopiedMessage": "WeChat ID をコピーしました。WeChat で検索して追加してもらえます",
     "alertBiolinkEmptyAccount": "番号またはアカウントを入力してください。"
   },
   "friendDetail": {

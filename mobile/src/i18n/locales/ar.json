@@ -265,6 +265,7 @@
   "connections": {
     "friendsLabel": "أصدقاء",
     "closeFriendsLabel": "أصدقاء مقربون",
+    "networkLink": "الشبكة",
     "followUpTitle": "حان وقت المتابعة",
     "followUp3d": "تعرفت عليه قبل 3 أيام، ألقِ التحية",
     "followUp7d": "مر أسبوع، تواصل معه",
@@ -618,6 +619,10 @@
     "uploadFailTitle": "فشل التحميل",
     "tryAgainLater": "حاول لاحقًا",
     "alertBiolinkAddError": "فشل إضافة معلومات الاتصال. يرجى المحاولة مرة أخرى لاحقًا.",
+    "wechatIdLabel": "WeChat ID",
+    "wechatIdPlaceholder": "معرّف WeChat الخاص بك",
+    "idCopiedTitle": "تم النسخ",
+    "idCopiedMessage": "تم نسخ معرّف WeChat، ابحث عنه في WeChat لإضافتك",
     "alertBiolinkEmptyAccount": "يرجى إدخال الرقم أو الحساب أولاً."
   },
   "friendDetail": {

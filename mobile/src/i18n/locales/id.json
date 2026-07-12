@@ -265,6 +265,7 @@
   "connections": {
     "friendsLabel": "teman",
     "closeFriendsLabel": "teman dekat",
+    "networkLink": "Jaringan",
     "followUpTitle": "Saatnya menyapa kembali",
     "followUp3d": "Bertemu 3 hari lalu, sapa dia",
     "followUp7d": "Sudah seminggu, mari berkabar",
@@ -618,6 +619,10 @@
     "uploadFailTitle": "Unggah gagal",
     "tryAgainLater": "Coba lagi nanti",
     "alertBiolinkAddError": "Gagal menambah metode kontak. Silakan coba lagi nanti.",
+    "wechatIdLabel": "WeChat ID",
+    "wechatIdPlaceholder": "WeChat ID kamu",
+    "idCopiedTitle": "Tersalin",
+    "idCopiedMessage": "WeChat ID tersalin — cari di WeChat untuk menambahkanmu",
     "alertBiolinkEmptyAccount": "Silakan masukkan nomor atau akun terlebih dahulu."
   },
   "friendDetail": {

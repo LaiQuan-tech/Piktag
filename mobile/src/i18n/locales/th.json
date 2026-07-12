@@ -265,6 +265,7 @@
   "connections": {
     "friendsLabel": "เพื่อน",
     "closeFriendsLabel": "เพื่อนสนิท",
+    "networkLink": "เครือข่าย",
     "followUpTitle": "ถึงเวลาติดตาม",
     "followUp3d": "พบกัน 3 วันที่แล้ว ไปทักทาย",
     "followUp7d": "ผ่านไปหนึ่งสัปดาห์แล้ว มาคุยกัน",
@@ -618,6 +619,10 @@
     "uploadFailTitle": "อัปโหลดล้มเหลว",
     "tryAgainLater": "โปรดลองอีกครั้ง",
     "alertBiolinkAddError": "ไม่สามารถเพิ่มวิธีติดต่อได้ กรุณาลองอีกครั้ง",
+    "wechatIdLabel": "WeChat ID",
+    "wechatIdPlaceholder": "WeChat ID ของคุณ",
+    "idCopiedTitle": "คัดลอกแล้ว",
+    "idCopiedMessage": "คัดลอก WeChat ID แล้ว ค้นหาใน WeChat เพื่อเพิ่มคุณได้เลย",
     "alertBiolinkEmptyAccount": "กรุณาใส่หมายเลขหรือบัญชีก่อน"
   },
   "friendDetail": {

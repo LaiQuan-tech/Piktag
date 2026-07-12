@@ -265,6 +265,7 @@
   "connections": {
     "friendsLabel": "amigos",
     "closeFriendsLabel": "amigos cercanos",
+    "networkLink": "Red",
     "followUpTitle": "Hora de hacer seguimiento",
     "followUp3d": "Se conocieron hace 3 días, saluda",
     "followUp7d": "Ha pasado una semana, ponte al día",
@@ -618,6 +619,10 @@
     "uploadFailTitle": "Carga fallida",
     "tryAgainLater": "Inténtalo de nuevo más tarde",
     "alertBiolinkAddError": "No se pudo agregar el método de contacto. Inténtalo de nuevo más tarde.",
+    "wechatIdLabel": "WeChat ID",
+    "wechatIdPlaceholder": "Tu ID de WeChat",
+    "idCopiedTitle": "Copiado",
+    "idCopiedMessage": "WeChat ID copiado: búscalo en WeChat para agregarte",
     "alertBiolinkEmptyAccount": "Por favor, ingresa primero el número o cuenta."
   },
   "friendDetail": {
