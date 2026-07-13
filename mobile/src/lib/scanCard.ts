@@ -274,17 +274,25 @@ async function tryOcr(uri: string): Promise<string | null> {
     recognizeOrdered(uri, TextRecognitionScript.CHINESE),
   ]);
 
+  // Quality gate on ACTUAL OCR content, not the combined string — the
+  // pass labels alone are ~55 chars, so measuring the combined text
+  // would let a 2-char garbage read sail past MIN_OCR_CHARS and waste
+  // a Gemini call that was always going to fail. Thin content → null →
+  // caller escalates straight to the multimodal image path.
+  const latinText = latin.trim();
+  const chineseText = chinese.trim();
+  if (latinText.length + chineseText.length < MIN_OCR_CHARS) return null;
+
   const parts: string[] = [];
-  if (latin.trim()) {
+  if (latinText) {
     parts.push('--- OCR pass A (Latin — trust for email/website/phone) ---');
-    parts.push(latin.trim());
+    parts.push(latinText);
   }
-  if (chinese.trim()) {
+  if (chineseText) {
     parts.push('--- OCR pass B (Chinese — trust for name/title/company) ---');
-    parts.push(chinese.trim());
+    parts.push(chineseText);
   }
-  const combined = parts.join('\n').trim();
-  return combined.length > 0 ? combined : null;
+  return parts.join('\n');
 }
 
 /**
