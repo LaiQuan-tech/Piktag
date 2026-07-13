@@ -154,15 +154,15 @@ export default function App() {
               </div>
             </a>
             <a
-              href="#"
-              onClick={(e) => e.preventDefault()}
-              aria-disabled="true"
-              className="group relative flex items-center justify-center gap-2 bg-gradient-to-r from-accent-red to-accent-purple text-white px-8 py-4 rounded-2xl font-medium transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_40px_rgba(140,82,255,0.35)] hover:shadow-[0_0_60px_rgba(140,82,255,0.5)] opacity-60"
+              href="https://play.google.com/store/apps/details?id=ag.pikt.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative flex items-center justify-center gap-2 bg-gradient-to-r from-accent-red to-accent-purple text-white px-8 py-4 rounded-2xl font-medium transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_40px_rgba(140,82,255,0.35)] hover:shadow-[0_0_60px_rgba(140,82,255,0.5)]"
             >
               <Play className="w-5 h-5" />
               <div className="text-left">
                 <div className="text-[10px] opacity-70 leading-none mb-1">
-                  {t('hero.comingSoonOn')}
+                  {t('hero.downloadOn')}
                 </div>
                 <div className="text-sm leading-none">{t('hero.googlePlay')}</div>
               </div>

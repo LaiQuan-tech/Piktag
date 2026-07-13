@@ -6,7 +6,7 @@
     "comingSoon": "Coming Soon"
   },
   "hero": {
-    "badge": "iOS app now available · Android coming soon",
+    "badge": "Now on iOS & Android",
     "title1": "Tag yourself.",
     "title2": "Find anyone.",
     "description": "Pick. Tag. Connect.",
@@ -106,7 +106,7 @@
   },
   "cta": {
     "title": "Ready to Level Up Your Network?",
-    "description": "PikTag is now on iOS. Android coming soon."
+    "description": "PikTag is now on iOS and Android."
   },
   "footer": {
     "rights": "All rights reserved.",

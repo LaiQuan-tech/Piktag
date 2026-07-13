@@ -6,7 +6,7 @@
     "comingSoon": "近日公開"
   },
   "hero": {
-    "badge": "iOS版アプリ配信中・Android版近日公開",
+    "badge": "iOS・Android 版 配信中",
     "title1": "自分にタグ。",
     "title2": "誰でも探せる。",
     "description": "Pick. Tag. Connect.",
@@ -106,7 +106,7 @@
   },
   "cta": {
     "title": "ネットワークをレベルアップしませんか？",
-    "description": "PikTagはiOS版を配信中です。Android版は近日公開予定です。"
+    "description": "PikTag は iOS・Android 版ともに配信中です。"
   },
   "footer": {
     "rights": "All rights reserved.",

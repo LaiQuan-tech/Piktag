@@ -6,7 +6,7 @@
     "comingSoon": "เร็ว ๆ นี้"
   },
   "hero": {
-    "badge": "แอป iOS พร้อมใช้งานแล้ว · Android เร็ว ๆ นี้",
+    "badge": "พร้อมใช้งานบน iOS และ Android แล้ว",
     "title1": "แท็กตัวเอง.",
     "title2": "หาใครก็เจอ.",
     "description": "Pick. Tag. Connect.",
@@ -106,7 +106,7 @@
   },
   "cta": {
     "title": "พร้อมยกระดับเครือข่ายของคุณแล้วหรือยัง?",
-    "description": "PikTag เปิดให้ใช้งานบน iOS แล้ว Android กำลังจะมาเร็ว ๆ นี้"
+    "description": "PikTag พร้อมใช้งานแล้วบน iOS และ Android"
   },
   "footer": {
     "rights": "สงวนลิขสิทธิ์",

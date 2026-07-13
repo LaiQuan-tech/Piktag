@@ -6,7 +6,7 @@
     "comingSoon": "Скоро"
   },
   "hero": {
-    "badge": "Приложение для iOS уже доступно · Android скоро",
+    "badge": "Уже в iOS и Android",
     "title1": "Отметь себя.",
     "title2": "Найди любого.",
     "description": "Pick. Tag. Connect.",
@@ -106,7 +106,7 @@
   },
   "cta": {
     "title": "Готовы улучшить свою сеть контактов?",
-    "description": "PikTag уже доступен на iOS. Android — скоро."
+    "description": "PikTag теперь доступен в iOS и Android."
   },
   "footer": {
     "rights": "All rights reserved.",
