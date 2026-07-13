@@ -627,7 +627,7 @@ function makeStyles(c: ColorPalette) {
     paddingVertical: 8, paddingHorizontal: 14,
   },
   chipSelected: {},
-  chipText: { fontSize: 14, fontWeight: '700', color: c.piktag600 },
+  chipText: { fontSize: 14, fontWeight: '700', color: c.piktag600, writingDirection: 'ltr' },
   chipX: { padding: 4 },
   emptyText: { fontSize: 14, color: c.gray400, paddingHorizontal: 20, paddingVertical: 8 },
 

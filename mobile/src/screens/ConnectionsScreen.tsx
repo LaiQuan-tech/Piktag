@@ -1733,6 +1733,8 @@ function makeStyles(c: ColorPalette) {
     color: c.gray400,
     lineHeight: 18,
     marginTop: 3,
+    // Keep leading # on the left in RTL (Arabic) — see TagChip note.
+    writingDirection: 'ltr',
   },
   // Ask-preview chip — gradient-filled, white-text pill. Sits
   // below the tags row when the friend has a live Ask. Inline-

@@ -660,6 +660,7 @@ function makeStyles(c: ColorPalette) {
     fontSize: 14,
     fontWeight: '500',
     color: c.gray600,
+    writingDirection: 'ltr',
   },
 
   // Action Buttons

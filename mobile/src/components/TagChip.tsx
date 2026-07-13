@@ -128,7 +128,12 @@ function makeStyles(c: ColorPalette) {
   // light (subtle, not heavy) / #363636 dark (IG-visible on black).
   // Founder, 2026-05-23.
   chipToggleOff: { backgroundColor: c.fill, borderColor: c.fill },
-  text: { fontSize: 14, fontWeight: '500', color: '#FFFFFF' },
+  // writingDirection ltr keeps the leading # on the LEFT even in RTL
+  // locales (Arabic). The # is a neutral bidi char that otherwise
+  // follows the paragraph direction and lands on the right; forcing
+  // ltr base direction pins it left while Arabic tag names inside
+  // still render RTL correctly via the bidi algorithm.
+  text: { fontSize: 14, fontWeight: '500', color: '#FFFFFF', writingDirection: 'ltr' },
   textToggleOff: { color: c.gray700 },
   });
 }

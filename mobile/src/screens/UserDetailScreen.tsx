@@ -2276,6 +2276,7 @@ function makeStyles(c: ColorPalette) {
     fontSize: 14,
     fontWeight: '500',
     color: c.gray600,
+    writingDirection: 'ltr',
   },
 
   // (sectionTitle was defined but never used in JSX — dead style
@@ -2556,6 +2557,7 @@ function makeStyles(c: ColorPalette) {
     fontSize: 15,
     fontWeight: '500',
     color: c.gray700,
+    writingDirection: 'ltr',
   },
   pickModalTagTextSelected: {
     color: '#FFFFFF',

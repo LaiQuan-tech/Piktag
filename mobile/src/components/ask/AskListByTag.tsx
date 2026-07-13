@@ -165,6 +165,7 @@ function makeStyles(c: ColorPalette) {
     fontSize: 11,
     fontWeight: '500',
     color: c.gray700,
+    writingDirection: 'ltr',
   },
   });
 }

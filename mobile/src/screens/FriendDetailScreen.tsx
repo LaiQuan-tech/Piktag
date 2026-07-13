@@ -1950,6 +1950,7 @@ function makeStyles(c: ColorPalette) {
     fontSize: 14,
     fontWeight: '500',
     color: c.gray600,
+    writingDirection: 'ltr',
   },
 
   // Event-tag section: visually demoted vs. user tags so the eye lands

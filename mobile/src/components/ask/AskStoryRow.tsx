@@ -2180,6 +2180,7 @@ function makeStyles(c: ColorPalette) {
     fontSize: 11,
     fontWeight: '600',
     color: c.piktag600,
+    writingDirection: 'ltr',
   },
   askCardTagTextViewed: {
     color: c.gray500,
@@ -2296,7 +2297,7 @@ function makeModalStyles(c: ColorPalette) {
     backgroundColor: c.piktag500,
     borderColor: c.piktag500,
   },
-  tagChipText: { fontSize: 13, fontWeight: '500', color: c.gray700 },
+  tagChipText: { fontSize: 13, fontWeight: '500', color: c.gray700, writingDirection: 'ltr' },
   tagChipTextSelected: { color: '#fff' },
   // Spec C — reach preview line, below the tag chips. Soft feedback only
   // (never rendered as an error state) — piktag500 highlights just the

@@ -494,6 +494,7 @@ function makeStyles(c: ColorPalette) {
     fontSize: 14,
     color: c.gray600,
     fontWeight: '500',
+    writingDirection: 'ltr',
   },
   pickChipTextSelected: {
     color: '#FFFFFF',

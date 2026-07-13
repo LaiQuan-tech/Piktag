@@ -3615,6 +3615,7 @@ function makeStyles(c: ColorPalette) {
     fontWeight: '600',
     color: c.gray900,
     lineHeight: 20,
+    writingDirection: 'ltr',
   },
   tagNameHighlighted: {
     color: '#FFFFFF',
