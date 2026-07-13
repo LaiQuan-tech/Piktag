@@ -1616,7 +1616,9 @@
     "aiPreselectLoading": "L'IA sta scegliendo i tag dal biglietto…",
     "aiPreselectNote": "L'IA ha aggiunto questi tag dal biglietto — tocca quelli che non vuoi per rimuoverli",
     "introSentAt": "Inviato · {{date}}",
-    "shareResend": "Invia di nuovo"
+    "shareResend": "Invia di nuovo",
+    "scanBusyTitle": "AI service busy",
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
   },
   "followers": {
     "title": "Follower",

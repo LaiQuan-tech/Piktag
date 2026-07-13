@@ -1616,7 +1616,9 @@
     "aiPreselectLoading": "Die KI wählt Tags von der Karte aus…",
     "aiPreselectNote": "Die KI hat diese Tags von der Karte hinzugefügt — tippe an, was du nicht willst, um es zu entfernen",
     "introSentAt": "Gesendet · {{date}}",
-    "shareResend": "Erneut senden"
+    "shareResend": "Erneut senden",
+    "scanBusyTitle": "AI service busy",
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
   },
   "followers": {
     "title": "Follower",

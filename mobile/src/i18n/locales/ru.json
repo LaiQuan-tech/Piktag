@@ -1616,7 +1616,9 @@
     "aiPreselectLoading": "ИИ подбирает теги по визитке…",
     "aiPreselectNote": "ИИ добавил теги по визитке — нажми на лишние, чтобы убрать",
     "introSentAt": "Отправлено · {{date}}",
-    "shareResend": "Отправить ещё раз"
+    "shareResend": "Отправить ещё раз",
+    "scanBusyTitle": "AI service busy",
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
   },
   "followers": {
     "title": "Подписчики",

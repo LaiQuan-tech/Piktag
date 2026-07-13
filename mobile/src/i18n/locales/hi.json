@@ -1616,7 +1616,9 @@
     "aiPreselectLoading": "AI कार्ड से टैग चुन रहा है…",
     "aiPreselectNote": "AI ने कार्ड से ये टैग जोड़े — जो नहीं चाहिए उन्हें टैप करके हटाएं",
     "introSentAt": "भेजा गया · {{date}}",
-    "shareResend": "फिर से भेजें"
+    "shareResend": "फिर से भेजें",
+    "scanBusyTitle": "AI service busy",
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
   },
   "followers": {
     "title": "फ़ॉलोअर",

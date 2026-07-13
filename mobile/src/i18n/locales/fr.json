@@ -1616,7 +1616,9 @@
     "aiPreselectLoading": "L'IA choisit des tags depuis la carte…",
     "aiPreselectNote": "L'IA a ajouté ces tags depuis la carte — touche ceux dont tu ne veux pas pour les retirer",
     "introSentAt": "Envoyé · {{date}}",
-    "shareResend": "Renvoyer"
+    "shareResend": "Renvoyer",
+    "scanBusyTitle": "AI service busy",
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
   },
   "followers": {
     "title": "Abonnés",

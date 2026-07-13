@@ -1616,7 +1616,9 @@
     "aiPreselectLoading": "AI 正在根据名片挑标签…",
     "aiPreselectNote": "AI 根据名片为你加上了标签，不要的点掉就好",
     "introSentAt": "已寄出 · {{date}}",
-    "shareResend": "再寄一次"
+    "shareResend": "再寄一次",
+    "scanBusyTitle": "AI 服务忙碌中",
+    "scanBusyMessage": "扫描服务暂时满载，请一分钟后再试，或先手动填写。"
   },
   "followers": {
     "title": "追踪者",

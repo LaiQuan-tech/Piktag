@@ -1616,7 +1616,9 @@
     "aiPreselectLoading": "AI กำลังเลือกแท็กจากนามบัตร…",
     "aiPreselectNote": "AI เพิ่มแท็กให้จากนามบัตรแล้ว — แตะอันที่ไม่ต้องการเพื่อเอาออก",
     "introSentAt": "ส่งแล้ว · {{date}}",
-    "shareResend": "ส่งอีกครั้ง"
+    "shareResend": "ส่งอีกครั้ง",
+    "scanBusyTitle": "AI service busy",
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
   },
   "followers": {
     "title": "ผู้ติดตาม",

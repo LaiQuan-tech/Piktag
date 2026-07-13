@@ -1616,7 +1616,9 @@
     "aiPreselectLoading": "AI が名刺からタグを選んでいます…",
     "aiPreselectNote": "AI が名刺からタグを付けました。不要なものはタップで外せます",
     "introSentAt": "送信済み · {{date}}",
-    "shareResend": "もう一度送る"
+    "shareResend": "もう一度送る",
+    "scanBusyTitle": "AIサービスが混み合っています",
+    "scanBusyMessage": "スキャンサービスが一時的に満杯です。1分後に再試行するか、手動で入力してください。"
   },
   "followers": {
     "title": "フォロワー",

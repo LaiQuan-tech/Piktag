@@ -625,6 +625,19 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
         // truncation) — an empty extraction is NOT always a bad photo.
         const detail = (data as any)?.detail;
         if (detail) console.warn('[LocalContact] scan no_extraction detail:', detail);
+        // Quota exhaustion is a SERVICE problem, not a photo problem —
+        // telling the user to "retake a clearer photo" sends them into a
+        // hopeless retry loop that burns even more quota. Say what's
+        // actually happening and when to retry. (2026-07-13 429 storm.)
+        if ((data as any)?.note === 'rate_limited') {
+          Alert.alert(
+            t('localContact.scanBusyTitle', { defaultValue: 'AI 服務忙碌中' }),
+            t('localContact.scanBusyMessage', {
+              defaultValue: '掃描服務暫時滿載，請一分鐘後再試，或先手動填寫。',
+            }),
+          );
+          return;
+        }
         Alert.alert(
           t('auth.onboarding.cardScanEmptyTitle', { defaultValue: '沒讀到資料' }),
           t('auth.onboarding.cardScanEmptyMessage', {

@@ -1616,7 +1616,9 @@
     "aiPreselectLoading": "Yapay zeka kartvizitten etiket seçiyor…",
     "aiPreselectNote": "Yapay zeka kartvizitten etiketler ekledi — istemediğine dokunup çıkar",
     "introSentAt": "Gönderildi · {{date}}",
-    "shareResend": "Tekrar gönder"
+    "shareResend": "Tekrar gönder",
+    "scanBusyTitle": "AI service busy",
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
   },
   "followers": {
     "title": "Takipçiler",

@@ -391,6 +391,11 @@ serve(async (req) => {
 
     let lastError = '';
     let rawSnippet = '';
+    // 429 anywhere in the chain = the shared GEMINI_API_KEY is out of
+    // quota. Flagged so the response can say so honestly — and so the
+    // client can SKIP the multimodal escalation (which would just 429
+    // twice more, burning quota that delays recovery).
+    let sawRateLimit = false;
 
     for (const model of MODEL_FALLBACK_CHAIN) {
       try {
@@ -461,6 +466,7 @@ serve(async (req) => {
             bodyText.slice(0, 500),
           );
           lastError = `${model}: HTTP ${upstream.status}`;
+          if (upstream.status === 429) sawRateLimit = true;
           if (/API_KEY|api key/i.test(bodyText)) break;
           continue;
         }
@@ -508,7 +514,11 @@ serve(async (req) => {
     // client log / network inspector instead of masquerading as
     // "unreadable photo" (2026-07-13: that masquerade cost us a
     // full debugging cycle).
-    return jsonResponse(200, { data: EMPTY, note: 'no_extraction', detail: lastError });
+    return jsonResponse(200, {
+      data: EMPTY,
+      note: sawRateLimit ? 'rate_limited' : 'no_extraction',
+      detail: lastError,
+    });
   } catch (err) {
     console.error('scan-business-card edge function error:', err);
     return jsonResponse(500, { error: 'Internal error' });

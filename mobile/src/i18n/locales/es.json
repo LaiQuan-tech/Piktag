@@ -1616,7 +1616,9 @@
     "aiPreselectLoading": "La IA está eligiendo etiquetas de la tarjeta…",
     "aiPreselectNote": "La IA añadió estas etiquetas de la tarjeta — toca las que no quieras para quitarlas",
     "introSentAt": "Enviado · {{date}}",
-    "shareResend": "Enviar de nuevo"
+    "shareResend": "Enviar de nuevo",
+    "scanBusyTitle": "AI service busy",
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
   },
   "followers": {
     "title": "Seguidores",

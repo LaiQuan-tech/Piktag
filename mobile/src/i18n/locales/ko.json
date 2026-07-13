@@ -1616,7 +1616,9 @@
     "aiPreselectLoading": "AI가 명함에서 태그를 고르고 있어요…",
     "aiPreselectNote": "AI가 명함을 보고 태그를 추가했어요. 필요 없는 건 탭해서 빼세요",
     "introSentAt": "보냄 · {{date}}",
-    "shareResend": "다시 보내기"
+    "shareResend": "다시 보내기",
+    "scanBusyTitle": "AI 서비스 혼잡",
+    "scanBusyMessage": "스캔 서비스가 일시적으로 가득 찼습니다. 1분 후 다시 시도하거나 직접 입력해 주세요."
   },
   "followers": {
     "title": "팔로워",

@@ -1616,7 +1616,9 @@
     "aiPreselectLoading": "AI sedang memilih tag dari kartu…",
     "aiPreselectNote": "AI menambahkan tag ini dari kartu — ketuk yang tak kamu mau untuk menghapus",
     "introSentAt": "Terkirim · {{date}}",
-    "shareResend": "Kirim lagi"
+    "shareResend": "Kirim lagi",
+    "scanBusyTitle": "AI service busy",
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
   },
   "followers": {
     "title": "Pengikut",

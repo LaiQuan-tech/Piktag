@@ -1616,7 +1616,9 @@
     "aiPreselectLoading": "AI đang chọn thẻ từ danh thiếp…",
     "aiPreselectNote": "AI đã thêm các thẻ này từ danh thiếp — chạm vào thẻ bạn không muốn để bỏ",
     "introSentAt": "Đã gửi · {{date}}",
-    "shareResend": "Gửi lại"
+    "shareResend": "Gửi lại",
+    "scanBusyTitle": "AI service busy",
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
   },
   "followers": {
     "title": "Người theo dõi",

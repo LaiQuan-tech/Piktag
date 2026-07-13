@@ -1616,7 +1616,9 @@
     "aiPreselectLoading": "يختار الذكاء الاصطناعي وسومًا من البطاقة…",
     "aiPreselectNote": "أضاف الذكاء الاصطناعي هذه الوسوم من البطاقة — انقر ما لا تريده لإزالته",
     "introSentAt": "أُرسل · {{date}}",
-    "shareResend": "إرسال مرة أخرى"
+    "shareResend": "إرسال مرة أخرى",
+    "scanBusyTitle": "AI service busy",
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
   },
   "followers": {
     "title": "المتابعون",

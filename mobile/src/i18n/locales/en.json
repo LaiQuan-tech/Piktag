@@ -1616,7 +1616,9 @@
     "aiPreselectLoading": "AI is picking tags from the card…",
     "aiPreselectNote": "AI added these from the card — tap any you don't want to remove it",
     "introSentAt": "Sent · {{date}}",
-    "shareResend": "Send again"
+    "shareResend": "Send again",
+    "scanBusyTitle": "AI service busy",
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
   },
   "followers": {
     "title": "Followers",

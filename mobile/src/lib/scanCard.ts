@@ -353,6 +353,14 @@ export async function scanCard(input: ScanCardInput): Promise<ScanCardResult> {
         if (!error && hasUsableField(data)) {
           return { data, error: null, source: 'ocr' };
         }
+        // Rate-limited (shared Gemini key out of quota): do NOT
+        // escalate to multimodal — that's two MORE calls guaranteed
+        // to 429, which burns quota and delays recovery. Surface the
+        // note to the caller so the UI can say "AI busy" instead of
+        // blaming the photo. (2026-07-13, free-tier 429 storm.)
+        if (!error && (data as any)?.note === 'rate_limited') {
+          return { data, error: null, source: null };
+        }
         // Structuring errored or yielded nothing usable → escalate to
         // the multimodal image path below (a poor OCR shouldn't be the
         // final answer when the image model might do better).
