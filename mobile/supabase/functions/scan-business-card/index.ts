@@ -326,11 +326,18 @@ serve(async (req) => {
     // verbatim so both paths return the identical JSON contract.
     const introLines = isTextMode
       ? [
-          `Below is the raw text recognised by on-device OCR from a`,
-          `photo of a physical business card. The lines may be out of`,
-          `reading order and may contain OCR noise; use judgement.`,
-          `Extract the cardholder's details and return ONLY a single`,
-          `JSON object, no prose, no markdown fences.`,
+          `Below is text recognised by on-device OCR from a photo of a`,
+          `physical business card. It may arrive as TWO labeled passes of`,
+          `the SAME card: "pass A (Latin)" is more accurate for email /`,
+          `website / phone (Latin letters & digits), and "pass B (Chinese)"`,
+          `is more accurate for the name / job title / company. When the`,
+          `two passes disagree on a field, TRUST the pass its label marks`,
+          `as authoritative for that field. Lines may be out of reading`,
+          `order and contain OCR noise (l↔i, m↔rn, 0↔O, etc.) — use`,
+          `judgement and prefer the more plausible reading (e.g. a valid`,
+          `company domain over a garbled one). Extract the cardholder's`,
+          `details and return ONLY a single JSON object, no prose, no`,
+          `markdown fences.`,
         ]
       : [
           `You are reading a photo of a physical business card.`,

@@ -219,32 +219,20 @@ export type ScanCardResult = {
 };
 
 /**
- * On-device OCR. NEVER throws — returns the recognised text in
- * top→bottom / left→right reading order, or null on any failure.
+ * Recognise with a single ML Kit script, rebuilt in top→bottom /
+ * left→right reading order from block bounding boxes. Returns '' on
+ * any failure (never throws).
  */
-async function tryOcr(uri: string): Promise<string | null> {
+async function recognizeOrdered(
+  uri: string,
+  script: TextRecognitionScript,
+): Promise<string> {
   try {
-    // CHINESE script: ML Kit's Chinese recogniser reads Traditional
-    // Chinese AND embedded Latin / digits / email / URL, so it's the
-    // right single choice for a Taiwan-first card (mixed zh + en is
-    // the norm). The unlinked-module path throws synchronously here
-    // (the library proxies NativeModules) — caught below.
-    const result = await TextRecognition.recognize(
-      uri,
-      TextRecognitionScript.CHINESE,
-    );
-    if (!result) return null;
-
+    const result = await TextRecognition.recognize(uri, script);
+    if (!result) return '';
     const blocks = Array.isArray(result.blocks) ? result.blocks : [];
-    let text: string;
     if (blocks.length > 0) {
-      // Rebuild in reading order from block bounding boxes so the
-      // model gets the card top-to-bottom regardless of ML Kit's
-      // internal detection order. ~8px row tolerance groups items on
-      // the same visual line before ordering left→right. This is the
-      // cheap version of the "preserve layout" mitigation — it keeps
-      // the dominant vertical signal (name on top, contact below).
-      text = blocks
+      return blocks
         .filter((b) => b && typeof b.text === 'string' && b.text.trim())
         .slice()
         .sort((a, b) => {
@@ -255,16 +243,48 @@ async function tryOcr(uri: string): Promise<string | null> {
         })
         .map((b) => b.text.trim())
         .join('\n');
-    } else {
-      text = (result.text ?? '').trim();
     }
-    const trimmed = text.trim();
-    return trimmed.length > 0 ? trimmed : null;
+    return (result.text ?? '').trim();
   } catch {
-    // Native module missing / model unavailable / any runtime error.
-    // Swallow → caller falls back to the multimodal image path.
-    return null;
+    return '';
   }
+}
+
+/**
+ * On-device OCR. NEVER throws — returns the recognised text in
+ * top→bottom / left→right reading order, or null on any failure.
+ *
+ * 2026-07-13 accuracy fix (founder: "email/website 讀錯了"): runs TWO
+ * passes and merges. ML Kit's CHINESE recogniser reads Traditional
+ * Chinese well but is MEASURABLY worse on embedded Latin (the l↔i,
+ * m↔rn, 0↔O confusions that turned "algoltek" → "aigoltek" and
+ * mangled the URL). The LATIN recogniser is far more accurate on
+ * exactly the fields where one wrong char = broken (email / website /
+ * phone). We put the LATIN read FIRST so the caller's quick-regex
+ * miner (extractQuickFields, "first plausible match" per field) prefers
+ * the accurate Latin version, then append the CHINESE read for the
+ * name / title / company. Both are labeled so Gemini's structuring
+ * understands they're two OCR views of the SAME card and can cross-
+ * reference. Two on-device passes ≈ 1s — still far below the
+ * multimodal-image path, so the speed win of Path A is preserved.
+ */
+async function tryOcr(uri: string): Promise<string | null> {
+  const [latin, chinese] = await Promise.all([
+    recognizeOrdered(uri, TextRecognitionScript.LATIN),
+    recognizeOrdered(uri, TextRecognitionScript.CHINESE),
+  ]);
+
+  const parts: string[] = [];
+  if (latin.trim()) {
+    parts.push('--- OCR pass A (Latin — trust for email/website/phone) ---');
+    parts.push(latin.trim());
+  }
+  if (chinese.trim()) {
+    parts.push('--- OCR pass B (Chinese — trust for name/title/company) ---');
+    parts.push(chinese.trim());
+  }
+  const combined = parts.join('\n').trim();
+  return combined.length > 0 ? combined : null;
 }
 
 /**
