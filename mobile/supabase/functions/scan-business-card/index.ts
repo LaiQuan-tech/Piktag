@@ -403,7 +403,17 @@ serve(async (req) => {
         //     before the rework!). Gating it to 2.5 removes that landmine.
         const generationConfig: Record<string, unknown> = {
           temperature: 0.2,
-          maxOutputTokens: 300,
+          // 2026-07-13 BUGFIX (founder: "every card → 沒讀到資料"). Was
+          // 300 — too low. The 12-field JSON with real card data (CJK
+          // company/title/address at ~1-2 tokens per char, plus the field
+          // names themselves) overshoots 300 and the JSON gets truncated
+          // mid-object → no closing brace → extractCardObject's /\{[\s\S]*\}/
+          // never matches → null → 200 no_extraction → the empty-state
+          // alert fired on EVERY card that carried enough data. 1024 leaves
+          // comfortable headroom for the longest realistic card while still
+          // capping a runaway tail. The old "~200 tokens" estimate ignored
+          // CJK tokenisation.
+          maxOutputTokens: 1024,
           responseMimeType: 'application/json',
           responseSchema: CARD_RESPONSE_SCHEMA,
         };
@@ -452,6 +462,16 @@ serve(async (req) => {
         const text: string =
           result?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
         rawSnippet = text.slice(0, 300);
+        // Diagnostic: a MAX_TOKENS finish means the JSON was truncated
+        // (the exact failure that produced 沒讀到資料 on every card).
+        // Surfacing it in logs makes any future recurrence obvious
+        // instead of silently degrading to no_extraction.
+        const finishReason = result?.candidates?.[0]?.finishReason;
+        if (finishReason && finishReason !== 'STOP') {
+          console.warn(
+            `scan-business-card [${model}] finishReason=${finishReason} (non-STOP → possible truncation)`,
+          );
+        }
 
         const card = extractCardObject(text);
         if (card) {
