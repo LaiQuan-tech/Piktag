@@ -22,7 +22,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 import { logApiUsage } from '../lib/apiUsage';
 import { recordAiSuggestions, markAiSuggestionAccepted } from '../lib/aiTagLogger';
-import { normalizeTagName, ilikeEscape } from '../lib/normalizeTag';
+import { normalizeTagName, ilikeEscape, hashDisplay } from '../lib/normalizeTag';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -484,7 +484,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                 <View style={styles.chipsWrap}>
                   {filteredAiSuggestions.map((s) => (
                     <Pressable key={s} style={styles.aiChip} onPress={() => handleAddAiTag(s)}>
-                      <Text style={styles.aiChipText}>#{s}</Text>
+                      <Text style={styles.aiChipText}>{hashDisplay(s)}</Text>
                     </Pressable>
                   ))}
                 </View>
@@ -627,7 +627,7 @@ function makeStyles(c: ColorPalette) {
     paddingVertical: 8, paddingHorizontal: 14,
   },
   chipSelected: {},
-  chipText: { fontSize: 14, fontWeight: '700', color: c.piktag600, writingDirection: 'ltr' },
+  chipText: { fontSize: 14, fontWeight: '700', color: c.piktag600 },
   chipX: { padding: 4 },
   emptyText: { fontSize: 14, color: c.gray400, paddingHorizontal: 20, paddingVertical: 8 },
 

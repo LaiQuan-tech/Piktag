@@ -27,6 +27,7 @@ import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import type { Notification } from '../types';
 import { SkeletonBox } from '../components/SkeletonLoader';
 import RingedAvatar from '../components/RingedAvatar';
+import { bidiMark } from '../lib/normalizeTag';
 
 const NOTIFICATION_ITEM_HEIGHT = 76;
 
@@ -203,7 +204,7 @@ function getNotificationDisplay(
   // the non-empty English body the edge fn wrote.
   if (type === 'tag_suggest_nudge') {
     const tags = Array.isArray(data.tag_names)
-      ? (data.tag_names as string[]).map((n) => `#${n}`).join(' ')
+      ? bidiMark() + (data.tag_names as string[]).map((n) => `#${n}`).join(' ')
       : '';
     return {
       username: '',

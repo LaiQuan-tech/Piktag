@@ -12,7 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { X, Check, Tag, MapPin, Calendar, Plus } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
-import { ilikeEscape } from '../lib/normalizeTag';
+import { ilikeEscape, hashDisplay } from '../lib/normalizeTag';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -470,7 +470,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
                       style={[styles.tagChip, isPicked && styles.tagChipPicked]}
                       onPress={() => handleTogglePick(tag)}
                     >
-                      <Text style={[styles.tagChipText, isPicked && styles.tagChipTextPicked]}>#{tag}</Text>
+                      <Text style={[styles.tagChipText, isPicked && styles.tagChipTextPicked]}>{hashDisplay(tag)}</Text>
                     </Pressable>
                   );
                 })}
@@ -482,7 +482,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
               <View style={[styles.tagChips, { marginTop: 6 }]}>
                 {[...current!.hiddenTags, ...currentAddedTags].map((tag, i) => (
                   <View key={`hid-${tag}-${i}`} style={styles.hiddenTagChip}>
-                    <Text style={styles.hiddenTagChipText}>#{tag}</Text>
+                    <Text style={styles.hiddenTagChipText}>{hashDisplay(tag)}</Text>
                   </View>
                 ))}
               </View>

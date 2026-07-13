@@ -45,6 +45,7 @@ import { useAuth } from '../hooks/useAuth';
 import RingedAvatar from '../components/RingedAvatar';
 import QrShareBody from '../components/QrShareBody';
 import { appendLang } from '../lib/shareProfile';
+import { hashDisplay } from '../lib/normalizeTag';
 
 type Member = {
   connection_id: string;
@@ -628,7 +629,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
                         isActive && styles.vibeShiftChipTagActive,
                       ]}
                     >
-                      #{ct.tag_name}
+                      {hashDisplay(ct.tag_name)}
                     </Text>
                     <Text
                       style={[
@@ -680,7 +681,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
                       hitSlop={6}
                     >
                       <Text style={styles.memberFilterClearText}>
-                        #{filterEntry.tag_name}
+                        {hashDisplay(filterEntry.tag_name)}
                       </Text>
                       <X size={12} color={colors.piktag600} />
                     </TouchableOpacity>

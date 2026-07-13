@@ -74,6 +74,7 @@ import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVis
 import { isIdModePlatform, isSafeBiolinkUrl } from '../lib/platforms';
 import { openOrCopyBiolink } from '../lib/biolinks';
 import { isOfficialDemoAsk, isOfficialAccount, getOfficialBio, getDemoAskText, getOfficialTagLabel } from '../lib/officialDemoAsk';
+import { hashDisplay } from '../lib/normalizeTag';
 
 // How many scan-event tags to show before the "show all" toggle kicks in.
 // Picked so a typical 2-3 event meeting still shows everything inline,
@@ -1238,7 +1239,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                   }
                 >
                   <Text style={styles.tagChipText}>
-                    #{officialLabel || tag.name}
+                    {hashDisplay(officialLabel || tag.name)}
                   </Text>
                 </TouchableOpacity>
                 );
@@ -1271,7 +1272,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                     activeOpacity={0.6}
                     onPress={() => navigation.navigate('TagDetail', { tagName: etag })}
                   >
-                    <Text style={styles.eventTagChipText}>#{etag}</Text>
+                    <Text style={styles.eventTagChipText}>{hashDisplay(etag)}</Text>
                   </TouchableOpacity>
                 ))}
                 {scanEventTags.length > EVENT_TAGS_COLLAPSED_COUNT && (
@@ -1600,7 +1601,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                     navigation.navigate('TagDetail', { tagId: tag.id, tagName: tag.name });
                   }}
                 >
-                  <Text style={styles.mutualModalTagText}>#{tag.name}</Text>
+                  <Text style={styles.mutualModalTagText}>{hashDisplay(tag.name)}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -1685,7 +1686,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                       activeOpacity={0.7}
                     >
                       <Text style={[styles.pickModalTagText, isSelected && styles.pickModalTagTextSelected]}>
-                        #{tag.name}
+                        {hashDisplay(tag.name)}
                       </Text>
                     </TouchableOpacity>
                   );
@@ -1950,7 +1951,6 @@ function makeStyles(c: ColorPalette) {
     fontSize: 14,
     fontWeight: '500',
     color: c.gray600,
-    writingDirection: 'ltr',
   },
 
   // Event-tag section: visually demoted vs. user tags so the eye lands

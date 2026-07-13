@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { getLocales } from 'expo-localization';
 import { Plus } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
-import { ilikeEscape } from '../lib/normalizeTag';
+import { ilikeEscape, hashDisplay } from '../lib/normalizeTag';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import LocationPickerModal from './LocationPickerModal';
@@ -285,8 +285,8 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
     const todayStr = formatDateDisplay(today);
     const yesterdayStr = formatDateDisplay(yesterday);
     return [
-      { label: `#${todayStr}`, value: todayStr },
-      { label: `#${yesterdayStr}`, value: yesterdayStr },
+      { label: hashDisplay(todayStr), value: todayStr },
+      { label: hashDisplay(yesterdayStr), value: yesterdayStr },
     ];
   }, []);
 
@@ -365,7 +365,7 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
               activeOpacity={0.7}
             >
               <Text style={[styles.pickChipText, isSelected && styles.pickChipTextSelected]}>
-                #{loc}
+                {hashDisplay(loc)}
               </Text>
             </TouchableOpacity>
           );
@@ -395,7 +395,7 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
                   activeOpacity={0.7}
                 >
                   <Text style={[styles.pickChipText, isSelected && styles.pickChipTextSelected]}>
-                    #{tag.name}
+                    {hashDisplay(tag.name)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -409,7 +409,7 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
                 activeOpacity={0.7}
               >
                 <Text style={[styles.pickChipText, styles.pickChipTextSelected]}>
-                  #{ht.name}
+                  {hashDisplay(ht.name)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -494,7 +494,6 @@ function makeStyles(c: ColorPalette) {
     fontSize: 14,
     color: c.gray600,
     fontWeight: '500',
-    writingDirection: 'ltr',
   },
   pickChipTextSelected: {
     color: '#FFFFFF',

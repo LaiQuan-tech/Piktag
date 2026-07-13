@@ -42,3 +42,34 @@ export function normalizeTagName(raw: string): string {
 export function ilikeEscape(s: string): string {
   return s.replace(/[\\_%]/g, '\\$&');
 }
+
+// ── RTL-aware hashtag display (2026-07-13, founder: Arabic UI must
+// render the # on the RIGHT of the tag word, matching the native RTL
+// hashtag convention — reading starts from the right, so the # leads
+// from the right, exactly like Arabic Twitter/Instagram) ────────────
+//
+// '#' is a bidi-NEUTRAL character: its rendered side is decided by
+// the resolved paragraph direction, which React Native derives from
+// the first STRONG character of the string. That made # placement
+// depend on the TAG NAME's script (Arabic name → # right, Latin
+// name → # left) instead of the app language — inconsistent within
+// one Arabic screen.
+//
+// Fix at the Unicode level (works on BOTH platforms — the previous
+// attempt used the `writingDirection` style, which is iOS-only):
+// prefix an invisible strong directional mark that pins the
+// paragraph direction to the APP language:
+//   • Arabic UI  → RLM (U+200F): paragraph RTL → # renders RIGHT
+//   • all others → LRM (U+200E): paragraph LTR → # renders LEFT
+// The tag word itself still renders correctly in its own script via
+// the normal bidi algorithm. DISPLAY-ONLY — never store or compare
+// hashDisplay output (the marks would break name equality).
+import i18n from '../i18n';
+
+export function bidiMark(): string {
+  return (i18n?.language ?? '').startsWith('ar') ? '\u200F' : '\u200E';
+}
+
+export function hashDisplay(name: string): string {
+  return bidiMark() + '#' + name;
+}

@@ -53,6 +53,7 @@ import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { joinEventRoom } from '../lib/eventRoom';
+import { bidiMark } from '../lib/normalizeTag';
 
 type QrGroup = {
   id: string;
@@ -381,7 +382,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
               <View style={styles.groupMetaRow}>
                 {tagPreview.length > 0 ? (
                   <Text style={styles.groupTags} numberOfLines={1}>
-                    {tagPreview.map((t) => `#${t}`).join('  ')}
+                    {bidiMark() + tagPreview.map((t) => `#${t}`).join('  ')}
                     {item.event_tags.length > 3 ? `  +${item.event_tags.length - 3}` : ''}
                   </Text>
                 ) : (

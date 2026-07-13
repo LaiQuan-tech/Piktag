@@ -42,7 +42,7 @@ import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import RingedAvatar from '../components/RingedAvatar';
 import { supabase } from '../lib/supabase';
-import { ilikeEscape } from '../lib/normalizeTag';
+import { ilikeEscape, bidiMark } from '../lib/normalizeTag';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import { ConnectionsScreenSkeleton } from '../components/SkeletonLoader';
 import ErrorState from '../components/ErrorState';
@@ -153,7 +153,7 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk,
           </View>
           {item.tags.length > 0 && (
             <Text style={styles.tagsLine} numberOfLines={1}>
-              {item.tags.join('  ')}
+              {bidiMark() + item.tags.join('  ')}
             </Text>
           )}
         </View>
@@ -220,7 +220,7 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk,
         </View>
         {item.tags.length > 0 && (
           <Text style={styles.tagsLine} numberOfLines={1}>
-            {item.tags.join('  ')}
+            {bidiMark() + item.tags.join('  ')}
           </Text>
         )}
         {/* Ask-preview chip — gradient-filled pill that visually
@@ -1733,8 +1733,6 @@ function makeStyles(c: ColorPalette) {
     color: c.gray400,
     lineHeight: 18,
     marginTop: 3,
-    // Keep leading # on the left in RTL (Arabic) — see TagChip note.
-    writingDirection: 'ltr',
   },
   // Ask-preview chip — gradient-filled, white-text pill. Sits
   // below the tags row when the friend has a live Ask. Inline-

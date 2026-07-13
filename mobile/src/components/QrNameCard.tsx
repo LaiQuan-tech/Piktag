@@ -18,6 +18,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
+import { bidiMark } from '../lib/normalizeTag';
 
 type QrNameCardProps = {
   /** The string encoded in the QR (profile URL or Tag connect payload). */
@@ -59,7 +60,7 @@ export default function QrNameCard({
       {cleanTags.length > 0 ? (
         <View style={styles.tagsWrap}>
           <Text style={styles.tagsLine}>
-            {cleanTags.map((tg) => '#' + tg).join('  ')}
+            {bidiMark() + cleanTags.map((tg) => '#' + tg).join('  ')}
           </Text>
         </View>
       ) : null}

@@ -7,6 +7,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useAsksByTag } from '../../hooks/useAsksByTag';
 import InitialsAvatar from '../InitialsAvatar';
 import { isOfficialDemoAsk, getDemoAskText } from '../../lib/officialDemoAsk';
+import { hashDisplay } from '../../lib/normalizeTag';
 
 type AskListByTagProps = {
   tagId: string | null | undefined;
@@ -89,7 +90,7 @@ export default function AskListByTag({ tagId, onPressAsk }: AskListByTagProps) {
               >
                 {ask.tag_names.map((n) => (
                   <View key={n} style={styles.tagChip}>
-                    <Text style={styles.tagText}>#{n}</Text>
+                    <Text style={styles.tagText}>{hashDisplay(n)}</Text>
                   </View>
                 ))}
               </ScrollView>
@@ -165,7 +166,6 @@ function makeStyles(c: ColorPalette) {
     fontSize: 11,
     fontWeight: '500',
     color: c.gray700,
-    writingDirection: 'ltr',
   },
   });
 }

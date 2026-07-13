@@ -19,7 +19,7 @@ import RingedAvatar from '../components/RingedAvatar';
 import AskListByTag from '../components/ask/AskListByTag';
 import { supabase } from '../lib/supabase';
 import { getSiblingTagIds } from '../lib/tagSiblings';
-import { ilikeEscape } from '../lib/normalizeTag';
+import { ilikeEscape, hashDisplay } from '../lib/normalizeTag';
 import { useAuth } from '../hooks/useAuth';
 
 type TagDetailScreenProps = {
@@ -624,7 +624,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           )}
           {parentTagName && (
             <Text style={styles.tagParent}>
-              {t('semanticType.parentTag')}: #{parentTagName}
+              {t('semanticType.parentTag')}: {hashDisplay(parentTagName)}
             </Text>
           )}
         </View>
@@ -643,7 +643,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
                 activeOpacity={0.7}
                 onPress={() => navigation.push('TagDetail', { tagId: rt.id, tagName: rt.name })}
               >
-                <Text style={styles.relatedChipText}>#{rt.name}</Text>
+                <Text style={styles.relatedChipText}>{hashDisplay(rt.name)}</Text>
                 <Text style={styles.relatedChipCount}>{rt.usage_count}</Text>
               </TouchableOpacity>
             ))}

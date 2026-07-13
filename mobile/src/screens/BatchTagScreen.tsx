@@ -33,7 +33,7 @@ import { Check, Tag } from 'lucide-react-native';
 import { type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { findOrCreateTag, attachPrivateTagsToConnections } from '../lib/userTags';
-import { normalizeTagName } from '../lib/normalizeTag';
+import { normalizeTagName, bidiMark, hashDisplay } from '../lib/normalizeTag';
 import {
   trackBurstTagPromptShown,
   trackBurstTagApplied,
@@ -256,7 +256,7 @@ export default function BatchTagScreen({ navigation, route }: Props) {
           </Text>
           {doneTags.length > 0 ? (
             <Text style={styles.personTags} numberOfLines={1}>
-              {doneTags.map((tg) => `#${tg}`).join(' ')}
+              {bidiMark() + doneTags.map((tg) => `#${tg}`).join(' ')}
             </Text>
           ) : item.subtitle ? (
             <Text style={styles.personTags} numberOfLines={1}>
@@ -317,7 +317,7 @@ export default function BatchTagScreen({ navigation, route }: Props) {
               onPress={() => setTagName(label)}
             >
               <Text style={[styles.presetChipText, active && styles.presetChipTextOn]}>
-                #{label}
+                {hashDisplay(label)}
               </Text>
             </TouchableOpacity>
           );

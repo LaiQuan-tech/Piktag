@@ -31,7 +31,7 @@ import OverlappingAvatars from '../OverlappingAvatars';
 import { COLORS, type ColorPalette } from '../../constants/theme';
 import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
-import { normalizeTagName as sharedNormalizeTag, ilikeEscape } from '../../lib/normalizeTag';
+import { normalizeTagName as sharedNormalizeTag, ilikeEscape, hashDisplay } from '../../lib/normalizeTag';
 import { recordAiSuggestions, markAiSuggestionAccepted } from '../../lib/aiTagLogger';
 import { recordAskResponse } from '../../lib/searchLearning';
 import { useAuth } from '../../hooks/useAuth';
@@ -794,7 +794,7 @@ function AskViewSheet({ ask, onClose, onPressProfile }: AskViewSheetProps) {
                       style={[modalStyles.tagChip, modalStyles.tagChipSelected]}
                     >
                       <Text style={[modalStyles.tagChipText, modalStyles.tagChipTextSelected]}>
-                        #{name}
+                        {hashDisplay(name)}
                       </Text>
                     </View>
                   ))}
@@ -1486,7 +1486,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
                       style={[modalStyles.tagChip, modalStyles.tagChipSelected]}
                     >
                       <Text style={[modalStyles.tagChipText, modalStyles.tagChipTextSelected]}>
-                        #{name}
+                        {hashDisplay(name)}
                       </Text>
                     </View>
                   ))}
@@ -1720,7 +1720,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
                         activeOpacity={0.7}
                       >
                         <Text style={[modalStyles.tagChipText, selectedNames.has(name) && modalStyles.tagChipTextSelected]}>
-                          #{name}
+                          {hashDisplay(name)}
                         </Text>
                       </TouchableOpacity>
                     ))}
@@ -2180,7 +2180,6 @@ function makeStyles(c: ColorPalette) {
     fontSize: 11,
     fontWeight: '600',
     color: c.piktag600,
-    writingDirection: 'ltr',
   },
   askCardTagTextViewed: {
     color: c.gray500,
@@ -2297,7 +2296,7 @@ function makeModalStyles(c: ColorPalette) {
     backgroundColor: c.piktag500,
     borderColor: c.piktag500,
   },
-  tagChipText: { fontSize: 13, fontWeight: '500', color: c.gray700, writingDirection: 'ltr' },
+  tagChipText: { fontSize: 13, fontWeight: '500', color: c.gray700 },
   tagChipTextSelected: { color: '#fff' },
   // Spec C — reach preview line, below the tag chips. Soft feedback only
   // (never rendered as an error state) — piktag500 highlights just the

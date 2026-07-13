@@ -31,7 +31,7 @@ import { getLocales } from 'expo-localization';
 import { supabase } from '../lib/supabase';
 import { getCache, setCache } from '../lib/dataCache';
 import { stripSearchStopwords, filterLoneStopwordTokens } from '../lib/searchStopwords';
-import { ilikeEscape } from '../lib/normalizeTag';
+import { ilikeEscape, hashDisplay } from '../lib/normalizeTag';
 import { getSiblingTagIds, getTagNamesByIds } from '../lib/tagSiblings';
 import { extractSearchIntent } from '../lib/extractSearchIntent';
 import { semanticTagSearch } from '../lib/semanticTagSearch';
@@ -2664,7 +2664,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       // present, else the raw query.
       const isDeadEnd = totalCount === 0 && tags.length === 0;
       const conceptLabel = llmExtractedKeywords.length > 0
-        ? `#${llmExtractedKeywords[0]}`
+        ? hashDisplay(llmExtractedKeywords[0])
         : trimmedQuery;
 
       // AI-recovery transparency: when the LLM extracted content nouns
@@ -2845,7 +2845,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
               <View style={styles.aiChipKeywordsRow}>
                 {item.keywords.map((kw) => (
                   <View key={kw} style={styles.aiChipKeyword}>
-                    <Text style={styles.aiChipKeywordText}>#{kw}</Text>
+                    <Text style={styles.aiChipKeywordText}>{hashDisplay(kw)}</Text>
                   </View>
                 ))}
               </View>
@@ -2865,7 +2865,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                 <View style={styles.selectedChipsRow}>
                   {intersectionSelectedTags.map((tag) => (
                     <View key={tag.id} style={styles.selectedChip}>
-                      <Text style={styles.selectedChipText}>#{tag.name}</Text>
+                      <Text style={styles.selectedChipText}>{hashDisplay(tag.name)}</Text>
                       <TouchableOpacity
                         onPress={() => {
                           const remaining = intersectionSelectedTags.filter(t => t.id !== tag.id);
@@ -3615,7 +3615,6 @@ function makeStyles(c: ColorPalette) {
     fontWeight: '600',
     color: c.gray900,
     lineHeight: 20,
-    writingDirection: 'ltr',
   },
   tagNameHighlighted: {
     color: '#FFFFFF',

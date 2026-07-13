@@ -35,6 +35,7 @@ import { useAskFeed } from '../hooks/useAskFeed';
 import { ProfileScreenSkeleton } from '../components/SkeletonLoader';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { PiktagProfile, UserTag, Biolink } from '../types';
+import { hashDisplay } from '../lib/normalizeTag';
 
 type ProfileScreenProps = {
   navigation: NativeStackNavigationProp<any>;
@@ -401,7 +402,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                   accessibilityLabel={`標籤 ${ut.tag?.name || t('profile.tagFallback')}`}
                   accessibilityRole="button"
                 >
-                  <Text style={styles.tagChipText}>#{ut.tag?.name || t('profile.tagFallback')}</Text>
+                  <Text style={styles.tagChipText}>{hashDisplay(ut.tag?.name || t('profile.tagFallback'))}</Text>
                 </TouchableOpacity>
               ))
             ) : (
@@ -660,7 +661,6 @@ function makeStyles(c: ColorPalette) {
     fontSize: 14,
     fontWeight: '500',
     color: c.gray600,
-    writingDirection: 'ltr',
   },
 
   // Action Buttons

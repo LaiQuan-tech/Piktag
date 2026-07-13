@@ -43,7 +43,7 @@ import ErrorState from '../components/ErrorState';
 import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import { supabase } from '../lib/supabase';
-import { ilikeEscape } from '../lib/normalizeTag';
+import { ilikeEscape, hashDisplay, bidiMark } from '../lib/normalizeTag';
 import { useAuth } from '../hooks/useAuth';
 import { useAskFeed } from '../hooks/useAskFeed';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
@@ -1431,7 +1431,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                       });
                     }}
                   >
-                    <Text style={styles.tagChipText}>{officialLabel ? `#${officialLabel}` : tag}</Text>
+                    <Text style={styles.tagChipText}>{officialLabel ? hashDisplay(officialLabel) : bidiMark() + tag}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -1771,7 +1771,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                       activeOpacity={0.7}
                     >
                       <Text style={[styles.pickModalTagText, isSelected && styles.pickModalTagTextSelected]}>
-                        #{tag.name}
+                        {hashDisplay(tag.name)}
                       </Text>
                     </TouchableOpacity>
                   );
@@ -1811,7 +1811,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                         activeOpacity={0.7}
                       >
                         <Text style={[styles.pickModalTagText, selected && styles.pickModalTagTextSelected]}>
-                          #{tagName}
+                          {hashDisplay(tagName)}
                         </Text>
                       </TouchableOpacity>
                     );
@@ -1869,7 +1869,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                     navigation.navigate('TagDetail', { tagId: tag.id, tagName: tag.name });
                   }}
                 >
-                  <Text style={styles.mutualModalTagText}>#{tag.name}</Text>
+                  <Text style={styles.mutualModalTagText}>{hashDisplay(tag.name)}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -2276,7 +2276,6 @@ function makeStyles(c: ColorPalette) {
     fontSize: 14,
     fontWeight: '500',
     color: c.gray600,
-    writingDirection: 'ltr',
   },
 
   // (sectionTitle was defined but never used in JSX — dead style
@@ -2557,7 +2556,6 @@ function makeStyles(c: ColorPalette) {
     fontSize: 15,
     fontWeight: '500',
     color: c.gray700,
-    writingDirection: 'ltr',
   },
   pickModalTagTextSelected: {
     color: '#FFFFFF',

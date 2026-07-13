@@ -621,6 +621,10 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       const anyField =
         card && Object.values(card).some((v) => typeof v === 'string' && v.trim());
       if (!card || !anyField) {
+        // Surface the server-side failure reason (quota / retired model /
+        // truncation) — an empty extraction is NOT always a bad photo.
+        const detail = (data as any)?.detail;
+        if (detail) console.warn('[LocalContact] scan no_extraction detail:', detail);
         Alert.alert(
           t('auth.onboarding.cardScanEmptyTitle', { defaultValue: '沒讀到資料' }),
           t('auth.onboarding.cardScanEmptyMessage', {

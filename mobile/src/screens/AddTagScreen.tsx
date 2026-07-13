@@ -37,7 +37,7 @@ import {
   reverseGeocodeAsync,
 } from 'expo-location';
 import { logApiUsage } from '../lib/apiUsage';
-import { normalizeTagName } from '../lib/normalizeTag';
+import { normalizeTagName, hashDisplay } from '../lib/normalizeTag';
 import { appendLang } from '../lib/shareProfile';
 import { setStringAsync as setClipboardStringAsync } from 'expo-clipboard';
 import PageLoader from '../components/loaders/PageLoader';
@@ -81,8 +81,8 @@ function getQuickDates(): { label: string; date: Date }[] {
   const today = new Date();
   const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
   return [
-    { label: `#${formatDateDisplay(today)}`, date: today },
-    { label: `#${formatDateDisplay(tomorrow)}`, date: tomorrow },
+    { label: hashDisplay(formatDateDisplay(today)), date: today },
+    { label: hashDisplay(formatDateDisplay(tomorrow)), date: tomorrow },
   ];
 }
 

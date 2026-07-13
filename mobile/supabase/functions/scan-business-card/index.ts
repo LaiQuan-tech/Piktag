@@ -502,8 +502,13 @@ serve(async (req) => {
     // confirmation screen handles "nothing detected" gracefully
     // (user just fills it in manually) — a hard error would make
     // the whole scan affordance feel broken when really the photo
-    // was just unreadable.
-    return jsonResponse(200, { data: EMPTY, note: 'no_extraction' });
+    // was just unreadable. `detail` carries the upstream failure
+    // (e.g. "gemini-2.5-flash: HTTP 429") so a systemic outage —
+    // quota exhaustion, model retirement — is visible in the
+    // client log / network inspector instead of masquerading as
+    // "unreadable photo" (2026-07-13: that masquerade cost us a
+    // full debugging cycle).
+    return jsonResponse(200, { data: EMPTY, note: 'no_extraction', detail: lastError });
   } catch (err) {
     console.error('scan-business-card edge function error:', err);
     return jsonResponse(500, { error: 'Internal error' });

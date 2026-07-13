@@ -50,7 +50,7 @@ import {
 } from 'react-native';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
-import { normalizeTagName } from '../lib/normalizeTag';
+import { normalizeTagName, hashDisplay } from '../lib/normalizeTag';
 
 type Props = {
   label: string;
@@ -69,7 +69,7 @@ export default function TagChip({
 }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const display = `#${normalizeTagName(label)}`;
+  const display = hashDisplay(normalizeTagName(label));
   const isToggle = variant === 'toggle';
 
   // Toggle: selected=purple (chip base) / unselected=gray override.
@@ -133,7 +133,7 @@ function makeStyles(c: ColorPalette) {
   // follows the paragraph direction and lands on the right; forcing
   // ltr base direction pins it left while Arabic tag names inside
   // still render RTL correctly via the bidi algorithm.
-  text: { fontSize: 14, fontWeight: '500', color: '#FFFFFF', writingDirection: 'ltr' },
+  text: { fontSize: 14, fontWeight: '500', color: '#FFFFFF' },
   textToggleOff: { color: c.gray700 },
   });
 }
