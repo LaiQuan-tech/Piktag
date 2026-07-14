@@ -61,7 +61,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const profileRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/piktag_profiles?username=eq.${encodeURIComponent(usernameStr)}&select=id,username,full_name,avatar_url,bio,headline,is_verified,website,location`,
+      `${SUPABASE_URL}/rest/v1/piktag_profiles?username=eq.${encodeURIComponent(usernameStr)}&select=id,username,full_name,avatar_url,bio,headline,is_verified,website,location,is_official`,
       {
         headers: {
           apikey: SUPABASE_ANON_KEY,
@@ -253,23 +253,33 @@ module.exports = async function handler(req, res) {
 };
 
 function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, analyticsSnippet, hasActiveAsk, tribeSize = 0) {
-  const name = escapeHtml(profile.full_name || profile.username || '#PikTag User');
+  const rawName = profile.full_name || profile.username || '#PikTag User';
+  const name = escapeHtml(rawName);
   const username = escapeHtml(profile.username || '');
   const headline = profile.headline ? escapeHtml(profile.headline) : '';
   // @piktag's bio is an English-only teaching blurb stored in the DB
   // ("Tags are how people find you..."). Non-English visitors should see
   // it localized — every other user's bio is left exactly as they wrote
-  // it. No is_official column is fetched for this page (see the SELECT
-  // above), so the official account is identified by its fixed username.
-  const isOfficialAccount = profile.username === 'piktag';
-  const bio = isOfficialAccount
-    ? escapeHtml(locale.officialBio || profile.bio || '')
-    : (profile.bio ? escapeHtml(profile.bio) : '');
+  // it. is_official is fetched in the SELECT above; that's the real
+  // signal (username has no DB UNIQUE constraint, so it isn't safe to
+  // key official-account behavior off it).
+  const isOfficialAccount = profile.is_official === true;
+  const rawBio = isOfficialAccount
+    ? (locale.officialBio || profile.bio || '')
+    : (profile.bio || '');
+  // `bio` (HTML-escaped) is for the visible page body only. Meta-tag
+  // insertion points below escape their OWN content from the raw
+  // strings (rawBio / rawName) — mirrors the og:title/twitter:title
+  // pattern, which escapes name+username once at declaration and
+  // reuses pageTitle verbatim. Escaping bio here AND again at each meta
+  // insertion point produced the double-escape artifact (`&amp;#039;`)
+  // in shared social cards.
+  const bio = rawBio ? escapeHtml(rawBio) : '';
   const avatarUrl =
     profile.avatar_url ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=f3f4f6&color=6b7280&size=200`;
   const isVerified = profile.is_verified;
-  const ogDescription = bio || `@${username} on PikTag`;
+  const ogDescription = rawBio || `@${profile.username || ''} on PikTag`;
   const pageTitle = `${name} (@${username}) | #PikTag`;
   const pageUrl = `https://pikt.ag/${username}`;
 
@@ -336,14 +346,14 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
   // pre-existing rail, kept on purpose; don't delete it as "絕招一".)
 
   return `<!DOCTYPE html>
-<html lang="${locale.htmlLang}">
+<html lang="${locale.htmlLang}" dir="${locale.dir || 'ltr'}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${pageTitle}</title>
   <meta name="description" content="${escapeHtml(ogDescription)}">
-  <meta name="keywords" content="${escapeHtml(tags.map(t => t.name || t).join(', '))}, #PikTag, ${escapeHtml(name)}, networking">
-  <meta name="author" content="${escapeHtml(name)}">
+  <meta name="keywords" content="${escapeHtml(tags.map(t => t.name || t).join(', '))}, #PikTag, ${escapeHtml(rawName)}, networking">
+  <meta name="author" content="${escapeHtml(rawName)}">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="${pageUrl}">
   <meta property="og:type" content="profile">
@@ -512,7 +522,7 @@ function handleFollow() {
 
 function notFoundPage(locale) {
   return `<!DOCTYPE html>
-<html lang="${locale.htmlLang}">
+<html lang="${locale.htmlLang}" dir="${locale.dir || 'ltr'}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">

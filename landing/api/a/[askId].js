@@ -138,7 +138,7 @@ function renderAskPage(askId, ask, locale, analyticsSnippet) {
     `;
 
   return `<!DOCTYPE html>
-<html lang="${locale.htmlLang}">
+<html lang="${locale.htmlLang}" dir="${locale.dir || 'ltr'}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -303,7 +303,7 @@ function renderAskPage(askId, ask, locale, analyticsSnippet) {
 function notFoundPage(locale) {
   const downloadUrl = 'https://pikt.ag/download';
   return `<!DOCTYPE html>
-<html lang="${locale.htmlLang}">
+<html lang="${locale.htmlLang}" dir="${locale.dir || 'ltr'}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">

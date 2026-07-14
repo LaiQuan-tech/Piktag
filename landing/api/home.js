@@ -85,7 +85,12 @@ module.exports = async function handler(req, res) {
     // (scripts/rename-shell.mjs) precisely so "/" has NO static file and the
     // vercel.json "/" → /api/home rewrite actually fires; /app.html stays
     // static, so this round-trip keeps the Vite asset hrefs correct.
-    const r = await fetch('https://' + req.headers.host + '/app.html');
+    //
+    // Origin is hardcoded — req.headers.host is client-controlled, and
+    // interpolating it into a same-origin fetch URL (plus the s-maxage=300
+    // response cache below with no Vary:Host) is a cache-poisoning vector.
+    // pikt.ag is the one production domain this function ever serves.
+    const r = await fetch('https://pikt.ag/app.html');
     const shell = await r.text();
 
     let html;

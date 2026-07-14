@@ -489,6 +489,7 @@ const TRANSLATIONS = {
   },
   ar: {
     htmlLang: 'ar',
+    dir: 'rtl',
     shareAria: 'مشاركة',
     follow: 'متابعة',
     bannerText: 'تنزيل تطبيق #PikTag',
@@ -921,6 +922,7 @@ const TRANSLATIONS = {
   },
   ur: {
     htmlLang: 'ur',
+    dir: 'rtl',
     shareAria: 'شیئر کریں',
     follow: 'فالو کریں',
     bannerText: '#PikTag ایپ ڈاؤن لوڈ کریں',

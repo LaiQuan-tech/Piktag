@@ -117,7 +117,7 @@ function renderPage(tagName, usageCount, members, analyticsSnippet, locale) {
     : '';
 
   return `<!DOCTYPE html>
-<html lang="${locale.htmlLang}">
+<html lang="${locale.htmlLang}" dir="${locale.dir || 'ltr'}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -221,7 +221,7 @@ function renderPage(tagName, usageCount, members, analyticsSnippet, locale) {
 
 function notFoundPage(locale, title) {
   return `<!DOCTYPE html>
-<html lang="${locale.htmlLang}">
+<html lang="${locale.htmlLang}" dir="${locale.dir || 'ltr'}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
