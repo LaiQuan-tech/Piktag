@@ -384,7 +384,11 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
         } catch {
           // bodyText was not JSON; fall back to the raw text.
         }
-        throw new Error(message || '上傳失敗');
+        // No literal fallback here — an empty message would otherwise
+        // inject a hardcoded string that shadows the catch block's
+        // localized fallback for non-Chinese users. Empty → the catch
+        // uses t('localContact.avatarUploadFailTitle').
+        throw new Error(message || '');
       }
 
       // Cache-buster so React Native Image reloads the new file

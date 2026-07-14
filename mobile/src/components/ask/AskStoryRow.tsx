@@ -664,25 +664,17 @@ function AskViewSheet({ ask, onClose, onPressProfile }: AskViewSheetProps) {
       if (!user || !ask || sendingId) return;
       setSendingId(friend.id);
       try {
-        // Record FIRST — the UNIQUE(ask_id, responder_id, action) row is
-        // the dedupe gate. Message-first would re-message the author on
-        // every repeat attempt before we could learn it's a duplicate.
-        const result = await recordAskResponse({
-          askId: ask.ask_id,
-          authorId: ask.author_id,
-          action: 'recommend',
-          recommendedUserId: friend.id,
-        });
-        if (result === 'duplicate') {
-          setPickerOpen(false);
-          Alert.alert(
-            t('ask.recommendAlready', {
-              defaultValue: 'You already recommended someone for this Ask',
-            }),
-          );
-          return;
-        }
-
+        // SEND FIRST, record after. The chat message is the ONLY channel
+        // that reaches the asker (piktag_ask_responses has no notification
+        // trigger and no in-app read surface — it's analytics only). If we
+        // recorded first and the message then failed, the row's UNIQUE
+        // dedupe would block every retry → the introduction is lost forever
+        // with the DB claiming "recommended". So delivery is the source of
+        // truth: on failure nothing is recorded and a retry genuinely
+        // re-sends. RLS blocks the responder from SELECT/DELETE on their own
+        // response rows, so a pre-check or compensating delete isn't
+        // possible client-side; a deliberate repeat (rare — the sheet
+        // closes on success) simply re-sends, which is harmless.
         const title = (ask.title ?? '').trim() || ask.body.slice(0, 30);
         const body = t('ask.recommendMsg', {
           defaultValue: 'For your Ask "{{title}}" — I recommend {{name}} (@{{username}}).',
@@ -712,6 +704,16 @@ function AskViewSheet({ ask, onClose, onPressProfile }: AskViewSheetProps) {
           client_nonce: Crypto.randomUUID(),
         });
         if (msgErr) throw msgErr;
+
+        // Message delivered — now record for analytics (best-effort). A
+        // 'duplicate' here just means they recommended before; the message
+        // still went out, so it is not an error.
+        void recordAskResponse({
+          askId: ask.ask_id,
+          authorId: ask.author_id,
+          action: 'recommend',
+          recommendedUserId: friend.id,
+        }).catch(() => {});
 
         onClose();
         Alert.alert(t('ask.recommendSent', { defaultValue: 'Sent to the asker' }));

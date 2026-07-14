@@ -110,15 +110,13 @@ export function extractQuickFields(text: string): QuickFields {
     }
   }
 
-  // Mobile (2026-07-12, additive — never touches the `phone` loop
-  // above): separately recognise a Taiwan mobile among the SAME
-  // digit-run candidates by its distinctive shape (local 09-prefix,
-  // 10 digits, or international +886 9…). Independent loop so a card
-  // with both a landline and a mobile surfaces both quick fields
-  // instead of the mobile losing to whichever number OCR listed
-  // first. If the only number on the card happens to look like a
-  // mobile, it lands in BOTH `phone` and `mobile` here — harmless
-  // duplication for the ~1-2s until Gemini's authoritative result
+  // Mobile (2026-07-12): separately recognise a Taiwan mobile among the
+  // SAME digit-run candidates by its distinctive shape (local 09-prefix,
+  // 10 digits, or international +886 9…). The `phone` loop above SKIPS
+  // mobile-shaped numbers (isTaiwanMobile continue), so a lone mobile
+  // lands in `mobile` ONLY — no double-show — and a card with both a
+  // landline and a mobile surfaces each in its own quick field. Gemini's
+  // authoritative result
   // (which puts a lone, ambiguous number in `phone` only) arrives and
   // overwrites per the caller's contract.
   for (const c of candidates) {
