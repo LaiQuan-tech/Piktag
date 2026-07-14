@@ -164,7 +164,7 @@ function OnboardingCompleteBurstImpl({ visible, userName, onComplete }: Props) {
   });
 
   return (
-    <Modal transparent animationType="none" visible={visible} statusBarTranslucent>
+    <Modal onRequestClose={() => {}} transparent animationType="none" visible={visible} statusBarTranslucent>
       <Animated.View style={[styles.root, overlayStyle]} pointerEvents="none">
         <LinearGradient
           colors={GRADIENT}

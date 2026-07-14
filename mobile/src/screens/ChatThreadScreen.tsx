@@ -32,6 +32,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useChatThread } from '../hooks/useChatThread';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import { supabase } from '../lib/supabase';
+import { hashDisplay } from '../lib/normalizeTag';
 import type { ThreadMessage } from '../types/chat';
 
 // Local param shape: keeps this screen decoupled from the global root
@@ -152,7 +153,7 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
           const names = ((ct ?? []) as any[])
             .map((r) => r?.tag?.name)
             .filter((n): n is string => typeof n === 'string' && n.trim().length > 0);
-          if (names.length > 0) tagPart = names.map((n) => `#${n}`).join(' ');
+          if (names.length > 0) tagPart = names.map((n) => hashDisplay(n)).join(' ');
         } catch {
           /* tags are optional garnish */
         }

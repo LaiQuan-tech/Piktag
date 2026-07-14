@@ -220,6 +220,8 @@
       "welcomeCta": "Bắt đầu với PikTag",
       "profileTitle": "Bạn tên gì?",
       "profileSubtitle": "Bạn bè sẽ thấy tên này khi quét mã QR của bạn.",
+      "profileTitleHandle": "Thiết lập tên người dùng PikTag của bạn",
+      "profileSubtitleHandle": "Bạn bè tìm thấy bạn tại pikt.ag/tencuaban",
       "avatarPickA11y": "Chọn ảnh hồ sơ",
       "avatarHint": "Ảnh không bắt buộc — có thể thêm sau.",
       "profileNamePlaceholder": "Tên của bạn",

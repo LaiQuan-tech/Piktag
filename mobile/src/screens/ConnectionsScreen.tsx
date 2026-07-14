@@ -42,7 +42,7 @@ import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import RingedAvatar from '../components/RingedAvatar';
 import { supabase } from '../lib/supabase';
-import { ilikeEscape, bidiMark } from '../lib/normalizeTag';
+import { ilikeEscape, hashDisplay } from '../lib/normalizeTag';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import { ConnectionsScreenSkeleton } from '../components/SkeletonLoader';
 import ErrorState from '../components/ErrorState';
@@ -153,7 +153,7 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk,
           </View>
           {item.tags.length > 0 && (
             <Text style={styles.tagsLine} numberOfLines={1}>
-              {bidiMark() + item.tags.join('  ')}
+              {item.tags.join('  ')}
             </Text>
           )}
         </View>
@@ -220,7 +220,7 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk,
         </View>
         {item.tags.length > 0 && (
           <Text style={styles.tagsLine} numberOfLines={1}>
-            {bidiMark() + item.tags.join('  ')}
+            {item.tags.join('  ')}
           </Text>
         )}
         {/* Ask-preview chip — gradient-filled pill that visually
@@ -461,7 +461,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             if (a.isPrivate !== b.isPrivate) return a.isPrivate ? -1 : 1;
             return 0;
           });
-          tagMap.set(connId, tags.map(t => `#${t.name}`));
+          tagMap.set(connId, tags.map(t => hashDisplay(t.name)));
         }
       }
 
@@ -1376,7 +1376,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             autoFocus'd TextInput brings the keyboard up. */}
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           <TouchableOpacity
             style={styles.modalOverlay}

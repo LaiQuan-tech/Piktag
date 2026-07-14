@@ -957,7 +957,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         <Text style={styles.profileSubtitle}>
           {nameFromOAuth
             ? t('auth.onboarding.profileSubtitleHandle', {
-                defaultValue: '朋友透過 pikt.ag/{你的帳號} 找到你',
+                defaultValue: '朋友透過 pikt.ag/你的帳號 找到你',
               })
             : t('auth.onboarding.profileSubtitle', { defaultValue: '朋友掃 QR 會看到這個名字' })}
         </Text>

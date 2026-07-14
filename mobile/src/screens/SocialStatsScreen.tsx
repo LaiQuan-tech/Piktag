@@ -26,6 +26,7 @@ import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { getPlatformLabel } from '../lib/platforms';
+import { hashDisplay } from '../lib/normalizeTag';
 import SectionTitle from '../components/SectionTitle';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -619,7 +620,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
             <SectionTitle variant="form" style={{ marginBottom: 14 }}>{t('dashboard.topTagsTitle')}</SectionTitle>
             {data.topTags.length > 0 ? (
               renderBarRow(
-                data.topTags.map((tag) => ({ label: `#${tag.name}`, value: tag.count })),
+                data.topTags.map((tag) => ({ label: hashDisplay(tag.name), value: tag.count })),
                 data.topTags[0]?.count || 1,
                 colors.piktag400,
               )

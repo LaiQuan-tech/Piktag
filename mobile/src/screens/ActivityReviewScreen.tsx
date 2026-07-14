@@ -418,7 +418,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
     // Android uses height (needed because soft keyboard resizes layout).
     <KeyboardAvoidingView
       style={[styles.container, { paddingTop: insets.top }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 

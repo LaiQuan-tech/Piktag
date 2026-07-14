@@ -1739,7 +1739,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
       >
         <KeyboardAvoidingView
           style={styles.pickModalOverlay}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           <View style={styles.pickModalContainer}>
             <View style={styles.pickModalHeader}>

@@ -220,6 +220,8 @@
       "welcomeCta": "PikTag کے ساتھ شروع کریں",
       "profileTitle": "آپ کا نام کیا ہے؟",
       "profileSubtitle": "دوست آپ کا QR کوڈ اسکین کرنے پر یہ نام دیکھیں گے۔",
+      "profileTitleHandle": "اپنا PikTag یوزرنیم سیٹ کریں",
+      "profileSubtitleHandle": "دوست آپ کو pikt.ag/آپکانام پر تلاش کر سکتے ہیں",
       "avatarPickA11y": "پروفائل تصویر منتخب کریں",
       "avatarHint": "تصویر اختیاری ہے — بعد میں شامل کر سکتے ہیں۔",
       "profileNamePlaceholder": "آپ کا نام",

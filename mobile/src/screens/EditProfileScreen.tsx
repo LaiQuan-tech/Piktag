@@ -2471,7 +2471,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
             keyboard and left the focused input hidden behind it. */}
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
         {/* Backdrop is now tappable — taps outside the bottom sheet
             dismiss the modal. Previously it was a plain View, which

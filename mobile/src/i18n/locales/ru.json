@@ -214,6 +214,8 @@
       "welcomeCta": "Начать с PikTag",
       "profileTitle": "Как вас зовут?",
       "profileSubtitle": "Друзья увидят это имя при сканировании вашего QR-код.",
+      "profileTitleHandle": "Настройте имя пользователя PikTag",
+      "profileSubtitleHandle": "Друзья найдут вас по адресу pikt.ag/вашеимя",
       "avatarPickA11y": "Выберите фото профиля",
       "avatarHint": "Фото необязательно — можно добавить позже.",
       "profileNamePlaceholder": "Ваше имя",

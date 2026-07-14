@@ -927,7 +927,7 @@ function makeStyles(c: ColorPalette) {
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 7,
-    borderRadius: 14,
+    borderRadius: 9999,
     backgroundColor: c.piktag50,
     borderWidth: 1,
     borderColor: 'transparent',

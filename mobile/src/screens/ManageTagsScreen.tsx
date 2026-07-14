@@ -392,7 +392,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
         // header (~56dp) so the bar lands just above the keyboard.
         <KeyboardAvoidingView
           style={styles.flex1}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 56 : 0}
         >
           <ScrollView

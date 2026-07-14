@@ -214,6 +214,8 @@
       "welcomeCta": "Commencer avec PikTag",
       "profileTitle": "Comment tu t'appelles ?",
       "profileSubtitle": "Tes amis verront ce nom en scannant ton QR Code.",
+      "profileTitleHandle": "Choisissez votre identifiant PikTag",
+      "profileSubtitleHandle": "Vos amis vous trouvent sur pikt.ag/votreidentifiant",
       "avatarPickA11y": "Choisis une photo de profil",
       "avatarHint": "La photo est facultative — tu peux l'ajouter plus tard.",
       "profileNamePlaceholder": "Ton prénom",

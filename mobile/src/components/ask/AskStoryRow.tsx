@@ -1443,7 +1443,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
 
   return (
     <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={modalStyles.overlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardAvoidingView style={modalStyles.overlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
         <Animated.View style={[modalStyles.sheet, { transform: [{ translateY: slideAnim }] }]}>
           <View style={modalStyles.handleBar} />

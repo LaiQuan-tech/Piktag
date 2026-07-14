@@ -119,7 +119,7 @@ export default function CountryCodePicker({
     >
       <KeyboardAvoidingView
         style={styles.overlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <TouchableOpacity
           style={styles.backdrop}

@@ -214,6 +214,8 @@
       "welcomeCta": "ابدأ مع PikTag",
       "profileTitle": "ما اسمك؟",
       "profileSubtitle": "سيرى الأصدقاء هذا الاسم عند مسح رمز QR الخاص بك.",
+      "profileTitleHandle": "قم بإعداد اسم مستخدم PikTag الخاص بك",
+      "profileSubtitleHandle": "يجدك أصدقاؤك عبر pikt.ag/اسمك",
       "avatarPickA11y": "اختر صورة الملف الشخصي",
       "avatarHint": "الصورة اختيارية — يمكنك إضافتها لاحقاً.",
       "profileNamePlaceholder": "اسمك",

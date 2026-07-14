@@ -214,6 +214,8 @@
       "welcomeCta": "PikTag ile başla",
       "profileTitle": "Adın ne?",
       "profileSubtitle": "Arkadaşların QR kodunu taradığında bu adı görecek.",
+      "profileTitleHandle": "PikTag kullanıcı adını ayarla",
+      "profileSubtitleHandle": "Arkadaşların seni pikt.ag/kullaniciadin adresinde bulur",
       "avatarPickA11y": "Profil fotoğrafı seç",
       "avatarHint": "Fotoğraf isteğe bağlı — sonra ekleyebilirsin.",
       "profileNamePlaceholder": "Adın",

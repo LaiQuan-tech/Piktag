@@ -214,6 +214,8 @@
       "welcomeCta": "Mulai dengan PikTag",
       "profileTitle": "Siapa namamu?",
       "profileSubtitle": "Teman akan melihat nama ini saat memindai kode QR-mu.",
+      "profileTitleHandle": "Atur nama pengguna PikTag kamu",
+      "profileSubtitleHandle": "Teman menemukanmu di pikt.ag/namakamu",
       "avatarPickA11y": "Pilih foto profil",
       "avatarHint": "Foto opsional — bisa ditambahkan nanti.",
       "profileNamePlaceholder": "Namamu",

@@ -214,6 +214,8 @@
       "welcomeCta": "PikTag をはじめる",
       "profileTitle": "お名前は?",
       "profileSubtitle": "友だちがQRコードをスキャンしたときにこの名前が表示されます。",
+      "profileTitleHandle": "PikTag のユーザー名を設定",
+      "profileSubtitleHandle": "友だちは pikt.ag/あなたのユーザー名 であなたを見つけられます",
       "avatarPickA11y": "プロフィール写真を選ぶ",
       "avatarHint": "写真は任意です — あとから追加できます。",
       "profileNamePlaceholder": "あなたの名前",

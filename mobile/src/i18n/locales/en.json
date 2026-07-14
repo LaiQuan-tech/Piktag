@@ -220,6 +220,8 @@
       "welcomeCta": "Get started with PikTag",
       "profileTitle": "What's your name?",
       "profileSubtitle": "Friends will see this name when they scan your QR Code.",
+      "profileTitleHandle": "Set up your PikTag handle",
+      "profileSubtitleHandle": "Friends find you at pikt.ag/yourhandle",
       "avatarPickA11y": "Choose profile photo",
       "avatarHint": "Photo is optional — you can add it later.",
       "profileNamePlaceholder": "Your name",

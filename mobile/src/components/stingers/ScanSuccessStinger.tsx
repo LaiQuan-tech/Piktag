@@ -17,7 +17,7 @@ import Animated, {
 
 /**
  * Hero stinger that fires after a QR scan decodes successfully, just before
- * navigation to ScanResult. Renders as a full-screen transparent <Modal>
+ * navigation to ScanResult. Renders as a full-screen transparent <Modal onRequestClose={() => {}}>
  * so it overlays whatever camera surface is mounted underneath.
  *
  * Integration:

@@ -220,6 +220,8 @@
       "welcomeCta": "開始使用 PikTag",
       "profileTitle": "你叫什麼名字？",
       "profileSubtitle": "朋友掃 QR 碼會看到這個名字",
+      "profileTitleHandle": "設定你的 PikTag 帳號",
+      "profileSubtitleHandle": "朋友透過 pikt.ag/你的帳號 找到你",
       "avatarPickA11y": "選擇頭像",
       "avatarHint": "頭像選填（之後可以再加）",
       "profileNamePlaceholder": "你的名字",

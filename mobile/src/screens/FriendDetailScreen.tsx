@@ -1651,7 +1651,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       >
         <KeyboardAvoidingView
           style={styles.pickModalOverlay}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           <View style={styles.pickModalContainer}>
             {/* Header (fixed) */}
