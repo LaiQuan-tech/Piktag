@@ -321,6 +321,10 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
     if (isOfficialAccount) {
       if (t === '攝影') return locale.officialTagPhotography || t;
       if (t === '咖啡') return locale.officialTagCoffee || t;
+      if (t === 'Pickleball') return locale.officialTagPickleball || t;
+      if (t === 'Foodie') return locale.officialTagFoodie || t;
+      if (t === 'OpenToCollab') return locale.officialTagOpenToCollab || t;
+      if (t === 'CoffeeChat') return locale.officialTagCoffeeChat || t;
     }
     return t;
   };

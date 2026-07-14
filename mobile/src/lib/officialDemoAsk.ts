@@ -58,20 +58,28 @@ export function getOfficialBio(t: TFunction): string {
 }
 
 /**
- * The official @piktag account carries two demo tags stored in the DB as
- * literal Chinese strings ('攝影', '咖啡') so its profile always has
- * something to show off the cross-language tag-matching story. Rendering
- * those literal strings to every viewer defeats the point — a Japanese
- * viewer should see 写真, an English viewer Photography, etc. This map is
+ * The official @piktag account carries a set of showcase tags stored in
+ * the DB under a single canonical name (some non-English like '匹克球'/'美食'
+ * — kept here as their English concept name 'Pickleball'/'Foodie' — and
+ * two social-intent tags 'OpenToCollab'/'CoffeeChat') so its profile always
+ * shows off the cross-language tag-matching story. Rendering those literal
+ * stored strings to every viewer defeats the point — a Japanese viewer
+ * should see ピックルボール, an English viewer Pickleball, etc. This map is
  * keyed on the DB's stored tag name and returns the viewer-language label
  * to *display*; callers must keep passing the original tag.id/tag.name to
  * navigation/lookups so tapping the chip still resolves to the same
- * concept-linked tag row. Returns null for any tag that isn't one of the
- * two showcase tags (i.e. "don't override" — render tag.name as-is).
+ * concept-linked tag row. Returns null for any tag that isn't a showcase
+ * tag (i.e. "don't override" — render tag.name as-is). The '攝影'/'咖啡'
+ * entries are the previous showcase pair (swapped out 2026-07-15); kept
+ * for backward compatibility and harmless once those tags are detached.
  */
 const OFFICIAL_TAG_LABEL_KEYS: Record<string, string> = {
   '攝影': 'showcaseTag.photography',
   '咖啡': 'showcaseTag.coffee',
+  'Pickleball': 'showcaseTag.pickleball',
+  'Foodie': 'showcaseTag.foodie',
+  'OpenToCollab': 'showcaseTag.openToCollab',
+  'CoffeeChat': 'showcaseTag.coffeeChat',
 };
 
 export function getOfficialTagLabel(tagName: string, t: TFunction): string | null {
