@@ -164,3 +164,19 @@ curl -s "https://kbwfdskulxnhjckdvghj.supabase.co/rest/v1/<table>?select=<col>&l
   escapeHtml→分享卡顯示 &#039; 殘留(og:title 模式=原文組、只在插入點跳脫一次);
   (4) 內部 fetch 信任 client Host header→cache poisoning(寫死 origin);
   (5) 官方判斷用 username 字串比對而非 is_official 欄位(username 無 DB UNIQUE)。
+
+### [2026-07-15] 部署毒藥:重複 migration 時間戳鎖死整條 Supabase Deploy
+`schema_migrations` 的 PK 是 14 位版本號。兩個檔共用同一戳(本次
+`20260712020000_contact_bridges_empty_guard` 與 `..._follows_cleanup_cascade`,
+不同 session 平行建立)→ 第一個套用並記錄後,第二個套用時 INSERT 追蹤列撞
+PK,`ERROR: duplicate key ... schema_migrations_pkey (SQLSTATE 23505)`,
+**整個 db push 失敗並回滾**,而且每一次後續 push 都卡在同一顆毒藥(排在它
+後面的新 migration 一起被擋、永遠套不進去)。症狀:Supabase Deploy 連續紅、
+但 migration「內容」看起來都沒問題。
+- **診斷**:`gh run view <id> --log-failed | grep 23505`,看它卡在哪個檔名。
+- **修法**:把「未被記錄的那個」改成唯一新戳(`git mv`),body 不動(冪等就
+  安全)。判斷哪個未記錄:deploy log 的 "Applying migration ..." 那行就是卡住
+  的檔;另一個同戳檔才是已記錄的。
+- **根因防呆**:CLAUDE.md 的「寫戳前 `ls | tail -3`」擋不住**平行 session**
+  在你檢查後才建的同戳檔。建戳時盡量用當下分秒(非整點 000000),可大幅降低
+  對撞。回寫 migration 前先 `git pull --rebase` 拉進別人的新檔再看尾巴。
