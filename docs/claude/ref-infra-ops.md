@@ -151,3 +151,16 @@ curl -s "https://kbwfdskulxnhjckdvghj.supabase.co/rest/v1/<table>?select=<col>&l
   未啟用+key 死 → 7/11 換 key(途中 secret 一度被貼成佔位字「你的KE�」5 字元,
   探針的 key_len 指紋抓到)→ key 好了仍不動 → 幽靈鎖 → 原子宣告修復 →
   三輪 force 排空 103 → **覆蓋率 56.7% → 100%**。
+- [2026-07-12] 上線前總體檢(Android/iOS 過審後)方法與教訓:四路平行對抗審查
+  (mobile 正確性 / backend+安全 / landing / UX+i18n),各自「只回可重現真問題+
+  檔案:行號+嚴重度」,主對話彙整去重後只修存活的。真實產出:6 個可修真 bug、
+  0 誤報。**最大類 = 除錯鷹架忘了拆**:2026-07-11 幽靈鎖故障排查時在
+  linker-health-alert 塞了 embed 探針 + force-relay(清鎖+強制跑 linker),
+  auto-link-concepts 加了 force 分支 —— 故障解了要**主動移除**,否則健康檢查每天
+  多打 Gemini + 繞過並發互斥鎖(地雷)。規則:**incident 用的 force/probe/繞過碼,
+  收尾時當成待辦拆掉**,只留零成本、有長期價值的(如 env key 指紋)。其餘真 bug
+  類型供參:(1) 記錄先於送達→訊息失敗留幽靈記錄且 UNIQUE 擋重試(改送達優先);
+  (2) throw new Error 塞硬編中文→蓋掉 catch 的 i18n fallback;(3) landing meta 雙重
+  escapeHtml→分享卡顯示 &#039; 殘留(og:title 模式=原文組、只在插入點跳脫一次);
+  (4) 內部 fetch 信任 client Host header→cache poisoning(寫死 origin);
+  (5) 官方判斷用 username 字串比對而非 is_official 欄位(username 無 DB UNIQUE)。
