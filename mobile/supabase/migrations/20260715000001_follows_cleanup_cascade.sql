@@ -1,6 +1,12 @@
--- 20260612_follows_cleanup_cascade.sql
+-- 20260715000001_follows_cleanup_cascade.sql
 --
 -- Fix orphaned follow records left behind by deleted accounts.
+--
+-- NOTE (2026-07-15): renamed from 20260712020000_* which collided with
+-- 20260712020000_contact_bridges_empty_guard.sql. Two files sharing a 14-digit
+-- version can't both be recorded in supabase_migrations.schema_migrations
+-- (version is the PK) — the second to apply hit a 23505 duplicate-key and
+-- failed EVERY deploy after it. Body is unchanged and fully idempotent.
 --
 -- ROOT CAUSE: the delete-user edge function's CLEANUPS list omitted
 -- piktag_follows, so a deleted user's follow/follower rows survived —
