@@ -11,7 +11,8 @@ const { SUPABASE_URL, SUPABASE_ANON_KEY, BRAND_COLOR, BRAND_ACCENT, BRAND_DARK, 
 // DB contract (mobile/supabase/migrations/20260706030000_ask_web_replies.sql):
 //   read:  rpc get_ask_public(p_ask_id uuid)
 //          -> {title, body, author_name, author_username, author_avatar_url,
-//              tag_names, expires_at, is_expired} or empty (not found/deleted)
+//              author_is_official, tag_names, expires_at, is_expired}
+//              or empty (not found/deleted)
 //   write: rpc submit_ask_web_reply(p_ask_id, p_name, p_contact, p_message, p_website)
 //          -> true. p_website is a honeypot (hidden form field name="website").
 //          error codes: 22023 invalid input, P0002 closed, P0003 reply cap reached.
@@ -76,7 +77,10 @@ function renderAskPage(askId, ask, locale, analyticsSnippet) {
   // unlike real users' Asks (whose DB text IS their own language and should
   // render as-is). Override title/body with the localized demo copy only
   // for the official account; everyone else keeps the raw DB text.
-  const isOfficialDemoAsk = ask.author_username === 'piktag';
+  // Key on the DB source-of-truth is_official flag (surfaced by
+  // get_ask_public since 20260715000000), not a spoofable username string —
+  // mirrors the u/[username].js official-override fix.
+  const isOfficialDemoAsk = ask.author_is_official === true;
   const title = escapeHtml((isOfficialDemoAsk ? locale.askDemoTitle : ask.title) || '');
   const rawBody = isOfficialDemoAsk ? locale.askDemoBody : ask.body;
   const body = rawBody ? escapeHtml(rawBody) : '';
