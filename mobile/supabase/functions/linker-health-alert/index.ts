@@ -114,133 +114,28 @@ serve(async (req) => {
   // linker must not trip the workflow's exit-1 heartbeat.
   const healthy = !unhealthy;
 
-  // ── Embedding probe (diagnostic, 2026-07-11 outage) ──────────────────
-  // Fires ONE embedContent call with the live GEMINI_API_KEY and reports
-  // the exact upstream verdict, plus a key FINGERPRINT (length + whitespace
-  // + prefix check — never the key material) so a paste-with-newline in the
-  // dashboard is distinguishable from a dead key or a retired model. The
-  // probe result rides the JSON response, which the daily-cron workflow
-  // prints — readable straight from the Actions log.
-  const embedProbe: Record<string, unknown> = { ok: false };
-  try {
-    const rawKey = Deno.env.get('GEMINI_API_KEY') ?? '';
-    const trimmed = rawKey.trim();
-    embedProbe.key_present = rawKey.length > 0;
-    embedProbe.key_len = rawKey.length;
-    embedProbe.key_has_whitespace = rawKey !== trimmed;
-    embedProbe.key_prefix_ok = trimmed.startsWith('AIzaSy');
-    if (trimmed) {
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 8000);
-      try {
-        const resp = await fetch(
-          'https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent',
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': trimmed },
-            body: JSON.stringify({
-              model: 'models/gemini-embedding-001',
-              content: { parts: [{ text: 'probe' }] },
-            }),
-            signal: ctrl.signal,
-          },
-        );
-        embedProbe.http_status = resp.status;
-        if (resp.ok) {
-          const j = await resp.json();
-          const vec: number[] = j.embedding?.values ?? [];
-          embedProbe.ok = Array.isArray(vec) && vec.length > 0;
-          embedProbe.dims = vec.length;
-
-          // Step 2: the NEXT stage of the linker pipeline — pgvector
-          // similarity search. The 2026-06 42883 incident hit exactly this
-          // class of function (LANGUAGE sql + <=> without extensions on the
-          // search_path), so when embedding succeeds but linking is still
-          // zero, this is the prime suspect. Report its verdict verbatim.
-          if (embedProbe.ok) {
-            try {
-              const { data: cands, error: simErr } = await supabase.rpc(
-                'find_similar_concepts',
-                {
-                  query_embedding: JSON.stringify(vec),
-                  similarity_threshold: 0.5,
-                  max_results: 3,
-                },
-              );
-              if (simErr) {
-                embedProbe.similar_error = `${simErr.code ?? ''} ${simErr.message ?? ''}`.slice(0, 300);
-              } else {
-                embedProbe.similar_ok = true;
-                embedProbe.similar_candidates = Array.isArray(cands) ? cands.length : 0;
-              }
-            } catch (e) {
-              embedProbe.similar_error = String(e).slice(0, 200);
-            }
-          }
-        } else {
-          const bodyText = await resp.text().catch(() => '');
-          embedProbe.error = bodyText.slice(0, 300);
-        }
-      } finally {
-        clearTimeout(timer);
-      }
-    }
-  } catch (e) {
-    embedProbe.error = String(e).slice(0, 200);
-  }
-
-  // ── Step 3 (diagnostic, 2026-07-11): invoke the linker DIRECTLY and
-  // relay its verbatim response. External triggers kept losing the lock
-  // race against pg_cron, so ground truth about WHY runs link zero tags
-  // was unreadable. This fn holds both the service key (clear the lock)
-  // and CRON_SECRET (authorized call), so it can guarantee a real run and
-  // capture {processed, linked, created} or the actual error.
-  let linkerRelay: Record<string, unknown> | null = null;
-  if (unhealthy) {
-    try {
-      const clearRes = await supabase
-        .from('linker_run_lock')
-        .update({ locked_at: null })
-        .eq('id', 1)
-        .select('locked_at');
-      const before = await supabase.from('linker_run_lock').select('locked_at').eq('id', 1).single();
-      const ctrl2 = new AbortController();
-      const timer2 = setTimeout(() => ctrl2.abort(), 120000);
-      try {
-        const r = await fetch(`${supabaseUrl}/functions/v1/auto-link-concepts`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${expected}`,
-          },
-          body: JSON.stringify({ force: true }),
-          signal: ctrl2.signal,
-        });
-        const body = await r.text().catch(() => '');
-        const after = await supabase.from('linker_run_lock').select('locked_at').eq('id', 1).single();
-        linkerRelay = {
-          status: r.status,
-          body: body.slice(0, 600),
-          clear_rows: Array.isArray(clearRes.data) ? clearRes.data.length : null,
-          clear_error: clearRes.error?.message ?? null,
-          lock_before_invoke: before.data?.locked_at ?? (before.error ? `ERR:${before.error.message}` : null),
-          lock_after_invoke: after.data?.locked_at ?? (after.error ? `ERR:${after.error.message}` : null),
-        };
-      } finally {
-        clearTimeout(timer2);
-      }
-    } catch (e) {
-      linkerRelay = { error: String(e).slice(0, 300) };
-    }
-  }
+  // Zero-cost secret fingerprint (NEVER the key material) — the one piece
+  // of the 2026-07-11 diagnostic scaffolding worth keeping: it distinguishes
+  // "GEMINI_API_KEY pasted with a stray newline / placeholder text" from a
+  // valid secret, at no API/quota cost. The live embedContent probe,
+  // find_similar_concepts probe, and force-mode linker relay were removed
+  // post-incident: a health check must not fire a Gemini call daily nor
+  // clear the run lock + force-trigger the linker (that bypassed the
+  // concurrency mutex — a foot-gun once the phantom-lock root cause was
+  // fixed in claim_linker_lock, 20260711040000).
+  const rawKey = Deno.env.get('GEMINI_API_KEY') ?? '';
+  const keyProbe = {
+    present: rawKey.length > 0,
+    len: rawKey.length,
+    has_whitespace: rawKey !== rawKey.trim(),
+  };
 
   return new Response(
     JSON.stringify({
       healthy,
       coverage_pct: coveragePct,
       oldest_unlinked_hours: oldestUnlinkedHours,
-      embed_probe: embedProbe,
-      linker_relay: linkerRelay,
+      key_probe: keyProbe,
     }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
   );

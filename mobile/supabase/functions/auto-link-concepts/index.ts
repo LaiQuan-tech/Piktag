@@ -221,17 +221,6 @@ serve(async (req) => {
   for (let i = 0; i < a.length; i++) diff |= a[i] ^ b[i];
   if (diff !== 0) return new Response('Forbidden', { status: 403 });
 
-  // Diagnostic force mode (2026-07-11): body {force:true} bypasses the
-  // skip-on-busy branch. CRON_SECRET-gated callers only; used by
-  // linker-health-alert to obtain ground truth when the lock claim
-  // misbehaves (observed: UPDATE sets locked_at yet RETURNING is empty →
-  // false "another run in progress").
-  let forceRun = false;
-  try {
-    const b = await req.clone().json();
-    forceRun = b?.force === true;
-  } catch { /* no body — normal cron path */ }
-
   try {
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
     if (!geminiApiKey) {
@@ -275,13 +264,10 @@ serve(async (req) => {
       // than stop entirely. The race only matters when two runs ACTUALLY
       // overlap, which itself is rare.
     } else if (claimed === false) {
-      if (!forceRun) {
-        return new Response(
-          JSON.stringify({ skipped: true, reason: 'another linker run in progress' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-        );
-      }
-      console.warn('force mode: proceeding despite busy lock');
+      return new Response(
+        JSON.stringify({ skipped: true, reason: 'another linker run in progress' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
     }
     // Always release on exit, success or error.
     const releaseLock = async () => {
