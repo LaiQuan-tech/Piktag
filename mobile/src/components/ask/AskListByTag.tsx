@@ -31,7 +31,17 @@ export default function AskListByTag({ tagId, onPressAsk }: AskListByTagProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const asks = useAsksByTag(tagId);
+  const rawAsks = useAsksByTag(tagId);
+  // Exclude the official @piktag demo Ask from tag-filtered "who's asking
+  // about #X" lists. Its displayed body + tag rotate weekly (getDemoAskText
+  // / getDemoAskTag) while its stored DB tags are fixed [ReactNative,
+  // SideQuest], so here it could show a chip that doesn't match the tag
+  // being browsed. The demo is a generic teaching example, not a real
+  // question about this tag — keep it to the Ask rail / profile.
+  const asks = useMemo(
+    () => rawAsks.filter((ask) => !isOfficialDemoAsk(ask.author_id)),
+    [rawAsks],
+  );
 
   const handlePress = useCallback(
     (userId: string) => {

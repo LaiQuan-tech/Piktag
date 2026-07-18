@@ -775,15 +775,24 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         console.warn('[AddTag] scan_session insert threw:', err);
       }
 
-      // 3. Build QR URL — encode event info as URL params so tags transfer
-      //    even if the scan session DB insert failed
+      // 3. Build QR URL. The scan_session row we just created holds
+      //    event_tags/date/location server-side, and the landing reads them
+      //    LIVE via get_scan_session_public (source of truth). So in the
+      //    normal case the URL needs ONLY the sid — omitting tags/date/loc
+      //    keeps the shared link short and free of the %-encoded CJK that
+      //    makes long links read as phishing. We keep the params ONLY as the
+      //    fallback the original design intended: when the DB insert failed,
+      //    sessionId is a non-UUID `local_` id the landing can't resolve, so
+      //    the tags must ride along in the URL or they're lost.
       const username = (profileData as PiktagProfile | null)?.username || user.id;
       setQrUsername(username);
       const params = new URLSearchParams();
       params.set('sid', sessionId);
-      if (eventTags.length > 0) params.set('tags', eventTags.join(','));
-      if (eventDate) params.set('date', eventDate);
-      if (eventLocation) params.set('loc', eventLocation);
+      if (!sessionData) {
+        if (eventTags.length > 0) params.set('tags', eventTags.join(','));
+        if (eventDate) params.set('date', eventDate);
+        if (eventLocation) params.set('loc', eventLocation);
+      }
       const qrUrl = appendLang(`https://pikt.ag/${username}?${params.toString()}`);
 
       // 4. Update session in DB if it was created
