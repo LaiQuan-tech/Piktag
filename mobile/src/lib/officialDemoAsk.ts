@@ -32,14 +32,78 @@ export function isOfficialAccount(userId: string | null | undefined): boolean {
   return userId === OFFICIAL_ACCOUNT_ID;
 }
 
+// ── Weekly demo-Ask content rotation (pure display layer) ──────────────
+//
+// The single long-lived demo Ask row never changes in the DB. Instead
+// every render surface derives WHICH of DEMO_ASK_VARIANT_COUNT canned
+// variants to show purely from the wall clock, so the @piktag profile's
+// demo Ask quietly refreshes its topic each week without any cron, DB
+// write, or new table. The landing page (landing/api/a/[askId].js)
+// computes the SAME index from the SAME anchor + formula, so mobile and
+// web always agree on "this week's" variant.
+//
+// KEEP ROTATION_ANCHOR_MS and DEMO_ASK_VARIANT_COUNT byte-identical with
+// the landing copy — if they drift, the two surfaces show different
+// variants for the same account. ROTATION_ANCHOR_MS is a fixed UTC epoch
+// (2026-01-01), never "now", so the schedule is deterministic everywhere.
+export const ROTATION_ANCHOR_MS = Date.UTC(2026, 0, 1);
+export const DEMO_ASK_VARIANT_COUNT = 4;
+const WEEK_MS = 7 * 24 * 3600 * 1000;
+
+// Fallback copy (English) mirrors the ask.demoTitle{K}/demoBody{K} i18n
+// keys — used as i18next defaultValue so a missing key can never render
+// blank. The single display tag per variant stays the English canonical
+// concept string in ALL locales (mirrors the demo's existing behavior;
+// the tag is a concept name, not translated) and overrides the DB row's
+// stored [ReactNative, SideQuest] wherever the demo Ask is rendered.
+const DEMO_ASK_VARIANTS: ReadonlyArray<{ title: string; body: string; tag: string }> = [
+  {
+    title: 'React Native developer',
+    body: 'Looking for a React Native developer for a side project — who do you know?',
+    tag: 'ReactNative',
+  },
+  {
+    title: 'Wedding photographer',
+    body: "Getting married this fall — who's a wedding photographer worth recommending?",
+    tag: 'Photography',
+  },
+  {
+    title: 'Technical co-founder',
+    body: 'Getting serious about my side project — looking for a technical co-founder. Who should I meet?',
+    tag: 'Startup',
+  },
+  {
+    title: 'Personal trainer',
+    body: "Trying to get back in shape — any personal trainers you'd recommend?",
+    tag: 'Fitness',
+  },
+];
+
+/**
+ * The index (0..DEMO_ASK_VARIANT_COUNT-1) of the variant to show this
+ * week. Deterministic function of the clock only — no state, no I/O.
+ */
+export function getDemoAskVariantIndex(): number {
+  return Math.floor((Date.now() - ROTATION_ANCHOR_MS) / WEEK_MS) % DEMO_ASK_VARIANT_COUNT;
+}
+
 export function getDemoAskText(t: TFunction): { title: string; body: string } {
+  const k = getDemoAskVariantIndex();
+  const fallback = DEMO_ASK_VARIANTS[k];
   return {
-    title: t('ask.demoTitle', { defaultValue: 'React Native developer' }),
-    body: t('ask.demoBody', {
-      defaultValue:
-        'Looking for a React Native developer for a side project — who do you know?',
-    }),
+    title: t(`ask.demoTitle${k}`, { defaultValue: fallback.title }),
+    body: t(`ask.demoBody${k}`, { defaultValue: fallback.body }),
   };
+}
+
+/**
+ * The single display tag ('ReactNative' | 'Photography' | 'Startup' |
+ * 'Fitness') for this week's variant. Render surfaces that show the demo
+ * Ask's tag chips must swap in [getDemoAskTag()] for the DB row's stored
+ * tags so the chip matches the (rotated) body.
+ */
+export function getDemoAskTag(): string {
+  return DEMO_ASK_VARIANTS[getDemoAskVariantIndex()].tag;
 }
 
 /**

@@ -37,7 +37,7 @@ import { recordAskResponse } from '../../lib/searchLearning';
 import { useAuth } from '../../hooks/useAuth';
 import { useLocalContacts, normalizePhone } from '../../hooks/useLocalContacts';
 import type { AskFeedItem, MyActiveAsk } from '../../types/ask';
-import { isOfficialDemoAsk, getDemoAskText } from '../../lib/officialDemoAsk';
+import { isOfficialDemoAsk, getDemoAskText, getDemoAskTag } from '../../lib/officialDemoAsk';
 // AskMatchSheet removed 2026-05-31 — founder direction
 // 「ask 發佈時的說明，這頁其實可不要，前一頁也有說明，再來就太多了」.
 // The AskCreateModal subtitle already tells the user that matching
@@ -736,6 +736,10 @@ function AskViewSheet({ ask, onClose, onPressProfile }: AskViewSheetProps) {
   const authorName = ask.author_full_name || ask.author_username || '?';
   const isDemo = isOfficialDemoAsk(ask.author_id);
   const demoText = isDemo ? getDemoAskText(t) : null;
+  // For the demo Ask the DB stores fixed [ReactNative, SideQuest] tags,
+  // but the body rotates weekly (getDemoAskText) — so swap in the
+  // rotation's single tag so the chip matches the shown body.
+  const viewTagNames = isDemo ? [getDemoAskTag()] : (ask.ask_tag_names ?? []);
 
   return (
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>
@@ -783,14 +787,14 @@ function AskViewSheet({ ask, onClose, onPressProfile }: AskViewSheetProps) {
                 )}
               </View>
 
-              {ask.ask_tag_names && ask.ask_tag_names.length > 0 ? (
+              {viewTagNames.length > 0 ? (
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   style={modalStyles.tagScroll}
                   contentContainerStyle={modalStyles.tagScrollContent}
                 >
-                  {ask.ask_tag_names.map((name) => (
+                  {viewTagNames.map((name) => (
                     <View
                       key={`friend-view-${name}`}
                       style={[modalStyles.tagChip, modalStyles.tagChipSelected]}

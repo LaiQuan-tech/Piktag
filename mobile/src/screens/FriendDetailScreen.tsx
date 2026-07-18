@@ -73,7 +73,7 @@ import type { Connection, PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
 import { isIdModePlatform, isSafeBiolinkUrl } from '../lib/platforms';
 import { openOrCopyBiolink } from '../lib/biolinks';
-import { isOfficialDemoAsk, isOfficialAccount, getOfficialBio, getDemoAskText, getOfficialTagLabel } from '../lib/officialDemoAsk';
+import { isOfficialDemoAsk, isOfficialAccount, getOfficialBio, getDemoAskText, getDemoAskTag, getOfficialTagLabel } from '../lib/officialDemoAsk';
 import { hashDisplay } from '../lib/normalizeTag';
 
 // How many scan-event tags to show before the "show all" toggle kicks in.
@@ -193,6 +193,15 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     () => askFeedAsks.find((a) => a.author_id === friendId) ?? null,
     [askFeedAsks, friendId],
   );
+  // Tag chips for the Ask card. The official demo Ask's body rotates
+  // weekly (getDemoAskText); its DB tags are the fixed [ReactNative,
+  // SideQuest] placeholders, so swap in the rotation's single tag so the
+  // chip matches the shown body. Real users' Asks keep their own tags.
+  const friendAskTagNames = useMemo(() => {
+    if (!friendActiveAsk) return [] as string[];
+    if (isOfficialDemoAsk(friendActiveAsk.author_id)) return [getDemoAskTag()];
+    return friendActiveAsk.ask_tag_names;
+  }, [friendActiveAsk]);
   // connectionId is state-backed because handleToggleFollow may newly
   // create a connection (via lib/followUser.ts) and we need to thread
   // the fresh id into pickTag / hidden-tag flows that key off it. The
@@ -1174,9 +1183,9 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                   </Text>
                 </>
               )}
-              {friendActiveAsk.ask_tag_names.length > 0 ? (
+              {friendAskTagNames.length > 0 ? (
                 <View style={styles.askTagsRow}>
-                  {friendActiveAsk.ask_tag_names.slice(0, 6).map((tagName) => (
+                  {friendAskTagNames.slice(0, 6).map((tagName) => (
                     // selected={true} → piktag500 fill + white text
                     // (canonical TagChip "selected" treatment per
                     // CLAUDE.md). Distinguishes the Ask's matching

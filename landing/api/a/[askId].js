@@ -69,6 +69,23 @@ module.exports = async function handler(req, res) {
   }
 };
 
+// Weekly demo-Ask rotation. ROTATION_ANCHOR_MS, the week divisor, and
+// DEMO_ASK_VARIANT_COUNT MUST stay byte-identical to the mobile copy in
+// mobile/src/lib/officialDemoAsk.ts so the app and this page derive the
+// SAME variant index from the clock — no DB, no cron, the official
+// @piktag demo Ask's displayed topic just advances one step each week.
+const ROTATION_ANCHOR_MS = Date.UTC(2026, 0, 1);
+const DEMO_ASK_VARIANT_COUNT = 4;
+const WEEK_MS = 7 * 24 * 3600 * 1000;
+// The single display tag per variant (index 0..3). English canonical
+// concept string in every locale — matches mobile getDemoAskTag() and
+// overrides the DB row's stored [ReactNative, SideQuest] placeholders.
+const DEMO_ASK_VARIANT_TAGS = ['ReactNative', 'Photography', 'Startup', 'Fitness'];
+
+function getDemoAskVariantIndex() {
+  return Math.floor((Date.now() - ROTATION_ANCHOR_MS) / WEEK_MS) % DEMO_ASK_VARIANT_COUNT;
+}
+
 function renderAskPage(askId, ask, locale, analyticsSnippet) {
   const authorName = escapeHtml(ask.author_name || 'PikTag user');
   const authorUsername = ask.author_username ? escapeHtml(ask.author_username) : '';
@@ -81,10 +98,16 @@ function renderAskPage(askId, ask, locale, analyticsSnippet) {
   // get_ask_public since 20260715000000), not a spoofable username string —
   // mirrors the u/[username].js official-override fix.
   const isOfficialDemoAsk = ask.author_is_official === true;
-  const title = escapeHtml((isOfficialDemoAsk ? locale.askDemoTitle : ask.title) || '');
-  const rawBody = isOfficialDemoAsk ? locale.askDemoBody : ask.body;
+  // Demo Ask rotates weekly (see getDemoAskVariantIndex): pick this
+  // week's localized title/body variant, and override the DB row's stored
+  // tags with the variant's single tag so the chip matches the shown body.
+  const weekIndex = getDemoAskVariantIndex();
+  const title = escapeHtml((isOfficialDemoAsk ? locale['askDemoTitle' + weekIndex] : ask.title) || '');
+  const rawBody = isOfficialDemoAsk ? locale['askDemoBody' + weekIndex] : ask.body;
   const body = rawBody ? escapeHtml(rawBody) : '';
-  const tagNames = Array.isArray(ask.tag_names) ? ask.tag_names : [];
+  const tagNames = isOfficialDemoAsk
+    ? [DEMO_ASK_VARIANT_TAGS[weekIndex]]
+    : (Array.isArray(ask.tag_names) ? ask.tag_names : []);
   const isExpired = !!ask.is_expired;
   const avatarUrl = ask.author_avatar_url ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(ask.author_name || 'U')}&background=f3e8ff&color=8c52ff&size=200`;

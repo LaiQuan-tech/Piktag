@@ -6,7 +6,7 @@ import { COLORS, type ColorPalette } from '../../constants/theme';
 import { useTheme } from '../../context/ThemeContext';
 import { useAsksByTag } from '../../hooks/useAsksByTag';
 import InitialsAvatar from '../InitialsAvatar';
-import { isOfficialDemoAsk, getDemoAskText } from '../../lib/officialDemoAsk';
+import { isOfficialDemoAsk, getDemoAskText, getDemoAskTag } from '../../lib/officialDemoAsk';
 import { hashDisplay } from '../../lib/normalizeTag';
 
 type AskListByTagProps = {
@@ -53,6 +53,9 @@ export default function AskListByTag({ tagId, onPressAsk }: AskListByTagProps) {
         const text = isDemo
           ? getDemoAskText(t).title || getDemoAskText(t).body
           : ask.title || ask.body;
+        // Demo Ask body rotates weekly; swap its stored DB tags for the
+        // rotation's single tag so the chip matches the shown body.
+        const tagNames = isDemo ? [getDemoAskTag()] : ask.tag_names;
         const h = hoursLeft(ask.expires_at);
         const time = isDemo
           ? t('ask.demoBadge', { defaultValue: 'Demo Ask' })
@@ -82,13 +85,13 @@ export default function AskListByTag({ tagId, onPressAsk }: AskListByTagProps) {
               </View>
             </View>
             <Text style={styles.body} numberOfLines={2}>{text}</Text>
-            {ask.tag_names.length > 0 ? (
+            {tagNames.length > 0 ? (
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.tagRow}
               >
-                {ask.tag_names.map((n) => (
+                {tagNames.map((n) => (
                   <View key={n} style={styles.tagChip}>
                     <Text style={styles.tagText}>{hashDisplay(n)}</Text>
                   </View>
