@@ -202,6 +202,11 @@ export default function BatchTagScreen({ navigation, route }: Props) {
           phone: contact.phone,
           email: contact.email,
           tags: nextTags,
+          // Import mode (device contact book) → stamp as import so the
+          // dashboard's card-scan count excludes these. The update()
+          // branch above touches only tags on an existing row, so it
+          // needs no source.
+          source: 'import',
         });
         if (created?.id) {
           createdIdsRef.current.set(key, created.id);

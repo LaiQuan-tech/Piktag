@@ -502,6 +502,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
       phone: target.phone,
       email: target.email,
       tags,
+      source: 'import',
     });
 
     setSavingTag(false);

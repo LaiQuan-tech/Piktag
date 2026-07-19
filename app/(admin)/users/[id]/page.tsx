@@ -82,6 +82,8 @@ async function loadUserDetail(id: string): Promise<AdminUserDetail | null> {
     tagsList,
     biolinksList,
     recentConnections,
+    qrFriendsCount,
+    cardScanCount,
   ] = await Promise.all([
     supabase.from('piktag_connections').select('id', { count: 'exact', head: true }).eq('user_id', id),
     // piktag_tags is the tag DICTIONARY (no user_id column) — the
@@ -98,6 +100,16 @@ async function loadUserDetail(id: string): Promise<AdminUserDetail | null> {
     supabase.from('piktag_user_tags').select('id, is_pinned, is_private, tag:piktag_tags(name)').eq('user_id', id).order('is_pinned', { ascending: false }).limit(50),
     supabase.from('piktag_biolinks').select('id, platform, url, label, visibility').eq('user_id', id).limit(50),
     supabase.from('piktag_connections').select('id, connected_user_id, nickname, met_at, created_at').eq('user_id', id).order('created_at', { ascending: false }).limit(10),
+    // QR-scan friends: connections whose scan_session_id is set (came from
+    // scanning a QR — personal/Vibe, or event-QR host↔scanner). @piktag
+    // auto-friend has NULL scan_session_id → naturally excluded. Does NOT
+    // count event-room attendee↔attendee adds (those have NULL too).
+    supabase.from('piktag_connections').select('id', { count: 'exact', head: true }).eq('user_id', id).not('scan_session_id', 'is', null),
+    // Card-scan contacts: local contacts stamped source='card_scan' by the
+    // mobile write path (NULL for rows created before that column shipped).
+    // supabase-js resolves-with-error, so a missing column just yields
+    // count 0 — no page crash during the migration deploy window.
+    supabase.from('piktag_local_contacts').select('id', { count: 'exact', head: true }).eq('owner_user_id', id).eq('source', 'card_scan'),
     // (piktag_points_ledger query removed 2026-07-04 — the table was
     // DROPped with the invite-code/points retirement in 20260513120000
     // and never rebuilt; the query 42P01'd every page load. The whole
@@ -129,6 +141,8 @@ async function loadUserDetail(id: string): Promise<AdminUserDetail | null> {
     scan_sessions_count: scanSessionsCount.count ?? 0,
     reports_filed: reportsFiled.count ?? 0,
     reports_received: reportsReceived.count ?? 0,
+    qr_friends_count: qrFriendsCount.count ?? 0,
+    card_scan_contacts_count: cardScanCount.count ?? 0,
     // Flatten the piktag_user_tags→piktag_tags join back to the
     // {id,name,is_pinned} shape the type/renderer expects.
     tags: (tagsList.data ?? []).map((r: any) => ({
@@ -235,8 +249,10 @@ export default async function UserDetailPage({
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatCard label="連接數" value={user.connections_count} />
+        <StatCard label="掃名片聯絡人" value={user.card_scan_contacts_count ?? 0} />
+        <StatCard label="QR 加好友" value={user.qr_friends_count ?? 0} />
         <StatCard label="標籤數" value={user.tags_count} />
         <StatCard label="Biolinks" value={user.biolinks_count} />
         <StatCard label="掃描次數" value={user.scan_sessions_count} />

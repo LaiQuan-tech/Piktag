@@ -71,6 +71,10 @@ export type AddLocalContactInput = {
   birthday?: string | null;
   address?: string | null;
   website?: string | null;
+  // How this contact was created, stamped by the calling screen so the
+  // admin dashboard can count card-scan-originated contacts precisely.
+  // card_scan (掃名片) / manual (手動新增) / import (匯入通訊錄).
+  source?: 'card_scan' | 'manual' | 'import';
 };
 
 /**
@@ -151,6 +155,7 @@ export function useLocalContacts() {
             birthday: input.birthday ?? null,
             address: input.address ?? null,
             website: input.website ?? null,
+            source: input.source ?? null,
           })
           .select()
           .single();

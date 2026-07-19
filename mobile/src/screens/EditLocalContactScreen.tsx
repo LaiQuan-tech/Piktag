@@ -898,6 +898,11 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           website: website.trim() || null,
           tags,
           avatar_url: avatarUrl,
+          // Entry provenance: this create path is reached only via
+          // { scanUri } (card shot) or { startManual } (手動輸入) — edit
+          // mode ({ contactId }) returns early above and goes through
+          // update(). So scanUri present → card_scan, otherwise manual.
+          source: route.params?.scanUri ? 'card_scan' : 'manual',
         });
         if (!created) throw new Error('add failed');
       }

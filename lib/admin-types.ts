@@ -40,6 +40,13 @@ export interface AdminUserDetail extends AdminUser {
   scan_sessions_count: number;
   reports_filed: number;
   reports_received: number;
+  // Friends added by scanning a QR (piktag_connections.scan_session_id set).
+  // Card-scan contacts (piktag_local_contacts.source='card_scan'). Optional
+  // so the (dead) api/users/[id] route that also builds AdminUserDetail
+  // stays valid; the live server-component path (users/[id]/page.tsx) sets
+  // them. card_scan is 0 until the mobile source-stamping build ships.
+  qr_friends_count?: number;
+  card_scan_contacts_count?: number;
   tags: Array<{ id: string; name: string; is_pinned: boolean }>;
   biolinks: Array<{ id: string; platform: string; url: string; label: string | null; visibility: string }>;
   recent_connections: Array<{ id: string; connected_user_id: string; nickname: string | null; met_at: string | null; created_at: string }>;
