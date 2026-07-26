@@ -54,6 +54,7 @@
     "update": "Atualizar",
     "close": "Fechar",
     "done": "Concluído",
+    "gotIt": "Entendi",
     "back": "Voltar",
     "processing": "Processando...",
     "retry": "Tentar novamente",
@@ -1671,5 +1672,12 @@
     "foodie": "Foodie",
     "openToCollab": "Aberto a colaborar",
     "coffeeChat": "Bate-papo com café"
+  },
+  "coach": {
+    "homeAsk": "Publique um Ask no topo: escreva o que precisa e amigos com tags correspondentes verão; some em 24 horas.",
+    "searchIntent": "Busque pelo que precisa, não só por um nome. Escreva algumas palavras e as transformamos em tags para encontrar as pessoas certas.",
+    "chatRequests": "Mensagens de quem você ainda não adicionou vão para uma aba separada. Confira para não perder um novo amigo.",
+    "notifMatches": "A aba Correspondências usa IA para recuperar contatos antigos e pessoas que você talvez conheça.",
+    "profileTags": "Mantenha suas tags e links atualizados — as pessoas encontram e adicionam você buscando tags."
   }
 }

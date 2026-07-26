@@ -54,6 +54,7 @@
     "update": "Cập nhật",
     "close": "Đóng",
     "done": "Xong",
+    "gotIt": "Đã hiểu",
     "back": "Quay lại",
     "processing": "Đang xử lý...",
     "retry": "Thử lại",
@@ -1671,5 +1672,12 @@
     "foodie": "Tín đồ ẩm thực",
     "openToCollab": "Sẵn sàng hợp tác",
     "coffeeChat": "Cà phê tán gẫu"
+  },
+  "coach": {
+    "homeAsk": "Đăng một Ask ở trên cùng: viết điều bạn cần, bạn bè có thẻ phù hợp sẽ thấy — biến mất sau 24 giờ.",
+    "searchIntent": "Tìm theo điều bạn cần, không chỉ theo tên. Nhập vài từ và chúng tôi biến chúng thành thẻ để tìm đúng người.",
+    "chatRequests": "Tin nhắn từ người bạn chưa thêm sẽ vào một tab riêng. Hãy kiểm tra để không bỏ lỡ người bạn mới.",
+    "notifMatches": "Tab Kết nối dùng AI để gợi lại các liên hệ cũ và những người bạn có thể quen.",
+    "profileTags": "Giữ thẻ và liên kết của bạn luôn mới — mọi người tìm và thêm bạn bằng cách tìm thẻ."
   }
 }

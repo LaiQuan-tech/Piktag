@@ -18,6 +18,7 @@ import {
   Hash,
 } from 'lucide-react-native';
 import BiolinkSocialSection from '../components/BiolinkSocialSection';
+import CoachMark from '../components/CoachMark';
 import { StatsRow, StatDot } from '../components/StatsLine';
 import { useTranslation } from 'react-i18next';
 import { COLORS, type ColorPalette } from '../constants/theme';
@@ -520,6 +521,13 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         onClose={() => setAskModalVisible(false)}
         existingAsk={myAsk}
         onCreated={refreshAskFeed}
+      />
+
+      <CoachMark
+        hintId="profile_tags"
+        text={t('coach.profileTags')}
+        style={{ top: 56, left: 12, right: 12 }}
+        arrow="up"
       />
     </SafeAreaView>
   );

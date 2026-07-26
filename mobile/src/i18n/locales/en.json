@@ -54,6 +54,7 @@
     "update": "Update",
     "close": "Close",
     "done": "Done",
+    "gotIt": "Got it",
     "back": "Back",
     "processing": "Processing...",
     "retry": "Retry",
@@ -1671,5 +1672,12 @@
     "foodie": "Foodie",
     "openToCollab": "OpenToCollab",
     "coffeeChat": "CoffeeChat"
+  },
+  "coach": {
+    "homeAsk": "Post an Ask at the top: write what you need and friends with matching tags see it — gone in 24 hours.",
+    "searchIntent": "Search by what you need, not just a name. Type a few words and we turn them into tags to find the right people.",
+    "chatRequests": "Messages from people you haven't added land in a separate tab. Check it so you never miss a new friend.",
+    "notifMatches": "The Matches tab uses AI to resurface old contacts and people you may know.",
+    "profileTags": "Keep your tags and links up to date — people find and add you by searching tags."
   }
 }

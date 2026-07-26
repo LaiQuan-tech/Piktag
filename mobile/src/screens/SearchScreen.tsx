@@ -23,6 +23,7 @@ import {
   MapPin,
 } from 'lucide-react-native';
 import RingedAvatar from '../components/RingedAvatar';
+import CoachMark from '../components/CoachMark';
 import FriendsMapModal, { type FriendLocation } from '../components/FriendsMapModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { requestForegroundPermissionsAsync, getCurrentPositionAsync, Accuracy, reverseGeocodeAsync } from 'expo-location';
@@ -3353,6 +3354,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         existingAsk={myAsk}
         seedBody={trimmedQuery}
         onCreated={refreshAsk}
+      />
+
+      <CoachMark
+        hintId="search_intent"
+        text={t('coach.searchIntent')}
+        style={{ top: 128, left: 12, right: 12 }}
+        arrow="up"
       />
     </SafeAreaView>
   );

@@ -26,6 +26,7 @@ import { useChatUnread } from '../hooks/useChatUnread';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import type { Notification } from '../types';
 import { SkeletonBox } from '../components/SkeletonLoader';
+import CoachMark from '../components/CoachMark';
 import RingedAvatar from '../components/RingedAvatar';
 import { bidiMark } from '../lib/normalizeTag';
 
@@ -952,6 +953,13 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
           offset: NOTIFICATION_ITEM_HEIGHT * index,
           index,
         })}
+      />
+
+      <CoachMark
+        hintId="notif_matches"
+        text={t('coach.notifMatches')}
+        style={{ top: 58, left: 12, right: 12 }}
+        arrow="up"
       />
     </SafeAreaView>
   );

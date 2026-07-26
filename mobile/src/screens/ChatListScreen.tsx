@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import ChatSearchBar from '../components/chat/ChatSearchBar';
+import CoachMark from '../components/CoachMark';
 import ChatTabs from '../components/chat/ChatTabs';
 import ConversationActionSheet from '../components/chat/ConversationActionSheet';
 import ConversationRow from '../components/chat/ConversationRow';
@@ -401,6 +402,13 @@ export default function ChatListScreen({ navigation }: Props) {
           onClose={() => setMoveSheetFor(null)}
         />
       ) : null}
+
+      <CoachMark
+        hintId="chat_requests"
+        text={t('coach.chatRequests')}
+        style={{ top: 96, left: 12, right: 12 }}
+        arrow="up"
+      />
     </SafeAreaView>
   );
 }

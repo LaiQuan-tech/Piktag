@@ -41,6 +41,7 @@ import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import RingedAvatar from '../components/RingedAvatar';
+import CoachMark from '../components/CoachMark';
 import { supabase } from '../lib/supabase';
 import { ilikeEscape, hashDisplay } from '../lib/normalizeTag';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
@@ -1417,6 +1418,13 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           cut from the empty state; the AskStoryRow above owns its own
           AskCreateModal, so this duplicate instance is no longer
           needed.) */}
+
+      <CoachMark
+        hintId="home_ask"
+        text={t('coach.homeAsk')}
+        style={{ top: 66, left: 12, right: 12 }}
+        arrow="up"
+      />
     </SafeAreaView>
   );
 }

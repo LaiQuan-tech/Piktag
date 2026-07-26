@@ -54,6 +54,7 @@
     "update": "Actualizar",
     "close": "Cerrar",
     "done": "Hecho",
+    "gotIt": "Entendido",
     "back": "Atrás",
     "processing": "Procesando...",
     "retry": "Reintentar",
@@ -1671,5 +1672,12 @@
     "foodie": "Foodie",
     "openToCollab": "Abierto a colaborar",
     "coffeeChat": "Café y charla"
+  },
+  "coach": {
+    "homeAsk": "Publica un Ask arriba: escribe lo que necesitas y tus amigos con etiquetas afines lo verán; desaparece en 24 horas.",
+    "searchIntent": "Busca por lo que necesitas, no solo por un nombre. Escribe unas palabras y las convertimos en etiquetas para encontrar a la persona indicada.",
+    "chatRequests": "Los mensajes de personas que aún no agregaste van a una pestaña aparte. Revísala para no perder a un nuevo amigo.",
+    "notifMatches": "La pestaña Coincidencias usa IA para recuperar contactos antiguos y personas que quizá conozcas.",
+    "profileTags": "Mantén tus etiquetas y enlaces al día: la gente te encuentra y te agrega buscando etiquetas."
   }
 }
