@@ -1674,7 +1674,7 @@
     "coffeeChat": "Kahve sohbeti"
   },
   "coach": {
-    "homeAsk": "Yukarıdan bir Ask paylaş: neye ihtiyacın olduğunu yaz, eşleşen etiketlere sahip arkadaşların görsün — 24 saatte kaybolur.",
+    "homeScan": "Sağ üstteki + simgesine dokunup bir QR veya kartvizit tarayın — hemen arkadaş ekleyin.",
     "searchIntent": "Sadece adla değil, ihtiyacınla ara. Birkaç kelime yaz, onları etikete çevirip doğru kişileri bulalım.",
     "chatRequests": "Henüz eklemediğin kişilerin mesajları ayrı bir sekmeye düşer. Yeni bir arkadaşı kaçırmamak için kontrol et.",
     "notifMatches": "Eşleşmeler sekmesi, eski bağlantıları ve tanıyor olabileceğin kişileri yapay zekâ ile yeniden gösterir.",

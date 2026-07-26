@@ -1674,7 +1674,7 @@
     "coffeeChat": "Café y charla"
   },
   "coach": {
-    "homeAsk": "Publica un Ask arriba: escribe lo que necesitas y tus amigos con etiquetas afines lo verán; desaparece en 24 horas.",
+    "homeScan": "Toca el + arriba a la derecha para escanear un QR o una tarjeta de visita y añade a alguien ahora mismo.",
     "searchIntent": "Busca por lo que necesitas, no solo por un nombre. Escribe unas palabras y las convertimos en etiquetas para encontrar a la persona indicada.",
     "chatRequests": "Los mensajes de personas que aún no agregaste van a una pestaña aparte. Revísala para no perder a un nuevo amigo.",
     "notifMatches": "La pestaña Coincidencias usa IA para recuperar contactos antiguos y personas que quizá conozcas.",

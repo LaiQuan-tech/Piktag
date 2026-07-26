@@ -1674,7 +1674,7 @@
     "coffeeChat": "Ngobrol sambil ngopi"
   },
   "coach": {
-    "homeAsk": "Kirim Ask di atas: tulis yang kamu butuhkan, teman dengan tag yang cocok akan melihatnya — hilang dalam 24 jam.",
+    "homeScan": "Ketuk + di kanan atas untuk memindai QR atau kartu nama — tambahkan teman sekarang juga.",
     "searchIntent": "Cari berdasarkan kebutuhanmu, bukan hanya nama. Ketik beberapa kata dan kami ubah jadi tag untuk menemukan orang yang tepat.",
     "chatRequests": "Pesan dari orang yang belum kamu tambahkan masuk ke tab terpisah. Cek agar tak melewatkan teman baru.",
     "notifMatches": "Tab Kecocokan memakai AI untuk memunculkan kembali kontak lama dan orang yang mungkin kamu kenal.",

@@ -406,7 +406,7 @@ export default function ChatListScreen({ navigation }: Props) {
       <CoachMark
         hintId="chat_requests"
         text={t('coach.chatRequests')}
-        style={{ top: 96, left: 12, right: 12 }}
+        style={{ top: 106, left: 24, right: 24 }}
         arrow="up"
       />
     </SafeAreaView>

@@ -3359,7 +3359,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       <CoachMark
         hintId="search_intent"
         text={t('coach.searchIntent')}
-        style={{ top: 128, left: 12, right: 12 }}
+        style={{ top: 138, left: 24, right: 24 }}
         arrow="up"
       />
     </SafeAreaView>

@@ -526,7 +526,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       <CoachMark
         hintId="profile_tags"
         text={t('coach.profileTags')}
-        style={{ top: 56, left: 12, right: 12 }}
+        style={{ top: 66, left: 24, right: 24 }}
         arrow="up"
       />
     </SafeAreaView>

@@ -1420,9 +1420,9 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           needed.) */}
 
       <CoachMark
-        hintId="home_ask"
-        text={t('coach.homeAsk')}
-        style={{ top: 66, left: 12, right: 12 }}
+        hintId="home_scan"
+        text={t('coach.homeScan')}
+        style={{ top: 76, left: 24, right: 24 }}
         arrow="up"
       />
     </SafeAreaView>

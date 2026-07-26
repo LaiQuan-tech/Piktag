@@ -1674,7 +1674,7 @@
     "coffeeChat": "Kaffee-Plausch"
   },
   "coach": {
-    "homeAsk": "Poste oben ein Ask: Schreib, was du brauchst — Freunde mit passenden Tags sehen es, nach 24 Stunden verschwindet es.",
+    "homeScan": "Tippe oben rechts auf das +, um einen QR-Code oder eine Visitenkarte zu scannen — füge sofort einen Freund hinzu.",
     "searchIntent": "Suche nach dem, was du brauchst — nicht nur nach einem Namen. Tippe ein paar Wörter, wir machen daraus Tags und finden die richtigen Leute.",
     "chatRequests": "Nachrichten von Leuten, die du noch nicht hinzugefügt hast, landen in einem eigenen Tab. Schau rein, um keinen neuen Freund zu verpassen.",
     "notifMatches": "Der Tab Matches nutzt KI, um alte Kontakte und Leute, die du kennen könntest, wieder sichtbar zu machen.",

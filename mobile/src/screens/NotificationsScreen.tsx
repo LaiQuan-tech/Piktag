@@ -958,7 +958,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
       <CoachMark
         hintId="notif_matches"
         text={t('coach.notifMatches')}
-        style={{ top: 58, left: 12, right: 12 }}
+        style={{ top: 70, left: 24, right: 24 }}
         arrow="up"
       />
     </SafeAreaView>

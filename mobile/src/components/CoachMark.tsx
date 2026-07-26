@@ -151,17 +151,17 @@ function makeStyles(c: ColorPalette) {
     },
     // Only the outer two edges of the rotated square should read as the
     // pointer; the inner corner tucks under the bubble via negative margin.
+    // Centered by default (alignSelf via arrowPos); callers can shift it
+    // with arrowOffset. No baked-in margin so it never hugs an edge.
     arrowUp: {
       borderTopWidth: 1,
       borderLeftWidth: 1,
       marginBottom: -7,
-      marginLeft: 18,
     },
     arrowDown: {
       borderBottomWidth: 1,
       borderRightWidth: 1,
       marginTop: -7,
-      marginLeft: 18,
     },
   });
 }

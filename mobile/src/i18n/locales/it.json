@@ -1674,7 +1674,7 @@
     "coffeeChat": "Chiacchiere al caffè"
   },
   "coach": {
-    "homeAsk": "Pubblica un Ask in alto: scrivi ciò che ti serve e gli amici con tag corrispondenti lo vedranno; sparisce in 24 ore.",
+    "homeScan": "Tocca il + in alto a destra per scansionare un QR o un biglietto da visita e aggiungi subito un amico.",
     "searchIntent": "Cerca per ciò che ti serve, non solo per nome. Scrivi qualche parola e la trasformiamo in tag per trovare le persone giuste.",
     "chatRequests": "I messaggi di chi non hai ancora aggiunto finiscono in una scheda separata. Controllala per non perdere un nuovo amico.",
     "notifMatches": "La scheda Corrispondenze usa l'IA per riportare a galla vecchi contatti e persone che potresti conoscere.",
