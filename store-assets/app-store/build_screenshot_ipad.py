@@ -61,12 +61,36 @@ TITLE_FONT_SIZE = 116      # was 132 — gives title 2-line room without crowdin
 SUBTITLE_FONT_SIZE = 64    # was 54 — founder 2026-06-29: caption too small for older eyes
 
 
+def _linux_fallback(size: int, bold: bool) -> ImageFont.FreeTypeFont:
+    # macOS system fonts are absent on Linux (CI / container); map each
+    # script to an installed face that covers it AND Latin (captions embed
+    # "QR"/"AI"). raqm handles Arabic/Devanagari/Thai shaping. Fallback only.
+    w = "Bold" if bold else "Regular"
+    if LANG in ("zh-TW", "zh-CN", "ja", "ko"):
+        return ImageFont.truetype(
+            "/usr/share/fonts/opentype/noto/NotoSansCJK-%s.ttc" % w, size, index=0)
+    if LANG == "ar":
+        return ImageFont.truetype(
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans%s.ttf" % ("-Bold" if bold else ""), size)
+    if LANG == "hi":
+        return ImageFont.truetype(
+            "/usr/share/fonts/truetype/freefont/FreeSans%s.ttf" % ("Bold" if bold else ""), size)
+    if LANG == "th":
+        return ImageFont.truetype(
+            "/usr/share/fonts/opentype/tlwg/Loma%s.otf" % ("-Bold" if bold else ""), size)
+    return ImageFont.truetype(  # ru, vi (Latin/Cyrillic/Vietnamese)
+        "/usr/share/fonts/truetype/liberation/LiberationSans-%s.ttf" % w, size)
+
+
 def load_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
-    if _IS_CJK:
-        return ImageFont.truetype(HIRAGINO, size, index=(2 if bold else 0))
-    if _IS_LSPARTAN:
-        return ImageFont.truetype(LSPARTAN_BOLD if bold else LSPARTAN, size)
-    return ImageFont.truetype(ARIAL_BOLD if bold else ARIAL, size)  # vi, ru
+    try:
+        if _IS_CJK:
+            return ImageFont.truetype(HIRAGINO, size, index=(2 if bold else 0))
+        if _IS_LSPARTAN:
+            return ImageFont.truetype(LSPARTAN_BOLD if bold else LSPARTAN, size)
+        return ImageFont.truetype(ARIAL_BOLD if bold else ARIAL, size)  # vi, ru
+    except OSError:
+        return _linux_fallback(size, bold)
 
 
 def gradient_bg() -> Image.Image:
