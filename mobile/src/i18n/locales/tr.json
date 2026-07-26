@@ -1676,7 +1676,7 @@
   "coach": {
     "homeScan": "Biriyle yeni mi tanıştın? Kartını veya QR'ını tarayarak kim olduğunu ve ne iş yaptığını hatırla.",
     "searchIntent": "Bir şeye mi ihtiyacın var? İsim değil, ihtiyacını ara — ve zaten tanıdığın doğru kişiyi bul.",
-    "chatRequests": "Henüz eklemediğin kişiler de sana mesaj atabilir — mesajları ayrı bir sekmede bekler, kaçırmazsın.",
+    "chatContext": "Sıradan bir sohbetten fazlası: her konuşma nasıl tanıştığınızı ve sizi neyin bağladığını hatırlar, durulunca yeniden başlamana yardım eder.",
     "notifMatches": "Bağını kaybettiğin kişilerle ve muhtemelen zaten tanıdığın kişilerle yeniden karşılaş.",
     "profileTags": "Etiketlerin ne kadar isabetliyse, doğru kişiler seni gerçekte yaptığın işle o kadar çok bulur."
   }

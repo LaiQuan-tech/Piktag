@@ -1676,7 +1676,7 @@
   "coach": {
     "homeScan": "Vừa gặp ai đó? Quét danh thiếp hoặc QR của họ để nhớ họ là ai và làm gì.",
     "searchIntent": "Cần gì đó? Tìm theo điều bạn cần, không phải tên — và gặp đúng người bạn vốn đã quen.",
-    "chatRequests": "Người bạn chưa thêm vẫn có thể nhắn cho bạn — tin của họ nằm ở một tab riêng, để bạn không bỏ lỡ.",
+    "chatContext": "Hơn cả trò chuyện: mỗi cuộc trò chuyện nhớ cách bạn quen nhau và điều gắn kết, và giúp bạn mở lại khi nguội đi.",
     "notifMatches": "Gặp lại những người bạn đã mất liên lạc, và cả những người bạn có thể vốn đã quen.",
     "profileTags": "Thẻ của bạn càng rõ, càng nhiều người phù hợp tìm thấy bạn — nhờ điều bạn thực sự làm."
   }

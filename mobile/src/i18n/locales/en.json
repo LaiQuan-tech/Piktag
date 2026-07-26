@@ -1676,7 +1676,7 @@
   "coach": {
     "homeScan": "Just met someone? Scan their card or QR to remember who they are and what they do.",
     "searchIntent": "Need something? Search what you need, not a name — and find the right person you already know.",
-    "chatRequests": "People you haven't added yet can still message you — their notes wait in a separate tab, so you don't miss them.",
+    "chatContext": "More than chat: every conversation remembers how you met and what connects you — and helps you restart when it goes quiet.",
     "notifMatches": "Rediscover people you've lost touch with, and others you probably already know.",
     "profileTags": "The sharper your tags, the more the right people find you — for what you actually do."
   }

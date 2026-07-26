@@ -1676,7 +1676,7 @@
   "coach": {
     "homeScan": "Baru bertemu seseorang? Pindai kartu atau QR-nya agar kamu ingat siapa dia dan apa pekerjaannya.",
     "searchIntent": "Butuh sesuatu? Cari yang kamu butuhkan, bukan nama — dan temukan orang tepat yang sudah kamu kenal.",
-    "chatRequests": "Orang yang belum kamu tambahkan pun bisa mengirim pesan — pesannya menunggu di tab terpisah, agar tak terlewat.",
+    "chatContext": "Lebih dari sekadar chat: tiap obrolan mengingat bagaimana kalian bertemu dan apa yang menghubungkan, serta membantumu memulai lagi saat mereda.",
     "notifMatches": "Temui lagi orang yang sempat hilang kontak, dan yang mungkin sudah kamu kenal.",
     "profileTags": "Makin tepat tag-mu, makin banyak orang yang tepat menemukanmu — lewat apa yang benar-benar kamu lakukan."
   }

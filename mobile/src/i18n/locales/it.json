@@ -1676,7 +1676,7 @@
   "coach": {
     "homeScan": "Hai appena conosciuto qualcuno? Scansiona il suo biglietto o QR per ricordare chi è e cosa fa.",
     "searchIntent": "Ti serve qualcosa? Cerca ciò che ti serve, non un nome, e trova la persona giusta che già conosci.",
-    "chatRequests": "Anche chi non hai ancora aggiunto può scriverti: i messaggi ti aspettano in una scheda separata, così non li perdi.",
+    "chatContext": "Più di una chat: ogni conversazione ricorda come vi siete conosciuti e cosa vi lega, e ti aiuta a riprenderla quando si raffredda.",
     "notifMatches": "Ritrova persone con cui hai perso i contatti e altre che probabilmente conosci già.",
     "profileTags": "Più i tuoi tag sono precisi, più le persone giuste ti trovano, per ciò che fai davvero."
   }

@@ -1676,7 +1676,7 @@
   "coach": {
     "homeScan": "Acabou de conhecer alguém? Escaneie o cartão ou QR para lembrar quem é e o que faz.",
     "searchIntent": "Precisa de algo? Busque o que precisa, não um nome, e encontre a pessoa certa que você já conhece.",
-    "chatRequests": "Quem você ainda não adicionou também pode te mandar mensagem: elas ficam numa aba separada, para você não perder.",
+    "chatContext": "Mais que conversa: cada bate-papo lembra como vocês se conheceram e o que os conecta, e ajuda a retomar quando esfria.",
     "notifMatches": "Reencontre pessoas com quem você perdeu contato e outras que provavelmente já conhece.",
     "profileTags": "Quanto melhores suas tags, mais as pessoas certas te encontram — pelo que você realmente faz."
   }

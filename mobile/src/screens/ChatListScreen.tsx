@@ -404,8 +404,8 @@ export default function ChatListScreen({ navigation }: Props) {
       ) : null}
 
       <CoachMark
-        hintId="chat_requests"
-        text={t('coach.chatRequests')}
+        hintId="chat_context"
+        text={t('coach.chatContext')}
         style={{ top: 106, left: 24, right: 24 }}
         arrow="up"
       />

@@ -1676,7 +1676,7 @@
   "coach": {
     "homeScan": "Vous venez de rencontrer quelqu'un ? Scannez sa carte ou son QR pour vous rappeler qui il est et ce qu'il fait.",
     "searchIntent": "Besoin de quelque chose ? Cherchez ce dont vous avez besoin, pas un nom, et retrouvez la bonne personne que vous connaissez déjà.",
-    "chatRequests": "Les personnes que vous n'avez pas encore ajoutées peuvent vous écrire : leurs messages attendent dans un onglet séparé, pour ne rien manquer.",
+    "chatContext": "Plus qu'une messagerie : chaque conversation se souvient de votre rencontre et de ce qui vous lie, et vous aide à la relancer quand elle s'essouffle.",
     "notifMatches": "Retrouvez des personnes que vous aviez perdues de vue, et d'autres que vous connaissez sûrement déjà.",
     "profileTags": "Plus vos tags sont précis, plus les bonnes personnes vous trouvent — pour ce que vous faites vraiment."
   }
