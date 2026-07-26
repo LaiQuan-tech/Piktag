@@ -9,7 +9,7 @@ CARDS_BY_LANG = {
     'en': [
         ('See your whole network', 'How your friends connect — and who you may know', '01-network.png'),
         ('Let people find you', 'The right people find you by your tags', '04-profile.png'),
-        ('One scanner — QR and cards', 'QR adds a friend instantly; snap a card to file it', '03-scan.png'),
+        ('One scanner — QR and cards', 'Scan their QR or card, and remember who they are', '03-scan.png'),
         ('AI breaks the ice, 3 openers ready', 'Personalized from what you two share', '03-ai.png'),
         ('Your people, on a map', 'Nearby friends who share your tags', '06-map.png'),
         ('Your circle, in numbers', 'Who scanned you, who tapped you', '02-stats.png'),
@@ -17,7 +17,7 @@ CARDS_BY_LANG = {
     'zh-TW': [
         ('你的人脈，一張圖看見', '好友如何彼此連結，還有你可能認識的人', '01-network.png'),
         ('讓別人搜得到你', '朋友需要你這種人時，搜標籤就找到你', '04-profile.png'),
-        ('掃一下，QR 跟名片都在這', '對到 QR 自動加好友，名片拍一下自動建檔', '03-scan.png'),
+        ('掃一下，QR 跟名片都在這', '掃 QR 或名片，就記得住這個人是誰', '03-scan.png'),
         ('不知道怎麼開口，AI 給你 3 句', '從你們的共同點，接回上次停下的話題', '03-ai.png'),
         ('附近誰跟你同頻，地圖看得見', '同標籤的朋友，就在你身邊', '06-map.png'),
         ('你的影響力，看得見的成長', '誰掃了你、誰點了你，一張表全記得', '02-stats.png'),
@@ -25,7 +25,7 @@ CARDS_BY_LANG = {
     'zh-CN': [
         ('你的人脉\n一图看清', '好友如何彼此连结，还有你可能认识的人', '01-network.png'),
         ('让对的人\n找到你', '需要你这种人时，搜标签就找到你', '04-profile.png'),
-        ('扫一下\nQR 和名片都在这', '对到 QR 自动加好友，名片拍一下自动建档', '03-scan.png'),
+        ('扫一下\nQR 和名片都在这', '扫 QR 或名片，就记得住这个人是谁', '03-scan.png'),
         ('不知怎么开口\nAI 给你 3 句', '从你们的共同点，接回上次的话题', '03-ai.png'),
         ('附近的同频人\n地图看得见', '同标签的朋友，就在你身边', '06-map.png'),
         ('你的人脉\n看得见的成长', '谁扫了你、谁点了你，一表全记得', '02-stats.png'),
@@ -33,7 +33,7 @@ CARDS_BY_LANG = {
     'ja': [
         ('あなたの人脈\nひと目で', '友だちのつながりと、知り合うかもしれない人', '01-network.png'),
         ('あなたが\n見つけてもらえる', '必要とする人が、タグ検索で出会える', '04-profile.png'),
-        ('スキャン一回\nQRも名刺も', 'QRは自動で友だち追加、名刺は撮るだけで保存', '03-scan.png'),
+        ('スキャン一回\nQRも名刺も', 'QRか名刺をスキャン、その人が誰か覚えていられる', '03-scan.png'),
         ('切り出せない時\nAI が3つの一言', '二人の共通点から、続きの話題へ', '03-ai.png'),
         ('近くの同志を\n地図で発見', '同じタグの友だちが、すぐそばに', '06-map.png'),
         ('あなたの人脈\n伸びが見える', '誰がスキャンし、誰が見たか一目で', '02-stats.png'),
@@ -41,7 +41,7 @@ CARDS_BY_LANG = {
     'ko': [
         ('내 인맥\n한눈에', '친구들이 어떻게 이어지는지, 알 수도 있는 사람까지', '01-network.png'),
         ('사람들이\n당신을 찾도록', '필요할 때, 태그 검색으로 당신을 발견', '04-profile.png'),
-        ('한 번 스캔\nQR도 명함도', 'QR은 자동 친구추가, 명함은 찍으면 저장', '03-scan.png'),
+        ('한 번 스캔\nQR도 명함도', 'QR이나 명함을 스캔, 그 사람이 누구인지 기억해요', '03-scan.png'),
         ('말 꺼내기 힘들 때\nAI가 3마디', '둘의 공통점에서, 끊긴 대화를 이어요', '03-ai.png'),
         ('가까운 친구를\n지도에서', '같은 태그의 친구가, 바로 곁에', '06-map.png'),
         ('당신의 인맥\n자라는 게 보여요', '누가 스캔했고, 누가 봤는지 한눈에', '02-stats.png'),
@@ -49,7 +49,7 @@ CARDS_BY_LANG = {
     'de': [
         ('Dein Netzwerk\nauf einen Blick', 'Wie deine Freunde verbunden sind – und wen du kennen könntest', '01-network.png'),
         ('Lass dich\nfinden', 'Die richtigen Leute finden dich über deine Tags', '04-profile.png'),
-        ('Ein Scan,\nQR und Karten', 'QR verbindet sofort; Karte abfotografieren, fertig', '03-scan.png'),
+        ('Ein Scan,\nQR und Karten', 'QR oder Karte scannen — und du weißt noch, wer das ist', '03-scan.png'),
         ('KI bricht\ndas Eis', '3 Einstiege aus dem, was euch verbindet', '03-ai.png'),
         ('Deine Leute\nauf der Karte', 'Freunde in der Nähe mit denselben Tags', '06-map.png'),
         ('Dein Netzwerk\nin Zahlen', 'Wer dich gescannt, wer dich getippt hat', '02-stats.png'),
@@ -57,7 +57,7 @@ CARDS_BY_LANG = {
     'fr': [
         ('Ton réseau\nd’un coup d’œil', 'Comment tes amis sont liés, et qui tu pourrais connaître', '01-network.png'),
         ('Fais-toi\ntrouver', 'Les bonnes personnes te trouvent par tes tags', '04-profile.png'),
-        ('Un scan,\nQR et cartes', 'Le QR ajoute direct ; photographie une carte, c’est classé', '03-scan.png'),
+        ('Un scan,\nQR et cartes', 'Scanne un QR ou une carte, et souviens-toi de qui c’est', '03-scan.png'),
         ("L'IA brise\nla glace", '3 phrases tirées de vos points communs', '03-ai.png'),
         ('Tes proches,\nsur la carte', 'Des amis tout près avec les mêmes tags', '06-map.png'),
         ('Ton réseau,\nen chiffres', "Qui t'a scanné, qui t'a cliqué", '02-stats.png'),
@@ -65,7 +65,7 @@ CARDS_BY_LANG = {
     'es': [
         ('Tu red\nde un vistazo', 'Cómo se conectan tus amigos y a quién podrías conocer', '01-network.png'),
         ('Deja que te\nencuentren', 'Las personas correctas te hallan por tus tags', '04-profile.png'),
-        ('Un escaneo,\nQR y tarjetas', 'El QR conecta solo; foto a la tarjeta y archivada', '03-scan.png'),
+        ('Un escaneo,\nQR y tarjetas', 'Escanea su QR o tarjeta y recuerda quién es', '03-scan.png'),
         ('La IA rompe\nel hielo', '3 frases a partir de lo que comparten', '03-ai.png'),
         ('Tu gente,\nen el mapa', 'Amigos cerca con tus mismos tags', '06-map.png'),
         ('Tu red,\nen números', 'Quién te escaneó, quién te tocó', '02-stats.png'),
@@ -73,7 +73,7 @@ CARDS_BY_LANG = {
     'pt': [
         ('Sua rede\nnum olhar', 'Como seus amigos se conectam e quem você pode conhecer', '01-network.png'),
         ('Deixe que\nte encontrem', 'As pessoas certas te acham pelas suas tags', '04-profile.png'),
-        ('Um scan,\nQR e cartões', 'QR conecta na hora; fotografe o cartão e pronto', '03-scan.png'),
+        ('Um scan,\nQR e cartões', 'Escaneie o QR ou o cartão e lembre quem é', '03-scan.png'),
         ('A AI quebra\no gelo', '3 frases prontas a partir do que vocês têm em comum', '03-ai.png'),
         ('Sua gente\nno mapa', 'Amigos por perto que curtem as mesmas tags', '06-map.png'),
         ('Sua rede\nem números', 'Quem te escaneou, quem te tocou', '02-stats.png'),
@@ -81,7 +81,7 @@ CARDS_BY_LANG = {
     'it': [
         ('La tua rete\na colpo d’occhio', 'Come sono legati i tuoi amici e chi potresti conoscere', '01-network.png'),
         ('Fatti\ntrovare', 'Le persone giuste ti trovano dalle tue tag', '04-profile.png'),
-        ('Una scansione,\nQR e biglietti', 'Il QR connette subito; scatta il biglietto, salvato', '03-scan.png'),
+        ('Una scansione,\nQR e biglietti', 'Scansiona il QR o il biglietto e ricorda chi è', '03-scan.png'),
         ("L'AI rompe\nil ghiaccio", '3 battute pronte da ciò che avete in comune', '03-ai.png'),
         ('I tuoi\nsulla mappa', 'Amici vicini con le tue stesse tag', '06-map.png'),
         ('La tua rete\nin numeri', 'Chi ti ha scansionato, chi ti ha cliccato', '02-stats.png'),
@@ -89,7 +89,7 @@ CARDS_BY_LANG = {
     'ru': [
         ('Твоя сеть\nна одной схеме', 'Как связаны друзья и кого ты можешь знать', '01-network.png'),
         ('Пусть тебя\nнайдут', 'Нужные люди находят тебя по тегам', '04-profile.png'),
-        ('Один скан —\nQR и визитки', 'QR добавит друга; сними визитку — сохранится', '03-scan.png'),
+        ('Один скан —\nQR и визитки', 'Скан QR или визитки — и ты помнишь, кто это', '03-scan.png'),
         ('AI начнёт\nразговор', '3 фразы из того, что у вас общего', '03-ai.png'),
         ('Свои —\nна карте', 'Друзья рядом с такими же тегами', '06-map.png'),
         ('Сеть\nв цифрах', 'Кто сканировал, кто заходил', '02-stats.png'),
@@ -97,7 +97,7 @@ CARDS_BY_LANG = {
     'tr': [
         ('Ağın\ntek bakışta', 'Arkadaşların nasıl bağlı ve kimi tanıyor olabilirsin', '01-network.png'),
         ('Seni\nbulsunlar', 'Doğru kişiler etiketlerinden seni bulsun', '04-profile.png'),
-        ('Tek tarama,\nQR ve kartlar', 'QR anında ekler; kartı çek, otomatik kaydolsun', '03-scan.png'),
+        ('Tek tarama,\nQR ve kartlar', 'QR’ını ya da kartını tara — kim olduğunu hatırla', '03-scan.png'),
         ('AI buzu kırar,\n3 cümle hazır', 'İkinizin ortak yönlerine özel açılışlar', '03-ai.png'),
         ('Çevren\nharitada', 'Seninle aynı etiketli yakın dostlar', '06-map.png'),
         ('Çevren\nsayılarla', 'Kim seni taradı, kim sana dokundu', '02-stats.png'),
@@ -105,7 +105,7 @@ CARDS_BY_LANG = {
     'id': [
         ('Jaringanmu\ndalam satu layar', 'Bagaimana temanmu terhubung, dan siapa yang mungkin kamu kenal', '01-network.png'),
         ('Biar kamu\nditemukan', 'Orang yang tepat temukan kamu lewat tag', '04-profile.png'),
-        ('Sekali scan,\nQR dan kartu', 'QR langsung tambah teman; foto kartu, tersimpan', '03-scan.png'),
+        ('Sekali scan,\nQR dan kartu', 'Pindai QR atau kartunya, dan ingat siapa dia', '03-scan.png'),
         ('AI cairkan\nsuasana', '3 pembuka dari kesamaan kalian berdua', '03-ai.png'),
         ('Lingkaranmu\ndi peta', 'Teman terdekat dengan tag yang sama', '06-map.png'),
         ('Relasimu\ndalam angka', 'Siapa scan kamu, siapa ketuk kamu', '02-stats.png'),
@@ -113,7 +113,7 @@ CARDS_BY_LANG = {
     'vi': [
         ('Mạng lưới của bạn\ntrong một hình', 'Bạn bè kết nối ra sao, và ai bạn có thể quen', '01-network.png'),
         ('Để họ\ntìm ra bạn', 'Đúng người tìm thấy bạn qua các tag', '04-profile.png'),
-        ('Một lần quét,\nQR và danh thiếp', 'QR tự kết bạn; chụp danh thiếp là xong', '03-scan.png'),
+        ('Một lần quét,\nQR và danh thiếp', 'Quét QR hoặc danh thiếp, và nhớ họ là ai', '03-scan.png'),
         ('AI phá băng,\nsẵn 3 câu', 'Gợi mở từ điểm chung của hai bạn', '03-ai.png'),
         ('Bạn bè\ntrên bản đồ', 'Người gần bên chung tag với bạn', '06-map.png'),
         ('Quan hệ\nqua con số', 'Ai quét bạn, ai chạm vào bạn', '02-stats.png'),
@@ -121,7 +121,7 @@ CARDS_BY_LANG = {
     'th': [
         ('เครือข่ายของคุณ\nในภาพเดียว', 'เพื่อนเชื่อมกันยังไง และใครที่คุณอาจรู้จัก', '01-network.png'),
         ('ให้คนเจอคุณ', 'คนที่ใช่เจอคุณได้จากแท็ก', '04-profile.png'),
-        ('สแกนครั้งเดียว\nทั้ง QR และนามบัตร', 'QR เพิ่มเพื่อนอัตโนมัติ ถ่ายนามบัตรก็บันทึก', '03-scan.png'),
+        ('สแกนครั้งเดียว\nทั้ง QR และนามบัตร', 'สแกน QR หรือนามบัตร แล้วจำได้ว่าเขาคือใคร', '03-scan.png'),
         ('AI ช่วยเปิดบท\n3 ประโยคพร้อม', 'ปรับจากสิ่งที่คุณสองคนมีร่วมกัน', '03-ai.png'),
         ('คนของคุณ\nบนแผนที่', 'เพื่อนใกล้ตัวที่แท็กตรงกัน', '06-map.png'),
         ('คอนเนกชัน\nเป็นตัวเลข', 'ใครสแกนคุณ ใครแตะหาคุณ', '02-stats.png'),
@@ -129,7 +129,7 @@ CARDS_BY_LANG = {
     'ar': [
         ('شبكتك\nبنظرة واحدة', 'كيف يترابط أصدقاؤك ومن قد تعرفهم', '01-network.png'),
         ('دع الناس\nيجدونك', 'من تبحث عنهم يجدونك بوسومك', '04-profile.png'),
-        ('مسحة واحدة\nQR والبطاقات', 'الـ QR يضيف صديقاً فوراً، وصوّر البطاقة لتُحفظ', '03-scan.png'),
+        ('مسحة واحدة\nQR والبطاقات', 'امسح رمز QR أو البطاقة، وتذكّر من هو', '03-scan.png'),
         ('AI يكسر الجمود\nبثلاث جمل', 'مخصصة مما تشتركان فيه معاً', '03-ai.png'),
         ('أشخاصك\nعلى الخريطة', 'أصدقاء قريبون يشاركونك وسومك', '06-map.png'),
         ('شبكتك\nبالأرقام', 'من مسحك ومن تفاعل معك', '02-stats.png'),
@@ -137,7 +137,7 @@ CARDS_BY_LANG = {
     'hi': [
         ('आपका नेटवर्क\nएक नज़र में', 'आपके दोस्त कैसे जुड़े हैं, और किसे आप जान सकते हैं', '01-network.png'),
         ('लोग आपको\nखोज पाएँ', 'सही लोग आपके टैग से आप तक', '04-profile.png'),
-        ('एक स्कैन,\nQR और कार्ड', 'QR तुरंत दोस्त जोड़े; कार्ड क्लिक करें, सेव', '03-scan.png'),
+        ('एक स्कैन,\nQR और कार्ड', 'उनका QR या कार्ड स्कैन करें, और याद रखें वे कौन हैं', '03-scan.png'),
         ('AI तोड़े झिझक,\n3 लाइन तैयार', 'आपकी साझा बातों से बनी हुई', '03-ai.png'),
         ('आपके लोग,\nनक्शे पर', 'पास के दोस्त, वही टैग साझा', '06-map.png'),
         ('आपका नेटवर्क,\nआँकड़ों में', 'किसने स्कैन किया, किसने छुआ', '02-stats.png'),
