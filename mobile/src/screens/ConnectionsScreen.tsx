@@ -1424,6 +1424,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         text={t('coach.homeScan')}
         style={{ top: 76, left: 24, right: 24 }}
         arrow="up"
+        arrowAlign="right"
       />
     </SafeAreaView>
   );

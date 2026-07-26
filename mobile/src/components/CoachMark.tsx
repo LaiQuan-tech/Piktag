@@ -12,52 +12,80 @@
 //
 // Design contract:
 //   • NO emoji in `text` (app-wide rule).
-//   • It is a HINT, not a CTA — fixed dark surface (#1F2937 + white),
-//     deliberately NOT the signature gradient and NOT a solid-purple
-//     submit pill, so it never competes with the one gradient CTA a
-//     page is allowed. Fixed bg + fixed fg (dark-mode rule: a fixed
-//     surface must carry a fixed foreground, never colors.gray*).
-//   • The page positions it via `style` (absolute top/left/right) and
-//     picks an `arrow` direction pointing at the feature it teaches.
+//   • It is a HINT, not a CTA — a plain dark surface, deliberately NOT
+//     the signature gradient and NOT a solid-purple submit pill, so it
+//     never competes with the one gradient CTA a page is allowed.
+//   • Fixed foreground (white) on a fixed-family dark surface, per the
+//     dark-mode rule. The surface has TWO fixed values (one for light
+//     pages, a lighter one for dark pages) purely so the bubble lifts off
+//     the page in both themes — both are dark, so white text is always
+//     correct.
+//   • NO hairline border: a 1px high-contrast outline on a dark fill is
+//     what made the first pass read as cheap. Separation comes from the
+//     surface/page contrast plus a soft shadow.
+//   • The arrow is a REAL triangle (transparent side borders + one solid
+//     edge), not a rotated bordered square — the rotated-square trick
+//     leaves a visible seam and corner where it meets the bubble.
 //
 // Props:
 //   • hintId       stable key; the storage namespace (piktag_coach_<id>).
 //   • text         the hint copy (already localized by the caller).
 //   • style?       absolute positioning from the page (top/left/right).
-//   • arrow?       'up' | 'down' | 'none' (default 'none') — visual
-//                  pointer toward the anchor feature.
-//   • arrowOffset? horizontal px of the arrow from the left edge; omit
-//                  to center it.
+//   • arrow?       'up' | 'down' | 'none' (default 'none').
+//   • arrowAlign?  'left' | 'center' | 'right' — put the arrow under the
+//                  feature being taught. A full-width bubble with a
+//                  centred arrow points at nothing when the anchor is a
+//                  top-right icon.
 //   • dismissLabel? overrides the default "知道了" affordance text.
 import React, { useMemo, useRef, useEffect } from 'react';
-import { Animated, Pressable, Text, View, StyleSheet, StyleProp, ViewStyle, Easing } from 'react-native';
+import {
+  Animated,
+  Pressable,
+  Text,
+  View,
+  StyleSheet,
+  StyleProp,
+  ViewStyle,
+  Easing,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useCoachMark } from '../hooks/useCoachMark';
 
 type ArrowDir = 'up' | 'down' | 'none';
+type ArrowAlign = 'left' | 'center' | 'right';
 
 type Props = {
   hintId: string;
   text: string;
   style?: StyleProp<ViewStyle>;
   arrow?: ArrowDir;
-  arrowOffset?: number;
+  arrowAlign?: ArrowAlign;
   dismissLabel?: string;
 };
+
+// Fixed surfaces — intentionally theme-selected but always dark, so the
+// white foreground below is valid in both themes (see contract).
+const SURFACE_ON_LIGHT = '#171B24';
+const SURFACE_ON_DARK = '#2C313D';
+const FG = '#FFFFFF';
+const FG_MUTED = 'rgba(255,255,255,0.62)';
+
+const ARROW_W = 10; // half-width of the triangle
+const ARROW_H = 9;
 
 export default function CoachMark({
   hintId,
   text,
   style,
   arrow = 'none',
-  arrowOffset,
+  arrowAlign = 'center',
   dismissLabel,
 }: Props) {
   const { t } = useTranslation();
-  const { colors } = useTheme();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { isDark } = useTheme();
+  const surface = isDark ? SURFACE_ON_DARK : SURFACE_ON_LIGHT;
+  const styles = useMemo(() => makeStyles(surface), [surface]);
   const { visible, dismiss } = useCoachMark(hintId);
   const anim = useRef(new Animated.Value(0)).current;
 
@@ -65,8 +93,8 @@ export default function CoachMark({
     if (visible) {
       Animated.timing(anim, {
         toValue: 1,
-        duration: 220,
-        easing: Easing.out(Easing.quad),
+        duration: 260,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }).start();
     }
@@ -74,7 +102,12 @@ export default function CoachMark({
 
   if (!visible) return null;
 
-  const arrowPos = arrowOffset != null ? { left: arrowOffset } : { alignSelf: 'center' as const };
+  const alignStyle =
+    arrowAlign === 'left'
+      ? styles.arrowLeft
+      : arrowAlign === 'right'
+        ? styles.arrowRight
+        : styles.arrowCenter;
 
   return (
     <Animated.View
@@ -85,83 +118,89 @@ export default function CoachMark({
         {
           opacity: anim,
           transform: [
-            { translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [arrow === 'down' ? -6 : 6, 0] }) },
+            {
+              translateY: anim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [arrow === 'down' ? -8 : 8, 0],
+              }),
+            },
+            {
+              scale: anim.interpolate({ inputRange: [0, 1], outputRange: [0.97, 1] }),
+            },
           ],
         },
       ]}
     >
-      <Pressable onPress={dismiss} style={styles.wrap} accessibilityRole="button" accessibilityLabel={text}>
-        {arrow === 'up' && <View style={[styles.arrow, styles.arrowUp, arrowPos]} />}
+      <Pressable onPress={dismiss} accessibilityRole="button" accessibilityLabel={text}>
+        {arrow === 'up' && <View style={[styles.arrowUp, alignStyle]} />}
         <View style={styles.bubble}>
           <Text style={styles.text}>{text}</Text>
-          <Text style={styles.dismiss}>{dismissLabel ?? t('common.gotIt', { defaultValue: '知道了' })}</Text>
+          <Text style={styles.dismiss}>
+            {dismissLabel ?? t('common.gotIt', { defaultValue: '知道了' })}
+          </Text>
         </View>
-        {arrow === 'down' && <View style={[styles.arrow, styles.arrowDown, arrowPos]} />}
+        {arrow === 'down' && <View style={[styles.arrowDown, alignStyle]} />}
       </Pressable>
     </Animated.View>
   );
 }
 
-// Fixed hint surface — intentionally theme-independent (see contract).
-const HINT_BG = '#1F2937';
-const HINT_FG = '#FFFFFF';
-
-function makeStyles(c: ColorPalette) {
+function makeStyles(surface: string) {
   return StyleSheet.create({
     container: {
       position: 'absolute',
       zIndex: 50,
       elevation: 12,
     },
-    wrap: {
-      alignItems: 'stretch',
-    },
     bubble: {
-      backgroundColor: HINT_BG,
-      borderRadius: 14,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderWidth: 1,
-      // Brand-tinted hairline lifts the dark bubble off a dark-mode page.
-      borderColor: c.piktag400,
+      backgroundColor: surface,
+      borderRadius: 18,
+      paddingHorizontal: 18,
+      paddingVertical: 15,
+      // Soft, wide shadow — the bubble floats instead of being outlined.
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.25,
-      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.3,
+      shadowRadius: 20,
     },
     text: {
-      color: HINT_FG,
-      fontSize: 14,
-      lineHeight: 20,
+      color: FG,
+      fontSize: 15,
+      lineHeight: 22,
       fontWeight: '500',
+      letterSpacing: 0.1,
     },
     dismiss: {
-      color: c.piktag300,
+      color: FG_MUTED,
       fontSize: 13,
-      fontWeight: '700',
+      fontWeight: '600',
       alignSelf: 'flex-end',
-      marginTop: 8,
+      marginTop: 10,
     },
-    arrow: {
-      width: 14,
-      height: 14,
-      backgroundColor: HINT_BG,
-      borderColor: c.piktag400,
-      transform: [{ rotate: '45deg' }],
-    },
-    // Only the outer two edges of the rotated square should read as the
-    // pointer; the inner corner tucks under the bubble via negative margin.
-    // Centered by default (alignSelf via arrowPos); callers can shift it
-    // with arrowOffset. No baked-in margin so it never hugs an edge.
+    // Real triangles: transparent sides + one solid edge. No seam, no
+    // corner artifact, colour matches the bubble exactly.
     arrowUp: {
-      borderTopWidth: 1,
-      borderLeftWidth: 1,
-      marginBottom: -7,
+      width: 0,
+      height: 0,
+      borderLeftWidth: ARROW_W,
+      borderRightWidth: ARROW_W,
+      borderBottomWidth: ARROW_H,
+      borderLeftColor: 'transparent',
+      borderRightColor: 'transparent',
+      borderBottomColor: surface,
     },
     arrowDown: {
-      borderBottomWidth: 1,
-      borderRightWidth: 1,
-      marginTop: -7,
+      width: 0,
+      height: 0,
+      borderLeftWidth: ARROW_W,
+      borderRightWidth: ARROW_W,
+      borderTopWidth: ARROW_H,
+      borderLeftColor: 'transparent',
+      borderRightColor: 'transparent',
+      borderTopColor: surface,
     },
+    arrowLeft: { alignSelf: 'flex-start', marginLeft: 26 },
+    arrowCenter: { alignSelf: 'center' },
+    arrowRight: { alignSelf: 'flex-end', marginRight: 26 },
   });
 }
