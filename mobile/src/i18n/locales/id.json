@@ -257,8 +257,8 @@
       "phoneInvalidTitle": "Format telepon tidak dikenali",
       "phoneInvalidMessage": "Tidak bisa membaca \"{{value}}\" — dilewati. Bisa ditambahkan nanti dari profil.",
       "payoffTitle": "Selesai!",
-      "payoffSubtitle": "Seperti inilah kamu saat dipindai",
-      "payoffHint": "Saat bertemu seseorang, minta mereka memindai ini — langsung terhubung",
+      "payoffSubtitle": "Sekali pindai, mereka ingat siapa kamu dan apa pekerjaanmu.",
+      "payoffHint": "Lain kali bertemu, minta mereka pindai ini — tanpa tukar banyak kontak, dan kalian saling mengingat.",
       "payoffCta": "Mulai gunakan PikTag",
       "birthdayGateHint": "Isi tanggal lahirmu agar teman dapat pengingatnya",
       "addLinkInvalid": "Masukkan tautan yang valid dulu"

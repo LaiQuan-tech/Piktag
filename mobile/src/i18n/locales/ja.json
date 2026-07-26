@@ -257,8 +257,8 @@
       "phoneInvalidTitle": "電話番号の形式が認識できません",
       "phoneInvalidMessage": "「{{value}}」を認識できませんでした — スキップしました。後でプロフィールから追加できます。",
       "payoffTitle": "完了！",
-      "payoffSubtitle": "相手にはあなたがこう見えます",
-      "payoffHint": "次に誰かと会ったら、これをスキャンしてもらえば、その場でつながれます",
+      "payoffSubtitle": "ひとスキャンで、あなたが誰で何をしている人か覚えてもらえます。",
+      "payoffHint": "次に会ったらこれをスキャンしてもらいましょう。連絡先を交換しなくても、お互いを覚えていられます。",
       "payoffCta": "PikTag をはじめる",
       "birthdayGateHint": "誕生日を入れると、友達にお祝いの通知が届きます",
       "addLinkInvalid": "先に有効なリンクを入力してください"

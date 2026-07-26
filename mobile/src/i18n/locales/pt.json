@@ -257,8 +257,8 @@
       "phoneInvalidTitle": "Formato de telefone não reconhecido",
       "phoneInvalidMessage": "Não foi possível interpretar \"{{value}}\" — ignorado. Você pode adicioná-lo depois no perfil.",
       "payoffTitle": "Pronto!",
-      "payoffSubtitle": "É assim que você aparece ao ser escaneado",
-      "payoffHint": "No próximo encontro, peça para escanearem isto — vocês se conectam na hora",
+      "payoffSubtitle": "Uma leitura e vão lembrar quem você é e o que faz.",
+      "payoffHint": "Da próxima vez, peça para escanearem isto: sem trocar vários contatos, e vocês vão se lembrar um do outro.",
       "payoffCta": "Começar a usar o PikTag",
       "birthdayGateHint": "Adicione seu aniversário para os amigos receberem o lembrete",
       "addLinkInvalid": "Insira um link válido primeiro"

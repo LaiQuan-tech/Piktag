@@ -1484,7 +1484,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         {t('auth.onboarding.payoffTitle', { defaultValue: '完成！' })}
       </Text>
       <Text style={styles.doneSubtitle}>
-        {t('auth.onboarding.payoffSubtitle', { defaultValue: '這就是別人掃到你的樣子' })}
+        {t('auth.onboarding.payoffSubtitle', { defaultValue: '別人掃一下，就記得住你是誰、做什麼的' })}
       </Text>
       <LinearGradient
         colors={['#ff5757', '#c44dff', '#8c52ff']}
@@ -1501,7 +1501,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       </LinearGradient>
       <Text style={styles.doneHint}>
         {t('auth.onboarding.payoffHint', {
-          defaultValue: '下次見面，請對方掃這裡，立刻互加好友',
+          defaultValue: '下次見面請對方掃這裡，不用交換一堆聯絡方式，掃完就記得彼此',
         })}
       </Text>
       <TouchableOpacity

@@ -257,8 +257,8 @@
       "headlineLabel": "Title (optional)",
       "bioLabel": "One line about you",
       "payoffTitle": "All set!",
-      "payoffSubtitle": "This is what people see when they scan you",
-      "payoffHint": "Next time you meet someone, have them scan this — you are connected instantly",
+      "payoffSubtitle": "One scan and they'll remember who you are and what you do.",
+      "payoffHint": "Next time you meet someone, have them scan this — no swapping numbers, and you'll both remember each other.",
       "payoffCta": "Start using PikTag",
       "birthdayGateHint": "Add your birthday so friends get your birthday reminder",
       "addLinkInvalid": "Add a real link first"

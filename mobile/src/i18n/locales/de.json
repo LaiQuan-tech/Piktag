@@ -257,8 +257,8 @@
       "phoneInvalidTitle": "Telefonformat nicht erkannt",
       "phoneInvalidMessage": "„{{value}}“ konnte nicht erkannt werden — übersprungen. Du kannst es später im Profil ergänzen.",
       "payoffTitle": "Fertig!",
-      "payoffSubtitle": "So sehen dich andere beim Scannen",
-      "payoffHint": "Lass dein Gegenüber das beim nächsten Treffen scannen — ihr seid sofort verbunden",
+      "payoffSubtitle": "Ein Scan, und man merkt sich, wer du bist und was du machst.",
+      "payoffHint": "Beim nächsten Treffen einfach scannen lassen — kein Austausch von Kontaktdaten, und ihr erinnert euch aneinander.",
       "payoffCta": "PikTag starten",
       "birthdayGateHint": "Gib deinen Geburtstag ein, damit Freunde eine Erinnerung bekommen",
       "addLinkInvalid": "Gib zuerst einen gültigen Link ein"

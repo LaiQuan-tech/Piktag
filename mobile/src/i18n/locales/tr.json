@@ -257,8 +257,8 @@
       "phoneInvalidTitle": "Telefon biçimi tanınmadı",
       "phoneInvalidMessage": "\"{{value}}\" çözümlenemedi — atlandı. Daha sonra profilinden ekleyebilirsin.",
       "payoffTitle": "Hazırsın!",
-      "payoffSubtitle": "Seni tarayanlar bunu görür",
-      "payoffHint": "Bir dahaki karşılaşmada bunu taratman yeterli — anında bağlanırsınız",
+      "payoffSubtitle": "Tek bir taramayla kim olduğunu ve ne yaptığını hatırlarlar.",
+      "payoffHint": "Bir dahaki karşılaşmada bunu taratın — bir sürü iletişim bilgisi değiş tokuş etmeden, birbirinizi hatırlarsınız.",
       "payoffCta": "PikTag’i kullanmaya başla",
       "birthdayGateHint": "Doğum gününü ekle ki arkadaşların hatırlatma alsın",
       "addLinkInvalid": "Önce geçerli bir bağlantı gir"

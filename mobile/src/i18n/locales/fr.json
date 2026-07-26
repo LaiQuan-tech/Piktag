@@ -257,8 +257,8 @@
       "phoneInvalidTitle": "Format de téléphone non reconnu",
       "phoneInvalidMessage": "Impossible de lire « {{value}} » — ignoré. Tu pourras l'ajouter plus tard depuis ton profil.",
       "payoffTitle": "C’est prêt !",
-      "payoffSubtitle": "Voici ce que les autres voient en te scannant",
-      "payoffHint": "À ta prochaine rencontre, fais scanner ce code — vous êtes connectés instantanément",
+      "payoffSubtitle": "Un seul scan et l'on se souviendra de qui vous êtes et de ce que vous faites.",
+      "payoffHint": "La prochaine fois, faites-le scanner : pas d'échange de coordonnées, et vous vous souviendrez l'un de l'autre.",
       "payoffCta": "Commencer avec PikTag",
       "birthdayGateHint": "Ajoute ta date d’anniversaire pour que tes amis soient prévenus",
       "addLinkInvalid": "Saisis d'abord un lien valide"

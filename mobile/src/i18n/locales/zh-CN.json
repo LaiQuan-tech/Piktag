@@ -257,8 +257,8 @@
       "phoneInvalidTitle": "电话格式无效",
       "phoneInvalidMessage": "无法识别「{{value}}」，已略过。可稍后到个人资料补上。",
       "payoffTitle": "完成！",
-      "payoffSubtitle": "这就是别人扫到你的样子",
-      "payoffHint": "下次见面，请对方扫这里，立刻互加好友",
+      "payoffSubtitle": "别人扫一下，就记得住你是谁、做什么的",
+      "payoffHint": "下次见面请对方扫这里，不用交换一堆联系方式，扫完就记得彼此",
       "payoffCta": "开始使用 PikTag",
       "birthdayGateHint": "填一下生日，朋友才收得到你的生日提醒",
       "addLinkInvalid": "先输入有效链接"
