@@ -1674,7 +1674,7 @@
     "coffeeChat": "Pause café"
   },
   "coach": {
-    "homeScan": "Touchez le + en haut à droite pour scanner un QR ou une carte de visite — ajoutez un ami tout de suite.",
+    "homeScan": "Vous venez de rencontrer quelqu'un ? Scannez sa carte ou son QR pour vous rappeler qui il est et ce qu'il fait.",
     "searchIntent": "Cherchez par besoin, pas seulement par nom. Tapez quelques mots : nous les transformons en tags pour trouver les bonnes personnes.",
     "chatRequests": "Les messages des personnes que vous n'avez pas ajoutées arrivent dans un onglet séparé. Consultez-le pour ne manquer aucun nouvel ami.",
     "notifMatches": "L'onglet Correspondances utilise l'IA pour retrouver d'anciens contacts et des personnes que vous pourriez connaître.",

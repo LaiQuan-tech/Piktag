@@ -1674,7 +1674,7 @@
     "coffeeChat": "Cà phê tán gẫu"
   },
   "coach": {
-    "homeScan": "Chạm vào + ở góc trên bên phải để quét QR hoặc danh thiếp — thêm bạn ngay bây giờ.",
+    "homeScan": "Vừa gặp ai đó? Quét danh thiếp hoặc QR của họ để nhớ họ là ai và làm gì.",
     "searchIntent": "Tìm theo điều bạn cần, không chỉ theo tên. Nhập vài từ và chúng tôi biến chúng thành thẻ để tìm đúng người.",
     "chatRequests": "Tin nhắn từ người bạn chưa thêm sẽ vào một tab riêng. Hãy kiểm tra để không bỏ lỡ người bạn mới.",
     "notifMatches": "Tab Kết nối dùng AI để gợi lại các liên hệ cũ và những người bạn có thể quen.",
