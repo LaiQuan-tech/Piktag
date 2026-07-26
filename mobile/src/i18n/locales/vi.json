@@ -1675,9 +1675,9 @@
   },
   "coach": {
     "homeScan": "Vừa gặp ai đó? Quét danh thiếp hoặc QR của họ để nhớ họ là ai và làm gì.",
-    "searchIntent": "Tìm theo điều bạn cần, không chỉ theo tên. Nhập vài từ và chúng tôi biến chúng thành thẻ để tìm đúng người.",
-    "chatRequests": "Tin nhắn từ người bạn chưa thêm sẽ vào một tab riêng. Hãy kiểm tra để không bỏ lỡ người bạn mới.",
-    "notifMatches": "Tab Kết nối dùng AI để gợi lại các liên hệ cũ và những người bạn có thể quen.",
-    "profileTags": "Giữ thẻ và liên kết của bạn luôn mới — mọi người tìm và thêm bạn bằng cách tìm thẻ."
+    "searchIntent": "Cần gì đó? Tìm theo điều bạn cần, không phải tên — và gặp đúng người bạn vốn đã quen.",
+    "chatRequests": "Người bạn chưa thêm vẫn có thể nhắn cho bạn — tin của họ nằm ở một tab riêng, để bạn không bỏ lỡ.",
+    "notifMatches": "Gặp lại những người bạn đã mất liên lạc, và cả những người bạn có thể vốn đã quen.",
+    "profileTags": "Thẻ của bạn càng rõ, càng nhiều người phù hợp tìm thấy bạn — nhờ điều bạn thực sự làm."
   }
 }

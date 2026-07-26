@@ -1675,9 +1675,9 @@
   },
   "coach": {
     "homeScan": "Baru bertemu seseorang? Pindai kartu atau QR-nya agar kamu ingat siapa dia dan apa pekerjaannya.",
-    "searchIntent": "Cari berdasarkan kebutuhanmu, bukan hanya nama. Ketik beberapa kata dan kami ubah jadi tag untuk menemukan orang yang tepat.",
-    "chatRequests": "Pesan dari orang yang belum kamu tambahkan masuk ke tab terpisah. Cek agar tak melewatkan teman baru.",
-    "notifMatches": "Tab Kecocokan memakai AI untuk memunculkan kembali kontak lama dan orang yang mungkin kamu kenal.",
-    "profileTags": "Jaga tag dan tautanmu tetap terbaru — orang menemukan dan menambahkanmu lewat pencarian tag."
+    "searchIntent": "Butuh sesuatu? Cari yang kamu butuhkan, bukan nama — dan temukan orang tepat yang sudah kamu kenal.",
+    "chatRequests": "Orang yang belum kamu tambahkan pun bisa mengirim pesan — pesannya menunggu di tab terpisah, agar tak terlewat.",
+    "notifMatches": "Temui lagi orang yang sempat hilang kontak, dan yang mungkin sudah kamu kenal.",
+    "profileTags": "Makin tepat tag-mu, makin banyak orang yang tepat menemukanmu — lewat apa yang benar-benar kamu lakukan."
   }
 }

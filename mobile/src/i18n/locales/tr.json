@@ -1675,9 +1675,9 @@
   },
   "coach": {
     "homeScan": "Biriyle yeni mi tanıştın? Kartını veya QR'ını tarayarak kim olduğunu ve ne iş yaptığını hatırla.",
-    "searchIntent": "Sadece adla değil, ihtiyacınla ara. Birkaç kelime yaz, onları etikete çevirip doğru kişileri bulalım.",
-    "chatRequests": "Henüz eklemediğin kişilerin mesajları ayrı bir sekmeye düşer. Yeni bir arkadaşı kaçırmamak için kontrol et.",
-    "notifMatches": "Eşleşmeler sekmesi, eski bağlantıları ve tanıyor olabileceğin kişileri yapay zekâ ile yeniden gösterir.",
-    "profileTags": "Etiketlerini ve bağlantılarını güncel tut — insanlar etiket araması ile seni bulup ekler."
+    "searchIntent": "Bir şeye mi ihtiyacın var? İsim değil, ihtiyacını ara — ve zaten tanıdığın doğru kişiyi bul.",
+    "chatRequests": "Henüz eklemediğin kişiler de sana mesaj atabilir — mesajları ayrı bir sekmede bekler, kaçırmazsın.",
+    "notifMatches": "Bağını kaybettiğin kişilerle ve muhtemelen zaten tanıdığın kişilerle yeniden karşılaş.",
+    "profileTags": "Etiketlerin ne kadar isabetliyse, doğru kişiler seni gerçekte yaptığın işle o kadar çok bulur."
   }
 }

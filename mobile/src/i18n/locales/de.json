@@ -1675,9 +1675,9 @@
   },
   "coach": {
     "homeScan": "Gerade jemanden kennengelernt? Scanne die Karte oder den QR-Code, um dir zu merken, wer die Person ist und was sie macht.",
-    "searchIntent": "Suche nach dem, was du brauchst — nicht nur nach einem Namen. Tippe ein paar Wörter, wir machen daraus Tags und finden die richtigen Leute.",
-    "chatRequests": "Nachrichten von Leuten, die du noch nicht hinzugefügt hast, landen in einem eigenen Tab. Schau rein, um keinen neuen Freund zu verpassen.",
-    "notifMatches": "Der Tab Matches nutzt KI, um alte Kontakte und Leute, die du kennen könntest, wieder sichtbar zu machen.",
-    "profileTags": "Halte deine Tags und Links aktuell — Leute finden und adden dich über die Tag-Suche."
+    "searchIntent": "Brauchst du etwas? Suche nach dem, was du brauchst — nicht nach einem Namen — und finde die richtige Person, die du schon kennst.",
+    "chatRequests": "Auch Leute, die du noch nicht hinzugefügt hast, können dir schreiben — ihre Nachrichten warten in einem eigenen Tab, damit du nichts verpasst.",
+    "notifMatches": "Triff hier Menschen wieder, zu denen der Kontakt abgerissen ist — und andere, die du wahrscheinlich schon kennst.",
+    "profileTags": "Je treffender deine Tags, desto eher finden dich die richtigen Leute — für das, was du wirklich machst."
   }
 }

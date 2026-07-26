@@ -1675,9 +1675,9 @@
   },
   "coach": {
     "homeScan": "Vous venez de rencontrer quelqu'un ? Scannez sa carte ou son QR pour vous rappeler qui il est et ce qu'il fait.",
-    "searchIntent": "Cherchez par besoin, pas seulement par nom. Tapez quelques mots : nous les transformons en tags pour trouver les bonnes personnes.",
-    "chatRequests": "Les messages des personnes que vous n'avez pas ajoutées arrivent dans un onglet séparé. Consultez-le pour ne manquer aucun nouvel ami.",
-    "notifMatches": "L'onglet Correspondances utilise l'IA pour retrouver d'anciens contacts et des personnes que vous pourriez connaître.",
-    "profileTags": "Gardez vos tags et liens à jour : les gens vous trouvent et vous ajoutent en cherchant des tags."
+    "searchIntent": "Besoin de quelque chose ? Cherchez ce dont vous avez besoin, pas un nom, et retrouvez la bonne personne que vous connaissez déjà.",
+    "chatRequests": "Les personnes que vous n'avez pas encore ajoutées peuvent vous écrire : leurs messages attendent dans un onglet séparé, pour ne rien manquer.",
+    "notifMatches": "Retrouvez des personnes que vous aviez perdues de vue, et d'autres que vous connaissez sûrement déjà.",
+    "profileTags": "Plus vos tags sont précis, plus les bonnes personnes vous trouvent — pour ce que vous faites vraiment."
   }
 }

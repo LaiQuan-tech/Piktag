@@ -1675,9 +1675,9 @@
   },
   "coach": {
     "homeScan": "¿Acabas de conocer a alguien? Escanea su tarjeta o QR para recordar quién es y a qué se dedica.",
-    "searchIntent": "Busca por lo que necesitas, no solo por un nombre. Escribe unas palabras y las convertimos en etiquetas para encontrar a la persona indicada.",
-    "chatRequests": "Los mensajes de personas que aún no agregaste van a una pestaña aparte. Revísala para no perder a un nuevo amigo.",
-    "notifMatches": "La pestaña Coincidencias usa IA para recuperar contactos antiguos y personas que quizá conozcas.",
-    "profileTags": "Mantén tus etiquetas y enlaces al día: la gente te encuentra y te agrega buscando etiquetas."
+    "searchIntent": "¿Necesitas algo? Busca lo que necesitas, no un nombre, y encuentra a la persona indicada que ya conoces.",
+    "chatRequests": "Quienes aún no agregaste también pueden escribirte: sus mensajes esperan en una pestaña aparte, para que no los pierdas.",
+    "notifMatches": "Reencuentra a personas con las que perdiste el contacto y a otras que probablemente ya conoces.",
+    "profileTags": "Cuanto mejores sean tus etiquetas, más te encontrarán las personas indicadas, por lo que realmente haces."
   }
 }
