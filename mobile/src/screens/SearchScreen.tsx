@@ -389,6 +389,15 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   // Data states
   const [tags, setTags] = useState<Tag[]>([]);
+  // The query of the last COMMITTED (debounced) search — not the raw
+  // per-keystroke text. Drives the private-world (local contacts /
+  // connection nicknames) name+company lookup below: that lookup used to
+  // hang off `tags` alone, so a query matching NO tag (a pure person or
+  // company name, e.g. "Yun") never re-ran it and the user's own saved
+  // contacts silently failed to show. Keyed on the committed query
+  // instead, it fires for every settled search while still not firing
+  // per keystroke.
+  const [committedQuery, setCommittedQuery] = useState('');
   const [profiles, setProfiles] = useState<PiktagProfile[]>([]);
   const [tagUsers, setTagUsers] = useState<{ tag: Tag; users: any[] }[]>([]);
   // People found via the SEARCHER'S OWN manual tags for the matched tag
@@ -1033,6 +1042,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         loadPopularTags();
         return;
       }
+
+      // This search is committed (performSearch is debounced), so publish
+      // the query as the signal the private-world lookup keys off. Set
+      // BEFORE the cache branch so a cache hit still re-runs the contact
+      // name/company lookup — cached tags/profiles don't include it.
+      setCommittedQuery(query.trim());
 
       // Cache hit: skip the DB round-trips entirely. Move to
       // most-recently-used position by delete+set.
@@ -2472,11 +2487,20 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       cancelled = true;
     };
     // trimmedQuery intentionally read via closure (NOT in deps): it
-    // changes per keystroke, but `tags` is the debounced committed-
-    // search signal, so we only want to fetch when performSearch has
-    // settled. The closure always sees the current value at run time.
+    // changes per keystroke, but `committedQuery` / `tags` are the
+    // debounced committed-search signals, so we only want to fetch when
+    // performSearch has settled. The closure always sees the current
+    // value at run time.
+    //
+    // committedQuery is in deps ON PURPOSE: keying only on `tags` meant a
+    // query that matched NO tag (a plain person or company name — the
+    // whole point of having contacts) never re-ran this lookup, so the
+    // viewer's own saved contacts and nicknamed friends silently didn't
+    // show. That was the "sometimes it finds people, sometimes it
+    // doesn't" report. It updates once per committed search, so this
+    // still does not fire per keystroke.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tags, intersectionMode, user]);
+  }, [committedQuery, tags, intersectionMode, user]);
 
   // ── Impression log → piktag_search_impressions ────────────────
   //

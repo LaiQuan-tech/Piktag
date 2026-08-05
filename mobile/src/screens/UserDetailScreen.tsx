@@ -1741,7 +1741,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           style={styles.pickModalOverlay}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          <View style={styles.pickModalContainer}>
+          <View style={[styles.pickModalContainer, { paddingTop: insets.top + 12 }]}>
             <View style={styles.pickModalHeader}>
               <Text style={styles.pickModalTitle}>{t('userDetail.pickTagTitle')}</Text>
               <TouchableOpacity onPress={() => setPickTagModalVisible(false)} activeOpacity={0.6}>
@@ -2490,7 +2490,8 @@ function makeStyles(c: ColorPalette) {
   },
   pickModalContainer: {
     flex: 1,
-    paddingTop: Platform.OS === 'ios' ? 56 : 32,
+    // paddingTop applied inline via safe-area insets (insets.top + 12) so the
+    // header + Save button clear the status bar / Dynamic Island on all devices
     paddingHorizontal: 20,
     paddingBottom: 24,
   },

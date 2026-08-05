@@ -1662,7 +1662,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           style={styles.pickModalOverlay}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          <View style={styles.pickModalContainer}>
+          <View style={[styles.pickModalContainer, { paddingTop: insets.top + 12 }]}>
             {/* Header (fixed) */}
             <View style={styles.pickModalHeader}>
               <Text style={styles.pickModalTitle}>{t('friendDetail.pickTagTitle')}</Text>
@@ -2603,7 +2603,8 @@ function makeStyles(c: ColorPalette) {
   },
   pickModalContainer: {
     flex: 1,
-    paddingTop: Platform.OS === 'ios' ? 56 : 32,
+    // paddingTop applied inline via safe-area insets (insets.top + 12) so the
+    // header + Save button clear the status bar / Dynamic Island on all devices
     paddingHorizontal: 20,
     paddingBottom: 24,
   },
