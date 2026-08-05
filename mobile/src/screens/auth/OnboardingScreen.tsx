@@ -92,7 +92,12 @@ const STEP_DONE = 4;    // payoff: 你的名片+QR — teaches the mutual-scan
                         // "測試者不知道怎麼用" — wizard taught setup, never usage).
 const MAX_ONB_TAGS = 10;
 const MIN_ONB_TAGS = 3; // gate: tags are the engine — require a few
-const MIN_ONB_LINKS = 3; // gate: ≥3 links (phone/email count) — 電子名片
+const MIN_ONB_LINKS = 2; // gate: ≥2 links (phone/email count) — 電子名片
+// Lowered 3 → 2 (founder 2026-08-05): three links was too steep a wall at
+// signup — people who had added a real, reachable pair (e.g. LINE +
+// Instagram) still saw a disabled CTA and could stall out there. Two still
+// guarantees a scanner can actually reach you, which is the point of the
+// gate; the rest can be added later from the profile.
 
 // ─── Username (帳號) helpers ────────────────────────────────
 // The handle lives in the public URL pikt.ag/{username}, so keep it
