@@ -90,6 +90,43 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   // in commit 4148d72). With this list now visible + tappable,
   // the scanner can deliberately pick ones that actually describe
   // the host, instead of getting them all forced on.
+  // Event context resolved from the scan session itself. The QR URL no
+  // longer carries ?tags= (links were shortened in 9a4f799), and the
+  // sessions table is host-only under RLS, so a scanner can only learn the
+  // event tags through get_scan_session_public. Without this the opt-in
+  // "tags this Tag brought" chips below would never render for any new
+  // event QR.
+  const [sessionEventCtx, setSessionEventCtx] = useState<{
+    tags: string[];
+    date: string;
+    loc: string;
+  }>({ tags: [], date: '', loc: '' });
+
+  useEffect(() => {
+    if (!paramSid || paramSid.startsWith('local_')) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await supabase.rpc('get_scan_session_public', {
+          p_sid: paramSid,
+        });
+        const s: any = Array.isArray(data) ? data[0] : data;
+        if (!cancelled && s) {
+          setSessionEventCtx({
+            tags: Array.isArray(s.event_tags) ? s.event_tags : [],
+            date: s.event_date || '',
+            loc: s.event_location || '',
+          });
+        }
+      } catch {
+        // Non-fatal: the chips just stay hidden, as they did before.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [paramSid]);
+
   const vibeContextTags = useMemo(() => {
     const out: string[] = [];
     const push = (raw: string | undefined) => {
@@ -99,10 +136,11 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     if (paramTags) {
       paramTags.split(',').forEach((t: string) => push(t));
     }
-    push(paramDate);
-    push(paramLoc);
+    sessionEventCtx.tags.forEach((t) => push(t));
+    push(paramDate || sessionEventCtx.date);
+    push(paramLoc || sessionEventCtx.loc);
     return out;
-  }, [paramTags, paramDate, paramLoc]);
+  }, [paramTags, paramDate, paramLoc, sessionEventCtx]);
 
   const [resolvedUserId, setResolvedUserId] = useState<string | null>(paramUserId || null);
   const [loading, setLoading] = useState(true);
@@ -423,15 +461,36 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     let eventLocation = '';
 
     if (paramSid && !paramSid.startsWith('local_')) {
-      const { data: session } = await supabase
-        .from('piktag_scan_sessions')
-        .select('event_tags, event_date, event_location')
-        .eq('id', paramSid)
-        .maybeSingle();
-      if (session) {
-        eventTags = session.event_tags || [];
-        eventDate = session.event_date || '';
-        eventLocation = session.event_location || '';
+      // RPC FIRST, not the table. piktag_scan_sessions' RLS is host-only
+      // (20260428060000_rls_hardening), so a SCANNER — who is by definition
+      // not the host — reads zero rows from it. Event tags used to survive
+      // that only because the QR URL also carried ?tags=; once the URL was
+      // shortened (9a4f799) the direct select left in-app scans with no
+      // event tags at all. get_scan_session_public is the SECURITY DEFINER
+      // reader built for exactly this (granted to anon + authenticated) and
+      // is already what the web landing uses.
+      const { data: pub } = await supabase.rpc('get_scan_session_public', {
+        p_sid: paramSid,
+      });
+      const sess: any = Array.isArray(pub) ? pub[0] : pub;
+      if (sess) {
+        eventTags = sess.event_tags || [];
+        eventDate = sess.event_date || '';
+        eventLocation = sess.event_location || '';
+      }
+      // Host viewing their own session still works through the table (and
+      // covers an RPC hiccup) — kept as a second source, not the first.
+      if (eventTags.length === 0) {
+        const { data: session } = await supabase
+          .from('piktag_scan_sessions')
+          .select('event_tags, event_date, event_location')
+          .eq('id', paramSid)
+          .maybeSingle();
+        if (session) {
+          eventTags = session.event_tags || [];
+          eventDate = session.event_date || '';
+          eventLocation = session.event_location || '';
+        }
       }
     }
 

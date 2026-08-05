@@ -83,7 +83,12 @@ const WEEK_MS = 7 * 24 * 3600 * 1000;
 const DEMO_ASK_VARIANT_TAGS = ['ReactNative', 'Photography', 'Startup', 'Fitness'];
 
 function getDemoAskVariantIndex() {
-  return Math.floor((Date.now() - ROTATION_ANCHOR_MS) / WEEK_MS) % DEMO_ASK_VARIANT_COUNT;
+  // Euclidean modulo — keep byte-identical semantics with the mobile copy.
+  // JS's % keeps the dividend's sign, so a clock before the anchor would
+  // index out of bounds (blank title, bare "#" chip here; a hard crash on
+  // mobile).
+  const raw = Math.floor((Date.now() - ROTATION_ANCHOR_MS) / WEEK_MS);
+  return ((raw % DEMO_ASK_VARIANT_COUNT) + DEMO_ASK_VARIANT_COUNT) % DEMO_ASK_VARIANT_COUNT;
 }
 
 function renderAskPage(askId, ask, locale, analyticsSnippet) {

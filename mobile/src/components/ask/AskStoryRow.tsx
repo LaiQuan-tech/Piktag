@@ -675,7 +675,15 @@ function AskViewSheet({ ask, onClose, onPressProfile }: AskViewSheetProps) {
         // response rows, so a pre-check or compensating delete isn't
         // possible client-side; a deliberate repeat (rare — the sheet
         // closes on success) simply re-sends, which is harmless.
-        const title = (ask.title ?? '').trim() || ask.body.slice(0, 30);
+        // Quote what the user actually SAW. The demo Ask's DB row still
+        // holds the original English seed text while the sheet shows this
+        // week's localized rotation, so without this the introduction says
+        // 'For your Ask "React Native developer"' in every language even
+        // though the reader was just looking at a different question.
+        const demoText = isOfficialDemoAsk(ask.author_id) ? getDemoAskText(t) : null;
+        const title = demoText
+          ? demoText.title
+          : (ask.title ?? '').trim() || ask.body.slice(0, 30);
         const body = t('ask.recommendMsg', {
           defaultValue: 'For your Ask "{{title}}" — I recommend {{name}} (@{{username}}).',
           title,

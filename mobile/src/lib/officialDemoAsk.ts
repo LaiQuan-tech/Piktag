@@ -84,7 +84,13 @@ const DEMO_ASK_VARIANTS: ReadonlyArray<{ title: string; body: string; tag: strin
  * week. Deterministic function of the clock only — no state, no I/O.
  */
 export function getDemoAskVariantIndex(): number {
-  return Math.floor((Date.now() - ROTATION_ANCHOR_MS) / WEEK_MS) % DEMO_ASK_VARIANT_COUNT;
+  // Euclidean modulo: JS's % keeps the dividend's sign, so a device whose
+  // clock is set BEFORE the anchor would yield -1/-2, index the variant
+  // array out of bounds, and throw on `.title` — inside a memo that runs on
+  // the Connections tab for every user (everyone auto-friends @piktag),
+  // which the global ErrorBoundary turns into an unrecoverable error screen.
+  const raw = Math.floor((Date.now() - ROTATION_ANCHOR_MS) / WEEK_MS);
+  return ((raw % DEMO_ASK_VARIANT_COUNT) + DEMO_ASK_VARIANT_COUNT) % DEMO_ASK_VARIANT_COUNT;
 }
 
 export function getDemoAskText(t: TFunction): { title: string; body: string } {
