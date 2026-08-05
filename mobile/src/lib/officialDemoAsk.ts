@@ -142,18 +142,31 @@ export function getOfficialBio(t: TFunction): string {
  * tag (i.e. "don't override" — render tag.name as-is). The '攝影'/'咖啡'
  * entries are the previous showcase pair (swapped out 2026-07-15); kept
  * for backward compatibility and harmless once those tags are detached.
+ *
+ * Tag names are CASE-INSENSITIVE system-wide: the DB's uniqueness index is
+ * on lower(name) (20260425010000_tag_name_unique.sql) and the official-tag
+ * migration finds-or-creates with `WHERE lower(name) = lower(...)`, so the
+ * stored row for a showcase concept may carry any casing a user happened to
+ * create it with ('foodie', 'PICKLEBALL', ...). This map is therefore KEYED
+ * BY LOWERCASE and looked up with a lowercased name — an exact-case map
+ * would silently no-op on those rows and show non-English viewers the raw
+ * English string. Keep every key here lowercase. (CJK keys are unaffected
+ * by case folding; they stay byte-identical.)
  */
 const OFFICIAL_TAG_LABEL_KEYS: Record<string, string> = {
   '攝影': 'showcaseTag.photography',
   '咖啡': 'showcaseTag.coffee',
-  'Pickleball': 'showcaseTag.pickleball',
-  'Foodie': 'showcaseTag.foodie',
-  'OpenToCollab': 'showcaseTag.openToCollab',
-  'CoffeeChat': 'showcaseTag.coffeeChat',
+  'pickleball': 'showcaseTag.pickleball',
+  'foodie': 'showcaseTag.foodie',
+  'opentocollab': 'showcaseTag.openToCollab',
+  'coffeechat': 'showcaseTag.coffeeChat',
 };
 
 export function getOfficialTagLabel(tagName: string, t: TFunction): string | null {
-  const key = OFFICIAL_TAG_LABEL_KEYS[tagName];
+  if (!tagName) return null;
+  // toLowerCase (not toLocaleLowerCase) on purpose — locale-independent, so
+  // a Turkish device can't fold 'I' to 'ı' and miss a key.
+  const key = OFFICIAL_TAG_LABEL_KEYS[tagName.toLowerCase()];
   if (!key) return null;
   return t(key);
 }

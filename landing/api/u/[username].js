@@ -317,14 +317,24 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
   // underlying tag concept is unchanged), only the visible label swaps
   // per visitor locale. Every other user's tags render exactly as
   // stored — this mapping is gated on isOfficialAccount.
+  //
+  // Matching is CASE-INSENSITIVE: tag names are unique case-insensitively
+  // in the DB (UNIQUE index on lower(name)) and the official-tag migration
+  // finds-or-creates with `WHERE lower(name) = lower(...)`, so the stored
+  // row may carry whatever casing the user who first created that tag used
+  // ('foodie', 'PICKLEBALL', ...). An exact-case check would silently
+  // no-op there and show non-English visitors the raw English string.
+  // Compare against lowercase literals only. (CJK names are unaffected by
+  // case folding, so 攝影/咖啡 stay byte-identical.)
   const getDisplayTagName = (t) => {
     if (isOfficialAccount) {
-      if (t === '攝影') return locale.officialTagPhotography || t;
-      if (t === '咖啡') return locale.officialTagCoffee || t;
-      if (t === 'Pickleball') return locale.officialTagPickleball || t;
-      if (t === 'Foodie') return locale.officialTagFoodie || t;
-      if (t === 'OpenToCollab') return locale.officialTagOpenToCollab || t;
-      if (t === 'CoffeeChat') return locale.officialTagCoffeeChat || t;
+      const n = String(t).toLowerCase();
+      if (n === '攝影') return locale.officialTagPhotography || t;
+      if (n === '咖啡') return locale.officialTagCoffee || t;
+      if (n === 'pickleball') return locale.officialTagPickleball || t;
+      if (n === 'foodie') return locale.officialTagFoodie || t;
+      if (n === 'opentocollab') return locale.officialTagOpenToCollab || t;
+      if (n === 'coffeechat') return locale.officialTagCoffeeChat || t;
     }
     return t;
   };
