@@ -13,11 +13,10 @@ import {
   Bell,
   User,
 } from 'lucide-react-native';
-import { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { resolveStartupSession, recoverSessionForNullEvent } from '../lib/authSession';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
+import { useAuthContext } from '../context/AuthContext';
 import { useAppReady } from '../context/AppReadyContext';
 import { useTranslation } from 'react-i18next';
 import { registerForPushNotifications, refreshBadgeFromServer } from '../lib/pushNotifications';
@@ -63,14 +62,19 @@ const NotificationStack = createNativeStackNavigator();
 const ProfileStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-function AuthNavigator() {
+// Memoized: AppNavigator now reads auth from AuthContext, so it
+// re-renders whenever anything in that context changes (profile hydrate,
+// profileLoading flips, hourly TOKEN_REFRESHED). None of that can change
+// what these two stacks render, and re-rendering a Navigator's children
+// rebuilds the whole screen descriptor tree for nothing.
+const AuthNavigator = React.memo(function AuthNavigator() {
   return (
     <AuthStack.Navigator screenOptions={{ headerShown: false }}>
       <AuthStack.Screen name="Login" component={LoginScreen} />
       <AuthStack.Screen name="Register" component={RegisterScreen} />
     </AuthStack.Navigator>
   );
-}
+});
 
 function HomeStackNavigator() {
   return (
@@ -273,7 +277,9 @@ function MainTabs() {
 // Root stack that wraps MainTabs + modal screens + onboarding
 const RootStack = createNativeStackNavigator();
 
-function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
+// Memoized for the same reason as AuthNavigator above: `needsOnboarding`
+// is the only input, and it changes exactly once per sign-in.
+const MainNavigator = React.memo(function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
   return (
     <ChatUnreadProvider>
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
@@ -423,7 +429,7 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
       </RootStack.Navigator>
     </ChatUnreadProvider>
   );
-}
+});
 
 // Parse sid from a piktag deep link URL
 function parseSidFromUrl(url: string | null): { username?: string; sid?: string } | null {
@@ -455,26 +461,58 @@ const onboardingFlagKey = (userId: string) => `${ONBOARDING_COMPLETED_KEY}_${use
 // `skip` = go straight to Main.
 type OnboardingDecision = 'pending' | 'required' | 'skip';
 
+// The onboarding decision, carried together with the account it was made
+// for. Keeping the two in ONE state object is what makes the launch gate
+// self-consistent: a decision can never be applied to a different user
+// than the one it was computed for, and a slow decision that lands after
+// an account switch is ignored by construction instead of by a guard
+// someone has to remember to write.
+type OnboardingGate = { forUser: string | null; decision: OnboardingDecision };
+
 export default function AppNavigator() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [onboardingDecision, setOnboardingDecision] = useState<OnboardingDecision>('pending');
-  // Mirror the latest session into a ref so the deep-link capture
-  // closure (registered once on mount) can read fresh auth state
-  // without re-subscribing every time `session` changes.
-  const sessionRef = useRef<Session | null>(null);
-  useEffect(() => {
-    sessionRef.current = session;
-  }, [session]);
-  // The user id we last ran the onboarding decision for. Guards the
-  // auth-state listener so we ONLY re-decide on a genuine sign-in /
-  // account switch (user id changes) — never on a token refresh, which
-  // also fires onAuthStateChange and would otherwise re-flash the
-  // loader + re-query every hour.
-  const decidedForUserRef = useRef<string | null>(null);
+
+  // ── THE session. Read, never owned. ───────────────────────────────
+  // This component used to keep its OWN `session` state, fed by its OWN
+  // onAuthStateChange subscription — a second, independent copy of what
+  // AuthProvider (mounted above us in App.tsx) already owns. That copy is
+  // what kept the previous user's screens up after an OFFLINE log out:
+  // AuthContext.signOut() clears SecureStore, that account's disk caches
+  // and its own state immediately, but the only thing that cleared the
+  // copy here was auth-js's SIGNED_OUT event — and offline, with an
+  // expired access token, auth-js is inside its retryable-refresh backoff
+  // (AUTO_REFRESH_TICK_DURATION_MS = 30s) and does not reach
+  // _removeSession() (and therefore does not emit SIGNED_OUT) for up to
+  // ~25s. Credentials were gone, caches were gone, and the app still sat
+  // on the Main tabs showing the previous user's friends and
+  // notifications.
+  //
+  // Reading the context instead means sign-out flips the stack in the
+  // same React commit that clears the credentials — no event, no network,
+  // no timer. It also means there is exactly ONE place in the app that
+  // decides what "signed in" means, so the rule that a network failure
+  // must never clear auth state (see lib/authSession.ts) is enforced in
+  // one file instead of two.
+  const { session, loading: authLoading } = useAuthContext();
+  // Route on the user ID, not the session object: auth-js hands back a
+  // NEW session object on every TOKEN_REFRESHED (hourly, plus every
+  // foreground), and everything below keys off this string — so a refresh
+  // costs nothing: no re-decide, no loader flash, no re-query.
+  const userId = session?.user?.id ?? null;
+
+  const [onboardingGate, setOnboardingGate] = useState<OnboardingGate>({
+    forUser: null,
+    decision: 'pending',
+  });
+  // Anti-brick escape hatch for the launch gate (see the watchdog effect
+  // near the render below).
+  const [gateForcedOpen, setGateForcedOpen] = useState(false);
+  // False until the first auth resolution after mount. Distinguishes the
+  // LAUNCH path (cold start, which already handled its own cold-start
+  // deep link) from a later sign-in / account switch.
+  const authResolvedOnceRef = useRef(false);
   // Pending deep link holds the parsed payload from cold start until a
   // consumer (post-register flow) clears it. Stored in a ref so capture
   // and consume don't race through render cycles.
@@ -545,155 +583,86 @@ export default function AppNavigator() {
     };
   }, []);
 
+  // ── Auth → routing ────────────────────────────────────────────────
+  // Reacts to the ONE session. Runs when AuthContext finishes its startup
+  // resolve (resolveStartupSession + its 2.5s cap — unchanged, it just
+  // lives in AuthContext now, which was already calling it), and after
+  // that on sign-in, account switch and sign-out. It does NOT run on
+  // TOKEN_REFRESHED: `userId` is a string and a refresh doesn't change
+  // it, which is the same protection the old `decidedForUserRef` guard
+  // gave — except now it is structural rather than remembered.
   useEffect(() => {
-    let isMounted = true;
+    // AuthContext hasn't resolved the startup session yet. Hold the
+    // loader: deciding now would route on a session we don't have.
+    if (authLoading) return;
 
-    // Anti-brick watchdog. The launch gate (loading || onboardingDecision
-    // === 'pending') MUST always resolve. Both getSession() and the
-    // onboarding profile check touch the network, and RN fetch never
-    // times out — a stalled token refresh / query would otherwise pin the
-    // splash loader FOREVER (the founder's real-device brick, 2026-06-05).
-    // Backstop: if we're still unresolved after 7s, force the gate open
-    // (fail-open to Main). decideOnboarding's own 4s query timeout
-    // normally resolves first; this only catches a hang BEFORE that
-    // (e.g. getSession itself stalling).
-    const watchdog = setTimeout(() => {
-      if (!isMounted) return;
-      setLoading(false);
-      setOnboardingDecision((d) => (d === 'pending' ? 'skip' : d));
-    }, 7000);
+    let cancelled = false;
+    const isLaunchResolution = !authResolvedOnceRef.current;
+    authResolvedOnceRef.current = true;
 
-    const finalize = () => {
-      if (!isMounted) return;
-      clearTimeout(watchdog);
-      setLoading(false);
-      // Signal splash that auth/onboarding decision has landed.
+    const authUser = session?.user ?? null;
+    if (!authUser) {
+      // Signed out, or never signed in → auth stack. No onboarding check
+      // to run. Reset the gate to 'pending' so the NEXT sign-in holds the
+      // loader while it decides instead of flashing the empty home before
+      // the wizard ("新帳號一註冊就走精靈", founder).
+      setOnboardingGate({ forUser: null, decision: 'pending' });
       markReady('auth');
-    };
+      return;
+    }
 
-    // Hydrate persisted onboarding flag BEFORE anything else so we can
-    // decide the initial route synchronously once auth lands. This
-    // prevents the flash of Main-then-Onboarding that happens when the
-    // onboarding check races the navigator mount.
-    const hydrate = async () => {
-      // resolveStartupSession, NOT supabase.auth.getSession(). getSession()
-      // silently RETURNS NULL when it can't refresh an expired access token
-      // — which is exactly what happens offline — and this gate then routes
-      // a perfectly valid, still-persisted session to the login screen.
-      // That is the founder's "沒有網路就被登出" bug. resolveStartupSession
-      // only reports null when the auth client positively confirms there is
-      // no session; on any network failure or timeout it falls back to the
-      // session sitting in SecureStore. It also never blocks longer than its
-      // own short timeout, honouring 「啟動閘門不可 block 在網路上」.
-      const currentSession = await resolveStartupSession();
-      if (!isMounted) return;
-      setSession(currentSession);
+    // Identify user in PostHog so all events are linked to this account.
+    // Coalesce email to '' so the property is always a string —
+    // PostHog's `identify` properties accept strings/numbers/bools but
+    // not `undefined`, and Supabase's session.user.email is optional.
+    posthog.identify(authUser.id, { email: authUser.email ?? '' });
 
-      if (!currentSession?.user) {
-        // No session = auth stack. No onboarding check needed.
-        setOnboardingDecision('skip');
-        finalize();
-        return;
+    void (async () => {
+      const decision = await decideOnboarding(authUser.id, authUser.created_at);
+      if (cancelled) return;
+      // ONE atomic write: which account, and what we decided for it. The
+      // render gate below only trusts a decision whose `forUser` matches
+      // the session currently on screen.
+      setOnboardingGate({ forUser: authUser.id, decision });
+      // Signal splash that the auth/onboarding decision has landed.
+      markReady('auth');
+      if (!isLaunchResolution) {
+        // Resolve pending connections for newly registered users — the
+        // sign-in path only, exactly as before (a cold start goes through
+        // the capture effect above).
+        resolvePendingDeepLink(authUser.id, authUser.created_at);
       }
+    })();
 
-      // Identify user in PostHog so all events are linked to this account.
-      // Coalesce email to '' so the property is always a string —
-      // PostHog's `identify` properties accept strings/numbers/bools but
-      // not `undefined`, and Supabase's session.user.email is optional.
-      posthog.identify(currentSession.user.id, {
-        email: currentSession.user.email ?? '',
-      });
-
-      decidedForUserRef.current = currentSession.user.id;
-      await decideOnboarding(currentSession.user.id, currentSession.user.created_at);
-
-      // Defer push notification registration until after the first
-      // frame paints — frees the JS thread during the critical
-      // boot-to-interactive window.
-      const userId = currentSession.user.id;
-      InteractionManager.runAfterInteractions(() => {
-        // requestPermission:false — startup only refreshes the token when
-        // permission is ALREADY granted. The OS prompt itself is deferred
-        // to maybeAskPushPermission() at the first meaningful moment
-        // (first friend-add / first Notifications-tab open); a cold ask
-        // at launch is the highest-refusal timing on iOS. Founder 2026-06-29.
-        registerForPushNotifications(userId, { requestPermission: false }).catch(() => {});
-        // Reflect the user's unread count on the app icon. No
-        // separate badge toggle by design — the badge is the visible
-        // form of "you have unread notifications you opted into".
-        refreshBadgeFromServer(userId).catch(() => {});
-      });
-
-      finalize();
-    };
-
-    hydrate();
-
-    const applySession = async (newSession: Session | null) => {
-      if (!isMounted) return;
-      setSession(newSession);
-      if (newSession?.user) {
-        const uid = newSession.user.id;
-        // Only act on a genuine sign-in / account switch (user id
-        // changed) — skip token refreshes (same user) so we don't
-        // re-flash the loader or re-query every hour.
-        if (decidedForUserRef.current !== uid) {
-          decidedForUserRef.current = uid;
-          // Show the loader (not Main) WHILE we decide, so a fresh
-          // registration goes splash → wizard with NO flash of the
-          // empty home in between ("新帳號一註冊就走精靈", founder).
-          setOnboardingDecision('pending');
-          await decideOnboarding(uid, newSession.user.created_at);
-          // Resolve pending connections for newly registered users.
-          resolvePendingDeepLink(uid, newSession.user.created_at);
-        }
-      } else {
-        decidedForUserRef.current = null;
-        setOnboardingDecision('skip');
-      }
-      // Auth-state changes after initial load should never re-open
-      // the splash; just keep `loading` false.
-      setLoading(false);
-    };
-
-    // Listen for auth state changes (sign-in, sign-out, token refresh).
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
-        if (!isMounted) return;
-        if (newSession) {
-          await applySession(newSession);
-          return;
-        }
-        // NULL session. This is the second way the offline-logout bug
-        // fires: right after initialize, auth-js emits INITIAL_SESSION
-        // with null whenever the session load errored — and offline, a
-        // session whose access token needs refreshing ALWAYS errors. That
-        // null used to fall straight through to the auth stack, undoing
-        // whatever the launch gate had correctly resolved.
-        // Only SIGNED_OUT (storage actually cleared — explicit log out, or
-        // the server rejecting the refresh token) clears auth state; for
-        // anything else we check whether a session is still persisted and,
-        // if so, stay signed in and let autoRefreshToken retry.
-        const recovered = await recoverSessionForNullEvent(event);
-        if (!isMounted) return;
-        if (recovered) {
-          if (!sessionRef.current) await applySession(recovered);
-          else setLoading(false);
-          return;
-        }
-        await applySession(null);
-      }
-    );
+    // Defer push notification registration until after the first
+    // frame paints — frees the JS thread during the critical
+    // boot-to-interactive window.
+    const pushHandle = InteractionManager.runAfterInteractions(() => {
+      // requestPermission:false — startup only refreshes the token when
+      // permission is ALREADY granted. The OS prompt itself is deferred
+      // to maybeAskPushPermission() at the first meaningful moment
+      // (first friend-add / first Notifications-tab open); a cold ask
+      // at launch is the highest-refusal timing on iOS. Founder 2026-06-29.
+      registerForPushNotifications(authUser.id, { requestPermission: false }).catch(() => {});
+      // Reflect the user's unread count on the app icon. No
+      // separate badge toggle by design — the badge is the visible
+      // form of "you have unread notifications you opted into".
+      refreshBadgeFromServer(authUser.id).catch(() => {});
+    });
 
     return () => {
-      isMounted = false;
-      clearTimeout(watchdog);
-      subscription.unsubscribe();
+      cancelled = true;
+      if (pushHandle && typeof (pushHandle as any).cancel === 'function') {
+        (pushHandle as any).cancel();
+      }
     };
-    // markReady identity is stable from AppReadyContext; we intentionally
-    // run this effect exactly once per mount.
+    // `session` is read for id / email / created_at only, all constant
+    // for a given `userId`; adding it to the deps would re-run this on
+    // every refreshed session object — i.e. re-query hourly. markReady is
+    // stable (AppReadyContext); decideOnboarding and resolvePendingDeepLink
+    // are re-created each render by design and are only called here.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [userId, authLoading]);
 
   // Per-ACCOUNT onboarding gate, keyed on the SERVER flag
   // piktag_profiles.onboarding_completed — not a device-global flag and
@@ -712,7 +681,14 @@ export default function AppNavigator() {
   // interruption, and is testable (any incomplete account shows it).
   // The namespaced AsyncStorage key is now only a fast-path cache so a
   // returning, already-complete account skips the profile round-trip.
-  const decideOnboarding = async (userId: string, createdAt?: string) => {
+  //
+  // RETURNS the decision rather than setting state: the caller writes it
+  // together with the user id it belongs to, so a slow decision can never
+  // be applied to an account that has since changed (or signed out).
+  const decideOnboarding = async (
+    userId: string,
+    createdAt?: string,
+  ): Promise<Exclude<OnboardingDecision, 'pending'>> => {
     // Fail-open vs fail-closed is AGE-DEPENDENT. For an ESTABLISHED account
     // a transient query failure must never trap them in the wizard → 'skip'.
     // But for a BRAND-NEW account (created minutes ago — e.g. a fresh Google
@@ -728,8 +704,7 @@ export default function AppNavigator() {
       const cacheKey = onboardingFlagKey(userId);
       const cached = await AsyncStorage.getItem(cacheKey).catch(() => null);
       if (cached === 'true') {
-        setOnboardingDecision('skip');
-        return;
+        return 'skip';
       }
 
       // Bound the query with a timeout. It sits on the launch / sign-in
@@ -748,8 +723,7 @@ export default function AppNavigator() {
         new Promise((resolve) => setTimeout(() => resolve(TIMED_OUT), 4000)),
       ]);
       if (raced === TIMED_OUT) {
-        setOnboardingDecision(failDecision);
-        return;
+        return failDecision;
       }
 
       const { data: prof, error } = raced;
@@ -757,8 +731,7 @@ export default function AppNavigator() {
         // Established account: fail-OPEN — never trap a real user in the
         // wizard over a transient query error (finishable in EditProfile).
         // Fresh account: fail-CLOSED into the wizard (see above).
-        setOnboardingDecision(failDecision);
-        return;
+        return failDecision;
       }
 
       // Explicit server flag, set ONLY at full wizard completion
@@ -769,15 +742,14 @@ export default function AppNavigator() {
         // Cache the per-account result so later launches skip the query.
         // (Tab-tooltip backfill removed with the overlay, 2026-06-10.)
         AsyncStorage.setItem(cacheKey, 'true').catch(() => {});
-        setOnboardingDecision('skip');
-      } else {
-        // Null profile (fresh signup) or missing username/full_name
-        // (interrupted) → the wizard hasn't been completed. Show it.
-        setOnboardingDecision('required');
+        return 'skip';
       }
+      // Null profile (fresh signup) or missing username/full_name
+      // (interrupted) → the wizard hasn't been completed. Show it.
+      return 'required';
     } catch (err) {
       console.warn('Onboarding check error:', err);
-      setOnboardingDecision(failDecision);
+      return failDecision;
     }
   };
 
@@ -848,7 +820,38 @@ export default function AppNavigator() {
     }
   };
 
-  if (loading || onboardingDecision === 'pending') {
+  // ── The launch gate ───────────────────────────────────────────────
+  // Blocked while AuthContext is still resolving the startup session, or
+  // while a signed-in user's onboarding decision hasn't landed for THIS
+  // account yet. Signing OUT never blocks it: with no user there is
+  // nothing to decide, so the auth stack renders in the same commit that
+  // clears the credentials.
+  const decisionReady =
+    !userId ||
+    (onboardingGate.forUser === userId && onboardingGate.decision !== 'pending');
+  const gateBlocked = authLoading || !decisionReady;
+
+  // Anti-brick watchdog. The launch gate MUST always resolve. Both the
+  // startup session resolve and the onboarding profile check touch the
+  // network, and RN fetch never times out — a stalled refresh / query
+  // would otherwise pin the splash loader FOREVER (the founder's
+  // real-device brick, 2026-06-05). Backstop: 7s after the gate closes,
+  // force it open (fail-open to Main, same verdict the old watchdog's
+  // 'pending' → 'skip' produced). decideOnboarding's own 4s query timeout
+  // normally resolves first; this only catches a hang before that.
+  // Re-armed every time the gate closes again (sign-in, account switch),
+  // and reset when it opens — a watchdog that fires once per app launch
+  // would leave a later sign-in unprotected.
+  useEffect(() => {
+    if (!gateBlocked) {
+      setGateForcedOpen(false); // no-op when already false; no re-render
+      return;
+    }
+    const watchdog = setTimeout(() => setGateForcedOpen(true), 7000);
+    return () => clearTimeout(watchdog);
+  }, [gateBlocked]);
+
+  if (gateBlocked && !gateForcedOpen) {
     return (
       <View style={styles.loadingContainer}>
         <PageLoader />
@@ -856,8 +859,12 @@ export default function AppNavigator() {
     );
   }
 
-  return session ? (
-    <MainNavigator needsOnboarding={onboardingDecision === 'required'} />
+  return userId ? (
+    <MainNavigator
+      needsOnboarding={
+        onboardingGate.forUser === userId && onboardingGate.decision === 'required'
+      }
+    />
   ) : (
     <AuthNavigator />
   );

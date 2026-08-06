@@ -397,12 +397,30 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         return;
       }
 
-      // Empty result only clears if we have no cached data at all
-      if (connectionsData.length === 0 && !cached) {
+      // A CONFIRMED-successful empty result: the query is `fulfilled`,
+      // `connectionsError` is falsy and `connectionsData` is a real array
+      // (both checked above). supabase-js resolves a transport failure as
+      // `{data: null, error}` rather than rejecting, so those never get
+      // here — this is the server saying "this account has zero
+      // connections", which is the one case where clearing is correct.
+      //
+      // It has to clear BOTH layers. The old code returned early whenever
+      // a cache existed, which was harmless while the cache was
+      // memory-only with a 5-minute TTL, but the disk snapshot is
+      // deliberately TTL-less: a user who deleted every connection kept
+      // seeing the deleted friends on every cold start, forever, and
+      // going back online never corrected it.
+      //
+      // Safe to write before the follows guard below: the home list is
+      // the INTERSECTION of connections and follows, so zero connections
+      // is an empty list no matter what the follows query returns.
+      if (connectionsData.length === 0) {
         setConnections([]);
+        setUnreviewedCount(0);
+        setCache(CACHE_KEYS.CONNECTIONS, []);
+        void setPersistentCache(CACHE_KEYS.CONNECTIONS, user.id, []);
         return;
       }
-      if (connectionsData.length === 0) return;
 
       // Extract follow set (used below to scope the status query AND,
       // critically, to filter which connections are actually displayed).

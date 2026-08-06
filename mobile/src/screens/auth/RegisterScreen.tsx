@@ -99,9 +99,10 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
       }
       // else: signed in immediately (email-confirm OFF) — do NOT pop a
       // "註冊成功" alert. The onboarding wizard is the very next screen
-      // (AppNavigator.onAuthStateChange → 'required' for the brand-new,
-      // not-yet-completed account); a blocking alert would just race
-      // that transition. 新帳號一註冊就直接走精靈 (founder, 2026-06-05).
+      // (AuthContext's auth listener → AppNavigator decides 'required'
+      // for the brand-new, not-yet-completed account); a blocking alert
+      // would just race that transition.
+      // 新帳號一註冊就直接走精靈 (founder, 2026-06-05).
     } catch (err: any) {
       Alert.alert(t('common.error'), err.message || t('common.unknownError'));
     } finally {

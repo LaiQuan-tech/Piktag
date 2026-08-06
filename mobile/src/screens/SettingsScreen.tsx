@@ -436,8 +436,8 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
               }
 
               // Show confirmation, then sign out on OK. Ordering matters:
-              // if we signOut first, AppNavigator's onAuthStateChange
-              // listener swaps the stack to AuthNavigator mid-way through
+              // if we signOut first, SIGNED_OUT reaches AuthContext and
+              // AppNavigator swaps the stack to AuthNavigator mid-way through
               // the alert lifecycle, which looks janky. By gating signOut
               // behind the OK callback, the user sees a clean
               // acknowledgement → then a single transition to Login.
@@ -448,7 +448,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                   text: t('common.confirm', { defaultValue: 'OK' }),
                   onPress: async () => {
                     await supabase.auth.signOut();
-                    // onAuthStateChange → AppNavigator → AuthNavigator
+                    // SIGNED_OUT → AuthContext → AppNavigator → AuthNavigator
                     // (no manual navigation.reset needed)
                   },
                 }],
