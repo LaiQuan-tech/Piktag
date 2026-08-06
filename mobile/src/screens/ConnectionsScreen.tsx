@@ -405,11 +405,32 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       if (connectionsData.length === 0) return;
 
       // Extract follow set (used below to scope the status query AND,
-      // critically, to filter which connections are actually displayed)
+      // critically, to filter which connections are actually displayed).
+      //
+      // The follow set is NOT optional. Because the home list is the
+      // INTERSECTION of connections and follows, a failed follows query
+      // does not degrade the list — it empties it. Treating that as data
+      // meant one flaky query on venue wifi wrote `[]` into the in-memory
+      // AND the persistent cache; the disk layer has no TTL by design, so
+      // that empty snapshot then survived cold starts and readers, which
+      // treat an empty array as "no offline data", showed nothing until
+      // the next FULLY successful fetch. At an event that can be hours.
+      //
+      // So: a follows failure is a fetch failure. Return, keep whatever
+      // is already on screen, write nothing. `.value.error` matters as
+      // much as `.status` — supabase-js resolves its queries with
+      // `{data: null, error}` on a transport failure rather than
+      // rejecting, so allSettled reports 'fulfilled' either way.
+      if (followsRes.status !== 'fulfilled') {
+        console.error('Error fetching follows:', followsRes.reason);
+        return;
+      }
+      if (followsRes.value.error || !Array.isArray(followsRes.value.data)) {
+        console.error('Error fetching follows:', followsRes.value.error);
+        return;
+      }
       const followingIds = new Set<string>(
-        followsRes.status === 'fulfilled' && followsRes.value.data
-          ? (followsRes.value.data as any[]).map((f: any) => f.following_id)
-          : []
+        (followsRes.value.data as any[]).map((f: any) => f.following_id),
       );
 
       // Home list shows connections the viewer is actively following.
@@ -487,7 +508,21 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         semanticTypes: [],
       }));
       setCache(CACHE_KEYS.CONNECTIONS, merged);
-      void setPersistentCache(CACHE_KEYS.CONNECTIONS, user.id, merged);
+      // Disk snapshot: ONLY on a complete wave. `merged` is assembled from
+      // several independent queries, and unlike the in-memory copy (5-min
+      // TTL, dies with the process) this one has no TTL and outlives cold
+      // starts — a degraded snapshot written here is the offline friend
+      // list until the next fully successful fetch. WHO is in the list is
+      // already guaranteed complete by the follows guard above; the tag
+      // query is the one remaining part that can fail on its own, and it
+      // would strip every tag off every row. An untagged offline friend
+      // list is precisely what this cache exists to prevent, so we leave
+      // the previous good snapshot in place instead. Note the test is on
+      // `.error`, not on emptiness: a user who genuinely has no tags on
+      // anyone must still be able to refresh their cached list.
+      if (!myTagsRes.error) {
+        void setPersistentCache(CACHE_KEYS.CONNECTIONS, user.id, merged);
+      }
       setConnections(merged);
     } catch (err) {
       console.error('Unexpected error fetching connections:', err);

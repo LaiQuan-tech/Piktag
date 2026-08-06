@@ -25,8 +25,6 @@ import {
 } from 'expo-location';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
-import { clearPersistedSession } from '../lib/authSession';
-import { clearPersistentCaches } from '../lib/dataCache';
 import { setAnalyticsOptIn } from '../lib/analytics';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
@@ -88,7 +86,7 @@ const APP_VERSION = '1.0.0';
 
 export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   const insets = useSafeAreaInsets();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { t, i18n } = useTranslation();
 
   const [profile, setProfile] = useState<PiktagProfile | null>(null);
@@ -355,50 +353,25 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     Alert.alert(t('settings.alertAboutTitle'), t('settings.alertAboutMessage', { version: APP_VERSION }));
   };
 
-  const doLogout = async () => {
-    // Reliable logout even on a flaky network. auth-js `_signOut` POSTs
-    // /logout BEFORE clearing local storage (for EVERY scope), and RN
-    // fetch never times out — so a stalled call hangs (or a non-4xx
-    // network error early-returns) BEFORE `_removeSession()`, leaving the
-    // session in place and never emitting SIGNED_OUT. The button then
-    // looks dead — exactly what the founder hit on a real device
-    // (2026-06-05). Bound the call; on timeout/error, hard-clear the
-    // persisted SecureStore session so the app can't auto-restore it.
-    try {
-      await Promise.race([
-        supabase.auth.signOut({ scope: 'local' }),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('LOGOUT_TIMEOUT')), 3000),
-        ),
-      ]);
-    } catch {
-      // Force-remove the persisted session. Key derivation lives in
-      // lib/authSession (one source of truth — the offline-session
-      // fallback reads the very same key, so the two must never drift).
-      // Best effort — a relaunch then lands on the auth stack regardless.
-      await clearPersistedSession();
-      // Second local sign-out, now that storage is empty: `_useSession`
-      // resolves instantly with no session instead of stalling on a
-      // refresh, so `_removeSession()` runs and SIGNED_OUT is emitted —
-      // AppNavigator flips to the auth stack live, even with no network.
-      supabase.auth.signOut({ scope: 'local' }).catch(() => {});
-    }
-    // Drop this account's offline snapshots so a shared device doesn't
-    // show the previous user's profile or friend list.
-    await clearPersistentCaches(user?.id ?? null);
-  };
-
+  // Log out via AuthContext.signOut — the ONE implementation. This
+  // screen used to carry its own copy that raced `supabase.auth.signOut()`
+  // against a 3s timeout and did the credential clearing in the `catch`.
+  // Offline that catch never ran, because auth-js RESOLVES with
+  // `{error: AuthRetryableFetchError}` instead of throwing (throwOnError
+  // is off): storage was never cleared, SIGNED_OUT was never emitted, the
+  // user stayed signed in — while the success path had already deleted
+  // their offline caches. See the ordering argument in AuthContext.signOut.
   const handleLogout = async () => {
     if (Platform.OS === 'web') {
       const ok = window.confirm(t('settings.alertLogoutMessage', { defaultValue: '確定要登出嗎？' }));
-      if (ok) await doLogout();
+      if (ok) await signOut();
     } else {
       Alert.alert(t('settings.alertLogoutTitle'), t('settings.alertLogoutMessage'), [
         { text: t('common.cancel'), style: 'cancel' },
         {
           text: t('settings.alertLogoutButton'),
           style: 'destructive',
-          onPress: doLogout,
+          onPress: signOut,
         },
       ]);
     }

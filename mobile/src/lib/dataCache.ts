@@ -36,6 +36,44 @@ interface CacheEntry<T> {
 
 const cache = new Map<string, CacheEntry<unknown>>();
 
+// ── Which account does the in-memory Map belong to? ──────────────────
+// The disk layer below namespaces every key by user id. This Map does
+// NOT, and deliberately so: threading a user id through every
+// setCache/getCache call site would work right up until the one call
+// site that forgot, and that one would be the cross-account leak.
+//
+// Instead the whole Map has a single OWNER, and changing the owner
+// drops everything. Two properties that a "invalidate the keys we know
+// about on sign-out" approach cannot give us:
+//
+//  1. It cannot miss a key. An enumerated list rots — SearchScreen
+//     already caches popular tags under a screen-local key that is not
+//     in CACHE_KEYS at all, so any sign-out routine built from
+//     Object.values(CACHE_KEYS) would have been incomplete from the day
+//     it was written. `cache.clear()` has nothing to enumerate.
+//  2. It cannot be bypassed. It hangs off the single funnel every
+//     account change already passes through (AuthContext.applySession),
+//     so it fires on sign-in too — B signing in on A's device wipes the
+//     Map even if some future code path signs A out without telling us.
+//
+// TTL is irrelevant to this: the 5-minute default means a stale entry
+// is happily served to the NEXT account inside that window, which is
+// exactly the bug. Ownership, not expiry, is what separates accounts.
+let cacheOwnerId: string | null = null;
+
+/**
+ * Declare which user the in-memory cache currently belongs to. Any
+ * change (including to/from null on sign-out) empties it. Idempotent —
+ * re-asserting the same owner is free, so this is safe to call on every
+ * auth event, which is precisely how it is meant to be used.
+ */
+export function setCacheOwner(userId: string | null | undefined): void {
+  const nextOwner = userId ?? null;
+  if (nextOwner === cacheOwnerId) return;
+  cacheOwnerId = nextOwner;
+  cache.clear();
+}
+
 export function setCache<T>(key: string, data: T, ttlMs: number = DEFAULT_TTL_MS): void {
   cache.set(key, { data, expiresAt: Date.now() + ttlMs });
 }

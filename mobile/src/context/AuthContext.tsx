@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 import {
   setCache,
   getCache,
-  invalidateCache,
+  setCacheOwner,
   CACHE_KEYS,
   setPersistentCache,
   getPersistentCache,
@@ -77,6 +77,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setProfile((prev) => (prev ? prev : cached));
   }, []);
 
+  // Drop every trace of the outgoing account from THIS PROCESS: React
+  // state, Sentry's user tag, and the whole in-memory cache (see
+  // setCacheOwner — owner change wipes the Map, so no cache key can be
+  // forgotten here and leak into the next account). Deliberately
+  // synchronous and deliberately shared: both the auth listener and
+  // signOut() below go through it, so there is exactly one definition of
+  // "signed out" in the app.
+  //
+  // Does NOT touch SecureStore or the disk caches — those are I/O and
+  // belong to the explicit sign-out path, not to an auth event.
+  const clearLocalAccountState = useCallback(() => {
+    try { Sentry.setUser(null); } catch {}
+    sessionRef.current = null;
+    setSession(null);
+    setUser(null);
+    setProfile(null);
+    setCacheOwner(null);
+    setLoading(false);
+  }, []);
+
   const fetchProfileFor = useCallback(async (uid: string) => {
     if (!uid) return;
     // Coalesce concurrent calls for the same user.
@@ -111,23 +131,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const applySession = (nextSession: Session | null) => {
       if (cancelled) return;
-      setSession(nextSession);
-      setUser(nextSession?.user ?? null);
-      sessionRef.current = nextSession;
-      setLoading(false);
-      // Tag every Sentry event with the current user id so error reports
-      // can be triaged per-account. We only send the id — never email or
-      // phone — to keep PII out of crash logs.
       if (nextSession?.user) {
+        // Re-point the in-memory cache at this account BEFORE anything
+        // can read or write it. Same id => free no-op (the common case:
+        // TOKEN_REFRESHED fires all day). A DIFFERENT id => the Map is
+        // emptied, so user B can never be served a hit that user A left
+        // behind within the 5-minute TTL.
+        setCacheOwner(nextSession.user.id);
+        setSession(nextSession);
+        setUser(nextSession.user);
+        sessionRef.current = nextSession;
+        setLoading(false);
         lastUserIdRef.current = nextSession.user.id;
+        // Tag every Sentry event with the current user id so error reports
+        // can be triaged per-account. We only send the id — never email or
+        // phone — to keep PII out of crash logs.
         try { Sentry.setUser({ id: nextSession.user.id }); } catch {}
         // Disk first (instant, works offline), network second.
         void hydrateProfileFromDisk(nextSession.user.id);
         void fetchProfileFor(nextSession.user.id);
       } else {
-        try { Sentry.setUser(null); } catch {}
-        setProfile(null);
-        invalidateCache(CACHE_KEYS.PROFILE);
+        clearLocalAccountState();
         void clearPersistentCaches(lastUserIdRef.current);
         lastUserIdRef.current = null;
       }
@@ -163,7 +187,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       cancelled = true;
       subscription.unsubscribe();
     };
-  }, [fetchProfileFor, hydrateProfileFromDisk]);
+  }, [fetchProfileFor, hydrateProfileFromDisk, clearLocalAccountState]);
 
   const refreshProfile = useCallback(async () => {
     if (user?.id) {
@@ -185,6 +209,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  // THE log-out path. Every UI entry point calls this one function —
+  // SettingsScreen used to carry a second, subtly different copy, and
+  // the copy was the one that silently did nothing offline.
+  //
+  // Ordering here is the whole correctness argument, so: auth-js's
+  // `_signOut` runs inside `_useSession`, and `_useSession` ->
+  // `__loadSession` REFRESHES over the network when the stored access
+  // token is within EXPIRY_MARGIN_MS of expiring. Offline that comes
+  // back as an AuthRetryableFetchError, and `_signOut` bails on it with
+  // `return this._returnResult({ error: sessionError })` BEFORE it ever
+  // reaches `_removeSession()` (GoTrueClient.js:1587-1611). Note it
+  // RESOLVES with that error — `throwOnError` defaults to false and
+  // lib/supabase.ts does not enable it — so no amount of try/catch or
+  // Promise.race-then-reject sees it. The old Settings copy put the
+  // credential clearing in a `catch` that therefore never ran: offline,
+  // "log out" wiped the user's offline caches and left them signed in.
+  //
+  // With SecureStore emptied FIRST, `__loadSession` returns
+  // `{data:{session:null}, error:null}` with no network at all
+  // (GoTrueClient.js:1204), `_signOut` skips the /logout POST for want of
+  // an access token, reaches `_removeSession()` and emits SIGNED_OUT.
   const signOut = useCallback(async () => {
     // Clear onboarding flag first so a different user logging in on
     // this device still goes through onboarding. Non-fatal on failure —
@@ -193,25 +238,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await AsyncStorage.removeItem(ONBOARDING_COMPLETED_KEY);
     } catch {}
     const outgoingUserId = lastUserIdRef.current;
-    // Clear local storage FIRST, then sign out. Offline, auth-js's
-    // `_signOut` stalls inside `_useSession` trying to refresh an expired
-    // token and returns before it ever reaches `_removeSession()` — so the
-    // session survives and SIGNED_OUT is never emitted. With storage
-    // already empty, `_useSession` resolves instantly with no session and
-    // `_removeSession()` runs, emitting SIGNED_OUT even with no network.
-    // (Same reasoning as SettingsScreen.doLogout, 2026-06-05.)
+
+    // 1. Credentials. This — not the auth-js call — is what actually
+    //    logs the user out, and it is pure local I/O, so it cannot fail
+    //    for being offline.
     await clearPersistedSession();
-    try {
-      await supabase.auth.signOut({ scope: 'local' });
-    } catch {
-      // The storage clear above is what actually logs the user out; the
-      // event emission is a bonus.
-    }
-    invalidateCache(CACHE_KEYS.PROFILE);
-    invalidateCache(CACHE_KEYS.CONNECTIONS);
-    invalidateCache(CACHE_KEYS.NOTIFICATIONS);
+
+    // 2. That account's data, in this order so there is no window where
+    //    the app is signed out but the previous user's snapshots are
+    //    still readable, nor one where the caches are gone but the user
+    //    is still signed in.
     await clearPersistentCaches(outgoingUserId);
-  }, []);
+
+    // 3. Flip the app to signed-out ourselves. We do NOT wait for
+    //    SIGNED_OUT to come back and do it for us: it arrives from step
+    //    4, which we are not allowed to block on. (The event still
+    //    arrives and re-runs applySession(null) — idempotent.)
+    lastUserIdRef.current = null;
+    clearLocalAccountState();
+
+    // 4. Tell auth-js, so it drops its own in-memory session, stops the
+    //    auto-refresh timer and emits SIGNED_OUT to any other listener.
+    //    Not awaited: a refresh already in flight can hold auth-js's
+    //    internal call queue for up to ~30s offline, and the user is
+    //    already fully signed out by steps 1-3. If a refresh does land
+    //    in between and re-persists a session, this call is queued
+    //    behind it and removes it again.
+    void supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+  }, [clearLocalAccountState]);
 
   const value = useMemo<AuthContextValue>(() => ({
     user,

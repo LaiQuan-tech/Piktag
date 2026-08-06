@@ -261,7 +261,7 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
         (await supabase.auth.getUser()).data?.user?.id ??
         null;
       if (!userId) return;
-      const [{ data: prof }, { data: tagRows }] = await Promise.all([
+      const [{ data: prof }, { data: tagRows, error: tagsError }] = await Promise.all([
         supabase.from('piktag_profiles').select('username, full_name').eq('id', userId).single(),
         supabase
           .from('piktag_user_tags')
@@ -279,8 +279,26 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
           // most six identity tags, so that is exactly what we store.
           tags: (tagRows || []).map((r: any) => r.tag?.name).filter(Boolean),
         };
-        setMyQr(card);
-        void setPersistentCache(CACHE_KEYS.MY_QR, userId, card);
+        if (tagsError) {
+          // The two queries above are independent: on venue wifi the
+          // profile row can land while the tag query fails. `tagRows`
+          // is then null and `card.tags` is `[]` — writing THAT to a
+          // cache with no TTL would permanently downgrade the offline
+          // card to a bare handle, and the tags are the whole reason
+          // this snapshot exists. Keep the tags already on screen (or
+          // from the disk snapshot loaded above) and skip the write; the
+          // next successful flip refreshes both. An empty result with NO
+          // error is a real "this user has no public tags" and falls
+          // through to the normal path below.
+          setMyQr((prev) =>
+            prev && prev.username === card.username && prev.tags.length > 0
+              ? { ...card, tags: prev.tags }
+              : card,
+          );
+        } else {
+          setMyQr(card);
+          void setPersistentCache(CACHE_KEYS.MY_QR, userId, card);
+        }
       }
     } catch {
       // Non-fatal — the cached card above stays on screen.
