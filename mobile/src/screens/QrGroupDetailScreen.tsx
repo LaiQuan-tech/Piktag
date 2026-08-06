@@ -133,6 +133,11 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
   // plus an empty list means "we could not ask", which must never be
   // rendered as "nobody has scanned this QR yet".
   const [membersKnown, setMembersKnown] = useState(false);
+  // Did an attempt actually FAIL, as opposed to not having happened yet?
+  // Without this, `!membersKnown` alone covers both, and the section
+  // announced "couldn't load" during the perfectly normal window between
+  // the group row arriving and the member RPC answering.
+  const [membersFailed, setMembersFailed] = useState(false);
   const [loading, setLoading] = useState(true);
   // The server answered and said this group isn't ours / doesn't exist.
   // Kept apart from "we couldn't reach the server" so the placeholder
@@ -213,6 +218,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
     setGroup(null);
     setMembers([]);
     setMembersKnown(false);
+    setMembersFailed(false);
     setCurrentTags([]);
     setSelectedFilterTag(null);
     setQrUsername('');
@@ -275,7 +281,14 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         // the server DID answer, and right now it demonstrably didn't.
         // Leaving it set produced the contradictory placeholder that
         // said 載入失敗 while hiding the one line that explains why.
-        if (onScreen()) setNotFound(false);
+        // The member RPC below is never reached on this path, so nothing
+        // else would ever mark the section as attempted — and "we
+        // couldn't reach the server" is exactly as true of the members
+        // as it is of the row.
+        if (onScreen()) {
+          setNotFound(false);
+          setMembersFailed(true);
+        }
         return;
       }
       if (!g) {
@@ -357,6 +370,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         if (onScreen()) {
           setMembers(freshMembers);
           setMembersKnown(true);
+          setMembersFailed(false);
         }
       } else {
         // No answer. Leave freshMembers null so the snapshot write below
@@ -366,6 +380,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         // hydration can still fill this section in, because
         // liveMembersDoneRef is still down.
         console.warn('[QrGroupDetail] members fetch failed:', mErr);
+        if (onScreen()) setMembersFailed(true);
       }
 
       // P0: fetch the "Vibe-to-Vibe" reactivation tags. Wrapped
@@ -481,6 +496,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         const cachedMembers = cached.members;
         setMembers((prev) => (prev.length > 0 ? prev : cachedMembers));
         setMembersKnown(true);
+        setMembersFailed(false);
       }
       if (!liveTagsDoneRef.current && cached.currentTags) {
         const cachedTags = cached.currentTags;
@@ -1019,14 +1035,21 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
                   <View style={styles.memberEmpty}>
                     <Text style={styles.memberEmptyText}>
                       {!membersKnown
-                        ? // We could not ask. Saying "nobody has scanned
-                          // this QR yet" to a host standing in front of
-                          // the room that just scanned it is the one
-                          // thing this screen must never do.
-                          `${t('common.loadFailed', { defaultValue: '載入失敗' })} — ${t(
-                            'common.checkConnection',
-                            { defaultValue: '請檢查網路連線後重試' },
-                          )}`
+                        ? membersFailed
+                          ? // We asked and could not get an answer.
+                            // Saying "nobody has scanned this QR yet" to
+                            // a host standing in front of the room that
+                            // just scanned it is the one thing this
+                            // screen must never do.
+                            `${t('common.loadFailed', { defaultValue: '載入失敗' })} — ${t(
+                              'common.checkConnection',
+                              { defaultValue: '請檢查網路連線後重試' },
+                            )}`
+                          : // Not asked yet. Claiming a failure here
+                            // would be its own lie, and this window is
+                            // ordinary: the row arrives before the
+                            // member list does.
+                            t('common.processing', { defaultValue: '處理中' })
                         : filterEntry != null
                           ? t('qrGroup.membersFilterEmpty', {
                               defaultValue: '這個 Tag 中沒有貼這個標籤的人',

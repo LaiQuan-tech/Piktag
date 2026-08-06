@@ -85,9 +85,11 @@ push。**不必再確認工作區**(舊版寫「已派 agent 修、接手先看 
    還會把它們寫回自己名下、一鍵套進自己的 QR。有 `piktag_tag_presets` 表可回補,
    只有離線存的 `local_...` preset 會消失。
 
-**其餘仍未處理的裝置全域鍵**(同一類,但嚴重度低於上面幾個):
-`piktag_recent_searches`、`piktag_viewed_ask_ids`、`piktag_burst_tag_prompted_v1`、
-`piktag_chat_send_queue_v1`(有 sender_id 過濾,不外洩但殘留)。
+**其餘仍未處理的裝置全域鍵**:`piktag_viewed_ask_ids`、
+`piktag_burst_tag_prompted_v1`。兩者都不含可辨識的使用者內容
+(看過哪些 Ask 的 id、是否提示過爆發標籤),所以嚴重度低於上面幾個。
+`piktag_recent_searches` 與 `piktag_chat_send_queue_v1` 已於
+2026-08-07 處理,見下方驗收節。
 
 ## 鐵則(別破壞)
 
@@ -131,7 +133,11 @@ _2026-08-06 更新。前一個 session 的 context 用盡於此;所有成果已 
   `piktag_viewed_ask_ids`、`piktag_burst_tag_prompted_v1`。
   本批已修掉同類的 `piktag_last_qr`,其餘未處理。
   (2026-08-07 後續:`piktag_recent_locations` 已於 `6c075c8`、
-  `piktag_user_presets` 已於 `ccd9ca4` 遷成 per-user,詳見上方待辦節。)
+  `piktag_user_presets` 已於 `ccd9ca4`、`piktag_recent_searches` 與
+  `piktag_ai_tags_*` 已於 `a646c760` 遷成 per-user;
+  `piktag_chat_send_queue_v1` 維持裝置全域但改為登出時清除。
+  仍未處理的只剩 `piktag_viewed_ask_ids` 與
+  `piktag_burst_tag_prompted_v1`。詳見上方待辦節與下方驗收節。)
 
 **複驗確認健全(不必重查)**:找不到任何會把合法使用者鎖在登入頁的路徑;
 全新安裝/損毀 blob/token 撤銷/超過 30 天 全部導向正確且可復原;離線登出的
@@ -172,7 +178,8 @@ captive portal 回 4xx 仍會被 auth-js 自己讀成登出(超出本次範圍,
 
 後果:主辦人在弱訊號現場,自己 40 人的活動被寫成「還沒有人掃」,
 而且會被固化進離線快取。這正是本批要擋的「謊稱」,只是發生在成員面
-而不是清單面(清單面 `QrGroupListScreen.tsx:715` 是對的)。
+而不是清單面(清單面是對的:`QrGroupListScreen.tsx:160-169` 設 `loadFailed`,
+渲染時據以選 `listLoadFailed` 而非 `listEmpty`)。
 
 **實際修法(三處,無新 i18n key)**:
 - `liveFetchDoneRef` 拆成 `liveGroupDoneRef` / `liveMembersDoneRef` /
@@ -224,6 +231,18 @@ captive portal 回 4xx 仍會被 auth-js 自己讀成登出(超出本次範圍,
     送出路徑沒有 user id 可用,為了它重接整條 chat send path 風險不划算。
     代價講明:登出會丟掉尚未送出的訊息。這是刻意取捨 —— 登出是使用者自己
     按的,把某人未送出的訊息留在他已經還回去的手機上更糟。
+
+### 第二輪驗收(2026-08-07,針對上述修復)
+
+新的 fresh-context 驗收者判 **SHIP**,提出 8 項,已全數修掉:成員空狀態分不出
+「載入中」與「載入失敗」(加 `membersFailed`,未嘗試時顯示 `common.processing`);
+文件自相矛盾(待辦節與驗收節對同兩個鍵一說未處理一說已處理);
+`piktag_ai_tags_*` 的刪除寫在快取命中的 `return` 之後、且不在任何清除清單裡
+(移到 return 前,並加進 `clearPersistentCaches`);裝置全域鍵的清除被
+`if (!userId) return` 擋住(移到守衛之前);`chatSendQueue` 繞過 owner 護欄
+(加 `hasCacheOwner()` 檢查);preset prune 的存檔競態(加 `savingPresetRef`,
+存檔進行中不 prune);`QrGroupListScreen` 檔頭註解把 nulls 排序講反;
+文件行號引用失效。
 
 ### 仍未處理(低,已知)
 

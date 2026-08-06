@@ -10,8 +10,11 @@
 //
 // Drag-reorder writes back sort_position values 0..N-1 to the rows
 // in their new visual order on drop. Once any reorder happens, the
-// list permanently follows sort_position; newly-created groups land
-// at the top with sort_position = NULL until the user reorders.
+// list permanently follows sort_position; newly-created groups keep
+// sort_position = NULL and, because the query orders nulls LAST, sort
+// to the BOTTOM until the user reorders. (This said "at the top" and
+// was simply wrong — the cache trim below depends on getting it right,
+// since it is why the newest group was the one the cap discarded.)
 //
 // Delete uses a confirm Alert + SQL DELETE — cascades into
 // piktag_pending_connections via the existing FK. Connections rows

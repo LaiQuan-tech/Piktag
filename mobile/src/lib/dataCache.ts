@@ -389,19 +389,35 @@ export async function dropPersistentQrGroupDetail(
  * profile or friend list.
  */
 export async function clearPersistentCaches(userId: string | null | undefined): Promise<void> {
-  if (!userId) return;
   // Drop ownership FIRST, and here rather than at the call site, so the
   // guard in setPersistentCache is already armed while the removes below
   // are running. Otherwise a snapshot resolving in that window writes
   // itself back in behind the sweep. Idempotent, and the sign-out path
   // sets it again a moment later.
   setCacheOwner(null);
+
+  // Device-global keys BEFORE the userId guard, because they do not
+  // depend on one. Sign-out can legitimately arrive without a user id —
+  // a duplicate null auth event, or a device that was already signed out
+  // — and behind the guard this list would simply not run, leaving the
+  // superseded blobs (the old chat queue's unsent message bodies among
+  // them) on a device its owner has left. Removing them can never lose
+  // anything a user could still see, since nothing reads them.
+  try {
+    await AsyncStorage.multiRemove([...SUPERSEDED_GLOBAL_KEYS]);
+  } catch {
+    // best-effort
+  }
+
+  if (!userId) return;
   try {
     await AsyncStorage.multiRemove([
       ...Object.values(CACHE_KEYS).map((key) => persistKey(key, userId)),
-      // Not namespaced, so not derivable from CACHE_KEYS — see the list
-      // for why each one is safe to delete outright.
-      ...SUPERSEDED_GLOBAL_KEYS,
+      // Per-user, but namespaced by ITS OWN convention rather than
+      // persistKey's, so it cannot be derived from CACHE_KEYS. Screens
+      // delete it on their own too, but only on the path where the cache
+      // missed — a user whose suggestions are still fresh never runs it.
+      `piktag_ai_tags_${userId}`,
     ]);
   } catch {
     // best-effort

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -145,6 +145,12 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const [showPresetNameInput, setShowPresetNameInput] = useState(false);
   const [presetName, setPresetName] = useState('');
   const [savingPreset, setSavingPreset] = useState(false);
+  // True from the moment a save starts until its row is in state. A
+  // refetch that overlaps a save issued its SELECT before the INSERT
+  // landed, so the new preset is legitimately missing from the answer —
+  // and the prune in loadPresets would read that as "deleted elsewhere"
+  // and destroy it. While this is set, the prune is skipped.
+  const savingPresetRef = useRef(false);
   const [showPresetNameModal, setShowPresetNameModal] = useState(false);
   const [presetNameInput, setPresetNameInput] = useState('');
 
@@ -255,12 +261,20 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         } else if (data) {
           const merged = data as TagPreset[];
           const dbIds = new Set(merged.map(p => p.id));
+          // While a save is in flight this refetch cannot be trusted to
+          // be complete: its SELECT may predate the INSERT, so a preset
+          // being created right now is absent for a perfectly innocent
+          // reason. Keep everything in that case, and let the next load
+          // do the pruning.
+          const pruneDeleted = !savingPresetRef.current;
           for (const lp of localPresets) {
             // Keep presets that only ever existed on this device (saved
             // while offline, never inserted). Anything with a real id
             // that the server did NOT return has been deleted elsewhere,
             // so it must not be resurrected.
-            if (!dbIds.has(lp.id) && lp.id.startsWith('local_')) merged.push(lp);
+            if (!dbIds.has(lp.id) && (!pruneDeleted || lp.id.startsWith('local_'))) {
+              merged.push(lp);
+            }
           }
           setPresets(merged);
           await setPersistentCache(CACHE_KEYS.TAG_PRESETS, user.id, merged);
@@ -654,6 +668,9 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
   const handleConfirmSavePreset = async () => {
     if (!presetNameInput.trim() || !user) return;
+    // A ref, not the `savingPreset` state: loadPresets reads this from a
+    // closure, and state would be stale there exactly when it matters.
+    savingPresetRef.current = true;
     setSavingPreset(true);
     setShowPresetNameModal(false);
 
@@ -698,6 +715,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       return updated;
     });
     Alert.alert(t('addTag.alertPresetSavedTitle'), t('addTag.alertPresetSavedMessage', { name: localPreset.name }));
+    savingPresetRef.current = false;
     setSavingPreset(false);
   };
 

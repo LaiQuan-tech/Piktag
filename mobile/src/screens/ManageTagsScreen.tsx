@@ -105,6 +105,12 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       // and clearPersistentCaches() sweeps exactly that object, so
       // sign-out could not reach it. The legacy key is deleted below,
       // not read: the cost is one regenerated suggestion set.
+      // Before the early return below, not after: on a cache hit that
+      // return fires, and a user whose suggestions stay fresh would
+      // never reach the cleanup at all. (clearPersistentCaches also
+      // removes this key on sign-out, so neither path is load-bearing
+      // alone.)
+      void AsyncStorage.removeItem(`piktag_ai_tags_${user.id}`).catch(() => {});
       const cached = await getPersistentCache<AiTagCache>(CACHE_KEYS.AI_TAGS, user.id);
       if (cached && Array.isArray(cached.suggestions) && cached.suggestions.length > 0) {
         if (Date.now() - cached.timestamp < AI_TAG_CACHE_TTL_MS) {
@@ -112,7 +118,6 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
           return;
         }
       }
-      void AsyncStorage.removeItem(`piktag_ai_tags_${user.id}`).catch(() => {});
 
       // Run profile + existing-tags fetches in parallel — both feed the
       // AI prompt and are independent.
