@@ -15,6 +15,7 @@ import {
 } from 'lucide-react-native';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { resolveStartupSession, recoverSessionForNullEvent } from '../lib/authSession';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useAppReady } from '../context/AppReadyContext';
@@ -575,7 +576,16 @@ export default function AppNavigator() {
     // prevents the flash of Main-then-Onboarding that happens when the
     // onboarding check races the navigator mount.
     const hydrate = async () => {
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      // resolveStartupSession, NOT supabase.auth.getSession(). getSession()
+      // silently RETURNS NULL when it can't refresh an expired access token
+      // — which is exactly what happens offline — and this gate then routes
+      // a perfectly valid, still-persisted session to the login screen.
+      // That is the founder's "沒有網路就被登出" bug. resolveStartupSession
+      // only reports null when the auth client positively confirms there is
+      // no session; on any network failure or timeout it falls back to the
+      // session sitting in SecureStore. It also never blocks longer than its
+      // own short timeout, honouring 「啟動閘門不可 block 在網路上」.
+      const currentSession = await resolveStartupSession();
       if (!isMounted) return;
       setSession(currentSession);
 
@@ -619,33 +629,59 @@ export default function AppNavigator() {
 
     hydrate();
 
+    const applySession = async (newSession: Session | null) => {
+      if (!isMounted) return;
+      setSession(newSession);
+      if (newSession?.user) {
+        const uid = newSession.user.id;
+        // Only act on a genuine sign-in / account switch (user id
+        // changed) — skip token refreshes (same user) so we don't
+        // re-flash the loader or re-query every hour.
+        if (decidedForUserRef.current !== uid) {
+          decidedForUserRef.current = uid;
+          // Show the loader (not Main) WHILE we decide, so a fresh
+          // registration goes splash → wizard with NO flash of the
+          // empty home in between ("新帳號一註冊就走精靈", founder).
+          setOnboardingDecision('pending');
+          await decideOnboarding(uid, newSession.user.created_at);
+          // Resolve pending connections for newly registered users.
+          resolvePendingDeepLink(uid, newSession.user.created_at);
+        }
+      } else {
+        decidedForUserRef.current = null;
+        setOnboardingDecision('skip');
+      }
+      // Auth-state changes after initial load should never re-open
+      // the splash; just keep `loading` false.
+      setLoading(false);
+    };
+
     // Listen for auth state changes (sign-in, sign-out, token refresh).
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, newSession) => {
+      async (event, newSession) => {
         if (!isMounted) return;
-        setSession(newSession);
-        if (newSession?.user) {
-          const uid = newSession.user.id;
-          // Only act on a genuine sign-in / account switch (user id
-          // changed) — skip token refreshes (same user) so we don't
-          // re-flash the loader or re-query every hour.
-          if (decidedForUserRef.current !== uid) {
-            decidedForUserRef.current = uid;
-            // Show the loader (not Main) WHILE we decide, so a fresh
-            // registration goes splash → wizard with NO flash of the
-            // empty home in between ("新帳號一註冊就走精靈", founder).
-            setOnboardingDecision('pending');
-            await decideOnboarding(uid, newSession.user.created_at);
-            // Resolve pending connections for newly registered users.
-            resolvePendingDeepLink(uid, newSession.user.created_at);
-          }
-        } else {
-          decidedForUserRef.current = null;
-          setOnboardingDecision('skip');
+        if (newSession) {
+          await applySession(newSession);
+          return;
         }
-        // Auth-state changes after initial load should never re-open
-        // the splash; just keep `loading` false.
-        setLoading(false);
+        // NULL session. This is the second way the offline-logout bug
+        // fires: right after initialize, auth-js emits INITIAL_SESSION
+        // with null whenever the session load errored — and offline, a
+        // session whose access token needs refreshing ALWAYS errors. That
+        // null used to fall straight through to the auth stack, undoing
+        // whatever the launch gate had correctly resolved.
+        // Only SIGNED_OUT (storage actually cleared — explicit log out, or
+        // the server rejecting the refresh token) clears auth state; for
+        // anything else we check whether a session is still persisted and,
+        // if so, stay signed in and let autoRefreshToken retry.
+        const recovered = await recoverSessionForNullEvent(event);
+        if (!isMounted) return;
+        if (recovered) {
+          if (!sessionRef.current) await applySession(recovered);
+          else setLoading(false);
+          return;
+        }
+        await applySession(null);
       }
     );
 

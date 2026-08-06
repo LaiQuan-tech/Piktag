@@ -17,6 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
+import { useAuthProfile } from '../context/AuthContext';
 import { prewarmScanBusinessCard, startScanJob } from '../lib/scanCard';
 import QrNameCard from '../components/QrNameCard';
 import ScanSuccessStinger from '../components/stingers/ScanSuccessStinger';
@@ -70,6 +71,9 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView | null>(null);
+  // Already-hydrated profile (disk-backed in AuthContext) — the offline
+  // source for the "show my QR" card.
+  const { profile: ctxProfile } = useAuthProfile();
 
   // 'scan' = camera (QR + card auto-detect); 'show' = display MY QR to be scanned.
   const [mode, setMode] = useState<'scan' | 'show'>('scan');
@@ -210,15 +214,29 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
   const flipToShow = useCallback(async () => {
     setMode('show');
     if (myQr) return;
+    // Offline-first: paint from the profile AuthContext already holds.
+    // That copy is disk-backed, so it survives a cold start with no
+    // network — without this the card sat on a spinner forever at a venue,
+    // which is the one moment showing your QR actually matters. It also
+    // takes a round-trip out of a latency-critical flip.
+    if (ctxProfile?.username) {
+      setMyQr({
+        username: ctxProfile.username,
+        name: ctxProfile.full_name || ctxProfile.username,
+        tags: [],
+      });
+    }
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      // `getUser()` is a NETWORK call; prefer the id we already have.
+      const userId =
+        ctxProfile?.id ?? (await supabase.auth.getUser()).data?.user?.id ?? null;
+      if (!userId) return;
       const [{ data: prof }, { data: tagRows }] = await Promise.all([
-        supabase.from('piktag_profiles').select('username, full_name').eq('id', user.id).single(),
+        supabase.from('piktag_profiles').select('username, full_name').eq('id', userId).single(),
         supabase
           .from('piktag_user_tags')
           .select('position, tag:piktag_tags!tag_id(name)')
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .eq('is_private', false)
           .order('position', { ascending: true })
           .limit(6),
@@ -231,9 +249,9 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
         });
       }
     } catch {
-      // Non-fatal — the show view falls back to a bare QR if the fetch fails.
+      // Non-fatal — the cached card above stays on screen.
     }
-  }, [myQr]);
+  }, [myQr, ctxProfile]);
 
   const close = useCallback(() => {
     if (navigation.canGoBack()) navigation.goBack();

@@ -2,7 +2,20 @@ import React, { createContext, useContext, useEffect, useMemo, useRef, useState,
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Sentry from '@sentry/react-native';
 import { supabase } from '../lib/supabase';
-import { setCache, getCache, invalidateCache, CACHE_KEYS } from '../lib/dataCache';
+import {
+  setCache,
+  getCache,
+  invalidateCache,
+  CACHE_KEYS,
+  setPersistentCache,
+  getPersistentCache,
+  clearPersistentCaches,
+} from '../lib/dataCache';
+import {
+  resolveStartupSession,
+  recoverSessionForNullEvent,
+  clearPersistedSession,
+} from '../lib/authSession';
 import type { User, Session } from '@supabase/supabase-js';
 import type { PiktagProfile } from '../types';
 
@@ -45,6 +58,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
   const inflightProfileFor = useRef<string | null>(null);
+  // Mirrors `session` for the auth listener, which needs to know whether
+  // we already hold a session without re-subscribing on every change.
+  const sessionRef = useRef<Session | null>(null);
+  // Last signed-in user id, kept so sign-out can clear that account's
+  // persisted caches (the session itself is already gone by then).
+  const lastUserIdRef = useRef<string | null>(null);
+
+  // Paint the last-known profile from disk. Offline (or on a slow
+  // network) this is the difference between a usable profile + a
+  // scannable personal QR and a blank page with an empty-username QR —
+  // and showing your QR is THE thing you do at an event. Never
+  // overwrites a fresher row that already landed.
+  const hydrateProfileFromDisk = useCallback(async (uid: string) => {
+    if (!uid) return;
+    const cached = await getPersistentCache<PiktagProfile>(CACHE_KEYS.AUTH_PROFILE, uid);
+    if (!cached) return;
+    setProfile((prev) => (prev ? prev : cached));
+  }, []);
 
   const fetchProfileFor = useCallback(async (uid: string) => {
     if (!uid) return;
@@ -63,7 +94,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Mirror into the existing in-memory cache so legacy readers
         // that still look at CACHE_KEYS.PROFILE stay warm.
         setCache(CACHE_KEYS.PROFILE, { profile: data });
+        // ...and to disk, so the next cold start has something to show
+        // before (or without) a successful network round-trip.
+        void setPersistentCache(CACHE_KEYS.AUTH_PROFILE, uid, data);
       }
+      // A failed fetch leaves `profile` exactly as it was. It is a
+      // network problem, never a reason to blank the user's own data.
     } finally {
       inflightProfileFor.current = null;
       setProfileLoading(false);
@@ -72,41 +108,62 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+
+    const applySession = (nextSession: Session | null) => {
       if (cancelled) return;
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
+      sessionRef.current = nextSession;
       setLoading(false);
       // Tag every Sentry event with the current user id so error reports
       // can be triaged per-account. We only send the id — never email or
       // phone — to keep PII out of crash logs.
-      if (currentSession?.user) {
-        try { Sentry.setUser({ id: currentSession.user.id }); } catch {}
-        void fetchProfileFor(currentSession.user.id);
-      } else {
-        try { Sentry.setUser(null); } catch {}
-      }
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
-      setUser(newSession?.user ?? null);
-      setLoading(false);
-      if (newSession?.user) {
-        try { Sentry.setUser({ id: newSession.user.id }); } catch {}
-        void fetchProfileFor(newSession.user.id);
+      if (nextSession?.user) {
+        lastUserIdRef.current = nextSession.user.id;
+        try { Sentry.setUser({ id: nextSession.user.id }); } catch {}
+        // Disk first (instant, works offline), network second.
+        void hydrateProfileFromDisk(nextSession.user.id);
+        void fetchProfileFor(nextSession.user.id);
       } else {
         try { Sentry.setUser(null); } catch {}
         setProfile(null);
         invalidateCache(CACHE_KEYS.PROFILE);
+        void clearPersistentCaches(lastUserIdRef.current);
+        lastUserIdRef.current = null;
       }
+    };
+
+    // Startup: resolveStartupSession falls back to the persisted session
+    // whenever `getSession()` can't VERIFY (offline / timeout), instead of
+    // reporting null and dumping the user on the login screen.
+    void resolveStartupSession().then(applySession);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+      if (cancelled) return;
+      if (newSession) {
+        applySession(newSession);
+        return;
+      }
+      // A null session is only a sign-out when auth-js says SIGNED_OUT
+      // (storage cleared: explicit log out, or the server rejected the
+      // token). An INITIAL_SESSION carrying null after an offline refresh
+      // failure is a NETWORK symptom — keep the user where they are.
+      void recoverSessionForNullEvent(event).then((recovered) => {
+        if (cancelled) return;
+        if (recovered) {
+          if (!sessionRef.current) applySession(recovered);
+          else setLoading(false);
+          return;
+        }
+        applySession(null);
+      });
     });
 
     return () => {
       cancelled = true;
       subscription.unsubscribe();
     };
-  }, [fetchProfileFor]);
+  }, [fetchProfileFor, hydrateProfileFromDisk]);
 
   const refreshProfile = useCallback(async () => {
     if (user?.id) {
@@ -135,10 +192,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await AsyncStorage.removeItem(ONBOARDING_COMPLETED_KEY);
     } catch {}
-    await supabase.auth.signOut();
+    const outgoingUserId = lastUserIdRef.current;
+    // Clear local storage FIRST, then sign out. Offline, auth-js's
+    // `_signOut` stalls inside `_useSession` trying to refresh an expired
+    // token and returns before it ever reaches `_removeSession()` — so the
+    // session survives and SIGNED_OUT is never emitted. With storage
+    // already empty, `_useSession` resolves instantly with no session and
+    // `_removeSession()` runs, emitting SIGNED_OUT even with no network.
+    // (Same reasoning as SettingsScreen.doLogout, 2026-06-05.)
+    await clearPersistedSession();
+    try {
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch {
+      // The storage clear above is what actually logs the user out; the
+      // event emission is a bonus.
+    }
     invalidateCache(CACHE_KEYS.PROFILE);
     invalidateCache(CACHE_KEYS.CONNECTIONS);
     invalidateCache(CACHE_KEYS.NOTIFICATIONS);
+    await clearPersistentCaches(outgoingUserId);
   }, []);
 
   const value = useMemo<AuthContextValue>(() => ({

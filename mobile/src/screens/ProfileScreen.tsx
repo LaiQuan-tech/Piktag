@@ -27,7 +27,13 @@ import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthProfile } from '../context/AuthContext';
-import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
+import {
+  getCache,
+  setCache,
+  CACHE_KEYS,
+  setPersistentCache,
+  getPersistentCache,
+} from '../lib/dataCache';
 import { openOrCopyBiolink } from '../lib/biolinks';
 import QrCodeModal from '../components/QrCodeModal';
 import RingedAvatar from '../components/RingedAvatar';
@@ -167,37 +173,62 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   useEffect(() => {
     if (!userId) return;
     if (!profile) return; // profile is the anchor; no point caching without it
-    setCache(CACHE_KEYS.PROFILE, {
+    // Never write while the first load is still in flight. On mount the
+    // list slices are still empty, and racing that half-empty snapshot
+    // onto disk would clobber a good offline snapshot before the loader
+    // below has had a chance to read it back.
+    if (loading) return;
+    const snapshot = {
       profile,
       userTags,
       biolinks,
       followerCount,
       friendCount,
-    });
-  }, [userId, profile, userTags, biolinks, followerCount, friendCount]);
+    };
+    setCache(CACHE_KEYS.PROFILE, snapshot);
+    // Same snapshot to disk. The in-memory copy dies with the process, so
+    // without this an offline COLD start at a venue paints an empty
+    // profile — and hands QrCodeModal an empty username, i.e. a QR nobody
+    // can scan. This is the single most important thing to have offline.
+    void setPersistentCache(CACHE_KEYS.PROFILE, userId, snapshot);
+  }, [userId, loading, profile, userTags, biolinks, followerCount, friendCount]);
 
   useEffect(() => {
     let isMounted = true;
+    type ProfileSnapshot = {
+      profile: PiktagProfile;
+      userTags: UserTag[];
+      biolinks: Biolink[];
+      followerCount: number;
+      friendCount: number;
+    };
+    const applySnapshot = (snap: ProfileSnapshot) => {
+      setProfile(snap.profile);
+      // Defensive defaults: an older/partial snapshot must not put
+      // `undefined` into a list that render calls `.length` on.
+      setUserTags(snap.userTags ?? []);
+      setBiolinks(snap.biolinks ?? []);
+      setFollowerCount(snap.followerCount ?? 0);
+      setFriendCount(snap.friendCount ?? 0);
+      setLoading(false);
+    };
     const load = async () => {
       // Stale-while-revalidate: if we have a cached snapshot, paint it
       // immediately and refetch in the background without a loading state.
-      const cached = getCache<{
-        profile: PiktagProfile;
-        userTags: UserTag[];
-        biolinks: Biolink[];
-        followerCount: number;
-        friendCount: number;
-      }>(CACHE_KEYS.PROFILE);
+      const cached = getCache<ProfileSnapshot>(CACHE_KEYS.PROFILE);
 
       if (cached) {
-        setProfile(cached.profile);
-        setUserTags(cached.userTags);
-        setBiolinks(cached.biolinks);
-        setFollowerCount(cached.followerCount);
-        setFriendCount(cached.friendCount);
-        setLoading(false);
+        applySnapshot(cached);
       } else {
-        setLoading(true);
+        // Cold start: fall back to the disk snapshot before showing a
+        // skeleton. Works with no network at all.
+        const persisted = await getPersistentCache<ProfileSnapshot>(
+          CACHE_KEYS.PROFILE,
+          userId,
+        );
+        if (!isMounted) return;
+        if (persisted?.profile) applySnapshot(persisted);
+        else setLoading(true);
       }
 
       await fetchAllData();
@@ -205,7 +236,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     };
     load();
     return () => { isMounted = false; };
-  }, [fetchAllData]);
+  }, [fetchAllData, userId]);
 
   // Refetch on focus
   const lastFocusFetchRef = useRef(0);

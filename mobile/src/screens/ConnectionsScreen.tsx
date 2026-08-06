@@ -44,7 +44,13 @@ import RingedAvatar from '../components/RingedAvatar';
 import CoachMark from '../components/CoachMark';
 import { supabase } from '../lib/supabase';
 import { ilikeEscape, hashDisplay } from '../lib/normalizeTag';
-import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
+import {
+  getCache,
+  setCache,
+  CACHE_KEYS,
+  setPersistentCache,
+  getPersistentCache,
+} from '../lib/dataCache';
 import { ConnectionsScreenSkeleton } from '../components/SkeletonLoader';
 import ErrorState from '../components/ErrorState';
 import { useAuth } from '../hooks/useAuth';
@@ -330,7 +336,16 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     if (!user) return;
 
     // Stale-while-revalidate: serve from cache instantly, then refresh in background
-    const cached = getCache<ConnectionWithTags[]>(CACHE_KEYS.CONNECTIONS);
+    let cached = getCache<ConnectionWithTags[]>(CACHE_KEYS.CONNECTIONS);
+    if (!cached || cached.length === 0) {
+      // Cold start has no in-memory cache. Fall back to the disk copy so
+      // the friend list is still there with no network — at an event the
+      // list of who you already met is half the app.
+      cached = await getPersistentCache<ConnectionWithTags[]>(
+        CACHE_KEYS.CONNECTIONS,
+        user.id,
+      );
+    }
     if (cached && cached.length > 0) {
       setConnections(cached);
       setLoading(false);
@@ -472,6 +487,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         semanticTypes: [],
       }));
       setCache(CACHE_KEYS.CONNECTIONS, merged);
+      void setPersistentCache(CACHE_KEYS.CONNECTIONS, user.id, merged);
       setConnections(merged);
     } catch (err) {
       console.error('Unexpected error fetching connections:', err);

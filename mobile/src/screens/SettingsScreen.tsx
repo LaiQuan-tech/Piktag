@@ -25,7 +25,8 @@ import {
 } from 'expo-location';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
-import * as SecureStore from 'expo-secure-store';
+import { clearPersistedSession } from '../lib/authSession';
+import { clearPersistentCaches } from '../lib/dataCache';
 import { setAnalyticsOptIn } from '../lib/analytics';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
@@ -371,18 +372,20 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
         ),
       ]);
     } catch {
-      // Force-remove the persisted session (SecureStore key =
-      // sb-<project-ref>-auth-token, the supabase-js default). Best
-      // effort — a relaunch then lands on the auth stack regardless.
-      try {
-        const ref = supabaseUrl.replace(/^https?:\/\//, '').split('.')[0];
-        await SecureStore.deleteItemAsync(`sb-${ref}-auth-token`);
-      } catch {}
-      // Fire-and-forget a second local sign-out to emit SIGNED_OUT and
-      // flip AppNavigator to the auth stack live (if it can't, the
-      // SecureStore clear above guarantees logout on next launch).
+      // Force-remove the persisted session. Key derivation lives in
+      // lib/authSession (one source of truth — the offline-session
+      // fallback reads the very same key, so the two must never drift).
+      // Best effort — a relaunch then lands on the auth stack regardless.
+      await clearPersistedSession();
+      // Second local sign-out, now that storage is empty: `_useSession`
+      // resolves instantly with no session instead of stalling on a
+      // refresh, so `_removeSession()` runs and SIGNED_OUT is emitted —
+      // AppNavigator flips to the auth stack live, even with no network.
       supabase.auth.signOut({ scope: 'local' }).catch(() => {});
     }
+    // Drop this account's offline snapshots so a shared device doesn't
+    // show the previous user's profile or friend list.
+    await clearPersistentCaches(user?.id ?? null);
   };
 
   const handleLogout = async () => {
