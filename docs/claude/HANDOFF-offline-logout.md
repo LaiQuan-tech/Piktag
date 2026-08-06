@@ -78,3 +78,38 @@ fresh-context 驗收判定 **DO NOT SHIP**,已派 agent 修(接手時先確認�
 ---
 _2026-08-06 更新。前一個 session 的 context 用盡於此;所有成果已 commit 到本地,
 未 push。_
+
+---
+
+## 最終複驗結果(2026-08-06)
+
+判定 **DO NOT SHIP,但只卡一項**。審查者逐條對照安裝版 auth-js 2.97 原始碼,
+明說「核心我會賭,登出流程不敢」。
+
+**唯一阻擋項(HIGH,修復中)**:離線登出後畫面最久滯留約 25 秒。
+`AuthContext.signOut()` 的清憑證/清快取/翻狀態都即時完成,但
+`AppNavigator` 有**自己一份 `session` state**,唯一清除來源是 auth-js 的
+`SIGNED_OUT` —— 離線時該事件被卡在 refresh 退避重試後面(上限 ~25s)。
+結果:憑證已清、但前一位使用者的好友列表/通知還留在螢幕上。共用手機必撞。
+修法:讓導航層與 AuthContext 共用單一真相來源,不要等 auth-js 事件。
+
+**同批建議處理(MEDIUM)**:
+- 連線數歸零時磁碟快照不更新 → 刪光好友後每次冷啟動仍畫出已刪除的人,
+  且線上不會自我修正(disk 層刻意無 TTL)。需區分「成功但為空」與「失敗」。
+- 仍有數個 device-global key 承載使用者資料未隨登出清除:
+  `piktag_recent_searches`、`piktag_user_presets`、`piktag_recent_locations`、
+  `piktag_chat_send_queue_v1`(有 sender_id 過濾,不外洩但殘留)、
+  `piktag_viewed_ask_ids`、`piktag_burst_tag_prompted_v1`。
+  本批已修掉同類的 `piktag_last_qr`,其餘未處理。
+
+**複驗確認健全(不必重查)**:找不到任何會把合法使用者鎖在登入頁的路徑;
+全新安裝/損毀 blob/token 撤銷/超過 30 天 全部導向正確且可復原;離線登出的
+auth-js 呼叫序列正確(storage 已空時零網路、必發 SIGNED_OUT);記憶體與磁碟
+兩層跨帳號隔離正確;**快取污染的每一個 .error 檢查都放對位置**(含最易寫錯的
+allSettled vs 直接 await 的差別);30 天基準 `expires_at - expires_in` 經原始碼
+驗證等於最後一次成功握手,且不套用於線上結果;啟動總計 6.5s < 7s watchdog,
+既有帳號不會被誤送進精靈。
+
+**延後觸發(低)**:登出後在途寫入可能落地(同帳號殘留,不跨帳號);
+captive portal 回 4xx 仍會被 auth-js 自己讀成登出(超出本次範圍,
+要防守只能在 storage adapter 層攔截);iOS Keychain 在 App 移除後保留。
