@@ -185,7 +185,11 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
         CACHE_KEYS.RECENT_LOCATIONS,
         userId,
       );
-      if (Array.isArray(cached)) setRecentLocations(cached);
+      // Only fill an EMPTY list — see AddTagScreen: a plain set would
+      // clobber a location picked while this read was in flight.
+      if (Array.isArray(cached)) {
+        setRecentLocations((prev) => (prev.length > 0 ? prev : cached));
+      }
     } catch {}
     // Best-effort cleanup of the old device-global key. Never read.
     void AsyncStorage.removeItem(LEGACY_RECENT_LOCATIONS_KEY).catch(() => {});
@@ -196,10 +200,18 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
     loadRecentLocations();
   }, [loadFrequentTags, loadRecentLocations]);
 
-  const saveToRecentLocations = async (name: string) => {
-    const next = [name, ...recentLocations.filter((l) => l !== name)].slice(0, 2);
-    setRecentLocations(next);
-    await setPersistentCache(CACHE_KEYS.RECENT_LOCATIONS, userId, next);
+  const saveToRecentLocations = (name: string) => {
+    // Derive from `prev`, not from the `recentLocations` in the
+    // enclosing closure: two picks in quick succession both read the
+    // same pre-first-pick value, so the second silently dropped the
+    // first. Persisting from inside the updater is the same shape
+    // AddTagScreen's saveToRecent uses, and keeps the written value and
+    // the rendered value from ever disagreeing.
+    setRecentLocations((prev) => {
+      const next = [name, ...prev.filter((l) => l !== name)].slice(0, 2);
+      void setPersistentCache(CACHE_KEYS.RECENT_LOCATIONS, userId, next);
+      return next;
+    });
   };
 
   const applyHiddenTag = async (rawName: string) => {

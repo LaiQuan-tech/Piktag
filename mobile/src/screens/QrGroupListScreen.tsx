@@ -179,7 +179,9 @@ export default function QrGroupListScreen({ navigation }: Props) {
       // count — fall back to the last known value for that group.
       const cachedGroups = await getPersistentCache<QrGroup[]>(CACHE_KEYS.QR_GROUPS, user.id);
       const cachedCountById = new Map(
-        (cachedGroups ?? []).map((g) => [g.id, g.member_count] as const),
+        (Array.isArray(cachedGroups) ? cachedGroups : []).map(
+          (g) => [g.id, g.member_count] as const,
+        ),
       );
       const counts = await Promise.all(
         rows.map(async (r) => {
@@ -194,11 +196,34 @@ export default function QrGroupListScreen({ navigation }: Props) {
       liveGroupsDoneRef.current = true;
       setLoadFailed(false);
       setGroups(merged);
+      // Choose WHICH groups to cache by recency, but keep them in
+      // display order. Slicing the display order was wrong: that order
+      // is sort_position ascending with nulls LAST, so once a host has
+      // dragged their list into a custom order, every group created
+      // afterwards sorts to the bottom — and the group cut by the cap
+      // was therefore the newest one, which is precisely the QR needed
+      // at tonight's event. Selecting by created_at fixes what is kept;
+      // filtering `merged` rather than the sorted copy keeps the host's
+      // arrangement intact when this is painted back offline.
+      const keepIds = new Set(
+        [...merged]
+          .sort((a, b) => String(b.created_at ?? '').localeCompare(String(a.created_at ?? '')))
+          .slice(0, QR_GROUP_LIST_CACHE_MAX)
+          .map((g) => g.id),
+      );
       void setPersistentCache(
         CACHE_KEYS.QR_GROUPS,
         user.id,
-        merged.slice(0, QR_GROUP_LIST_CACHE_MAX),
+        merged.filter((g) => keepIds.has(g.id)),
       );
+    } catch (err) {
+      // The try above had only a finally. Nothing in it is expected to
+      // throw, but if something does (a corrupt cache value reaching
+      // .map, say) the rejection escaped unhandled while the finally
+      // still cleared the spinner — leaving the screen claiming the host
+      // has no Tags at all. Fail visibly instead.
+      console.warn('[QrGroupList] load threw:', err);
+      setLoadFailed(true);
     } finally {
       setLoading(false);
     }
@@ -235,11 +260,17 @@ export default function QrGroupListScreen({ navigation }: Props) {
         return;
       }
       // neq(host) = only sessions OTHERS host — my own live in `groups`.
+      // Ordered so the cache cap below keeps the most RECENT sessions.
+      // Without an order clause PostgREST returns rows in whatever order
+      // it likes, so which sessions survived the cap was arbitrary — a
+      // host with more than the cap could find last year's meetup cached
+      // and this week's missing.
       const { data: sess, error: sessErr } = await supabase
         .from('piktag_scan_sessions')
         .select('id, name, event_date, event_location, host_user_id')
         .in('id', sids)
-        .neq('host_user_id', user.id);
+        .neq('host_user_id', user.id)
+        .order('event_date', { ascending: false, nullsFirst: false });
       if (sessErr) return;
       const rows = ((sess ?? []) as any[]);
       const hostIds = [...new Set(rows.map((r) => r.host_user_id).filter(Boolean))];
@@ -425,6 +456,21 @@ export default function QrGroupListScreen({ navigation }: Props) {
                       uid,
                       cached.filter((x) => x.id !== g.id),
                     );
+                  })();
+                  // AddTag keeps its own snapshot of the last QR it
+                  // generated. If that was THIS group, it has to go too,
+                  // or the Tag screen carries on presenting the deleted
+                  // event's QR the next time the phone is offline. A
+                  // snapshot with no sessionId predates the field and is
+                  // deliberately left alone rather than guessed at.
+                  void (async () => {
+                    const lastQr = await getPersistentCache<{ sessionId?: string }>(
+                      CACHE_KEYS.EVENT_QR,
+                      uid,
+                    );
+                    if (lastQr?.sessionId === g.id) {
+                      await setPersistentCache(CACHE_KEYS.EVENT_QR, uid, null);
+                    }
                   })();
                 }
               }

@@ -66,7 +66,39 @@ export const CACHE_KEYS = {
   // per-conversation scheme escapes clearPersistentCaches(), which iterates
   // exactly this object.
   CHAT_SEND_QUEUE: 'chatSendQueue',
+  // ── Round 4: the last keys holding user data outside
+  //    the sign-out sweep. None of these is an offline surface; they
+  //    are here because being in this object IS what gets a key wiped
+  //    when an account leaves the device. ──
+  // The viewer's recent search terms (SearchScreen). Was device-global,
+  // so on a shared phone the next account's search box offered up who
+  // the previous one had been looking for.
+  RECENT_SEARCHES: 'recentSearches',
+  // AI tag suggestions (ManageTagsScreen). This one was already
+  // per-user; it just wasn't in this object, and a key that isn't in
+  // this object is a key sign-out cannot reach.
+  AI_TAGS: 'aiTags',
 } as const;
+
+// Superseded device-global keys. Everything in CACHE_KEYS above is
+// namespaced and swept because it is namespaced; these are not, so they
+// have to be named. Nothing reads any of them any more — each owning
+// module deletes its own on mount — but that only runs for someone who
+// opens that screen, so an account could leave the device with the blob
+// still on disk.
+//
+// Because nothing reads them, removing one can never lose anything a
+// user could still see, which is why this runs even when we have no
+// user id to work with. Do not add a key here that still has readers.
+const SUPERSEDED_GLOBAL_KEYS = [
+  'piktag_last_qr',
+  'piktag_recent_locations',
+  'piktag_user_presets',
+  // Migrated to CACHE_KEYS.CHAT_SEND_QUEUE; chatSendQueue deletes it on
+  // load and never reads it. Listed so a device whose owner never opens
+  // a chat still sheds the unsent message bodies at sign-out.
+  'piktag_chat_send_queue_v1',
+] as const;
 
 const DEFAULT_TTL_MS = 300_000; // 5 minutes
 
@@ -162,6 +194,20 @@ export async function setPersistentCache<T>(
   data: T,
 ): Promise<void> {
   if (!userId) return;
+  // Refuse writes that no longer belong to the account on the device.
+  //
+  // Every caller here is fire-and-forget (`void setPersistentCache(...)`),
+  // deliberately — a screen must not wait on disk. The consequence is
+  // that a fetch which resolves during sign-out lands its snapshot AFTER
+  // clearPersistentCaches has run, putting the outgoing account's data
+  // back on disk moments after it was wiped. It is not readable by the
+  // next account (the key carries the previous uid), but "signed out"
+  // has to mean the data is gone, so the write is dropped instead.
+  //
+  // Checked at write time rather than by cancelling callers: there is no
+  // list of in-flight writes to cancel, and an enumerated list of call
+  // sites would rot the same way an enumerated sign-out sweep would.
+  if (cacheOwnerId !== userId) return;
   try {
     await AsyncStorage.setItem(persistKey(key, userId), JSON.stringify({ data }));
   } catch {
@@ -344,10 +390,19 @@ export async function dropPersistentQrGroupDetail(
  */
 export async function clearPersistentCaches(userId: string | null | undefined): Promise<void> {
   if (!userId) return;
+  // Drop ownership FIRST, and here rather than at the call site, so the
+  // guard in setPersistentCache is already armed while the removes below
+  // are running. Otherwise a snapshot resolving in that window writes
+  // itself back in behind the sweep. Idempotent, and the sign-out path
+  // sets it again a moment later.
+  setCacheOwner(null);
   try {
-    await AsyncStorage.multiRemove(
-      Object.values(CACHE_KEYS).map((key) => persistKey(key, userId)),
-    );
+    await AsyncStorage.multiRemove([
+      ...Object.values(CACHE_KEYS).map((key) => persistKey(key, userId)),
+      // Not namespaced, so not derivable from CACHE_KEYS — see the list
+      // for why each one is safe to delete outright.
+      ...SUPERSEDED_GLOBAL_KEYS,
+    ]);
   } catch {
     // best-effort
   }

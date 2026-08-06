@@ -55,7 +55,13 @@ type AddTagScreenProps = {
 // blank when they reopen it (including with no signal at the venue).
 // Bounded by construction: one URL plus the tags the user themselves
 // tapped onto that QR.
-type EventQrSnapshot = { url: string; tags: string[] };
+// `sessionId` is what lets a deletion elsewhere prune this. Without it
+// the snapshot was an anonymous URL: deleting the group pruned the list
+// and detail caches but had no way to recognise this one, so AddTag went
+// on restoring the dead QR offline. Optional because snapshots written
+// before this field existed are still on disk — treat a missing id as
+// "not prunable", never as a match.
+type EventQrSnapshot = { url: string; tags: string[]; sessionId?: string };
 
 // Canonical storage format (YYYY/MM/DD). This value is what we push to the
 // DB's `event_date` column and what we compare against in state, so it MUST
@@ -230,17 +236,31 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
       // 2. Try Supabase in background — if it returns data, merge & update
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('piktag_tag_presets')
           .select('id, user_id, name, location, tags, created_at')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
-        if (data && data.length > 0) {
+        // Check `error`, not just `data.length`. supabase-js RESOLVES
+        // with { data: null, error } on a transport failure, so the old
+        // `data && data.length > 0` test read "no signal" and "you have
+        // no presets" as the same thing. It failed safe — a failure left
+        // the cache alone — but it also meant a genuine empty answer
+        // could never clear it: delete every preset on another device
+        // and this one kept showing them, forever, because the merge
+        // below re-appends anything the server didn't return.
+        if (error) {
+          console.warn('[AddTag] presets sync failed:', error);
+        } else if (data) {
           const merged = data as TagPreset[];
           const dbIds = new Set(merged.map(p => p.id));
           for (const lp of localPresets) {
-            if (!dbIds.has(lp.id)) merged.push(lp);
+            // Keep presets that only ever existed on this device (saved
+            // while offline, never inserted). Anything with a real id
+            // that the server did NOT return has been deleted elsewhere,
+            // so it must not be resurrected.
+            if (!dbIds.has(lp.id) && lp.id.startsWith('local_')) merged.push(lp);
           }
           setPresets(merged);
           await setPersistentCache(CACHE_KEYS.TAG_PRESETS, user.id, merged);
@@ -300,7 +320,11 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       // their (at most two) remembered locations once.
       void getPersistentCache<string[]>(CACHE_KEYS.RECENT_LOCATIONS, user.id).then((cached) => {
         if (cancelled || !Array.isArray(cached)) return;
-        setRecentLocations(cached);
+        // Only fill an EMPTY list. A plain setRecentLocations would
+        // overwrite a location the user picked while this disk read was
+        // still resolving — and the next write would then persist the
+        // stale value back over their choice.
+        setRecentLocations((prev) => (prev.length > 0 ? prev : cached));
       });
       void AsyncStorage.removeItem('piktag_recent_locations').catch(() => {});
       // Same one-way migration for the presets key (see LEGACY_PRESETS_KEY
@@ -856,6 +880,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       void setPersistentCache<EventQrSnapshot>(CACHE_KEYS.EVENT_QR, user.id, {
         url: qrUrl,
         tags: eventTags,
+        sessionId,
       });
       setScanSession({
         id: sessionId,

@@ -191,24 +191,47 @@ captive portal 回 4xx 仍會被 auth-js 自己讀成登出(超出本次範圍,
 
 **驗證**:`npx tsc --noEmit` 0 錯;新增行零 emoji;無新增 i18n key。
 
-### 其餘未結案項目(非阻擋,依嚴重度)
+### 其餘項目 —— 已全數處理(2026-08-07,見下方「已修」標註)
 
-- **中** 登出時的在途寫入會落地,繞過 `clearPersistentCaches`。所有快照寫入
-  都是 fire-and-forget。不是跨帳號洩漏(鍵帶前一位的 uid,新帳號讀不到),
-  但違反「登出即抹除」。修法:`setPersistentCache` 寫入前比對
-  `cacheOwnerId`,不符就丟棄。
-- **中低** `QR_GROUPS` 的 50 筆修剪會剪掉**最新建立**的群組
-  (`QrGroupListScreen.tsx:148-149` 依 `sort_position asc nullsFirst:false`
-  排序,新建的 `sort_position` 為 null 排最後,`:197` 才 slice)。
-  離線時最需要的那張新 QR 正好被剪掉。
-- **低** `QR_ATTENDED` 的 50 筆修剪沒有 `.order()`,保留哪 50 場不可預期。
-- **低** `loadPresets`(`AddTagScreen.tsx:233`)沒解構 `error`,無法區分
-  「查詢失敗」與「DB 真的 0 筆」,別台裝置刪光後本機快取永不清除。
-- **低** 三個 legacy key 的刪除只在畫面掛載時機會性執行,沒放進
-  `clearPersistentCaches` 的 `multiRemove` 清單。
-- **低** `EventQrSnapshot` 沒帶 session id,刪除活動後 AddTag 頁離線
-  仍會還原那個死掉的 QR。
-- **範圍外、同類** 仍是裝置全域且不被登出掃除:`piktag_recent_searches`
-  (共用手機上看得到前一位的搜尋歷史)、`piktag_chat_send_queue_v1`
-  (有 sender_id 過濾不會誤送,但未送出訊息內容殘留)、
-  `piktag_ai_tags_${user.id}`(有命名空間但不在 `CACHE_KEYS`)。
+- **中** ~~登出時的在途寫入會落地,繞過 `clearPersistentCaches`~~ —— **已修**。
+  所有快照寫入都是 fire-and-forget,登出當下才回來的 fetch 會在
+  `multiRemove` 之後把資料寫回磁碟。現在 `setPersistentCache` 在寫入前比對
+  `cacheOwnerId`,不符就丟棄;`clearPersistentCaches` 自己先呼叫
+  `setCacheOwner(null)`(放在函式內而不是呼叫端,這樣清除進行中護欄就已經
+  上膛)。
+- **中低** ~~`QR_GROUPS` 的 50 筆修剪會剪掉最新建立的群組~~ —— **已修**。
+  改成**用 `created_at` 挑要保留哪 50 筆,但仍以顯示順序寫入**
+  (filter `merged` 而非寫入排序後的副本),所以主辦人自訂的拖曳順序
+  離線時不會被打亂。
+- **低** ~~`QR_ATTENDED` 沒有 `.order()`~~ —— **已修**,加上
+  `.order('event_date', { ascending: false, nullsFirst: false })`。
+- **低** ~~`loadPresets` 沒解構 `error`~~ —— **已修**。同時修掉一個更嚴重的
+  連帶問題:原本的 append merge 會把伺服器沒回傳的 preset 一律加回去,
+  等於在別台裝置刪掉的 preset 永遠不死。現在只有 `local_` 前綴
+  (離線存、從未 insert)才保留。
+- **低** ~~三個 legacy key 沒進登出清單~~ —— **已修**,見
+  `GLOBAL_KEYS_CLEARED_ON_SIGN_OUT`。
+- **低** ~~`EventQrSnapshot` 沒帶 session id~~ —— **已修**,加上
+  optional `sessionId`,刪除群組時比對後清除。欄位不存在(舊快照)
+  刻意不猜、不動。
+- **範圍外、同類** —— **已一併處理**:
+  - `piktag_recent_searches` → `CACHE_KEYS.RECENT_SEARCHES`(per-user,
+    舊鍵刪不讀)。這個是實質洩漏:共用手機上看得到前一位在找誰。
+  - `piktag_ai_tags_${user.id}` → `CACHE_KEYS.AI_TAGS`。本來就有命名空間,
+    問題只在不被登出掃到。24 小時 TTL 保留(這是生成內容,重建要花模型呼叫,
+    與離線快照刻意無 TTL 的理由不同)。
+  - `piktag_chat_send_queue_v1` → **維持裝置全域,但加入登出清除清單**。
+    送出路徑沒有 user id 可用,為了它重接整條 chat send path 風險不划算。
+    代價講明:登出會丟掉尚未送出的訊息。這是刻意取捨 —— 登出是使用者自己
+    按的,把某人未送出的訊息留在他已經還回去的手機上更糟。
+
+### 仍未處理(低,已知)
+
+- 離線冷啟動時「載入失敗」可能閃一下才被快取內容取代(失敗分支的
+  `finally` 無條件 `setLoading(false)`,磁碟讀是另一條 async)。內容最終
+  正確,只有瞬間文案錯。
+- `fetchGroup` 的 `setLoading(true)` 沒過 `onScreen()`,陳舊 closure 被叫起
+  時會把 loading 設 true 卻不清。目前無可見影響。
+- 拖曳排序後不回寫 `QR_GROUPS` 快照,離線冷啟動看到舊順序。
+- 「載入失敗/請檢查網路連線」對 RLS 拒絕、JWT 過期、5xx 也照顯示,
+  措辭誤導(不寫快照的行為是對的)。

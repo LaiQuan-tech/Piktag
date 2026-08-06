@@ -19,6 +19,7 @@ import { X, Hash, ArrowLeftRight, AlertTriangle, Plus } from 'lucide-react-nativ
 import BoltIcon from '../components/BoltIcon';
 import SectionTitle from '../components/SectionTitle';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CACHE_KEYS, getPersistentCache, setPersistentCache } from '../lib/dataCache';
 import { supabase } from '../lib/supabase';
 import { logApiUsage } from '../lib/apiUsage';
 import { recordAiSuggestions, markAiSuggestionAccepted } from '../lib/aiTagLogger';
@@ -39,6 +40,12 @@ const MAX_TAG_LENGTH = 30;
 
 
 type ManageTagsScreenProps = { navigation: NativeStackNavigationProp<any> };
+
+// Cached AI tag suggestions. Unlike the offline snapshot caches this one
+// carries its own timestamp and expires: the entries are generated, so
+// serving a day-old set is fine but serving a stale one forever is not.
+type AiTagCache = { suggestions: string[]; timestamp: number };
+const AI_TAG_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) {
   const { t } = useTranslation();
@@ -92,17 +99,20 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     try {
       setAiLoading(true);
 
-      const cacheKey = `piktag_ai_tags_${user.id}`;
-      const cached = await AsyncStorage.getItem(cacheKey);
-      if (cached) {
-        try {
-          const { suggestions, timestamp } = JSON.parse(cached);
-          if (Date.now() - timestamp < 24 * 60 * 60 * 1000 && suggestions?.length > 0) {
-            setAiSuggestions(suggestions);
-            return;
-          }
-        } catch {}
+      // 2026-08-07: moved off `piktag_ai_tags_${user.id}` onto
+      // CACHE_KEYS.AI_TAGS. The old key was already per-user, so this
+      // was never a cross-account leak — but it was not in CACHE_KEYS,
+      // and clearPersistentCaches() sweeps exactly that object, so
+      // sign-out could not reach it. The legacy key is deleted below,
+      // not read: the cost is one regenerated suggestion set.
+      const cached = await getPersistentCache<AiTagCache>(CACHE_KEYS.AI_TAGS, user.id);
+      if (cached && Array.isArray(cached.suggestions) && cached.suggestions.length > 0) {
+        if (Date.now() - cached.timestamp < AI_TAG_CACHE_TTL_MS) {
+          setAiSuggestions(cached.suggestions);
+          return;
+        }
       }
+      void AsyncStorage.removeItem(`piktag_ai_tags_${user.id}`).catch(() => {});
 
       // Run profile + existing-tags fetches in parallel — both feed the
       // AI prompt and are independent.
@@ -177,7 +187,10 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       }
 
       setAiSuggestions(data.suggestions);
-      AsyncStorage.setItem(cacheKey, JSON.stringify({ suggestions: data.suggestions, timestamp: Date.now() }));
+      void setPersistentCache<AiTagCache>(CACHE_KEYS.AI_TAGS, user.id, {
+        suggestions: data.suggestions,
+        timestamp: Date.now(),
+      });
       // Principle #5: log shown suggestions for calibration (fresh fetch
       // only — the cache-hit path was already recorded on first fetch).
       void (async () => {
@@ -510,7 +523,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                   style={styles.aiRetryBtn}
                   onPress={() => {
                     // Clear cache so retry actually hits the API
-                    if (user) AsyncStorage.removeItem(`piktag_ai_tags_${user.id}`);
+                    if (user) void setPersistentCache(CACHE_KEYS.AI_TAGS, user.id, null);
                     loadAiSuggestions();
                   }}
                 >

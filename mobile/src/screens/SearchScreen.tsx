@@ -59,7 +59,12 @@ import { AskCreateModal } from '../components/ask/AskStoryRow';
 import { useAskFeed } from '../hooks/useAskFeed';
 import type { Tag, PiktagProfile } from '../types';
 
-const RECENT_SEARCHES_KEY = 'piktag_recent_searches';
+// Legacy DEVICE-GLOBAL key. Kept only so we can delete it — never read.
+// Recent searches were shared by every account that signed in on the
+// phone, so the next person's search box suggested who the previous one
+// had been looking for. Now CACHE_KEYS.RECENT_SEARCHES, which is
+// per-user and therefore swept by clearPersistentCaches(). (2026-08-07)
+const LEGACY_RECENT_SEARCHES_KEY = 'piktag_recent_searches';
 const MAX_RECENT_SEARCHES = 10;
 const CACHE_KEY_POPULAR_TAGS = 'search_popular_tags';
 const CACHE_KEY_SEARCH_QUERY = 'search_last_query';
@@ -692,19 +697,23 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   const loadRecentSearches = useCallback(async () => {
     try {
-      const stored = await AsyncStorage.getItem(RECENT_SEARCHES_KEY);
-      if (stored) {
-        // Defensive parse: a corrupted/wrong-shape AsyncStorage value
-        // (older app version, manual edit, hot-reload swap) would
-        // otherwise set recentSearches to a non-array and crash
-        // every .map / .filter render downstream.
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          setRecentSearches(parsed.filter((s) => typeof s === 'string'));
-        }
+      const stored = await getPersistentCache<unknown>(
+        CACHE_KEYS.RECENT_SEARCHES,
+        user?.id,
+      );
+      // Defensive parse: a corrupted/wrong-shape stored value (older app
+      // version, manual edit, hot-reload swap) would otherwise set
+      // recentSearches to a non-array and crash every .map / .filter
+      // render downstream.
+      if (Array.isArray(stored)) {
+        setRecentSearches(stored.filter((s): s is string => typeof s === 'string'));
       }
     } catch {}
-  }, []);
+    // One-way migration off the device-global key: delete it, never read
+    // it. Reading it as a fallback is what would carry the previous
+    // account's search history into this one.
+    void AsyncStorage.removeItem(LEGACY_RECENT_SEARCHES_KEY).catch(() => {});
+  }, [user?.id]);
 
   const saveRecentSearch = useCallback(async (query: string) => {
     try {
@@ -716,9 +725,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         MAX_RECENT_SEARCHES,
       );
       setRecentSearches(updated);
-      await AsyncStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+      await setPersistentCache(CACHE_KEYS.RECENT_SEARCHES, user?.id, updated);
     } catch {}
-  }, []);
+  }, [user?.id]);
 
   // Detect tag language from text characters
   const detectTagLang = useCallback((name: string): string => {
@@ -2317,11 +2326,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     const updated = recentSearches.filter((q) => q !== query);
     setRecentSearches(updated);
     try {
-      await AsyncStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+      await setPersistentCache(CACHE_KEYS.RECENT_SEARCHES, user?.id, updated);
     } catch {
       // best-effort — UI already updated
     }
-  }, [recentSearches]);
+  }, [recentSearches, user?.id]);
 
   // ── Computed display flags (memoized) ──
 
@@ -3199,7 +3208,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                       text: t('common.confirm'),
                       style: 'destructive',
                       onPress: async () => {
-                        await AsyncStorage.removeItem(RECENT_SEARCHES_KEY);
+                        await setPersistentCache(CACHE_KEYS.RECENT_SEARCHES, user?.id, []);
                         setRecentSearches([]);
                       },
                     },
@@ -3219,7 +3228,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
               {item.showClear && (
                 <TouchableOpacity
                   onPress={async () => {
-                    await AsyncStorage.removeItem(RECENT_SEARCHES_KEY);
+                    await setPersistentCache(CACHE_KEYS.RECENT_SEARCHES, user?.id, []);
                     setRecentSearches([]);
                   }}
                   activeOpacity={0.7}
