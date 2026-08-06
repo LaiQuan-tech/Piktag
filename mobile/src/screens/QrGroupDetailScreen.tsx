@@ -12,7 +12,7 @@
 // on mount and on every focus so a fresh scan that just added a
 // member shows up when the host comes back.
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -41,6 +41,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
+import {
+  dropPersistentQrGroupDetail,
+  getPersistentQrGroupDetail,
+  setPersistentQrGroupDetail,
+} from '../lib/dataCache';
 import { useAuth } from '../hooks/useAuth';
 import RingedAvatar from '../components/RingedAvatar';
 import QrShareBody from '../components/QrShareBody';
@@ -74,6 +79,26 @@ type CurrentVibeTag = {
   member_ids: string[];
 };
 
+// Everything this screen needs to paint with no signal: the QR payload
+// itself, the group's event tags, the name in the header/card, the
+// host's @handle printed on the present card, plus the member list and
+// the Vibe-shift chips so the edit view isn't hollow offline.
+//
+// Bounds are per group; the number of GROUPS kept is bounded in
+// dataCache (QR_GROUP_DETAIL_CACHE_MAX_GROUPS).
+type GroupDetailSnapshot = {
+  group: Group;
+  qrUsername: string;
+  members: Member[];
+  currentTags: CurrentVibeTag[];
+};
+
+// 50 members ≈ a room's worth of scans; past that nobody is scrolling a
+// cached list at a venue. 12 chips is what the Vibe-shift row can show
+// before it stops being scannable at a glance.
+const GROUP_DETAIL_CACHE_MAX_MEMBERS = 50;
+const GROUP_DETAIL_CACHE_MAX_CURRENT_TAGS = 12;
+
 type Props = { navigation: any; route: any };
 
 export default function QrGroupDetailScreen({ navigation, route }: Props) {
@@ -96,6 +121,10 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
   const [group, setGroup] = useState<Group | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
+  // The server answered and said this group isn't ours / doesn't exist.
+  // Kept apart from "we couldn't reach the server" so the placeholder
+  // doesn't tell someone to check a connection that is working fine.
+  const [notFound, setNotFound] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState('');
   const [tagInput, setTagInput] = useState('');
@@ -118,6 +147,11 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
     () => (group?.qr_code_data ? appendLang(group.qr_code_data) : ''),
     [group?.qr_code_data],
   );
+
+  // Flipped the first time the row lands from the network. The disk
+  // hydration below refuses to paint after that, so a slow AsyncStorage
+  // read can never resurrect a snapshot over fresher server data.
+  const liveFetchDoneRef = useRef(false);
 
   const fetchGroup = useCallback(async () => {
     if (!user || !groupId) return;
@@ -142,32 +176,58 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         g = fallback.data ? ({ ...fallback.data, name: null } as any) : null;
         gErr = fallback.error;
       }
-      if (gErr || !g) {
+      if (gErr) {
+        // We never got an answer (or got a refusal). supabase-js
+        // RESOLVES with { data: null, error } when the request never
+        // reached the server, so this is the OFFLINE path, not an
+        // exception — treating it as "no such group" is what used to
+        // strand a host on a spinner at a venue. Keep whatever is on
+        // screen and leave the snapshot untouched: writing here is
+        // exactly how a good offline copy gets poisoned.
         console.warn('[QrGroupDetail] group fetch failed:', gErr);
-        setGroup(null);
         return;
       }
-      setGroup(g as Group);
-      setNameInput((g as any).name ?? '');
+      if (!g) {
+        // The server answered, and the answer is "not yours / gone".
+        // THAT is authoritative — drop the row and its snapshot so a
+        // deleted group can't keep presenting a dead QR offline.
+        setGroup(null);
+        setNotFound(true);
+        void dropPersistentQrGroupDetail(user.id, groupId);
+        return;
+      }
+      liveFetchDoneRef.current = true;
+      setNotFound(false);
+      const freshGroup = g as Group;
+      setGroup(freshGroup);
+      setNameInput(freshGroup.name ?? '');
 
       // Host's @username for the present-mode card (same derivation
       // as AddTagScreen: profile username, fallback to the id).
+      let freshUsername: string | null = null;
       try {
-        const { data: prof } = await supabase
+        const { data: prof, error: profErr } = await supabase
           .from('piktag_profiles')
           .select('username')
           .eq('id', user.id)
           .maybeSingle();
-        setQrUsername((prof as any)?.username || user.id);
+        if (!profErr && (prof as any)?.username) {
+          freshUsername = String((prof as any).username);
+        }
       } catch {
-        setQrUsername(user.id);
+        // fall through to the value already on screen
       }
+      // On failure keep the handle we already have (hydrated from disk
+      // a moment ago) instead of stamping a raw uuid onto the card.
+      setQrUsername((prev) => freshUsername ?? (prev || user.id));
 
+      let freshMembers: Member[] | null = null;
       const { data: m, error: mErr } = await supabase.rpc('qr_group_members', {
         p_group_id: groupId,
       });
       if (!mErr && Array.isArray(m)) {
-        setMembers(m as Member[]);
+        freshMembers = m as Member[];
+        setMembers(freshMembers);
       }
 
       // P0: fetch the "Vibe-to-Vibe" reactivation tags. Wrapped
@@ -175,30 +235,82 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
       // on this DB) just hides the section instead of breaking
       // the page. PGRST202 = "the requested function … was not
       // found"; treat it like 42703 — silent fall-through.
+      let freshCurrentTags: CurrentVibeTag[] | null = null;
       try {
         const { data: tags, error: tagsErr } = await supabase.rpc(
           'vibe_member_current_tags',
           { p_group_id: groupId },
         );
         if (!tagsErr && Array.isArray(tags)) {
-          setCurrentTags(tags as CurrentVibeTag[]);
+          freshCurrentTags = tags as CurrentVibeTag[];
+          setCurrentTags(freshCurrentTags);
         } else if (tagsErr) {
           const isMissing =
             (tagsErr as any).code === 'PGRST202' ||
             /could not find the function|does not exist/i.test(tagsErr.message);
-          if (!isMissing) {
+          if (isMissing) {
+            // Deployment fact, not a network hiccup — an empty section
+            // here is the truth, so record it.
+            freshCurrentTags = [];
+            setCurrentTags([]);
+          } else {
+            // Could be transport. Keep what we have rather than blanking
+            // the section (and the snapshot) on a bad connection.
             console.warn('[QrGroupDetail] currentTags fetch failed:', tagsErr);
           }
-          setCurrentTags([]);
         }
       } catch (err) {
         console.warn('[QrGroupDetail] currentTags threw:', err);
-        setCurrentTags([]);
       }
+
+      // Persist. Anything that failed above keeps its LAST GOOD value
+      // from the existing snapshot instead of being written as empty —
+      // a partially-failed refetch must not degrade what's on disk.
+      const prevSnapshot = await getPersistentQrGroupDetail<GroupDetailSnapshot>(
+        user.id,
+        groupId,
+      );
+      void setPersistentQrGroupDetail<GroupDetailSnapshot>(user.id, groupId, {
+        group: freshGroup,
+        qrUsername: freshUsername ?? prevSnapshot?.qrUsername ?? user.id,
+        members: (freshMembers ?? prevSnapshot?.members ?? []).slice(
+          0,
+          GROUP_DETAIL_CACHE_MAX_MEMBERS,
+        ),
+        currentTags: (freshCurrentTags ?? prevSnapshot?.currentTags ?? []).slice(
+          0,
+          GROUP_DETAIL_CACHE_MAX_CURRENT_TAGS,
+        ),
+      });
     } finally {
       setLoading(false);
     }
   }, [groupId, user]);
+
+  // Stale-while-revalidate, disk layer. Paint the last known state of
+  // this group immediately so a host with no signal can still SHOW the
+  // QR; fetchGroup then overwrites it when (if) the network answers.
+  useEffect(() => {
+    liveFetchDoneRef.current = false;
+    const uid = user?.id;
+    if (!uid || !groupId) return;
+    let cancelled = false;
+    void (async () => {
+      const cached = await getPersistentQrGroupDetail<GroupDetailSnapshot>(uid, groupId);
+      if (cancelled || liveFetchDoneRef.current) return;
+      if (!cached?.group?.id) return;
+      // Never clobber anything that already landed from the network.
+      setGroup((prev) => prev ?? cached.group);
+      setNameInput((prev) => prev || (cached.group.name ?? ''));
+      setQrUsername((prev) => prev || cached.qrUsername || '');
+      setMembers((prev) => (prev.length > 0 ? prev : cached.members ?? []));
+      setCurrentTags((prev) => (prev.length > 0 ? prev : cached.currentTags ?? []));
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, groupId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -418,7 +530,13 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
     );
   };
 
-  if (loading || !group) {
+  // Gate on "is there anything to show", NOT on `loading`. A refetch
+  // fires on every focus, and gating on loading meant a cached (or
+  // already-loaded) group blinked back to this placeholder every time
+  // the screen regained focus — and offline it would hide a perfectly
+  // good cached QR behind a spinner forever. The genuinely-uncached
+  // case is unchanged: no row, no snapshot, still this screen.
+  if (!group) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
@@ -430,9 +548,28 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
           <View style={{ width: 36 }} />
         </View>
         <View style={styles.loadingWrap}>
-          <Text style={styles.loadingText}>
-            {t('common.processing', { defaultValue: '處理中…' })}
-          </Text>
+          {loading ? (
+            <Text style={styles.loadingText}>
+              {t('common.processing', { defaultValue: '處理中…' })}
+            </Text>
+          ) : (
+            // Nothing fetched AND nothing cached. Previously this showed
+            // "處理中…" forever, which reads as a hang. Both keys below
+            // already ship in all 19 locales — no new i18n. The connection
+            // line is suppressed when the server DID answer (notFound):
+            // telling someone to check a working network is worse than
+            // saying nothing.
+            <>
+              <Text style={styles.loadingText}>
+                {t('common.loadFailed', { defaultValue: '載入失敗' })}
+              </Text>
+              {notFound ? null : (
+                <Text style={styles.loadingText}>
+                  {t('common.checkConnection', { defaultValue: '請檢查網路連線後重試' })}
+                </Text>
+              )}
+            </>
+          )}
         </View>
       </SafeAreaView>
     );

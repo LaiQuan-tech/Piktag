@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { getLocales } from 'expo-localization';
 import { Plus } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
+import { CACHE_KEYS, getPersistentCache, setPersistentCache } from '../lib/dataCache';
 import { ilikeEscape, hashDisplay } from '../lib/normalizeTag';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -28,7 +29,12 @@ type Props = {
   onTagsChanged: () => Promise<void> | void;
 };
 
-const RECENT_LOCATIONS_KEY = 'piktag_recent_locations';
+// Legacy DEVICE-GLOBAL key. Kept only so we can delete it: on a shared
+// phone it made user A's venues suggest themselves to user B. Recent
+// locations now live in the per-user cache (CACHE_KEYS.RECENT_LOCATIONS),
+// which clearPersistentCaches() wipes on sign-out. Deliberately never
+// read — reading it would preserve the leak. (2026-08-07)
+const LEGACY_RECENT_LOCATIONS_KEY = 'piktag_recent_locations';
 const MAX_FREQUENT = 12;
 
 // Sliding window for the "frequency" half of the suggested-tag pool.
@@ -175,10 +181,15 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
 
   const loadRecentLocations = useCallback(async () => {
     try {
-      const raw = await AsyncStorage.getItem(RECENT_LOCATIONS_KEY);
-      if (raw) setRecentLocations(JSON.parse(raw));
+      const cached = await getPersistentCache<string[]>(
+        CACHE_KEYS.RECENT_LOCATIONS,
+        userId,
+      );
+      if (Array.isArray(cached)) setRecentLocations(cached);
     } catch {}
-  }, []);
+    // Best-effort cleanup of the old device-global key. Never read.
+    void AsyncStorage.removeItem(LEGACY_RECENT_LOCATIONS_KEY).catch(() => {});
+  }, [userId]);
 
   useEffect(() => {
     loadFrequentTags();
@@ -188,9 +199,7 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
   const saveToRecentLocations = async (name: string) => {
     const next = [name, ...recentLocations.filter((l) => l !== name)].slice(0, 2);
     setRecentLocations(next);
-    try {
-      await AsyncStorage.setItem(RECENT_LOCATIONS_KEY, JSON.stringify(next));
-    } catch {}
+    await setPersistentCache(CACHE_KEYS.RECENT_LOCATIONS, userId, next);
   };
 
   const applyHiddenTag = async (rawName: string) => {

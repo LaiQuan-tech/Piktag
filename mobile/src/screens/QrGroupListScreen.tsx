@@ -19,7 +19,7 @@
 // not FK-linked, so they survive (good — the friend is still your
 // friend, the group entry just disappears).
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -51,6 +51,12 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
+import {
+  CACHE_KEYS,
+  dropPersistentQrGroupDetail,
+  getPersistentCache,
+  setPersistentCache,
+} from '../lib/dataCache';
 import { useAuth } from '../hooks/useAuth';
 import { joinEventRoom } from '../lib/eventRoom';
 import { bidiMark } from '../lib/normalizeTag';
@@ -68,6 +74,13 @@ type QrGroup = {
   member_count: number;
 };
 
+
+// Rows kept on disk per section. A host with more than 50 event tags
+// is not scrolling past 50 with no signal, and the list is already
+// ordered by the user's own sort/recency, so the cap keeps exactly the
+// rows they reach for.
+const QR_GROUP_LIST_CACHE_MAX = 50;
+const QR_ATTENDED_CACHE_MAX = 50;
 
 type Props = { navigation: any };
 
@@ -95,6 +108,12 @@ export default function QrGroupListScreen({ navigation }: Props) {
   };
   const [attended, setAttended] = useState<AttendedSession[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Flipped the first time each section lands from the network, so a
+  // slow disk read can never paint over fresher server data. One flag
+  // per section because the two fetches fail independently.
+  const liveGroupsDoneRef = useRef(false);
+  const liveAttendedDoneRef = useRef(false);
 
   // Load my groups. Refetched on every focus so a new group created
   // via the AddTag flow appears here as soon as the user comes back.
@@ -131,8 +150,12 @@ export default function QrGroupListScreen({ navigation }: Props) {
         error = fallback.error;
       }
       if (error) {
+        // supabase-js RESOLVES with { data: null, error } when the
+        // request never left the phone, so this is the offline path.
+        // Blanking the list here is what made this screen useless at a
+        // venue — keep whatever is on screen (cached or older) and,
+        // crucially, do NOT write the snapshot.
         console.warn('[QrGroupList] load failed:', error);
-        setGroups([]);
         return;
       }
       const rows = ((data ?? []) as Array<Partial<Omit<QrGroup, 'member_count'>>>).map(
@@ -142,15 +165,30 @@ export default function QrGroupListScreen({ navigation }: Props) {
           sort_position: (r as any).sort_position ?? null,
         }) as Omit<QrGroup, 'member_count'>,
       );
+      // Member counts are a separate RPC per row and can fail on their
+      // own. A failed count must not be written as 0 over a good cached
+      // count — fall back to the last known value for that group.
+      const cachedGroups = await getPersistentCache<QrGroup[]>(CACHE_KEYS.QR_GROUPS, user.id);
+      const cachedCountById = new Map(
+        (cachedGroups ?? []).map((g) => [g.id, g.member_count] as const),
+      );
       const counts = await Promise.all(
         rows.map(async (r) => {
-          const { data: c } = await supabase.rpc('qr_group_member_count', {
+          const { data: c, error: cErr } = await supabase.rpc('qr_group_member_count', {
             p_group_id: r.id,
           });
-          return typeof c === 'number' ? c : 0;
+          if (!cErr && typeof c === 'number') return c;
+          return cachedCountById.get(r.id as string) ?? 0;
         }),
       );
-      setGroups(rows.map((r, i) => ({ ...r, member_count: counts[i] })));
+      const merged = rows.map((r, i) => ({ ...r, member_count: counts[i] }));
+      liveGroupsDoneRef.current = true;
+      setGroups(merged);
+      void setPersistentCache(
+        CACHE_KEYS.QR_GROUPS,
+        user.id,
+        merged.slice(0, QR_GROUP_LIST_CACHE_MAX),
+      );
     } finally {
       setLoading(false);
     }
@@ -162,11 +200,16 @@ export default function QrGroupListScreen({ navigation }: Props) {
       return;
     }
     try {
-      const { data: conns } = await supabase
+      // Every query below is error-checked, not just try/caught: on a
+      // transport failure supabase-js RESOLVES with { data: null,
+      // error }, so `data ?? []` used to turn "no signal" into "you
+      // attended nothing" — wiping the section AND, now, its snapshot.
+      const { data: conns, error: connsErr } = await supabase
         .from('piktag_connections')
         .select('scan_session_id')
         .eq('user_id', user.id)
         .not('scan_session_id', 'is', null);
+      if (connsErr) return;
       const sids = [
         ...new Set(
           ((conns ?? []) as { scan_session_id: string | null }[])
@@ -175,35 +218,60 @@ export default function QrGroupListScreen({ navigation }: Props) {
         ),
       ];
       if (sids.length === 0) {
+        // Answered, and the answer is genuinely empty.
+        liveAttendedDoneRef.current = true;
         setAttended([]);
+        void setPersistentCache<AttendedSession[]>(CACHE_KEYS.QR_ATTENDED, user.id, []);
         return;
       }
       // neq(host) = only sessions OTHERS host — my own live in `groups`.
-      const { data: sess } = await supabase
+      const { data: sess, error: sessErr } = await supabase
         .from('piktag_scan_sessions')
         .select('id, name, event_date, event_location, host_user_id')
         .in('id', sids)
         .neq('host_user_id', user.id);
+      if (sessErr) return;
       const rows = ((sess ?? []) as any[]);
       const hostIds = [...new Set(rows.map((r) => r.host_user_id).filter(Boolean))];
       const hostNames = new Map<string, string>();
+      let hostsFailed = false;
       if (hostIds.length > 0) {
-        const { data: hosts } = await supabase
+        const { data: hosts, error: hostsErr } = await supabase
           .from('piktag_profiles')
           .select('id, full_name, username')
           .in('id', hostIds);
+        if (hostsErr) hostsFailed = true;
         for (const h of (hosts ?? []) as any[]) {
           hostNames.set(h.id, h.full_name || h.username || '');
         }
       }
-      setAttended(
-        rows.map((r) => ({
-          id: String(r.id),
-          name: r.name ?? null,
-          event_date: r.event_date ?? null,
-          event_location: r.event_location ?? null,
-          hostName: hostNames.get(r.host_user_id) ?? null,
-        })),
+      // Host names are a nice-to-have subtitle, but writing them back as
+      // null because that ONE query failed would degrade a good
+      // snapshot. Reuse the last known name instead.
+      const cachedHostNameById = hostsFailed
+        ? new Map(
+            (
+              (await getPersistentCache<AttendedSession[]>(
+                CACHE_KEYS.QR_ATTENDED,
+                user.id,
+              )) ?? []
+            ).map((s) => [s.id, s.hostName] as const),
+          )
+        : null;
+      const mapped: AttendedSession[] = rows.map((r) => ({
+        id: String(r.id),
+        name: r.name ?? null,
+        event_date: r.event_date ?? null,
+        event_location: r.event_location ?? null,
+        hostName:
+          hostNames.get(r.host_user_id) ?? cachedHostNameById?.get(String(r.id)) ?? null,
+      }));
+      liveAttendedDoneRef.current = true;
+      setAttended(mapped);
+      void setPersistentCache<AttendedSession[]>(
+        CACHE_KEYS.QR_ATTENDED,
+        user.id,
+        mapped.slice(0, QR_ATTENDED_CACHE_MAX),
       );
     } catch {
       /* section simply stays hidden */
@@ -216,6 +284,52 @@ export default function QrGroupListScreen({ navigation }: Props) {
     },
     [navigation],
   );
+
+  // Stale-while-revalidate, disk layer. Runs once per account: paint
+  // the last known lists immediately so the screen is not blank at a
+  // venue with no signal, then let the fetches above overwrite them.
+  useEffect(() => {
+    // Reset per account so signing in as someone else re-hydrates from
+    // THEIR snapshot instead of being suppressed by the previous user's
+    // completed fetch.
+    liveGroupsDoneRef.current = false;
+    liveAttendedDoneRef.current = false;
+    const uid = user?.id;
+    if (!uid) return;
+    let cancelled = false;
+    void (async () => {
+      const [cachedGroups, cachedAttended] = await Promise.all([
+        getPersistentCache<QrGroup[]>(CACHE_KEYS.QR_GROUPS, uid),
+        getPersistentCache<AttendedSession[]>(CACHE_KEYS.QR_ATTENDED, uid),
+      ]);
+      if (cancelled) return;
+      let painted = false;
+      if (
+        !liveGroupsDoneRef.current &&
+        Array.isArray(cachedGroups) &&
+        cachedGroups.length > 0
+      ) {
+        // Never clobber rows that already landed from the network.
+        setGroups((prev) => (prev.length > 0 ? prev : cachedGroups));
+        painted = true;
+      }
+      if (
+        !liveAttendedDoneRef.current &&
+        Array.isArray(cachedAttended) &&
+        cachedAttended.length > 0
+      ) {
+        setAttended((prev) => (prev.length > 0 ? prev : cachedAttended));
+        painted = true;
+      }
+      // Only stop the spinner if we actually put something on screen —
+      // otherwise the empty state would flash while a live fetch is
+      // still in flight.
+      if (painted) setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
   useFocusEffect(
     useCallback(() => {
@@ -284,6 +398,26 @@ export default function QrGroupListScreen({ navigation }: Props) {
                 .select('id');
               const nothingDeleted =
                 !error && (!deleted || deleted.length === 0);
+              if (!error && !nothingDeleted) {
+                // Really gone. Prune both snapshots so an offline cold
+                // start can't resurrect the row or present its dead QR.
+                const uid = user?.id;
+                if (uid) {
+                  void dropPersistentQrGroupDetail(uid, g.id);
+                  void (async () => {
+                    const cached = await getPersistentCache<QrGroup[]>(
+                      CACHE_KEYS.QR_GROUPS,
+                      uid,
+                    );
+                    if (!Array.isArray(cached)) return;
+                    await setPersistentCache(
+                      CACHE_KEYS.QR_GROUPS,
+                      uid,
+                      cached.filter((x) => x.id !== g.id),
+                    );
+                  })();
+                }
+              }
               if (error || nothingDeleted) {
                 console.warn(
                   '[QrGroupList] delete failed:',
@@ -305,7 +439,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
         ],
       );
     },
-    [t, loadGroups],
+    [t, loadGroups, user?.id],
   );
 
   // ─── Drag-reorder ───────────────────────────────────────

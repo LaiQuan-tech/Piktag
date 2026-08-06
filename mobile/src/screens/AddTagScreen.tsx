@@ -277,11 +277,21 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         }
       });
       void AsyncStorage.removeItem('piktag_last_qr').catch(() => {});
-      // Load recent locations
-      AsyncStorage.getItem('piktag_recent_locations').then(val => {
-        if (cancelled || !val) return;
-        setRecentLocations(JSON.parse(val));
+      // Load recent locations.
+      //
+      // 2026-08-07: same migration as piktag_last_qr above, for the same
+      // reason. `piktag_recent_locations` was device-global, so on a
+      // shared phone user A's venues ("大安工作室", a client's office)
+      // showed up as suggestions in user B's picker. Now per-user, and
+      // therefore reachable by clearPersistentCaches() on sign-out. The
+      // legacy key is deleted, NOT read as a fallback — reading it would
+      // preserve exactly the leak we're closing. Cost: everyone loses
+      // their (at most two) remembered locations once.
+      void getPersistentCache<string[]>(CACHE_KEYS.RECENT_LOCATIONS, user.id).then((cached) => {
+        if (cancelled || !Array.isArray(cached)) return;
+        setRecentLocations(cached);
       });
+      void AsyncStorage.removeItem('piktag_recent_locations').catch(() => {});
     }
     return () => { cancelled = true; };
   }, [user, loadPresets]);
@@ -289,7 +299,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const saveToRecent = (name: string) => {
     setRecentLocations(prev => {
       const next = [name, ...prev.filter(l => l !== name)].slice(0, 2);
-      AsyncStorage.setItem('piktag_recent_locations', JSON.stringify(next));
+      void setPersistentCache(CACHE_KEYS.RECENT_LOCATIONS, user?.id, next);
       return next;
     });
   };
@@ -297,7 +307,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const handleRemoveRecentLocation = (name: string) => {
     setRecentLocations(prev => {
       const next = prev.filter(l => l !== name);
-      AsyncStorage.setItem('piktag_recent_locations', JSON.stringify(next));
+      void setPersistentCache(CACHE_KEYS.RECENT_LOCATIONS, user?.id, next);
       return next;
     });
   };

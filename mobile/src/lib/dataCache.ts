@@ -25,6 +25,26 @@ export const CACHE_KEYS = {
   MY_QR: 'myQr',
   // The last activity/event QR the viewer generated (AddTagScreen).
   EVENT_QR: 'eventQr',
+  // ── Offline surfaces, round 3 (2026-08-07) ──
+  // The groups the viewer HOSTS (QrGroupListScreen, main list).
+  QR_GROUPS: 'qrGroups',
+  // The sessions the viewer ATTENDED (同一畫面的「我參加的」段落).
+  // A separate key from QR_GROUPS on purpose: the two come from
+  // independent queries with independent failure modes, so a failed
+  // attended fetch must not be able to touch the host list's snapshot
+  // (and vice versa).
+  QR_ATTENDED: 'qrAttended',
+  // Per-group QR detail snapshots (QrGroupDetailScreen), as ONE map
+  // under ONE key — same contract as CHAT_THREADS above, for the same
+  // reason: a key-per-group scheme escapes clearPersistentCaches(),
+  // which iterates exactly this object, and the previous host's event
+  // QR + event tags would survive a sign-out on a shared phone. That is
+  // precisely the leak `piktag_last_qr` had.
+  QR_GROUP_DETAILS: 'qrGroupDetails',
+  // The last couple of event locations the viewer picked. Was the
+  // device-global `piktag_recent_locations` key until 2026-08-07 — on a
+  // shared phone user A's venues showed up in user B's picker.
+  RECENT_LOCATIONS: 'recentLocations',
 } as const;
 
 const DEFAULT_TTL_MS = 300_000; // 5 minutes
@@ -204,6 +224,95 @@ export async function setPersistentThreadMessages<T>(
     await setPersistentCache(CACHE_KEYS.CHAT_THREADS, userId, next);
   } catch {
     // Best-effort, same contract as every other write here.
+  }
+}
+
+// ── QR group (event tag) detail bounds ───────────────────────────────
+// A host needs their group QR on screen at a venue with no signal, so
+// the detail snapshot is worth disk. The whole history of every group
+// they ever made is not. 12 = the most recently OPENED groups: a host
+// runs a handful of live events at a time, and the ones they need to
+// present are by definition the ones they just opened. Worst case is
+// roughly 12 x (one URL + a few tags + <=50 members) ≈ 150 KB, the same
+// order as the chat cache above.
+export const QR_GROUP_DETAIL_CACHE_MAX_GROUPS = 12;
+
+type QrGroupDetailEntry<T> = { updatedAt: number; snapshot: T };
+type QrGroupDetailMap<T> = Record<string, QrGroupDetailEntry<T>>;
+
+/** One group's detail snapshot out of the single per-user map. */
+export async function getPersistentQrGroupDetail<T>(
+  userId: string | null | undefined,
+  groupId: string | null | undefined,
+): Promise<T | null> {
+  if (!userId || !groupId) return null;
+  const map = await getPersistentCache<QrGroupDetailMap<T>>(
+    CACHE_KEYS.QR_GROUP_DETAILS,
+    userId,
+  );
+  return (map?.[groupId]?.snapshot ?? null) as T | null;
+}
+
+/**
+ * Write one group's snapshot, pruning the map back to the N most
+ * recently written groups. Read-modify-write on a single key — the
+ * whole point is that sign-out wipes it in one call.
+ */
+export async function setPersistentQrGroupDetail<T>(
+  userId: string | null | undefined,
+  groupId: string | null | undefined,
+  snapshot: T,
+): Promise<void> {
+  if (!userId || !groupId) return;
+  try {
+    const existing =
+      (await getPersistentCache<QrGroupDetailMap<T>>(
+        CACHE_KEYS.QR_GROUP_DETAILS,
+        userId,
+      )) ?? {};
+    const next: QrGroupDetailMap<T> = {
+      ...existing,
+      [groupId]: { updatedAt: Date.now(), snapshot },
+    };
+    const ids = Object.keys(next);
+    if (ids.length > QR_GROUP_DETAIL_CACHE_MAX_GROUPS) {
+      const keep = ids
+        .sort((a, b) => (next[b]?.updatedAt ?? 0) - (next[a]?.updatedAt ?? 0))
+        .slice(0, QR_GROUP_DETAIL_CACHE_MAX_GROUPS);
+      const pruned: QrGroupDetailMap<T> = {};
+      for (const id of keep) pruned[id] = next[id];
+      await setPersistentCache(CACHE_KEYS.QR_GROUP_DETAILS, userId, pruned);
+      return;
+    }
+    await setPersistentCache(CACHE_KEYS.QR_GROUP_DETAILS, userId, next);
+  } catch {
+    // Best-effort, same contract as every other write here.
+  }
+}
+
+/**
+ * Forget one group entirely. Called when the server says the row is
+ * gone (deleted, or no longer ours) — WITHOUT that, a deleted group
+ * would keep presenting a dead QR the next time the phone is offline.
+ * Never call this on a transport failure; "I couldn't ask" is not
+ * "it's gone".
+ */
+export async function dropPersistentQrGroupDetail(
+  userId: string | null | undefined,
+  groupId: string | null | undefined,
+): Promise<void> {
+  if (!userId || !groupId) return;
+  try {
+    const existing = await getPersistentCache<QrGroupDetailMap<unknown>>(
+      CACHE_KEYS.QR_GROUP_DETAILS,
+      userId,
+    );
+    if (!existing || !(groupId in existing)) return;
+    const next: QrGroupDetailMap<unknown> = { ...existing };
+    delete next[groupId];
+    await setPersistentCache(CACHE_KEYS.QR_GROUP_DETAILS, userId, next);
+  } catch {
+    // best-effort
   }
 }
 
