@@ -3,7 +3,13 @@ import { AppState, type AppStateStatus } from 'react-native';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
+import { CACHE_KEYS, getPersistentCache, setPersistentCache } from '../lib/dataCache';
 import type { InboxConversation, InboxTab } from '../types/chat';
+
+// How many conversation rows we keep on disk for offline reading. The
+// inbox is sorted newest-first, so this is "the 50 threads you actually
+// touch"; anything below that is scrollback nobody opens with no signal.
+const INBOX_CACHE_MAX = 50;
 
 type FetchInboxRow = {
   id: string;
@@ -44,6 +50,11 @@ export function useChatInbox(): UseChatInboxReturn {
   // a mark-all-read sweep) we'd otherwise fire fetch_inbox once per
   // event. 250ms is imperceptible to users but collapses storms.
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Flipped the first time the RPC answers successfully. The disk
+  // hydration below refuses to paint after that, so a slow AsyncStorage
+  // read can never resurrect conversations the server has just told us
+  // are gone (blocked / deleted).
+  const liveFetchDoneRef = useRef<boolean>(false);
 
   const userId = user?.id ?? null;
 
@@ -96,6 +107,15 @@ export function useChatInbox(): UseChatInboxReturn {
       });
 
       setConversations(mapped);
+      liveFetchDoneRef.current = true;
+      // Mirror the inbox to disk so a cold start with no signal still
+      // shows who you've been talking to. Same rows the list renders —
+      // no extra query, no reshaping.
+      void setPersistentCache(
+        CACHE_KEYS.CHAT_INBOX,
+        userId,
+        mapped.slice(0, INBOX_CACHE_MAX),
+      );
       setError(null);
     } catch (e) {
       if (!isMountedRef.current || reqId !== requestIdRef.current) return;
@@ -156,6 +176,34 @@ export function useChatInbox(): UseChatInboxReturn {
       channelRef.current = null;
     }
   }, []);
+
+  // Stale-while-revalidate, disk layer. Runs once per account: paint
+  // the last known inbox immediately, then let fetchInbox overwrite it.
+  // Offline it is the only thing that ever paints — which is the point
+  // (founder 2026-08-06: 聊天歷史 must be readable with no signal).
+  useEffect(() => {
+    // Reset per account, so a sign-in as someone else re-hydrates from
+    // THEIR snapshot instead of being suppressed by the previous user's
+    // completed fetch.
+    liveFetchDoneRef.current = false;
+    if (!userId) return;
+    let cancelled = false;
+    void (async () => {
+      const cached = await getPersistentCache<InboxConversation[]>(
+        CACHE_KEYS.CHAT_INBOX,
+        userId,
+      );
+      if (cancelled || !isMountedRef.current) return;
+      if (liveFetchDoneRef.current) return;
+      if (!Array.isArray(cached) || cached.length === 0) return;
+      // Never clobber rows that already landed from the network.
+      setConversations((prev) => (prev.length > 0 ? prev : cached));
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
 
   useEffect(() => {
     isMountedRef.current = true;

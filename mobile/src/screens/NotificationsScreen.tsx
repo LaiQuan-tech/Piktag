@@ -23,7 +23,13 @@ import { routeFromNotification } from '../lib/notificationRouter';
 import { refreshBadgeFromServer, maybeAskPushPermission } from '../lib/pushNotifications';
 import { useAuth } from '../hooks/useAuth';
 import { useChatUnread } from '../hooks/useChatUnread';
-import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
+import {
+  getCache,
+  setCache,
+  CACHE_KEYS,
+  setPersistentCache,
+  getPersistentCache,
+} from '../lib/dataCache';
 import type { Notification } from '../types';
 import { SkeletonBox } from '../components/SkeletonLoader';
 import CoachMark from '../components/CoachMark';
@@ -498,7 +504,26 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
       setNotifications(cached);
       setLoading(false);
     } else {
-      setLoading(true);
+      // Cold start: the in-memory Map died with the last process. Fall
+      // back to the disk snapshot (same key, namespaced per user id) so
+      // an offline launch shows the last feed the user actually saw
+      // instead of an empty screen. Same shape as the network payload,
+      // so nothing downstream can tell the difference.
+      //
+      // Read-only by design: we paint the cached ROWS and their stored
+      // is_read flags, and touch NOTHING about badge counts — those stay
+      // server-derived (refreshBadgeFromServer), because inventing an
+      // unread number from a stale snapshot is worse than no number.
+      const persisted = await getPersistentCache<Notification[]>(
+        CACHE_KEYS.NOTIFICATIONS,
+        user.id,
+      );
+      if (persisted && persisted.length > 0) {
+        setNotifications(persisted);
+        setLoading(false);
+      } else {
+        setLoading(true);
+      }
     }
 
     // Always fetch fresh data in the background. is_dismissed=false
@@ -530,6 +555,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
             .limit(50);
           if (!fallback.error && fallback.data) {
             setCache(CACHE_KEYS.NOTIFICATIONS, fallback.data);
+            void setPersistentCache(CACHE_KEYS.NOTIFICATIONS, user.id, fallback.data);
             setNotifications(fallback.data);
           }
           return;
@@ -540,6 +566,10 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
 
       if (data) {
         setCache(CACHE_KEYS.NOTIFICATIONS, data);
+        // ...and to disk for the next cold start. Bounded by the query's
+        // own .limit(50) above — we persist exactly what the feed shows,
+        // never more.
+        void setPersistentCache(CACHE_KEYS.NOTIFICATIONS, user.id, data);
         setNotifications(data);
       }
     } catch (err) {

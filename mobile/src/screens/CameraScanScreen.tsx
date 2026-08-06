@@ -18,6 +18,8 @@ import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuthProfile } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
+import { CACHE_KEYS, getPersistentCache, setPersistentCache } from '../lib/dataCache';
 import { prewarmScanBusinessCard, startScanJob } from '../lib/scanCard';
 import QrNameCard from '../components/QrNameCard';
 import ScanSuccessStinger from '../components/stingers/ScanSuccessStinger';
@@ -25,6 +27,11 @@ import ScanSuccessStinger from '../components/stingers/ScanSuccessStinger';
 type CameraScanScreenProps = {
   navigation: any;
 };
+
+// The viewer's own scannable card, exactly as QrNameCard renders it.
+// Persisted per user id so a cold start with no signal can still put a
+// complete QR in front of someone at an event.
+type MyQrCard = { username: string; name: string; tags: string[] };
 
 type PendingScanNav =
   | { route: 'UserDetail'; params: Record<string, unknown> }
@@ -74,6 +81,10 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
   // Already-hydrated profile (disk-backed in AuthContext) — the offline
   // source for the "show my QR" card.
   const { profile: ctxProfile } = useAuthProfile();
+  // Session user — available from the restored session before the
+  // profile row lands, so the QR snapshot below is readable on the very
+  // first offline cold start rather than one flip later.
+  const { user: authUser } = useAuth();
 
   // 'scan' = camera (QR + card auto-detect); 'show' = display MY QR to be scanned.
   const [mode, setMode] = useState<'scan' | 'show'>('scan');
@@ -89,7 +100,7 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
   const [capturing, setCapturing] = useState(false); // single card shot in flight
 
   // ── "Show my QR" data (lazy-fetched the first time the user flips) ──
-  const [myQr, setMyQr] = useState<{ username: string; name: string; tags: string[] } | null>(null);
+  const [myQr, setMyQr] = useState<MyQrCard | null>(null);
 
   useEffect(() => {
     // 2026-07-04 speed pass: warm the scan-business-card isolate as soon
@@ -226,10 +237,29 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
         tags: [],
       });
     }
+    // ...then upgrade to the last FULL card we rendered, which also has
+    // the public tags. The AuthContext profile alone cannot supply those
+    // (they live in piktag_user_tags), so offline the card used to show
+    // a bare handle with no identity tags — technically scannable, but
+    // it is the tags that make someone say "oh, you do that too". This
+    // snapshot is written on every successful online flip below.
+    const cachedCard = await getPersistentCache<MyQrCard>(
+      CACHE_KEYS.MY_QR,
+      ctxProfile?.id ?? authUser?.id ?? null,
+    );
+    if (cachedCard?.username) {
+      // Upgrade only — if something on screen already carries tags, it is
+      // at least as complete as the snapshot; leave it alone.
+      setMyQr((prev) => (prev && prev.tags.length > 0 ? prev : cachedCard));
+    }
     try {
-      // `getUser()` is a NETWORK call; prefer the id we already have.
+      // `getUser()` is a NETWORK call; prefer the ids we already have —
+      // the profile row, then the restored session (both local).
       const userId =
-        ctxProfile?.id ?? (await supabase.auth.getUser()).data?.user?.id ?? null;
+        ctxProfile?.id ??
+        authUser?.id ??
+        (await supabase.auth.getUser()).data?.user?.id ??
+        null;
       if (!userId) return;
       const [{ data: prof }, { data: tagRows }] = await Promise.all([
         supabase.from('piktag_profiles').select('username, full_name').eq('id', userId).single(),
@@ -242,16 +272,20 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
           .limit(6),
       ]);
       if (prof?.username) {
-        setMyQr({
+        const card: MyQrCard = {
           username: prof.username,
           name: prof.full_name || prof.username,
+          // Already bounded by the .limit(6) above — the card shows at
+          // most six identity tags, so that is exactly what we store.
           tags: (tagRows || []).map((r: any) => r.tag?.name).filter(Boolean),
-        });
+        };
+        setMyQr(card);
+        void setPersistentCache(CACHE_KEYS.MY_QR, userId, card);
       }
     } catch {
       // Non-fatal — the cached card above stays on screen.
     }
-  }, [myQr, ctxProfile]);
+  }, [myQr, ctxProfile, authUser?.id]);
 
   const close = useCallback(() => {
     if (navigation.canGoBack()) navigation.goBack();

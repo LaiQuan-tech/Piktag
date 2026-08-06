@@ -30,7 +30,13 @@ import { requestForegroundPermissionsAsync, getCurrentPositionAsync, Accuracy, r
 import { useTranslation } from 'react-i18next';
 import { getLocales } from 'expo-localization';
 import { supabase } from '../lib/supabase';
-import { getCache, setCache } from '../lib/dataCache';
+import {
+  getCache,
+  setCache,
+  CACHE_KEYS,
+  getPersistentCache,
+  setPersistentCache,
+} from '../lib/dataCache';
 import { stripSearchStopwords, filterLoneStopwordTokens } from '../lib/searchStopwords';
 import { ilikeEscape, hashDisplay } from '../lib/normalizeTag';
 import { getSiblingTagIds, getTagNamesByIds } from '../lib/tagSiblings';
@@ -55,6 +61,19 @@ const RECENT_SEARCHES_KEY = 'piktag_recent_searches';
 const MAX_RECENT_SEARCHES = 10;
 const CACHE_KEY_POPULAR_TAGS = 'search_popular_tags';
 const CACHE_KEY_SEARCH_QUERY = 'search_last_query';
+
+// Disk mirror of the popular-tags bootstrap — the Search tab's DEFAULT
+// surface. Cold-starting offline used to leave this screen either
+// spinning or on the retry CTA; with the snapshot the user can still
+// browse the tag world they already know (founder 2026-08-06: 搜尋 must
+// not be blank offline). The per-query LRU (searchCacheRef) stays
+// in-memory only: yesterday's result list for a half-typed query is not
+// something to resurrect a day later.
+//
+// Bound = the same TARGET the loader itself uses, so the offline
+// surface is exactly the online one, never a bigger accumulated blob.
+const SEARCH_BOOTSTRAP_MAX_TAGS = 50;
+type SearchBootstrapSnapshot = { tags: Tag[]; categories: string[] };
 
 // The browse-mode category filter (興趣/身份/個性, by semantic_type) only
 // earns its place once there's real volume — slicing a cold-start list of a
@@ -449,6 +468,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // failure. The render path swaps in <ErrorState> with a retry CTA
   // when this is true.
   const [bootstrapFailed, setBootstrapFailed] = useState(false);
+  // Current user id for the offline bootstrap snapshot, held in a ref so
+  // the cache writers stay stable callbacks (see persistSearchBootstrap).
+  const bootstrapUserIdRef = useRef<string | null>(null);
+  bootstrapUserIdRef.current = user?.id ?? null;
+  // One-shot: the disk snapshot is a cold-start fallback, not a source
+  // that competes with live data on every re-render.
+  const bootstrapHydratedRef = useRef(false);
 
 
   // Refs for stable closures
@@ -693,6 +719,20 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     return 'en'; // Latin/default
   }, []);
 
+  // Mirror the bootstrap to disk. Reads the user id from a ref rather
+  // than a dep so this callback stays referentially stable — it is
+  // consumed by loadPopularTags / loadInitialViaRpc, and making those
+  // re-created when `user` lands would re-fire the whole bootstrap
+  // (an extra RPC round-trip on every cold start).
+  const persistSearchBootstrap = useCallback((tagList: Tag[], categories: string[]) => {
+    const uid = bootstrapUserIdRef.current;
+    if (!uid || tagList.length === 0) return;
+    void setPersistentCache<SearchBootstrapSnapshot>(CACHE_KEYS.SEARCH_BOOTSTRAP, uid, {
+      tags: tagList.slice(0, SEARCH_BOOTSTRAP_MAX_TAGS),
+      categories,
+    });
+  }, []);
+
   const loadPopularTags = useCallback(async () => {
     const cached = getCache<Tag[]>(CACHE_KEY_POPULAR_TAGS);
     if (cached) {
@@ -807,6 +847,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         setTags(merged);
         const cats = qualifyingTagCategories(merged);
         setTagCategories(cats);
+        persistSearchBootstrap(merged, cats);
 
         // Trending: 7-day growth over the FINAL merged set's ids. Runs
         // on the merged list (incl. nearby) now, not global-only — a
@@ -845,7 +886,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         setInitialLoading(false);
       }
     }
-  }, []);
+  }, [persistSearchBootstrap]);
 
   const loadNearbyProfiles = useCallback(async () => {
     setLoading(true);
@@ -928,6 +969,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       setTags(popular as Tag[]);
       const cats = qualifyingTagCategories(popular as any[]);
       setTagCategories(cats);
+      persistSearchBootstrap(popular as Tag[], cats);
       setLoading(false);
       setInitialLoading(false);
       return true;
@@ -940,7 +982,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       setBootstrapFailed(true);
       return false;
     }
-  }, []);
+  }, [persistSearchBootstrap]);
 
   // Bootstrap runner extracted so the same code path serves cold-start
   // load and the user-tapped retry. Tracks `bootstrapFailed` only when
@@ -972,6 +1014,43 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     loadPopularTags,
     loadRecentSearches,
   ]);
+
+  // Cold-start offline fallback for the default surface. Runs alongside
+  // the bootstrap (not instead of it): whatever the network eventually
+  // returns overwrites this. With no network it is the only paint, so
+  // Search shows the tag world instead of a spinner or the retry CTA.
+  // The user still knows it's cached — the app-wide <OfflineBanner> in
+  // App.tsx is already showing 目前離線 / 部分功能需要網路, which is the
+  // established offline affordance; adding a second per-screen badge
+  // would be a competing pattern.
+  useEffect(() => {
+    const uid = user?.id;
+    if (!uid) return;
+    if (bootstrapHydratedRef.current) return;
+    // The in-memory cache being warm means the bootstrap already ran in
+    // this process — nothing to restore.
+    if (getCache<Tag[]>(CACHE_KEY_POPULAR_TAGS)) return;
+    bootstrapHydratedRef.current = true;
+    let cancelled = false;
+    void (async () => {
+      const snap = await getPersistentCache<SearchBootstrapSnapshot>(
+        CACHE_KEYS.SEARCH_BOOTSTRAP,
+        uid,
+      );
+      if (cancelled || !isMountedRef.current) return;
+      if (!snap || !Array.isArray(snap.tags) || snap.tags.length === 0) return;
+      // Never clobber anything the network already painted.
+      setTags((prev) => (prev.length > 0 ? prev : snap.tags));
+      setTagCategories((prev) =>
+        prev.length > 0 ? prev : Array.isArray(snap.categories) ? snap.categories : [],
+      );
+      setLoading(false);
+      setInitialLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
   useEffect(() => {
     let cancelled = false;

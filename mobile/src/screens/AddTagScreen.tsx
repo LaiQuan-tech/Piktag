@@ -36,6 +36,7 @@ import {
   Accuracy,
   reverseGeocodeAsync,
 } from 'expo-location';
+import { CACHE_KEYS, getPersistentCache, setPersistentCache } from '../lib/dataCache';
 import { logApiUsage } from '../lib/apiUsage';
 import { normalizeTagName, hashDisplay } from '../lib/normalizeTag';
 import { appendLang } from '../lib/shareProfile';
@@ -49,6 +50,12 @@ import type { TagPreset, ScanSession, PiktagProfile } from '../types';
 type AddTagScreenProps = {
   navigation: any;
 };
+
+// Last activity QR this user generated, restored so the sheet is not
+// blank when they reopen it (including with no signal at the venue).
+// Bounded by construction: one URL plus the tags the user themselves
+// tapped onto that QR.
+type EventQrSnapshot = { url: string; tags: string[] };
 
 // Canonical storage format (YYYY/MM/DD). This value is what we push to the
 // DB's `event_date` column and what we compare against in state, so it MUST
@@ -243,26 +250,33 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     let cancelled = false;
     if (user) {
       loadPresets();
-      // Load cached QR for offline use
-      AsyncStorage.getItem('piktag_last_qr').then(val => {
-        if (cancelled || !val) return;
-        try {
-          const cached = JSON.parse(val);
-          if (cached.url && !qrValue) {
-            setQrValue(cached.url);
-            // NOTE: deliberately NOT restoring cached.date /
-            // cached.location anymore. They're remnants from the
-            // legacy date/location-picker flow — under the new
-            // AI-driven UI the user doesn't see those pickers, so
-            // restoring values from a previous session leaks ghost
-            // tags onto the current QR's display (user reported
-            // "I didn't pick those, why are they here?").
-            // event_tags are kept because the user DID explicitly
-            // tap chips to add them — that's their intent.
-            if (cached.tags) setEventTags(cached.tags);
-          }
-        } catch {}
+      // Load cached QR for offline use.
+      //
+      // 2026-08-06: moved off the device-global `piktag_last_qr` key onto
+      // the per-user cache. The old key was shared by every account that
+      // ever signed in on the phone, so on a shared device the previous
+      // host's event QR URL and their event tags reappeared in the next
+      // user's Tag screen — the same class of cross-account leak this
+      // repo already got bitten by once. The legacy key is removed below
+      // rather than read as a fallback: reading it would preserve the
+      // leak, and the cost of dropping it is one lost QR restore.
+      void getPersistentCache<EventQrSnapshot>(CACHE_KEYS.EVENT_QR, user.id).then((cached) => {
+        if (cancelled || !cached?.url) return;
+        if (!qrValue) {
+          setQrValue(cached.url);
+          // NOTE: deliberately NOT restoring cached.date /
+          // cached.location anymore. They're remnants from the
+          // legacy date/location-picker flow — under the new
+          // AI-driven UI the user doesn't see those pickers, so
+          // restoring values from a previous session leaks ghost
+          // tags onto the current QR's display (user reported
+          // "I didn't pick those, why are they here?").
+          // event_tags are kept because the user DID explicitly
+          // tap chips to add them — that's their intent.
+          if (Array.isArray(cached.tags)) setEventTags(cached.tags);
+        }
       });
+      void AsyncStorage.removeItem('piktag_last_qr').catch(() => {});
       // Load recent locations
       AsyncStorage.getItem('piktag_recent_locations').then(val => {
         if (cancelled || !val) return;
@@ -815,7 +829,10 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       // implicit DB-side context (used by AI grounding) but the
       // user never sees a "set date/location" UI, so persisting
       // them would silently leak ghost tags into the next QR.
-      AsyncStorage.setItem('piktag_last_qr', JSON.stringify({ url: qrUrl, tags: eventTags }));
+      void setPersistentCache<EventQrSnapshot>(CACHE_KEYS.EVENT_QR, user.id, {
+        url: qrUrl,
+        tags: eventTags,
+      });
       setScanSession({
         id: sessionId,
         host_user_id: user.id,

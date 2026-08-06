@@ -6,6 +6,10 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
 import type { Message, MessageStatus, ThreadMessage } from '../types/chat';
 import { dequeue, enqueue, peek, type QueuedSend } from '../lib/chatSendQueue';
+import {
+  getPersistentThreadMessages,
+  setPersistentThreadMessages,
+} from '../lib/dataCache';
 import { useNetInfo } from './useNetInfo';
 
 const PAGE_SIZE = 50;
@@ -71,6 +75,10 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
   // already loaded. Initialized true so the first loadMore can probe;
   // set to false as soon as a fetch returns < PAGE_SIZE rows.
   const hasMoreRef = useRef<boolean>(true);
+  // Set once the server has answered for this thread. Guards the disk
+  // hydration below from painting over a fresher (possibly empty)
+  // server result that arrived first.
+  const liveFetchDoneRef = useRef<boolean>(false);
   // Latest messages snapshot for callbacks that shouldn't re-create on
   // every state change (realtime handler, flush loop).
   const messagesRef = useRef<ThreadMessage[]>([]);
@@ -104,6 +112,14 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
       const rows: Message[] = Array.isArray(data) ? (data as Message[]) : [];
       const mapped: ThreadMessage[] = rows.map((m) => ({ ...m, status: 'sent' }));
       setMessages(mapped);
+      liveFetchDoneRef.current = true;
+      // Persist the tail of this thread so it can be RE-READ offline.
+      // Server rows only — optimistic / failed bubbles belong to
+      // chatSendQueue, and caching them here would resurrect a bubble
+      // the queue is separately responsible for retrying. The helper
+      // bounds this to the newest CHAT_THREAD_CACHE_MAX_MESSAGES and
+      // keeps at most CHAT_THREAD_CACHE_MAX_CONVERSATIONS threads.
+      void setPersistentThreadMessages<Message>(userId, conversationId, rows);
       // If we got fewer than a full page, there is nothing older — skip
       // future loadMore probes so the inverted FlatList doesn't show a
       // dangling "loading older" spinner on brand-new threads.
@@ -354,6 +370,35 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
       await doInsert(q.nonce, q.body);
     }
   }, [conversationId, userId, doInsert, setStatus]);
+
+  // Disk hydration (stale-while-revalidate). Paints the last N messages
+  // we saw in this thread before the network answers — and, with no
+  // network at all, instead of it. Reading only: sending offline still
+  // goes through chatSendQueue exactly as before.
+  useEffect(() => {
+    // A different thread (or account) has its own liveness: reset before
+    // the fetch effect below re-runs, or the previous conversation's
+    // "server already answered" would suppress this one's hydration.
+    liveFetchDoneRef.current = false;
+    if (!userId || !conversationId) return;
+    let cancelled = false;
+    void (async () => {
+      const cached = await getPersistentThreadMessages<Message>(userId, conversationId);
+      if (cancelled || !isMountedRef.current) return;
+      if (liveFetchDoneRef.current) return;
+      if (!Array.isArray(cached) || cached.length === 0) return;
+      const restored: ThreadMessage[] = cached.map((m) => ({ ...m, status: 'sent' }));
+      // Only fill an empty thread — never overwrite live rows.
+      setMessages((prev) => (prev.length > 0 ? prev : restored));
+      // hasMoreRef stays TRUE on purpose: a bounded cache proves nothing
+      // about what the server still holds, so pagination must remain
+      // able to probe once connectivity returns.
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, conversationId]);
 
   useEffect(() => {
     isMountedRef.current = true;

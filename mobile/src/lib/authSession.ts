@@ -53,6 +53,94 @@ const STARTUP_SESSION_TIMEOUT_MS = 2500;
 
 const TIMED_OUT = Symbol('getSession-timeout');
 
+// ─────────────────────────────────────────────────────────────────────
+// OFFLINE SESSION TRUST WINDOW — 30 days.
+//
+// THIS NUMBER IS A FOUNDER PRODUCT DECISION (2026-08-06), NOT A
+// TECHNICAL LIMIT. Nothing in auth-js, Supabase or the token format
+// requires it: a refresh token stays usable far longer, and the code
+// below would work identically with any value. The decision is that a
+// device which has not managed to reach the auth server for a whole
+// month should ask the human to sign in again — a phone lost after an
+// event shouldn't stay logged in forever just by staying in airplane
+// mode. Do NOT "simplify" this away, do not derive it from token
+// lifetimes, and do not shorten it to match some refresh interval:
+// changing it is a product call, not a refactor.
+export const OFFLINE_SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+
+// Supabase's default access-token lifetime, used ONLY when a persisted
+// blob somehow lacks `expires_in`. Matches the project's Auth settings
+// (JWT expiry 3600s).
+const DEFAULT_ACCESS_TOKEN_LIFETIME_S = 3600;
+
+/**
+ * When was this session last KNOWN-GOOD — i.e. the last moment the auth
+ * server itself vouched for the credential?
+ *
+ * We derive it from the blob instead of writing our own timestamp:
+ *
+ *   last_verified_at = expires_at - expires_in
+ *
+ * Every auth-js path that persists a session writes the pair together
+ * at the moment a server call SUCCEEDED — `_saveSession({expires_at:
+ * now + data.expires_in, ...data})` after a refresh (GoTrueClient.js
+ * :2425), and `{expires_in: expires_at - now}` after a live `_getUser`
+ * validation (:1402). Either way the difference collapses to the clock
+ * reading at the last successful round-trip with the auth server, which
+ * is exactly the age this cap is about, and it advances on its own
+ * every time connectivity returns.
+ *
+ * `expires_at` alone is useless as an age: an access token lives ~1
+ * hour, so every session that survived one night offline would look
+ * ancient and everyone would be logged out by morning — the original
+ * bug, re-introduced through the front door.
+ *
+ * Why not persist our own `last_verified_at` on each successful online
+ * resolve? It would measure the same thing but with two extra failure
+ * modes: it is written with the DEVICE clock (so equally forgeable),
+ * and a missed/failed write would silently age a good session out. The
+ * server-issued timestamp travels inside the session we are already
+ * reading, cannot drift from it, and needs no new write path.
+ *
+ * TRADEOFF, stated plainly: the comparison still uses `Date.now()`, so
+ * a user who moves the device clock BACKWARDS can keep an old session
+ * inside the window. We accept that — it buys nothing (every request
+ * still needs a token the server will accept, and the server is the one
+ * enforcing real expiry) and defending against it would mean trusting a
+ * monotonic clock we don't have offline. The direction that matters is
+ * the other one: a clock moved FORWARD makes a session look older and
+ * we fail closed, back to the sign-in screen.
+ */
+function lastKnownGoodAtMs(session: Session): number | null {
+  const expiresAt = (session as { expires_at?: number | null }).expires_at;
+  if (typeof expiresAt !== 'number' || !Number.isFinite(expiresAt)) return null;
+  const expiresIn = (session as { expires_in?: number | null }).expires_in;
+  const lifetimeS =
+    typeof expiresIn === 'number' && Number.isFinite(expiresIn) && expiresIn > 0
+      ? expiresIn
+      : DEFAULT_ACCESS_TOKEN_LIFETIME_S;
+  return (expiresAt - lifetimeS) * 1000;
+}
+
+/**
+ * Is a persisted session young enough to keep trusting while we cannot
+ * verify it? Exported for tests / future callers; the app-facing use is
+ * `readTrustedPersistedSession()` below.
+ *
+ * A session with no usable timestamp returns TRUE. That is deliberate:
+ * this file's whole doctrine is that we only conclude "signed out" from
+ * positive evidence, and "the blob has no readable issue time" is not
+ * evidence that it is stale.
+ */
+export function isWithinOfflineTrustWindow(
+  session: Session,
+  nowMs: number = Date.now(),
+): boolean {
+  const knownGoodAt = lastKnownGoodAtMs(session);
+  if (knownGoodAt === null) return true;
+  return nowMs - knownGoodAt <= OFFLINE_SESSION_MAX_AGE_MS;
+}
+
 function looksLikeSession(value: unknown): value is Session {
   if (!value || typeof value !== 'object') return false;
   const s = value as Record<string, unknown>;
@@ -87,6 +175,35 @@ export async function readPersistedSession(): Promise<Session | null> {
 }
 
 /**
+ * The persisted session, but only if it is still inside the 30-day
+ * offline trust window. This — NOT `readPersistedSession` — is what the
+ * unverifiable/offline fallback paths use.
+ *
+ * Two properties this function must keep:
+ *
+ *  1. It is ONLY reachable from a fallback. A live `getSession()` that
+ *     actually answered is authoritative no matter how old the session
+ *     is: if the server is willing to refresh a 90-day-old token, the
+ *     user stays in. The cap is about how long we will vouch for a
+ *     credential the server has NOT confirmed.
+ *  2. Hitting the cap does NOT delete anything. We return null so the
+ *     app routes to the auth stack, and leave SecureStore untouched —
+ *     the very next launch with signal may find the refresh token still
+ *     valid, and the user is back in with no re-typing. Deleting here
+ *     would turn a connectivity condition into permanent data loss,
+ *     which is the exact class of bug 437639d fixed.
+ */
+async function readTrustedPersistedSession(): Promise<Session | null> {
+  const persisted = await readPersistedSession();
+  if (!persisted) return null;
+  if (!isWithinOfflineTrustWindow(persisted)) {
+    // Deliberately no clearPersistedSession() here. See (2) above.
+    return null;
+  }
+  return persisted;
+}
+
+/**
  * Hard-clear the persisted session. Only ever called from the explicit
  * user-initiated log-out path.
  */
@@ -115,7 +232,12 @@ export async function clearPersistedSession(): Promise<void> {
  *   2. `getSession()` returned null AND no    → genuinely signed out.
  *      error (storage was empty)
  *   3. anything else (error, timeout, throw)  → we could not VERIFY.
- *      Fall back to whatever is persisted; keep the user in the app.
+ *      Fall back to the persisted session, provided it is still inside
+ *      the 30-day offline trust window; keep the user in the app.
+ *
+ * Note the asymmetry in (1) vs (3): a session the auth client actually
+ * handed back is accepted at ANY age. The cap only governs how long we
+ * are willing to vouch for a credential nobody has confirmed.
  */
 export async function resolveStartupSession(
   timeoutMs: number = STARTUP_SESSION_TIMEOUT_MS,
@@ -138,8 +260,8 @@ export async function resolveStartupSession(
     if (!result.error) return null;
   }
 
-  // Case 3: unverifiable. Trust local storage.
-  return await readPersistedSession();
+  // Case 3: unverifiable. Trust local storage — up to 30 days.
+  return await readTrustedPersistedSession();
 }
 
 /**
@@ -152,11 +274,13 @@ export async function resolveStartupSession(
  *     offline when it tried to refresh. NOT a sign-out.
  *
  * Returns the session to fall back to, or null if the user really is
- * signed out.
+ * signed out — or if the persisted session has aged past the 30-day
+ * offline trust window, which the caller treats the same way (route to
+ * auth; nothing is deleted).
  */
 export async function recoverSessionForNullEvent(
   event: string,
 ): Promise<Session | null> {
   if (event === 'SIGNED_OUT') return null;
-  return await readPersistedSession();
+  return await readTrustedPersistedSession();
 }
