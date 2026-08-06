@@ -154,7 +154,9 @@ captive portal 回 4xx 仍會被 auth-js 自己讀成登出(超出本次範圍,
 (03:49),所以這個判定是在上線之後才到的 —— 鐵則「push 前必須重跑驗收」
 這次沒有被遵守。**
 
-### 未結案:HIGH —— 成員區把「問不到」講成「還沒有人掃這個 QR」
+### 已修:HIGH —— 成員區把「問不到」講成「還沒有人掃這個 QR」
+
+**修復狀態:已修,見本節末。** 以下先記錄原始缺陷。
 
 `mobile/src/screens/QrGroupDetailScreen.tsx`。已逐行確認屬實:
 
@@ -172,13 +174,22 @@ captive portal 回 4xx 仍會被 auth-js 自己讀成登出(超出本次範圍,
 而且會被固化進離線快取。這正是本批要擋的「謊稱」,只是發生在成員面
 而不是清單面(清單面 `QrGroupListScreen.tsx:715` 是對的)。
 
-建議修法(三處都小,不需新 i18n key):
-- `:265` 的 `liveFetchDoneRef` 拆成 per-section 旗標,照
-  `QrGroupListScreen` 已在用的 `liveGroupsDoneRef`/`liveAttendedDoneRef` 模式。
-- `GroupDetailSnapshot` 的 `members` 允許 `null`(或加 `membersKnown`),
-  `freshMembers === null && prevSnapshot == null` 時不要寫 `members`。
-- 空分支改用既有的 `common.loadFailed` + `common.checkConnection`
-  (兩者 19/19 語系皆已齊備)。
+**實際修法(三處,無新 i18n key)**:
+- `liveFetchDoneRef` 拆成 `liveGroupDoneRef` / `liveMembersDoneRef` /
+  `liveTagsDoneRef` 三個旗標,照 `QrGroupListScreen` 的
+  `liveGroupsDoneRef`/`liveAttendedDoneRef` 模式。取得團體 row 只放倒
+  group 那一支;伺服器答「已刪除」時三支同時放倒(整列都不該再畫)。
+  磁碟水合改成**逐段** gate,所以成員 RPC 失敗時快取的成員清單補得上來。
+- `GroupDetailSnapshot` 的 `members` / `currentTags` 改為 optional。
+  寫入時 `freshX ?? prevSnapshot?.X`,兩者皆無就**整個欄位不寫** ——
+  欄位不存在代表「沒問到過」,空陣列代表「問到了,答案就是空」。
+  原本收尾的 `?? []` 正是把「問不到」寫死成「空」的那一行。
+- 新增 `membersKnown` state。空清單且 `!membersKnown` 時改顯示既有的
+  `common.loadFailed` + `common.checkConnection`(19/19 已齊);
+  只有確定問到過才顯示「還沒有人掃這個 QR」。從快取還原成員時
+  一併還原 knownness,所以「真的沒人掃」離線時仍正確顯示為空。
+
+**驗證**:`npx tsc --noEmit` 0 錯;新增行零 emoji;無新增 i18n key。
 
 ### 其餘未結案項目(非阻擋,依嚴重度)
 
