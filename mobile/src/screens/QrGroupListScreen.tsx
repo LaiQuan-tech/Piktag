@@ -108,6 +108,14 @@ export default function QrGroupListScreen({ navigation }: Props) {
   };
   const [attended, setAttended] = useState<AttendedSession[]>([]);
   const [loading, setLoading] = useState(true);
+  // The last groups fetch did not get an answer. Only ever consulted
+  // when there is nothing to show: with no cache and no signal this
+  // screen used to fall through to "一場活動，一個 QR — build your
+  // first one", which tells a host who has ten events that they have
+  // none. Tracked off the GROUPS query alone (the primary one for this
+  // surface); a groups answer of "zero rows" is a real empty state even
+  // if the attended query failed alongside it.
+  const [loadFailed, setLoadFailed] = useState(false);
 
   // Flipped the first time each section lands from the network, so a
   // slow disk read can never paint over fresher server data. One flag
@@ -156,6 +164,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
         // venue — keep whatever is on screen (cached or older) and,
         // crucially, do NOT write the snapshot.
         console.warn('[QrGroupList] load failed:', error);
+        setLoadFailed(true);
         return;
       }
       const rows = ((data ?? []) as Array<Partial<Omit<QrGroup, 'member_count'>>>).map(
@@ -183,6 +192,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
       );
       const merged = rows.map((r, i) => ({ ...r, member_count: counts[i] }));
       liveGroupsDoneRef.current = true;
+      setLoadFailed(false);
       setGroups(merged);
       void setPersistentCache(
         CACHE_KEYS.QR_GROUPS,
@@ -602,7 +612,31 @@ export default function QrGroupListScreen({ navigation }: Props) {
             navigation path is lost, just visual noise. */}
       </View>
     ),
-    [t, handleCreateNew],
+    // styles/colors ARE deps: this JSX is memoized and both change on a
+    // theme switch (repo rule — omitting them froze surfaces on
+    // whichever theme rendered first).
+    [t, handleCreateNew, styles, colors],
+  );
+
+  // Nothing cached AND the fetch never got an answer. Same distinction
+  // the detail screen already draws, worded with the same two keys —
+  // both already ship in all 19 locales, so no new i18n. Saying "you
+  // have no Tags yet" here would be a lie about the user's own data.
+  const listLoadFailed = useMemo(
+    () => (
+      <View style={styles.emptyWrap}>
+        <View style={styles.emptyIconWrap}>
+          <QrCode size={36} color={colors.piktag500} />
+        </View>
+        <Text style={styles.emptyTitle}>
+          {t('common.loadFailed', { defaultValue: '載入失敗' })}
+        </Text>
+        <Text style={styles.emptyDesc}>
+          {t('common.checkConnection', { defaultValue: '請檢查網路連線後重試' })}
+        </Text>
+      </View>
+    ),
+    [t, styles, colors],
   );
 
   return (
@@ -678,7 +712,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
             <ActivityIndicator size="small" color={colors.piktag500} />
           </View>
         ) : groups.length === 0 && attended.length === 0 ? (
-          listEmpty
+          loadFailed ? listLoadFailed : listEmpty
         ) : (
           <DraggableFlatList
             data={groups}

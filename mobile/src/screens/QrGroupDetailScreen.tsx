@@ -148,13 +148,64 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
     [group?.qr_code_data],
   );
 
-  // Flipped the first time the row lands from the network. The disk
-  // hydration below refuses to paint after that, so a slow AsyncStorage
-  // read can never resurrect a snapshot over fresher server data.
+  // Flipped the first time the network ANSWERS about this row —
+  // including when the answer is "it's gone". The disk hydration below
+  // refuses to paint after that, so a slow AsyncStorage read can never
+  // resurrect a snapshot over fresher server data, and in particular
+  // can never redraw a group the server just told us was deleted.
   const liveFetchDoneRef = useRef(false);
+
+  // ── Identity invariant: what is on screen belongs to params.groupId ─
+  //
+  // React Navigation REUSES this mounted instance when something
+  // navigates to QrGroupDetail with a different groupId (a notification
+  // tap does exactly that — notificationRouter calls navigate(
+  // 'QrGroupDetail', { groupId })), swapping the param without
+  // remounting and without a `getId` to force a new screen. Every piece
+  // of per-group state therefore has to be dropped by hand: leaving it
+  // meant a host presenting the PREVIOUS event's QR, name and tags with
+  // nothing on screen hinting that anything was wrong — a far worse
+  // failure than a blank screen, and offline it was never corrected
+  // because the fetch returns early with no signal.
+  //
+  // Done DURING RENDER rather than in an effect: an effect fires after
+  // the commit, so the first frame after a param swap would still paint
+  // the old group. Adjusting state while rendering makes React re-run
+  // this component before anything reaches the screen. (React's
+  // documented "adjusting state when a prop changes" pattern; the block
+  // is idempotent, so a double render is harmless.)
+  const [renderedGroupId, setRenderedGroupId] = useState<string | undefined>(groupId);
+  // Mirrors the CURRENT param for async continuations. Every fetch and
+  // every disk read stamps the id it was issued for and compares
+  // against this before touching state, so an in-flight response for
+  // the previous group cannot land on top of the new one.
+  const groupIdRef = useRef(groupId);
+  if (renderedGroupId !== groupId) {
+    setRenderedGroupId(groupId);
+    groupIdRef.current = groupId;
+    liveFetchDoneRef.current = false;
+    setGroup(null);
+    setMembers([]);
+    setCurrentTags([]);
+    setSelectedFilterTag(null);
+    setQrUsername('');
+    setNameInput('');
+    setTagInput('');
+    setEditingName(false);
+    setNotFound(false);
+    setMode('present');
+    setLoading(true);
+  }
 
   const fetchGroup = useCallback(async () => {
     if (!user || !groupId) return;
+    // Stamp the request with the group it was issued for. Every await
+    // below is a chance for the route param to change under us, so
+    // anything that comes back for a group that is no longer on screen
+    // is dropped. Disk writes are keyed by reqGroupId and stay correct
+    // whatever is being displayed, so those are deliberately NOT gated.
+    const reqGroupId = groupId;
+    const onScreen = () => groupIdRef.current === reqGroupId;
     setLoading(true);
     try {
       // Same migration-tolerance pattern as QrGroupListScreen: try
@@ -185,17 +236,32 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         // screen and leave the snapshot untouched: writing here is
         // exactly how a good offline copy gets poisoned.
         console.warn('[QrGroupDetail] group fetch failed:', gErr);
+        // "We couldn't ask" retracts an earlier "it's gone": notFound
+        // exists only to suppress the check-your-connection line when
+        // the server DID answer, and right now it demonstrably didn't.
+        // Leaving it set produced the contradictory placeholder that
+        // said 載入失敗 while hiding the one line that explains why.
+        if (onScreen()) setNotFound(false);
         return;
       }
       if (!g) {
         // The server answered, and the answer is "not yours / gone".
         // THAT is authoritative — drop the row and its snapshot so a
-        // deleted group can't keep presenting a dead QR offline.
+        // deleted group can't keep presenting a dead QR offline. The
+        // disk drop is keyed by reqGroupId, so it runs even if the user
+        // has already moved to another group.
+        void dropPersistentQrGroupDetail(user.id, reqGroupId);
+        if (!onScreen()) return;
+        // The network HAS answered — "gone" is an answer. Setting the
+        // flag only on the success path let a disk read that resolved
+        // later sail past the hydration guard and redraw the deleted
+        // group over this placeholder.
+        liveFetchDoneRef.current = true;
         setGroup(null);
         setNotFound(true);
-        void dropPersistentQrGroupDetail(user.id, groupId);
         return;
       }
+      if (!onScreen()) return;
       liveFetchDoneRef.current = true;
       setNotFound(false);
       const freshGroup = g as Group;
@@ -219,15 +285,18 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
       }
       // On failure keep the handle we already have (hydrated from disk
       // a moment ago) instead of stamping a raw uuid onto the card.
-      setQrUsername((prev) => freshUsername ?? (prev || user.id));
+      if (onScreen()) setQrUsername((prev) => freshUsername ?? (prev || user.id));
 
       let freshMembers: Member[] | null = null;
       const { data: m, error: mErr } = await supabase.rpc('qr_group_members', {
-        p_group_id: groupId,
+        p_group_id: reqGroupId,
       });
       if (!mErr && Array.isArray(m)) {
         freshMembers = m as Member[];
-        setMembers(freshMembers);
+        // Members carry no group id of their own, so the stamp check is
+        // the only thing standing between this list and the previous
+        // group's attendees being shown under the new group's name.
+        if (onScreen()) setMembers(freshMembers);
       }
 
       // P0: fetch the "Vibe-to-Vibe" reactivation tags. Wrapped
@@ -239,11 +308,11 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
       try {
         const { data: tags, error: tagsErr } = await supabase.rpc(
           'vibe_member_current_tags',
-          { p_group_id: groupId },
+          { p_group_id: reqGroupId },
         );
         if (!tagsErr && Array.isArray(tags)) {
           freshCurrentTags = tags as CurrentVibeTag[];
-          setCurrentTags(freshCurrentTags);
+          if (onScreen()) setCurrentTags(freshCurrentTags);
         } else if (tagsErr) {
           const isMissing =
             (tagsErr as any).code === 'PGRST202' ||
@@ -252,7 +321,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
             // Deployment fact, not a network hiccup — an empty section
             // here is the truth, so record it.
             freshCurrentTags = [];
-            setCurrentTags([]);
+            if (onScreen()) setCurrentTags([]);
           } else {
             // Could be transport. Keep what we have rather than blanking
             // the section (and the snapshot) on a bad connection.
@@ -268,9 +337,9 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
       // a partially-failed refetch must not degrade what's on disk.
       const prevSnapshot = await getPersistentQrGroupDetail<GroupDetailSnapshot>(
         user.id,
-        groupId,
+        reqGroupId,
       );
-      void setPersistentQrGroupDetail<GroupDetailSnapshot>(user.id, groupId, {
+      void setPersistentQrGroupDetail<GroupDetailSnapshot>(user.id, reqGroupId, {
         group: freshGroup,
         qrUsername: freshUsername ?? prevSnapshot?.qrUsername ?? user.id,
         members: (freshMembers ?? prevSnapshot?.members ?? []).slice(
@@ -283,7 +352,11 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         ),
       });
     } finally {
-      setLoading(false);
+      // A response for a group the user has already navigated away from
+      // must not clear the spinner belonging to the group now on
+      // screen: that would drop the placeholder straight to "load
+      // failed" while the real fetch is still in flight.
+      if (onScreen()) setLoading(false);
     }
   }, [groupId, user]);
 
@@ -291,6 +364,8 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
   // this group immediately so a host with no signal can still SHOW the
   // QR; fetchGroup then overwrites it when (if) the network answers.
   useEffect(() => {
+    // Account switch resets the flag too (a groupId switch is already
+    // handled by the identity block above, which runs during render).
     liveFetchDoneRef.current = false;
     const uid = user?.id;
     if (!uid || !groupId) return;
@@ -298,7 +373,12 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
     void (async () => {
       const cached = await getPersistentQrGroupDetail<GroupDetailSnapshot>(uid, groupId);
       if (cancelled || liveFetchDoneRef.current) return;
+      // Third guard on the same invariant: the map is keyed by group id
+      // AND the row carries its own id AND the param may have moved on
+      // while this disk read was resolving. All three must agree before
+      // a single pixel of this snapshot reaches the screen.
       if (!cached?.group?.id) return;
+      if (cached.group.id !== groupId || groupIdRef.current !== groupId) return;
       // Never clobber anything that already landed from the network.
       setGroup((prev) => prev ?? cached.group);
       setNameInput((prev) => prev || (cached.group.name ?? ''));
@@ -530,13 +610,20 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
     );
   };
 
-  // Gate on "is there anything to show", NOT on `loading`. A refetch
-  // fires on every focus, and gating on loading meant a cached (or
-  // already-loaded) group blinked back to this placeholder every time
-  // the screen regained focus — and offline it would hide a perfectly
-  // good cached QR behind a spinner forever. The genuinely-uncached
-  // case is unchanged: no row, no snapshot, still this screen.
-  if (!group) {
+  // Gate on "is there anything to show FOR THIS groupId", NOT on
+  // `loading`. A refetch fires on every focus, and gating on loading
+  // meant a cached (or already-loaded) group blinked back to this
+  // placeholder every time the screen regained focus — and offline it
+  // would hide a perfectly good cached QR behind a spinner forever. The
+  // genuinely-uncached case is unchanged: no row, no snapshot, still
+  // this screen.
+  //
+  // The id comparison is the invariant stated directly against the row
+  // itself rather than inferred from bookkeeping: group.id is the id
+  // the DB returned, so a group belonging to a previous route param
+  // cannot be rendered even if some future edit forgets a reset.
+  const mismatchedGroup = !!group && group.id !== groupId;
+  if (!group || mismatchedGroup) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
@@ -548,7 +635,10 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
           <View style={{ width: 36 }} />
         </View>
         <View style={styles.loadingWrap}>
-          {loading ? (
+          {loading || mismatchedGroup ? (
+            // A row left over from the previous route param is treated as
+            // "still loading the real one" — never as content, and never
+            // as a failure we'd word wrongly.
             <Text style={styles.loadingText}>
               {t('common.processing', { defaultValue: '處理中…' })}
             </Text>

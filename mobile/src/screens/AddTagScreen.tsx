@@ -203,16 +203,27 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const [loadingPresets, setLoadingPresets] = useState(false);
   const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null);
 
-  const PRESETS_KEY = 'piktag_user_presets';
+  // 2026-08-07: presets moved off the device-global `piktag_user_presets`
+  // key onto the per-user cache, same migration as piktag_last_qr and
+  // piktag_recent_locations. This one leaked the hardest: the merge below
+  // appends every local preset the DB answer didn't contain and writes the
+  // result back, so on a shared phone A's presets (their client's office,
+  // their event tags, their user_id) were re-saved under B's session and
+  // offered to B in the picker — one tap from being stamped onto B's QR.
+  // The legacy key is deleted, never read as a fallback: reading it is
+  // what would carry the contamination forward. piktag_tag_presets is
+  // keyed by user_id, so the next sync restores the viewer's own presets;
+  // the one-time cost is any preset that only ever existed locally.
+  const LEGACY_PRESETS_KEY = 'piktag_user_presets';
 
   // ─── Load presets (local-first, Supabase sync) ───
   const loadPresets = useCallback(async () => {
     if (!user?.id) return;
     setLoadingPresets(true);
     try {
-      // 1. Load from AsyncStorage first (instant, always works)
-      const stored = await AsyncStorage.getItem(PRESETS_KEY);
-      const localPresets: TagPreset[] = stored ? JSON.parse(stored) : [];
+      // 1. Load from the per-user disk cache first (instant, always works)
+      const localPresets =
+        (await getPersistentCache<TagPreset[]>(CACHE_KEYS.TAG_PRESETS, user.id)) ?? [];
       setPresets(localPresets);
       // Local data ready → unblock the UI immediately
       setLoadingPresets(false);
@@ -232,7 +243,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             if (!dbIds.has(lp.id)) merged.push(lp);
           }
           setPresets(merged);
-          await AsyncStorage.setItem(PRESETS_KEY, JSON.stringify(merged));
+          await setPersistentCache(CACHE_KEYS.TAG_PRESETS, user.id, merged);
         }
       } catch {
         // Supabase sync failed — local data is already displayed, no action needed
@@ -292,6 +303,9 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         setRecentLocations(cached);
       });
       void AsyncStorage.removeItem('piktag_recent_locations').catch(() => {});
+      // Same one-way migration for the presets key (see LEGACY_PRESETS_KEY
+      // above): drop the device-global copy, never read it.
+      void AsyncStorage.removeItem(LEGACY_PRESETS_KEY).catch(() => {});
     }
     return () => { cancelled = true; };
   }, [user, loadPresets]);
@@ -653,10 +667,10 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       // Supabase failed — we still save locally below
     }
 
-    // Always persist to local state + AsyncStorage
+    // Always persist to local state + the per-user disk cache
     setPresets((prev) => {
       const updated = [localPreset, ...prev];
-      AsyncStorage.setItem(PRESETS_KEY, JSON.stringify(updated));
+      void setPersistentCache(CACHE_KEYS.TAG_PRESETS, user.id, updated);
       return updated;
     });
     Alert.alert(t('addTag.alertPresetSavedTitle'), t('addTag.alertPresetSavedMessage', { name: localPreset.name }));
@@ -698,10 +712,10 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           .eq('user_id', user.id);
       }
 
-      // Always remove from local state + AsyncStorage
+      // Always remove from local state + the per-user disk cache
       setPresets((prev) => {
         const updated = prev.filter((p) => p.id !== id);
-        AsyncStorage.setItem(PRESETS_KEY, JSON.stringify(updated));
+        void setPersistentCache(CACHE_KEYS.TAG_PRESETS, user.id, updated);
         return updated;
       });
     } catch {

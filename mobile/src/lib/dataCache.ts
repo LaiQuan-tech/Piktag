@@ -45,6 +45,14 @@ export const CACHE_KEYS = {
   // device-global `piktag_recent_locations` key until 2026-08-07 — on a
   // shared phone user A's venues showed up in user B's picker.
   RECENT_LOCATIONS: 'recentLocations',
+  // The viewer's saved event-tag presets (AddTagScreen 常用組合).
+  // Was the device-global `piktag_user_presets` key until 2026-08-07,
+  // and the worst of the three device-global leaks: the local-first
+  // merge in loadPresets APPENDED every preset that wasn't in the DB
+  // answer, so signing in as B re-wrote A's presets (name, location,
+  // tags, user_id) back to the shared key and offered them for B to
+  // apply onto B's own QR. Per-user now, therefore swept on sign-out.
+  TAG_PRESETS: 'tagPresets',
 } as const;
 
 const DEFAULT_TTL_MS = 300_000; // 5 minutes
