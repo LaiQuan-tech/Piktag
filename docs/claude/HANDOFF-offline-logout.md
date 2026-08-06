@@ -1,9 +1,19 @@
-# 交接:離線支援(進行中,未 push)
+# 交接:離線支援(程式碼已全部 push)
 
-**目前狀態:兩個 commit 在本地、都沒有 push,沒有任何東西進到 build。**
-接手第一件事:`git log --oneline -3` 確認 `3b580fe` 與 `437639d` 還在。
+**目前狀態(2026-08-07 03:49 更新):離線這批的程式碼已經全部推上
+`origin/main`,最新是 `ccd9ca4`,已進 TestFlight build 流程。**
+本地頂多只剩文件 commit 未推。接手第一件事是
+`git log --oneline origin/main..HEAD` 看自己手上還有什麼沒推 ——
+**不要**再照本檔舊版說明去找「掉了的 commit」,那段已作廢。
 
-## 已完成(本地 commit)
+推送歷程:`437639d`/`3b580fe`/`2762abe`/`e31661e`(離線登出、30 天上限、
+四個快取、驗收三缺陷)於 01:51 推;`6c075c8`/`ccd9ca4`(團體 QR 離線化、
+最後三個裝置全域鍵)於 03:49 推。
+
+**未結案項目見本檔最下方「2026-08-07 驗收」節 —— `ccd9ca4` 上有一個
+已確認的 HIGH 缺陷還沒修。**
+
+## 已完成(皆已 push)
 
 ### `437639d` 修好「離線被登出」
 根因是兩個各自獨立、錯法相同的機制:
@@ -34,10 +44,11 @@ auth-js 本身很謹慎(只有非可重試錯誤才刪 session),所以**憑證�
   前一位主辦人的活動 QR 與標籤會出現在下一位使用者畫面。已遷 per-user,
   舊鍵盡力刪除且**刻意不當 fallback 讀**。
 
-## 進行中:修驗收擋下的三個缺陷
+## 已完成(`2762abe`):驗收擋下的三個缺陷
 
-fresh-context 驗收判定 **DO NOT SHIP**,已派 agent 修(接手時先確認它是否完成:
-`git status` 看工作區有無未提交改動)。三個缺陷:
+當時 fresh-context 驗收判定 **DO NOT SHIP**,三個缺陷已於 `2762abe` 全數修復並
+push。**不必再確認工作區**(舊版寫「已派 agent 修、接手先看 `git status`」,
+那是當下狀態,現在 `git status` 是乾淨的,照做會誤判成沒修)。三個缺陷:
 
 1. **HIGH 離線登出靜默失效**:`supabase.auth.signOut()` 網路失敗是
    **resolve `{error}` 而非拋例外**,而清憑證的呼叫寫在 `catch` 裡 → 永遠不執行。
@@ -52,17 +63,31 @@ fresh-context 驗收判定 **DO NOT SHIP**,已派 agent 修(接手時先確認�
    A 登出、B 於 5 分鐘 TTL 內登入且未 kill app → B 看到 A 的好友清單。
    (磁碟層命名空間是對的,問題在 module 層的 Map。)
 
-## 待辦(創辦人已裁決,尚未動工)
+## 待辦(2026-08-07 更新)
 
-1. **30 天硬性重新登入**:目前滿 30 天後若恢復連線、背景 refresh 成功,
-   使用者會**自動回到 app**,不必手動登入。創辦人要的是「滿 30 天一定要
-   手動登入一次,不管伺服器怎麼說」→ 需要一個獨立旗標,不能只靠 session 年齡。
-2. **團體 QR 離線快取**(QrGroupDetailScreen):需要 per-group 鍵,而 per-group
-   鍵**會逃出 `clearPersistentCaches()`**(它 iterate `Object.values(CACHE_KEYS)`)
-   —— 那正是剛修掉的跨帳號洩漏成因。必須設計成不會逃出清除範圍的結構
-   (例如單一鍵底下的 map,如 `CHAT_THREADS` 的做法)。
-3. **`piktag_recent_locations` 遷成 per-user**(AddTagScreen):同一類裝置全域鍵
-   跨帳號外洩,與 `piktag_last_qr` 同款,照同樣方式處理。
+1. ~~**30 天硬性重新登入**~~ —— **誤記,已作廢。創辦人 2026-08-07 明確澄清
+   「沒有要」** ,從來沒有「滿 30 天一定要手動登入一次,不管伺服器怎麼說」
+   這個需求。**現行行為即正確行為**:30 天上限只在 fallback 路徑導向登入頁、
+   **不刪憑證**,恢復連線後背景 refresh 成功就讓使用者自動回到 app;線上成功的
+   `getSession()` 永遠權威。**不要**為此新增獨立旗標。
+2. ~~**團體 QR 離線快取**~~ —— 已完成。`6c075c8` 用單一鍵底下的 map
+   (`CACHE_KEYS.QR_GROUP_DETAILS`,上限 12 組)而非 per-group 鍵,因此不會逃出
+   `clearPersistentCaches()`。`ccd9ca4` 再補強:同一個 detail route 被換 params
+   重用時,舊團體會**永遠**留在畫面上(主辦人秀出錯的活動 QR 比空白更糟),
+   以三道獨立防線修掉。
+3. ~~**`piktag_recent_locations` 遷成 per-user**~~ —— 已完成(`6c075c8`,
+   `CACHE_KEYS.RECENT_LOCATIONS`)。**沒有伺服器表可回補,本地損失是永久的**;
+   清單上限兩筆,挑兩次地點即重建。
+4. ~~**`piktag_user_presets` 遷成 per-user**~~ —— 已完成(`ccd9ca4`,
+   `CACHE_KEYS.TAG_PRESETS`)。三個裝置全域鍵裡**外洩最嚴重**的一個,而且是
+   活的洩漏不只是殘留:`loadPresets` 先畫本地副本、且只在伺服器回**非空**結果
+   時才覆蓋,所以自己沒有 preset 的使用者會一直看到前一位帳號的,接著 merge
+   還會把它們寫回自己名下、一鍵套進自己的 QR。有 `piktag_tag_presets` 表可回補,
+   只有離線存的 `local_...` preset 會消失。
+
+**其餘仍未處理的裝置全域鍵**(同一類,但嚴重度低於上面幾個):
+`piktag_recent_searches`、`piktag_viewed_ask_ids`、`piktag_burst_tag_prompted_v1`、
+`piktag_chat_send_queue_v1`(有 sender_id 過濾,不外洩但殘留)。
 
 ## 鐵則(別破壞)
 
@@ -86,7 +111,9 @@ _2026-08-06 更新。前一個 session 的 context 用盡於此;所有成果已 
 判定 **DO NOT SHIP,但只卡一項**。審查者逐條對照安裝版 auth-js 2.97 原始碼,
 明說「核心我會賭,登出流程不敢」。
 
-**唯一阻擋項(HIGH,修復中)**:離線登出後畫面最久滯留約 25 秒。
+**唯一阻擋項(HIGH)—— 已於 `e31661e` 修復**(`AppNavigator.tsx:498` 現在直接
+`useAuthContext()`,導航層不再自己存一份 session、不再等 auth-js 事件):
+離線登出後畫面最久滯留約 25 秒。
 `AuthContext.signOut()` 的清憑證/清快取/翻狀態都即時完成,但
 `AppNavigator` 有**自己一份 `session` state**,唯一清除來源是 auth-js 的
 `SIGNED_OUT` —— 離線時該事件被卡在 refresh 退避重試後面(上限 ~25s)。
@@ -94,13 +121,17 @@ _2026-08-06 更新。前一個 session 的 context 用盡於此;所有成果已 
 修法:讓導航層與 AuthContext 共用單一真相來源,不要等 auth-js 事件。
 
 **同批建議處理(MEDIUM)**:
-- 連線數歸零時磁碟快照不更新 → 刪光好友後每次冷啟動仍畫出已刪除的人,
-  且線上不會自我修正(disk 層刻意無 TTL)。需區分「成功但為空」與「失敗」。
+- ~~連線數歸零時磁碟快照不更新~~ —— **已於 `2762abe` 修復**
+  (`ConnectionsScreen.tsx:421`:確定為空時會寫 `[]`,與「查詢失敗」分開)。
+  原述:刪光好友後每次冷啟動仍畫出已刪除的人,且線上不會自我修正
+  (disk 層刻意無 TTL)。需區分「成功但為空」與「失敗」。
 - 仍有數個 device-global key 承載使用者資料未隨登出清除:
   `piktag_recent_searches`、`piktag_user_presets`、`piktag_recent_locations`、
   `piktag_chat_send_queue_v1`(有 sender_id 過濾,不外洩但殘留)、
   `piktag_viewed_ask_ids`、`piktag_burst_tag_prompted_v1`。
   本批已修掉同類的 `piktag_last_qr`,其餘未處理。
+  (2026-08-07 後續:`piktag_recent_locations` 已於 `6c075c8`、
+  `piktag_user_presets` 已於 `ccd9ca4` 遷成 per-user,詳見上方待辦節。)
 
 **複驗確認健全(不必重查)**:找不到任何會把合法使用者鎖在登入頁的路徑;
 全新安裝/損毀 blob/token 撤銷/超過 30 天 全部導向正確且可復原;離線登出的
@@ -113,3 +144,60 @@ allSettled vs 直接 await 的差別);30 天基準 `expires_at - expires_in` 經
 **延後觸發(低)**:登出後在途寫入可能落地(同帳號殘留,不跨帳號);
 captive portal 回 4xx 仍會被 auth-js 自己讀成登出(超出本次範圍,
 要防守只能在 storage adapter 層攔截);iOS Keychain 在 App 移除後保留。
+
+---
+
+## 2026-08-07 驗收(針對 `6c075c8` + `ccd9ca4`)
+
+兩位獨立 fresh-context 驗收者,視角分開派:跨帳號洩漏面判 **SHIP**,
+離線行為面判 **DO NOT SHIP**。**注意:`ccd9ca4` 在驗收進行中就被 push 了
+(03:49),所以這個判定是在上線之後才到的 —— 鐵則「push 前必須重跑驗收」
+這次沒有被遵守。**
+
+### 未結案:HIGH —— 成員區把「問不到」講成「還沒有人掃這個 QR」
+
+`mobile/src/screens/QrGroupDetailScreen.tsx`。已逐行確認屬實:
+
+1. `:265` 在成員 RPC **之前**就把 `liveFetchDoneRef.current` 設成 `true`。
+2. `:291-300` 成員 RPC 失敗時 `freshMembers` 留 `null`、不呼叫 `setMembers`,
+   畫面停在初始的 `[]`。
+3. `:375` 的磁碟水合因為第 1 點直接 bail,**快取裡的成員永遠貼不上來**。
+4. `:345` 寫快照時 `(freshMembers ?? prevSnapshot?.members ?? [])` ——
+   首次快取(`prevSnapshot` 為 null)就把「問不到」寫成 `[]`,
+   而磁碟層刻意無 TTL,於是往後每次離線冷啟動都畫這個空清單。
+5. `:924-926` 該空狀態渲染的是 `qrGroup.membersEmpty`
+   =「還沒有人掃這個 QR — 分享給朋友吧」。
+
+後果:主辦人在弱訊號現場,自己 40 人的活動被寫成「還沒有人掃」,
+而且會被固化進離線快取。這正是本批要擋的「謊稱」,只是發生在成員面
+而不是清單面(清單面 `QrGroupListScreen.tsx:715` 是對的)。
+
+建議修法(三處都小,不需新 i18n key):
+- `:265` 的 `liveFetchDoneRef` 拆成 per-section 旗標,照
+  `QrGroupListScreen` 已在用的 `liveGroupsDoneRef`/`liveAttendedDoneRef` 模式。
+- `GroupDetailSnapshot` 的 `members` 允許 `null`(或加 `membersKnown`),
+  `freshMembers === null && prevSnapshot == null` 時不要寫 `members`。
+- 空分支改用既有的 `common.loadFailed` + `common.checkConnection`
+  (兩者 19/19 語系皆已齊備)。
+
+### 其餘未結案項目(非阻擋,依嚴重度)
+
+- **中** 登出時的在途寫入會落地,繞過 `clearPersistentCaches`。所有快照寫入
+  都是 fire-and-forget。不是跨帳號洩漏(鍵帶前一位的 uid,新帳號讀不到),
+  但違反「登出即抹除」。修法:`setPersistentCache` 寫入前比對
+  `cacheOwnerId`,不符就丟棄。
+- **中低** `QR_GROUPS` 的 50 筆修剪會剪掉**最新建立**的群組
+  (`QrGroupListScreen.tsx:148-149` 依 `sort_position asc nullsFirst:false`
+  排序,新建的 `sort_position` 為 null 排最後,`:197` 才 slice)。
+  離線時最需要的那張新 QR 正好被剪掉。
+- **低** `QR_ATTENDED` 的 50 筆修剪沒有 `.order()`,保留哪 50 場不可預期。
+- **低** `loadPresets`(`AddTagScreen.tsx:233`)沒解構 `error`,無法區分
+  「查詢失敗」與「DB 真的 0 筆」,別台裝置刪光後本機快取永不清除。
+- **低** 三個 legacy key 的刪除只在畫面掛載時機會性執行,沒放進
+  `clearPersistentCaches` 的 `multiRemove` 清單。
+- **低** `EventQrSnapshot` 沒帶 session id,刪除活動後 AddTag 頁離線
+  仍會還原那個死掉的 QR。
+- **範圍外、同類** 仍是裝置全域且不被登出掃除:`piktag_recent_searches`
+  (共用手機上看得到前一位的搜尋歷史)、`piktag_chat_send_queue_v1`
+  (有 sender_id 過濾不會誤送,但未送出訊息內容殘留)、
+  `piktag_ai_tags_${user.id}`(有命名空間但不在 `CACHE_KEYS`)。
