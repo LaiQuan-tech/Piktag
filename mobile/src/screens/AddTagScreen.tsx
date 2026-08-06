@@ -687,36 +687,44 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       last_used_at: now,
     };
 
+    // finally, not a trailing assignment: nothing in here throws today,
+    // but if anything ever does, savingPresetRef would stick at true and
+    // loadPresets would stop pruning for the rest of the session —
+    // silently resurrecting presets deleted on another device, with no
+    // visible symptom to trace it by.
     try {
-      // Try Supabase — if it works, use the DB-generated row (real UUID, etc.)
-      const { data } = await supabase
-        .from('piktag_tag_presets')
-        .insert({
-          user_id: user.id,
-          name: localPreset.name,
-          location: localPreset.location,
-          tags: localPreset.tags,
-          created_at: now,
-        })
-        .select('id')
-        .single();
+      try {
+        // Try Supabase — if it works, use the DB-generated row (real UUID, etc.)
+        const { data } = await supabase
+          .from('piktag_tag_presets')
+          .insert({
+            user_id: user.id,
+            name: localPreset.name,
+            location: localPreset.location,
+            tags: localPreset.tags,
+            created_at: now,
+          })
+          .select('id')
+          .single();
 
-      if (data) {
-        localPreset.id = data.id; // replace local id with real DB id
+        if (data) {
+          localPreset.id = data.id; // replace local id with real DB id
+        }
+      } catch {
+        // Supabase failed — we still save locally below
       }
-    } catch {
-      // Supabase failed — we still save locally below
-    }
 
-    // Always persist to local state + the per-user disk cache
-    setPresets((prev) => {
-      const updated = [localPreset, ...prev];
-      void setPersistentCache(CACHE_KEYS.TAG_PRESETS, user.id, updated);
-      return updated;
-    });
-    Alert.alert(t('addTag.alertPresetSavedTitle'), t('addTag.alertPresetSavedMessage', { name: localPreset.name }));
-    savingPresetRef.current = false;
-    setSavingPreset(false);
+      // Always persist to local state + the per-user disk cache
+      setPresets((prev) => {
+        const updated = [localPreset, ...prev];
+        void setPersistentCache(CACHE_KEYS.TAG_PRESETS, user.id, updated);
+        return updated;
+      });
+      Alert.alert(t('addTag.alertPresetSavedTitle'), t('addTag.alertPresetSavedMessage', { name: localPreset.name }));
+    } finally {
+      savingPresetRef.current = false;
+      setSavingPreset(false);
+    }
   };
 
   // ─── Apply preset ───

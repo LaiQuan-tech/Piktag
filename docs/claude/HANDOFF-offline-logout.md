@@ -1,17 +1,17 @@
 # 交接:離線支援(程式碼已全部 push)
 
-**目前狀態(2026-08-07 03:49 更新):離線這批的程式碼已經全部推上
-`origin/main`,最新是 `ccd9ca4`,已進 TestFlight build 流程。**
-本地頂多只剩文件 commit 未推。接手第一件事是
-`git log --oneline origin/main..HEAD` 看自己手上還有什麼沒推 ——
-**不要**再照本檔舊版說明去找「掉了的 commit」,那段已作廢。
+**目前狀態:離線這批的程式碼已有一部分推上 `origin/main`(截至
+2026-08-07 03:49 為 `ccd9ca4`),之後又有數顆本地 commit。**
+**接手第一件事就是跑下面這行,不要相信本檔寫死的 commit 名稱**
+—— 本檔已經因為寫死狀態而誤導過一次:
 
-推送歷程:`437639d`/`3b580fe`/`2762abe`/`e31661e`(離線登出、30 天上限、
-四個快取、驗收三缺陷)於 01:51 推;`6c075c8`/`ccd9ca4`(團體 QR 離線化、
-最後三個裝置全域鍵)於 03:49 推。
+```
+git log --oneline origin/main..HEAD
+```
 
-**未結案項目見本檔最下方「2026-08-07 驗收」節 —— `ccd9ca4` 上有一個
-已確認的 HIGH 缺陷還沒修。**
+**沒有已知的未修 HIGH 缺陷。** 兩輪 fresh-context 驗收提出的項目都已修完,
+逐條記錄在最下方的驗收節;仍然刻意不修的低嚴重度項目集中在
+「仍未處理(低,已知)」一節。
 
 ## 已完成(皆已 push)
 
@@ -85,9 +85,15 @@ push。**不必再確認工作區**(舊版寫「已派 agent 修、接手先看 
    還會把它們寫回自己名下、一鍵套進自己的 QR。有 `piktag_tag_presets` 表可回補,
    只有離線存的 `local_...` preset 會消失。
 
-**其餘仍未處理的裝置全域鍵**:`piktag_viewed_ask_ids`、
-`piktag_burst_tag_prompted_v1`。兩者都不含可辨識的使用者內容
-(看過哪些 Ask 的 id、是否提示過爆發標籤),所以嚴重度低於上面幾個。
+**其餘仍未處理的裝置全域鍵(非窮舉,以下為已知)**:
+`piktag_viewed_ask_ids`(`AskStoryRow.tsx:215`)、
+`piktag_burst_tag_prompted_v1`(`burstTag.ts:32`)、
+`piktag_push_prompted_v1`(`pushNotifications.ts:211`)、
+`piktag_phone_prompt_dismissed_v1`(`phonePrompt.ts:31`)、
+`piktag_coach_*`(`useCoachMark.ts:12`)。
+都不含可辨識的使用者內容,所以嚴重度低於上面幾個,但**都是「已提示過」
+類的旗標,共用手機上會讓 B 被當成 A 已經看過** —— B 因此收不到推播權限
+詢問或教學提示。要收斂這一類時請整批處理,不要只挑兩個。
 `piktag_recent_searches` 與 `piktag_chat_send_queue_v1` 已於
 2026-08-07 處理,見下方驗收節。
 
@@ -134,7 +140,8 @@ _2026-08-06 更新。前一個 session 的 context 用盡於此;所有成果已 
   本批已修掉同類的 `piktag_last_qr`,其餘未處理。
   (2026-08-07 後續:`piktag_recent_locations` 已於 `6c075c8`、
   `piktag_user_presets` 已於 `ccd9ca4`、`piktag_recent_searches` 與
-  `piktag_ai_tags_*` 已於 `a646c760` 遷成 per-user;
+  `piktag_ai_tags_*` 已於 `a646c760` 納入 `CACHE_KEYS.AI_TAGS` 與登出清除
+  (它本來就帶 uid,問題只在登出掃不到,不是 per-user 化);
   `piktag_chat_send_queue_v1` 維持裝置全域但改為登出時清除。
   仍未處理的只剩 `piktag_viewed_ask_ids` 與
   `piktag_burst_tag_prompted_v1`。詳見上方待辦節與下方驗收節。)
@@ -178,8 +185,8 @@ captive portal 回 4xx 仍會被 auth-js 自己讀成登出(超出本次範圍,
 
 後果:主辦人在弱訊號現場,自己 40 人的活動被寫成「還沒有人掃」,
 而且會被固化進離線快取。這正是本批要擋的「謊稱」,只是發生在成員面
-而不是清單面(清單面是對的:`QrGroupListScreen.tsx:160-169` 設 `loadFailed`,
-渲染時據以選 `listLoadFailed` 而非 `listEmpty`)。
+而不是清單面(清單面是對的:`QrGroupListScreen.tsx:170` 與 `:229` 設
+`loadFailed`,`:764` 據以選 `listLoadFailed` 而非 `listEmpty`)。
 
 **實際修法(三處,無新 i18n key)**:
 - `liveFetchDoneRef` 拆成 `liveGroupDoneRef` / `liveMembersDoneRef` /
@@ -243,6 +250,19 @@ captive portal 回 4xx 仍會被 auth-js 自己讀成登出(超出本次範圍,
 (加 `hasCacheOwner()` 檢查);preset prune 的存檔競態(加 `savingPresetRef`,
 存檔進行中不 prune);`QrGroupListScreen` 檔頭註解把 nulls 排序講反;
 文件行號引用失效。
+
+### 第三輪驗收(2026-08-07)
+
+再一位 fresh-context 驗收者判 **SHIP**,提出 6 項,已全數修掉:本檔檔頭仍宣稱
+有未修的 HIGH、且寫死了會過期的 commit 名稱(已改成叫接手者自己跑
+`git log origin/main..HEAD`);裝置全域鍵清單寫成窮舉但漏了三個同類旗標
+(已補齊並標明非窮舉);新寫的行號引用又偏移了(已改指實際的
+`setLoadFailed` 與渲染點);`piktag_ai_tags_*` 在兩處被描述成不同的事;
+`clearPersistentCaches(null)` 會在「session 過期/blob 損毀」這種**使用者
+沒按登出**的路徑上刪掉未送出訊息(已把全域鍵拆成「已廢棄=無條件刪」與
+「仍在使用=知道是誰要走才刪」兩份清單);`savingPresetRef` 沒有
+`try/finally`(已補,否則未來有人在中間插入會拋的程式碼,prune 會永久失效
+且無可見症狀)。
 
 ### 仍未處理(低,已知)
 

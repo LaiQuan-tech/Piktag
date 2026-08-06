@@ -396,19 +396,21 @@ export async function clearPersistentCaches(userId: string | null | undefined): 
   // sets it again a moment later.
   setCacheOwner(null);
 
-  // Device-global keys BEFORE the userId guard, because they do not
-  // depend on one. Sign-out can legitimately arrive without a user id —
-  // a duplicate null auth event, or a device that was already signed out
-  // — and behind the guard this list would simply not run, leaving the
-  // superseded blobs (the old chat queue's unsent message bodies among
-  // them) on a device its owner has left. Removing them can never lose
-  // anything a user could still see, since nothing reads them.
+  // Superseded keys BEFORE the userId guard, because they do not depend
+  // on one and removing them costs nothing — nothing reads them. This
+  // matters for a sign-out that arrives without a user id (a duplicate
+  // null auth event, or a device already signed out), where the guard
+  // below returns early: without this, the superseded blobs — the old
+  // chat queue's unsent message bodies among them — would stay on a
+  // device their owner has left.
   try {
     await AsyncStorage.multiRemove([...SUPERSEDED_GLOBAL_KEYS]);
   } catch {
     // best-effort
   }
 
+  // Everything past here is namespaced, so it needs to know WHICH
+  // account is leaving.
   if (!userId) return;
   try {
     await AsyncStorage.multiRemove([
