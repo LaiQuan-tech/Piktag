@@ -17,6 +17,19 @@ on:
       - '!mobile/supabase/**'
       - '!mobile/scripts/**'
       - '.github/workflows/android-google-play.yml'
+  # Daily backstop, mirroring iOS. A `push` event is NOT a guarantee: on
+  # 2026-08-06 GitHub accepted a push to main (ccd9ca4, 19:49:33Z — the
+  # Vercel and Railway check suites were created for it) and never created
+  # a GitHub Actions run at all. iOS recovered within 24h because it had
+  # this cron; Android had only push + manual, so it would have stayed
+  # stale indefinitely until a human noticed. That asymmetry is the reason
+  # Android testers drift behind.
+  #
+  # This does NOT mean a build every night: the `gate` job below skips the
+  # scheduled run whenever main is already the last successfully shipped
+  # commit. It fires only when a push build is genuinely missing.
+  schedule:
+    - cron: '30 20 * * *'   # daily UTC 20:30 (TW 04:30) — backstop only
 
 # Collapse bursts: rapid mobile pushes otherwise run concurrent builds that
 # each open a Google Play "edit"; one committing deletes the others →
@@ -29,9 +42,61 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-upload:
+  # Mirror of the iOS gate — see ios-testflight.yml for the full rationale.
+  # Only the `schedule` backstop is gated; push and workflow_dispatch always
+  # build. Without this, the cron added above would re-upload an unchanged
+  # commit to the Play internal track every single night. Fails OPEN: any
+  # API error builds anyway.
+  gate:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 5
+    permissions:
+      actions: read
+    outputs:
+      should_build: ${{ steps.check.outputs.should_build }}
+    steps:
+      - name: Decide whether this run has anything new to ship
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          CURRENT_SHA: ${{ github.sha }}
+          BRANCH: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ "$EVENT_NAME" != "schedule" ]; then
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+            echo "event=$EVENT_NAME — always builds, no gate applied."
+            exit 0
+          fi
+          LAST_SHA=$(gh api \
+            "repos/$REPO/actions/workflows/android-google-play.yml/runs?status=success&branch=$BRANCH&per_page=1" \
+            --jq '.workflow_runs[0].head_sha // empty' 2>/dev/null || true)
+          if [ -z "$LAST_SHA" ]; then
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+            echo "No successful run on record (or the API was unavailable) — building. Fail open."
+          elif [ "$LAST_SHA" = "$CURRENT_SHA" ]; then
+            echo "should_build=false" >> "$GITHUB_OUTPUT"
+            echo "$BRANCH is still at $CURRENT_SHA, which Play already has."
+            echo "Nothing to ship — skipping the backstop."
+          else
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+            echo "$BRANCH moved: last shipped $LAST_SHA, now $CURRENT_SHA."
+            echo "A push build is missing (dropped event?) — the backstop is rescuing it."
+          fi
+
+  build-and-upload:
+    needs: gate
+    if: needs.gate.outputs.should_build == 'true'
+    runs-on: ubuntu-latest
+    # Raised 45 → 60. Successful Android runs cluster at 27–31 minutes
+    # wall-clock (observed 22m52s … 30m41s), so 45 left barely 14 minutes of
+    # headroom over a routine build — one slow Gradle or Sentry day and the
+    # job gets killed. That kill is reported as "cancelled", i.e. it would
+    # have looked exactly like the (unrelated) 2026-08-06 incident and sent
+    # the next debugger hunting for a canceller that does not exist.
+    # 60 is ~2x the worst observed run.
+    timeout-minutes: 60
 
     env:
       EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
@@ -188,3 +253,21 @@ jobs:
           status: completed
           releaseName: "${{ env.APP_VERSION }} (build ${{ env.VERSION_CODE }})"
           whatsNewDirectory: mobile/whatsnew
+
+      # See ios-testflight.yml for the full decision tree. "Cancelled" is
+      # GitHub's badge for three unrelated events; print how to tell them
+      # apart into the log of the run that is actually affected.
+      - name: Explain a cancelled result
+        if: cancelled()
+        run: |
+          echo "::error::This job ended as CANCELLED, not as an ordinary failure."
+          echo "Three unrelated causes wear that same badge. To tell them apart:"
+          echo "  1. timeout-minutes exceeded  — steps ran; the last one stalled at the limit."
+          echo "  2. concurrency supersede     — a newer run of group android-google-play-${{ github.ref }} started."
+          echo "  3. no runner ever assigned   — ZERO steps recorded and runner_name is empty."
+          echo "     Case 3 is GitHub-side queue starvation (it hit this repo on 2026-08-06)."
+          echo "     The job never starts, so this step never runs. If you are reading this"
+          echo "     line at all, the cause is 1 or 2, not 3."
+          echo "Confirm with:"
+          echo "  gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs \\"
+          echo "    --jq '.jobs[]|{conclusion,runner_name,steps:(.steps|length)}'"

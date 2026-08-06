@@ -32,12 +32,82 @@ on:
 # newest uploads. THIS is the real rate-limiter for the Apple cap
 # (not a fragile schedule). queued/running builds for the same ref
 # stream get superseded.
+#
+# The group key MUST be scoped to the ref. A concurrency group is a
+# REPO-WIDE namespace, not a per-workflow one: a bare literal like
+# `ios-testflight` is shared by every run that names it, so a
+# workflow_dispatch (or any future branch build) on a DIFFERENT ref
+# would cancel an in-flight main build. Adding github.ref confines
+# cancellation to runs building the same ref. On main this is
+# behaviourally identical to the old key — every push/schedule/
+# dispatch on main still shares one key — so the burst-collapse that
+# rate-limits Apple uploads is completely unchanged.
 concurrency:
-  group: ios-testflight
+  group: ios-testflight-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  # Is there anything new to ship? ONLY the daily `schedule` backstop is
+  # gated — push and workflow_dispatch always build, unconditionally.
+  #
+  # Why this exists: the backstop was rebuilding and re-uploading the SAME
+  # commit every single day (952e41f was rebuilt 07-27 … 08-04, nine days
+  # running), and 8 of those 9 scheduled runs died at the very same step,
+  # "Export and Upload to TestFlight". Re-shipping an unchanged commit
+  # delivers nothing to testers, burns ~17 min of macOS runner time, spends
+  # a slot against Apple's per-app DAILY upload cap, and — worst — puts a
+  # red X on the repo every morning until nobody reads them any more.
+  #
+  # The backstop's real job is to rescue a push whose build never happened
+  # (GitHub dropped the event outright on 2026-08-06). So the right question
+  # is "does main differ from the last SUCCESSFULLY built commit?" — NOT
+  # "did anything land in the last 24h", which would abandon a push whose
+  # build was dropped three days ago.
+  #
+  # Fails OPEN by construction: any API error, or no successful run on
+  # record, builds anyway. A silent skip is the exact disease this gate
+  # exists to cure, so it must never be the failure mode of the cure.
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+    outputs:
+      should_build: ${{ steps.check.outputs.should_build }}
+    steps:
+      - name: Decide whether this run has anything new to ship
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          CURRENT_SHA: ${{ github.sha }}
+          BRANCH: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ "$EVENT_NAME" != "schedule" ]; then
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+            echo "event=$EVENT_NAME — always builds, no gate applied."
+            exit 0
+          fi
+          LAST_SHA=$(gh api \
+            "repos/$REPO/actions/workflows/ios-testflight.yml/runs?status=success&branch=$BRANCH&per_page=1" \
+            --jq '.workflow_runs[0].head_sha // empty' 2>/dev/null || true)
+          if [ -z "$LAST_SHA" ]; then
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+            echo "No successful run on record (or the API was unavailable) — building. Fail open."
+          elif [ "$LAST_SHA" = "$CURRENT_SHA" ]; then
+            echo "should_build=false" >> "$GITHUB_OUTPUT"
+            echo "$BRANCH is still at $CURRENT_SHA, which TestFlight already has."
+            echo "Nothing to ship — skipping the backstop instead of burning an Apple upload slot."
+          else
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+            echo "$BRANCH moved: last shipped $LAST_SHA, now $CURRENT_SHA."
+            echo "A push build is missing (dropped event?) — the backstop is rescuing it."
+          fi
+
   build-and-upload:
+    needs: gate
+    if: needs.gate.outputs.should_build == 'true'
     # macos-15 is proven good: "Build iOS Archive" succeeds here and
     # the Xcode-26 gate passes (setup-xcode resolves Xcode 26 on this
     # image). The earlier "stuck at 574" was NOT a runner/Xcode issue
@@ -45,6 +115,13 @@ jobs:
     # pushed; App Store Connect throttled: "Upload limit reached,
     # wait 1 day"). Keep the known-good runner.
     runs-on: macos-15
+    # Successful iOS runs have taken 12m33s … 22m55s wall-clock (queue
+    # included), so 60 is ~2.5x the worst observed case — enough headroom
+    # that a slow-but-healthy build is never killed. Do NOT tighten this
+    # toward the average: GitHub reports a timeout kill as "cancelled",
+    # which is indistinguishable at a glance from a concurrency supersede
+    # and sends the next debugger down the wrong path (see the
+    # "Explain a cancelled result" step below).
     timeout-minutes: 60
 
     # EXPO_PUBLIC_* vars are substituted into the JS bundle by Metro at
@@ -318,6 +395,25 @@ jobs:
             --project "$SENTRY_PROJECT" \
             --release "$RELEASE" \
             ./dist || echo "⚠️ sourcemap upload failed — non-fatal"
+
+      # "Cancelled" is GitHub's badge for three completely different
+      # events, and telling them apart is most of the diagnosis. Print the
+      # decision tree into the log of the run that is actually affected.
+      - name: Explain a cancelled result
+        if: cancelled()
+        run: |
+          echo "::error::This job ended as CANCELLED, not as an ordinary failure."
+          echo "Three unrelated causes wear that same badge. To tell them apart:"
+          echo "  1. timeout-minutes exceeded  — steps ran; the last one stalled at the limit."
+          echo "  2. concurrency supersede     — a newer run of group ios-testflight-${{ github.ref }} started."
+          echo "  3. no runner ever assigned   — ZERO steps recorded and runner_name is empty."
+          echo "     Case 3 is GitHub-side queue starvation (it hit this repo on 2026-08-06)."
+          echo "     Nothing in this workflow file can prevent or detect it from inside the job:"
+          echo "     the job never starts, so this step never even runs. If you are reading this"
+          echo "     line at all, the cause is 1 or 2, not 3."
+          echo "Confirm with:"
+          echo "  gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs \\"
+          echo "    --jq '.jobs[]|{conclusion,runner_name,steps:(.steps|length)}'"
 
       - name: Cleanup keychain
         if: always()
