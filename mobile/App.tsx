@@ -9,7 +9,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import './src/i18n'; // Initialize i18n
 import appJson from './app.json';
 import AppNavigator from './src/navigation/AppNavigator';
-import { trackScreen } from './src/lib/analytics';
+import { applyStoredAnalyticsOptIn, trackScreen } from './src/lib/analytics';
 import { ThemeProvider } from './src/context/ThemeContext';
 import { AuthProvider } from './src/context/AuthContext';
 import { AppReadyProvider, useAppReady } from './src/context/AppReadyContext';
@@ -24,6 +24,14 @@ import { touchLastActive } from './src/lib/pushNotifications';
 // Ensure foreground notifications display the system banner, play sound,
 // and update the badge. Without this, notifications arriving while the
 // app is open are silently dropped on iOS.
+// Re-assert the user's stored analytics choice before anything is
+// captured. PostHog is constructed at module load and begins capturing
+// immediately, and its opt-out does not survive a cold start on its own
+// — nothing in the app ever called setAnalyticsOptIn, so an opt-out
+// lasted only as long as the process that made it. Fire-and-forget: the
+// AsyncStorage read is a few milliseconds and must not gate startup.
+void applyStoredAnalyticsOptIn();
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowBanner: true,
