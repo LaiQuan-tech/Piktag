@@ -47,7 +47,7 @@ import GradientButton from '../../components/GradientButton';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase';
 // Same NetInfo event source the offline banner and every offline-capable
 // screen already use — no new dependency for the username retry path.
-import { checkOffline } from '../../lib/netStatus';
+import { checkOffline, NETWORK_PAINT_DEADLINE_MS } from '../../lib/netStatus';
 import { useNetInfoReconnect } from '../../hooks/useNetInfoReconnect';
 import { normalizeTagName } from '../../lib/normalizeTag';
 import { addUserTagByName } from '../../lib/userTags';
@@ -198,6 +198,43 @@ const USERNAME_CHECK_DEBOUNCE_MS = 400;
 const USERNAME_RETRY_BACKOFF_MS = [4000, 8000, 16000];
 // How many verified alternatives to offer when a handle is taken.
 const USERNAME_SUGGESTION_COUNT = 3;
+
+/**
+ * Resolve `work`, or give up on it after the shared paint deadline and
+ * resolve `null` instead.
+ *
+ * WHY STEP 1 NEEDS THIS. `checkOffline()` is deliberately fail-open: it
+ * reports `true` only on positive NetInfo evidence that there is no
+ * connection (see lib/netStatus.ts). At a venue whose wifi associates
+ * but routes nowhere — a captive portal, the single most common network
+ * on the day this app is used — it correctly reports `false`, the
+ * availability RPC is fired, and supabase-js sits in its auth-refresh
+ * backoff without ever resolving in any bounded time.
+ *
+ * `usernameStatus` then stays 'checking' FOREVER, and every escape hatch
+ * on this screen — the backoff ladder, the reconnect listener, the
+ * visible Retry link — is gated on `status === 'error'`. The CTA is
+ * greyed, there is no back button (step 1 of a strictly linear wizard),
+ * and Android's hardware back exits the app. That is exactly the dead
+ * end 197a65fd was written to remove, still present in the one network
+ * condition it was written for.
+ *
+ * Racing the RPC lands a stalled check in 'error' and hands it to the
+ * recovery machinery that already exists. The request is NOT cancelled —
+ * if it lands late its answer is simply superseded by the seq guard, the
+ * same as any other stale response.
+ *
+ * NETWORK_PAINT_DEADLINE_MS is the app-wide "a request we believe can
+ * succeed has had long enough" bound, shared with useLoadDeadline.
+ */
+async function withCheckDeadline<T>(work: PromiseLike<T>): Promise<T | null> {
+  return Promise.race<T | null>([
+    Promise.resolve(work),
+    new Promise<null>((resolve) =>
+      setTimeout(() => resolve(null), NETWORK_PAINT_DEADLINE_MS),
+    ),
+  ]);
+}
 
 // Build alternative handles from what the user typed and from their
 // display name. NOTHING here is offered to the user before the same
@@ -558,10 +595,22 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         return;
       }
       try {
-        const { data, error } = await supabase.rpc('check_username_available', {
-          p_username: u,
-        });
+        // Bounded — see withCheckDeadline. `null` means the RPC never
+        // came back in time, which for this screen is indistinguishable
+        // from a failure and must be treated as one: 'checking' is the
+        // only status with no way out.
+        const answered = await withCheckDeadline(
+          supabase.rpc('check_username_available', { p_username: u }),
+        );
         if (seq !== usernameCheckSeq.current) return; // superseded
+        if (answered === null) {
+          const off = await checkOffline();
+          if (seq !== usernameCheckSeq.current) return;
+          setUsernameOffline(off);
+          setUsernameStatus('error');
+          return;
+        }
+        const { data, error } = answered;
         if (error) {
           const off = await checkOffline();
           if (seq !== usernameCheckSeq.current) return;
@@ -635,11 +684,16 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         const results = await Promise.all(
           batch.map(async (candidate) => {
             try {
-              const { data, error } = await supabase.rpc('check_username_available', {
-                p_username: candidate,
-              });
-              if (error) return null;
-              return data === true ? candidate : null;
+              // Bounded for the same reason as the check above: on a
+              // captive portal these never resolve, and the suggestion
+              // row would spin its loader for the rest of the session.
+              // A candidate we could not verify is simply not offered —
+              // every handle shown has been CONFIRMED free.
+              const answered = await withCheckDeadline(
+                supabase.rpc('check_username_available', { p_username: candidate }),
+              );
+              if (!answered || answered.error) return null;
+              return answered.data === true ? candidate : null;
             } catch {
               return null;
             }

@@ -508,6 +508,37 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // Is anything already painted on the default browse surface? Read by
   // runBootstrap, which must not blank a cached grid on a refresh.
   const hasTagsRef = useRef(false);
+  // ── The default tag wall, kept separately from `tags` ───────────────
+  // `tags` is shared state: on the default surface it holds the browse
+  // wall, and during a search it holds that query's matches. Every path
+  // that starts a search therefore has to clear it, and until now
+  // NOTHING put the wall back — the disk hydration below is one-shot,
+  // and `handleResetToDefault` (the header Reset, the empty-state
+  // button, and the clear (X) button inside the search box) wiped every other piece of
+  // transient state but never restored this one.
+  //
+  // Offline that produced the reported dead end: open Search (cached
+  // wall paints), type a query, get the honest offline error, tap the clear (X) button to
+  // give up — and the entire wall was replaced by 「找不到相關標籤」 for
+  // the rest of the session, because `tags` was left at [] and the only
+  // thing that could refill it was a network the user does not have.
+  //
+  // These two refs are the last-known DEFAULT surface, written wherever
+  // it is legitimately set and never by a search result. They make the
+  // promise in performSearch's offline comment — "the tag world the user
+  // browses by default still comes from the disk snapshot" — actually
+  // true. Refs, not state: nothing renders from them directly, and they
+  // must not re-run the effects keyed on `tags`.
+  const defaultTagsRef = useRef<Tag[]>([]);
+  const defaultCategoriesRef = useRef<string[]>([]);
+  const rememberDefaultTags = useCallback(
+    (tagList: Tag[], categories: string[]): void => {
+      if (!Array.isArray(tagList) || tagList.length === 0) return;
+      defaultTagsRef.current = tagList;
+      defaultCategoriesRef.current = Array.isArray(categories) ? categories : [];
+    },
+    [],
+  );
 
 
   // Refs for stable closures
@@ -830,6 +861,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       setTags(cached);
       const cats = qualifyingTagCategories(cached);
       setTagCategories(cats);
+      rememberDefaultTags(cached, cats);
       setLoading(false);
       setInitialLoading(false);
     } else {
@@ -938,6 +970,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         setTags(merged);
         const cats = qualifyingTagCategories(merged);
         setTagCategories(cats);
+        rememberDefaultTags(merged, cats);
         persistSearchBootstrap(merged, cats);
 
         // Trending: 7-day growth over the FINAL merged set's ids. Runs
@@ -1076,6 +1109,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       setTags(popular as Tag[]);
       const cats = qualifyingTagCategories(popular as any[]);
       setTagCategories(cats);
+      rememberDefaultTags(popular as Tag[], cats);
       persistSearchBootstrap(popular as Tag[], cats);
       setLoading(false);
       setInitialLoading(false);
@@ -1182,13 +1216,73 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       setTagCategories((prev) =>
         prev.length > 0 ? prev : Array.isArray(snap.categories) ? snap.categories : [],
       );
+      // Remember it as the default wall even if the paint above was a
+      // no-op. This is the ONLY tag source that exists offline, and
+      // holding it here is what lets the user come back to it after a
+      // search — the hydration effect itself is one-shot and can never
+      // run a second time in this session.
+      rememberDefaultTags(
+        snap.tags,
+        Array.isArray(snap.categories) ? snap.categories : [],
+      );
       setLoading(false);
       setInitialLoading(false);
     })();
     return () => {
       cancelled = true;
     };
-  }, [user?.id]);
+  }, [user?.id, rememberDefaultTags]);
+
+  /**
+   * Put the default tag wall back on screen.
+   *
+   * Called by every "I'm done searching" exit — the clear (X) button in the search box,
+   * the header Reset, the empty-state button, an emptied query, and the
+   * 熱門 category chip. Before this existed those paths cleared the query
+   * but left `tags` at whatever the search had put there (offline: `[]`),
+   * so the browse surface the user came back to said 「找不到相關標籤」
+   * and stayed that way for the rest of the session.
+   *
+   * Three sources, cheapest first, and NONE of them needs a network:
+   *   1. `defaultTagsRef` — the wall as last painted in this session,
+   *      including the one restored from disk at cold start.
+   *   2. the CACHE_KEYS.SEARCH_BOOTSTRAP snapshot on disk, re-read here
+   *      because the cold-start hydration effect is one-shot.
+   *   3. `loadPopularTags()`, which needs the network but paints
+   *      instantly from the in-memory cache when it is warm and is
+   *      covered by the default-surface paint deadline when it is not.
+   *
+   * Read-only with respect to every cache: this never writes a snapshot,
+   * so a restore can never degrade one.
+   */
+  const restoreDefaultTags = useCallback(async (): Promise<void> => {
+    const remembered = defaultTagsRef.current;
+    if (remembered.length > 0) {
+      setTags(remembered);
+      setTagCategories(defaultCategoriesRef.current);
+      setLoading(false);
+      setInitialLoading(false);
+      return;
+    }
+    const uid = bootstrapUserIdRef.current;
+    if (uid) {
+      const snap = await getPersistentCache<SearchBootstrapSnapshot>(
+        CACHE_KEYS.SEARCH_BOOTSTRAP,
+        uid,
+      );
+      if (!isMountedRef.current) return;
+      if (snap && Array.isArray(snap.tags) && snap.tags.length > 0) {
+        const cats = Array.isArray(snap.categories) ? snap.categories : [];
+        rememberDefaultTags(snap.tags, cats);
+        setTags(snap.tags);
+        setTagCategories(cats);
+        setLoading(false);
+        setInitialLoading(false);
+        return;
+      }
+    }
+    void loadPopularTags();
+  }, [loadPopularTags, rememberDefaultTags]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1265,11 +1359,15 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     setTags([]);
     setActiveCategory(key === 'popular' ? null : key);
     switch (key) {
-      case 'popular': loadPopularTags(); break;
+      // restoreDefaultTags, not loadPopularTags: this chip means "show
+      // me the browse wall", and offline the cached wall IS the answer.
+      // The old call blanked the grid and then waited on a network that
+      // could not respond.
+      case 'popular': void restoreDefaultTags(); break;
       case 'nearby': loadNearbyProfiles(); break;
       case 'recent': setLoading(false); break;
     }
-  }, [loadPopularTags, loadNearbyProfiles]);
+  }, [restoreDefaultTags, loadNearbyProfiles]);
 
   const performSearch = useCallback(
     async (query: string) => {
@@ -1291,9 +1389,14 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       }
 
       if (keywords.length === 0) {
+        // The query box was emptied (or held only stopwords), so we are
+        // back on the browse surface. Restore the cached wall rather
+        // than re-running the network loader — offline the loader has
+        // nothing to give and would leave the grid blank.
         setActiveCategory(null);
         setLlmExtractedKeywords([]);
-        loadPopularTags();
+        setSearchUnreachable(false);
+        void restoreDefaultTags();
         return;
       }
 
@@ -1454,6 +1557,28 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           ...tagPromises,
         ]);
 
+        // ── DID WE ACTUALLY ASK? ───────────────────────────────────────
+        // supabase-js RESOLVES a transport failure as `{data: null,
+        // error}` — it does not throw. Every query above therefore
+        // "succeeds", the `catch` below never runs, `searchUnreachable`
+        // stays false, and the empty result set that comes out the other
+        // end renders 「你的人脈裡還沒有「X」的人」: a confident statement
+        // about the user's own network made on the strength of requests
+        // that never left the phone. On the venue wifi this whole pass
+        // exists for, that is the single most misleading thing the app
+        // can say.
+        //
+        // These three are the queries whose silence would be read as
+        // "nobody matched" — direct profile hits, biolink-derived hits,
+        // and the per-keyword tag scans. The alias tables are pure
+        // enrichment and are excluded on purpose: they cannot manufacture
+        // a false "nobody", and a transport failure takes down profiles
+        // and tags too, so nothing is missed by leaving them out.
+        const searchQueriesFailed =
+          !!profilesResult.error ||
+          !!biolinkResult.error ||
+          tagResults.some((r) => !!r.error);
+
         // Merge tag results, deduplicate by id
         const tagMap = new Map<string, any>();
         for (const result of tagResults) {
@@ -1538,6 +1663,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
         // Bail if a newer search has started — don't clobber its UI state.
         if (seq !== searchSeqRef.current) return;
+
+        // Raise the honest empty-state. `searchUnreachable` is only ever
+        // consulted when the result set is empty (listData), so setting
+        // it alongside a partial result costs nothing and guarantees we
+        // never assert "there is nobody" off an unanswered request.
+        if (searchQueriesFailed) setSearchUnreachable(true);
 
         let finalTagUsers: { tag: Tag; users: any[] }[] = [];
         if (mergedTags.length > 0) {
@@ -1985,16 +2116,26 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         // Cache this result set so typing-then-retyping is free. We
         // cache the POST-recovery state — a repeated recovery-fed
         // query gets the chip + results instantly, no second LLM call.
-        const entry: SearchCacheEntry = {
-          tags: postRecoveryTags,
-          profiles: finalProfiles,
-          tagUsers: finalTagUsers,
-          extractedKeywords: postRecoveryKeywords,
-        };
-        cache.set(cacheKey, entry);
-        if (cache.size > SEARCH_CACHE_MAX) {
-          const oldest = cache.keys().next().value;
-          if (oldest !== undefined) cache.delete(oldest);
+        //
+        // NEVER CACHE A RESULT PRODUCED BY A FAILED FETCH. An empty set
+        // that came out of dead wifi used to be written here like any
+        // other, which made the lie permanent: re-running the same query
+        // AFTER reconnecting hit the LRU, skipped the server entirely,
+        // and instantly re-asserted 「你的人脈裡還沒有「X」的人」 from the
+        // moment the phone had no signal. The cache is for answers, not
+        // for silence.
+        if (!searchQueriesFailed) {
+          const entry: SearchCacheEntry = {
+            tags: postRecoveryTags,
+            profiles: finalProfiles,
+            tagUsers: finalTagUsers,
+            extractedKeywords: postRecoveryKeywords,
+          };
+          cache.set(cacheKey, entry);
+          if (cache.size > SEARCH_CACHE_MAX) {
+            const oldest = cache.keys().next().value;
+            if (oldest !== undefined) cache.delete(oldest);
+          }
         }
 
         // Save to recent searches
@@ -2043,6 +2184,10 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         console.warn('[SearchScreen] search query failed:', err);
         setTags([]);
         setProfiles([]);
+        // A throw is the least ambiguous "we could not ask" there is, so
+        // the empty state below must be the retry card, never 「你的人脈
+        // 裡還沒有…」. Nothing is written to the LRU on this path either.
+        setSearchUnreachable(true);
         setErrorToast(t('common.unknownError'));
         if (errorToastTimerRef.current) clearTimeout(errorToastTimerRef.current);
         errorToastTimerRef.current = setTimeout(() => setErrorToast(null), 2500);
@@ -2050,7 +2195,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         if (seq === searchSeqRef.current) setLoading(false);
       }
     },
-    [loadPopularTags, saveRecentSearch, user, i18n, t],
+    [restoreDefaultTags, saveRecentSearch, user, i18n, t],
   );
 
   // Submit-only search: typing alone never hits the server. The user
@@ -2394,8 +2539,20 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     setLlmRecovering(false);
     setSearchTaggedFriends([]);
     setSearchTaggedContacts([]);
+    // Put the browse wall back. This was the missing half of "reset":
+    // every OTHER piece of transient state was cleared here, but `tags`
+    // was left holding the search's result set — which offline is `[]`,
+    // because performSearch's offline branch clears it. Tapping the clear (X) button to
+    // give up on a search therefore replaced the whole cached tag wall
+    // with 「找不到相關標籤」 and nothing in the session could bring it
+    // back.
+    void restoreDefaultTags();
+    // The searchUnreachable flag belongs to the query we just abandoned.
+    // Leaving it set would make the next empty result claim we could not
+    // reach the server when we never asked.
+    setSearchUnreachable(false);
     searchInputRef.current?.blur();
-  }, []);
+  }, [restoreDefaultTags]);
 
   // Remove a single entry from recent searches (per-item × icon).
   // The "clear all history" button stays intact.

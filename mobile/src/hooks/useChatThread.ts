@@ -55,14 +55,57 @@ function newNonce(): string {
   }
 }
 
-// Heuristic: Supabase/PostgREST surfaces transport failures as plain
-// Error('Network request failed') or similar. Anything we can't
-// classify as network we treat as a server/RLS error and do NOT queue,
-// otherwise a forbidden send would retry forever.
-function isNetworkError(err: unknown): boolean {
-  if (!err) return false;
-  const msg = err instanceof Error ? err.message : String(err);
-  return /network|fetch|timeout|timed out|offline/i.test(msg);
+// ── When may a queued send be DELETED from disk? ─────────────────────
+//
+// Only on POSITIVE proof that retrying it can never work.
+//
+// The rule used to be the exact opposite: anything that did not look
+// like a transport failure (/network|fetch|timeout|offline/i) was
+// assumed permanent and dequeued. That threw away the only durable copy
+// of the user's message for a 503, for a `JWT expired`, and for the
+// case this whole offline pass exists for — a captive portal answering
+// the insert with an HTML login page, which surfaces as a JSON parse
+// error and matches none of those words. The old comment argued the
+// text survived because the bubble stayed on screen, but that bubble
+// lives only in React state: it dies on the next navigation, and the
+// queue entry we had just deleted is the only thing that rebuilds it.
+//
+// So the default is now KEEP, and this predicate is the narrow
+// exception. Every code below means "the server understood the request
+// and refused it on its merits", which no amount of retrying changes:
+//
+//   42501  insufficient_privilege        — an RLS policy said no
+//   23503  foreign_key_violation         — the conversation is gone
+//   23502  not_null_violation            — malformed row
+//   23514  check_violation               — failed a CHECK constraint
+//   22001  string_data_right_truncation  — body longer than the column
+//
+// 23505 (unique_violation) is deliberately absent: isDuplicateSend
+// handles it, and it means DELIVERED, which is the opposite outcome.
+//
+// Everything else — transport failures, 5xx, gateway HTML, expired or
+// unrefreshable tokens, anything unrecognised — stays queued. Being
+// wrong in this direction costs one redundant retry (which the 23505
+// path then resolves as delivered); being wrong in the other direction
+// costs the user their message.
+const PERMANENT_SEND_CODES = new Set([
+  '42501',
+  '23503',
+  '23502',
+  '23514',
+  '22001',
+]);
+
+function isPermanentSendError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false;
+  const code = String((err as { code?: unknown }).code ?? '');
+  if (PERMANENT_SEND_CODES.has(code)) return true;
+  // Same conditions reached by message when the code is absent (a
+  // PostgREST error surfaced through a wrapper, or a thrown Error).
+  const msg = String((err as { message?: unknown }).message ?? '');
+  return /row-level security|violates check constraint|violates not-null constraint|violates foreign key constraint|permission denied/i.test(
+    msg,
+  );
 }
 
 // 23505 = unique_violation. On the (sender_id, client_nonce) index it
@@ -84,32 +127,75 @@ function isDuplicateSend(err: unknown): boolean {
 
 /**
  * Fold a fresh set of SERVER rows into what is on screen WITHOUT losing
- * messages the user wrote that the server has not accepted yet.
+ * anything `incoming` simply did not ask about.
  *
- * `incoming` is authoritative for everything the server knows, so its
- * rows replace all previously-'sent' rows wholesale — the behaviour the
- * plain `setMessages(mapped)` had. What it must not do is take the
- * user's unsent text off screen: a bubble whose nonce is absent from the
- * server's answer is still pending, still in chatSendQueue, and still
- * owed a retry, so it is carried across at the front, where a
- * just-composed message belongs in this newest-first list.
+ * `incoming` is authoritative only for the WINDOW it covers: the newest
+ * PAGE_SIZE rows, as of the moment the query was planned. It is not a
+ * statement about the thread as a whole, and the previous version of
+ * this function treated it as one — it kept `prev` rows whose status was
+ * not 'sent' and dropped every other row on the floor. Two things
+ * disappeared as a result:
+ *
+ *  1. A JUST-SENT message. `doInsert` flips the bubble to 'sent' the
+ *     instant the insert is accepted, while its id is still
+ *     `optimistic-<nonce>`. A fetchLatest already in flight — the same
+ *     reconnect fires both — answers from a snapshot taken before that
+ *     insert landed, so the row is absent from `incoming`, and the old
+ *     status filter deleted it for being 'sent'. The user watched their
+ *     message vanish, retyped it, and the recipient got it twice.
+ *
+ *  2. EVERY PAGE `loadMore` HAD FETCHED. Older pages are 'sent' rows
+ *     outside the newest-50 window, so every foreground (which calls
+ *     fetchLatest) silently threw the scrollback away.
+ *
+ * The rule now: a row is replaced only when `incoming` actually carries
+ * it — matched by client_nonce first (the identity that survives the
+ * optimistic → durable swap) and by id otherwise. Anything else is
+ * carried across.
+ *
+ * Unsent bubbles stay pinned at the head, where a composed-but-unsent
+ * message belongs in this newest-first list and where
+ * `restoreQueuedBubbles` also puts them. Server rows — incoming plus
+ * carried — are merged by created_at descending, which puts a
+ * locally-sent row above the window and an older page below it, both
+ * without special-casing.
  *
  * This is what makes `void flushQueue(); void fetchLatest();` safe to
- * run concurrently: whichever lands first, the pending bubble survives.
+ * run concurrently: whichever lands first, nothing is lost.
  */
 function mergePendingSends(
   prev: ThreadMessage[],
   incoming: ThreadMessage[],
 ): ThreadMessage[] {
-  const acknowledged = new Set<string>();
+  const acknowledgedNonces = new Set<string>();
+  const acknowledgedIds = new Set<string>();
   for (const m of incoming) {
-    if (m.client_nonce) acknowledged.add(m.client_nonce);
+    if (m.client_nonce) acknowledgedNonces.add(m.client_nonce);
+    acknowledgedIds.add(m.id);
   }
-  const pending = prev.filter(
-    (m) => m.status !== 'sent' && !!m.client_nonce && !acknowledged.has(m.client_nonce),
-  );
-  if (pending.length === 0) return incoming;
-  return [...pending, ...incoming];
+  const carried = prev.filter((m) => {
+    if (m.client_nonce && acknowledgedNonces.has(m.client_nonce)) return false;
+    return !acknowledgedIds.has(m.id);
+  });
+  if (carried.length === 0) return incoming;
+
+  const byNewestFirst = (a: ThreadMessage, b: ThreadMessage): number => {
+    const delta =
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    // Stable tie-break so a re-merge of identical data cannot reorder
+    // the list and make FlatList re-key rows.
+    return delta !== 0 ? delta : a.id.localeCompare(b.id);
+  };
+
+  const pending = carried.filter((m) => m.status !== 'sent');
+  const carriedSent = carried.filter((m) => m.status === 'sent');
+  const merged =
+    carriedSent.length === 0
+      ? incoming
+      : [...incoming, ...carriedSent].sort(byNewestFirst);
+
+  if (pending.length === 0) return merged;
+  return [...pending.sort(byNewestFirst), ...merged];
 }
 
 /** A queue envelope, rendered as the bubble the user last saw. */
@@ -144,6 +230,146 @@ function ownQueued(
   return items.filter(
     (q) => q.conversation_id === conversationId && q.sender_id === userId,
   );
+}
+
+/**
+ * The single place a queued envelope is handed to the server, so the
+ * interactive path (sendMessage / retry) and the background flush
+ * classify identical failures identically. Never throws.
+ */
+type SendAttempt =
+  | { outcome: 'sent' }
+  | { outcome: 'duplicate' }
+  | { outcome: 'retry' }
+  | { outcome: 'permanent'; message: string };
+
+async function attemptSend(q: QueuedSend): Promise<SendAttempt> {
+  try {
+    const { error: insErr } = await supabase
+      .from('piktag_messages')
+      .insert({
+        conversation_id: q.conversation_id,
+        sender_id: q.sender_id,
+        body: q.body,
+        client_nonce: q.nonce,
+      })
+      .select()
+      .single();
+    if (insErr) {
+      if (isDuplicateSend(insErr)) return { outcome: 'duplicate' };
+      if (isPermanentSendError(insErr)) {
+        return { outcome: 'permanent', message: insErr.message };
+      }
+      return { outcome: 'retry' };
+    }
+    return { outcome: 'sent' };
+  } catch (e) {
+    if (isPermanentSendError(e)) {
+      return {
+        outcome: 'permanent',
+        message: e instanceof Error ? e.message : 'Send failed',
+      };
+    }
+    // supabase-js RESOLVES most transport failures rather than throwing,
+    // so reaching here at all is unusual — all the more reason to keep
+    // the message rather than guess that it is unsendable.
+    return { outcome: 'retry' };
+  }
+}
+
+/**
+ * Reconcile the disk queue with an attempt's outcome and report the
+ * status its bubble should now show.
+ *
+ * 'sent' and 'duplicate' are both DELIVERED (see isDuplicateSend);
+ * 'permanent' is the only failure that earns a dequeue. 'retry' leaves
+ * the entry exactly where it was.
+ */
+async function settleSend(
+  userId: string,
+  nonce: string,
+  attempt: SendAttempt,
+): Promise<MessageStatus> {
+  if (attempt.outcome !== 'retry') await dequeue(userId, nonce);
+  return attempt.outcome === 'sent' || attempt.outcome === 'duplicate'
+    ? 'sent'
+    : 'failed';
+}
+
+/** Optional live-thread bindings for the flusher below. */
+type FlushUi = {
+  conversationId: string;
+  isMounted: () => boolean;
+  restore: (items: QueuedSend[]) => void;
+  setStatus: (nonce: string, status: MessageStatus) => void;
+  setError: (message: string) => void;
+};
+
+// Serialises flushes PROCESS-WIDE. Mount, reconnect, foreground and the
+// inbox can each fire one at nearly the same instant, and the queue is a
+// single shared list: two concurrent passes would double-send (the
+// second reads the queue before the first has dequeued anything) and
+// lean on the 23505 handler to clean up after them.
+let flushInFlight = false;
+
+/**
+ * Send everything this account has queued — in EVERY conversation, not
+ * just an open one.
+ *
+ * The queue has always been global (one list per account), but its only
+ * flusher lived inside a mounted `useChatThread` and filtered the list
+ * down to that hook's `conversationId`. Messages written offline in
+ * three conversations therefore required REOPENING all three, one at a
+ * time, with nothing anywhere to say something was still pending. Ask
+ * three people for coffee on a venue's dead wifi and two of them never
+ * heard from you.
+ *
+ * `ui` is optional. When a thread happens to be open we hand it
+ * callbacks so its own bubbles animate as they go out; entries for other
+ * conversations are transmitted silently, and their bubbles are rebuilt
+ * from this same queue by the hydration effect if and when the user
+ * opens them.
+ */
+export async function flushChatSendQueue(
+  userId: string | null | undefined,
+  ui?: FlushUi,
+): Promise<void> {
+  if (!userId) return;
+  if (flushInFlight) return;
+  flushInFlight = true;
+  try {
+    // `sender_id` filter: see ownQueued. Two independent defences
+    // against one account transmitting another's text, not one.
+    const items = (await peek(userId)).filter((q) => q.sender_id === userId);
+    if (items.length === 0) return;
+    // Put the open thread's bubbles back BEFORE testing the network, so
+    // the user sees their unsent messages waiting even with no signal.
+    if (ui && ui.isMounted()) {
+      ui.restore(items.filter((q) => q.conversation_id === ui.conversationId));
+    }
+    // Offline, every insert below would sit through ~25s of auth-refresh
+    // backoff to learn what NetInfo already knows (see lib/netStatus.ts).
+    // Nothing is dequeued on this path.
+    if (await checkOffline()) return;
+
+    for (const q of items) {
+      const visible = !!ui && q.conversation_id === ui.conversationId;
+      if (visible && ui!.isMounted()) ui!.setStatus(q.nonce, 'sending');
+      const attempt = await attemptSend(q);
+      const status = await settleSend(userId, q.nonce, attempt);
+      if (visible && ui!.isMounted()) {
+        ui!.setStatus(q.nonce, status);
+        if (attempt.outcome === 'permanent') ui!.setError(attempt.message);
+      }
+      // Transport is down (or the portal is eating the request). Every
+      // remaining entry would pay the same backoff for the same answer,
+      // so stop here — they stay queued, and the next reconnect,
+      // foreground or inbox visit picks the queue back up.
+      if (attempt.outcome === 'retry') return;
+    }
+  } finally {
+    flushInFlight = false;
+  }
 }
 
 export function useChatThread(conversationId: string): UseChatThreadReturn {
@@ -269,6 +495,18 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
     const oldest = [...current].reverse().find((m) => m.status === 'sent');
     if (!oldest) return;
 
+    // FAIL FAST WHEN THERE IS NO NETWORK — the same guard fetchLatest
+    // has, and for a sharper reason. `hasMoreRef` stays TRUE after a
+    // disk hydration on purpose (a bounded cache proves nothing about
+    // what the server still holds), so opening a SHORT cached
+    // conversation offline hands FlatList a list whose end is already on
+    // screen and onEndReached fires immediately. Without this the user
+    // got a ~25s "loading older messages" spinner, at the end of which
+    // nothing loaded and nothing could have. Returning here writes
+    // nothing: no state, no cache, and hasMoreRef is untouched so
+    // pagination can still probe once connectivity returns.
+    if (await checkOffline()) return;
+
     setLoadingMore(true);
     try {
       const { data, error: selErr } = await supabase
@@ -387,7 +625,7 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
       // text exists nowhere but a component that is now gone. `enqueue`
       // dedupes by nonce, so a retry re-asserts one entry, never adds a
       // second.
-      await enqueue(userId, {
+      const envelope: QueuedSend = {
         nonce,
         conversation_id: conversationId,
         sender_id: userId,
@@ -396,7 +634,8 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
         // would march a long-queued message back to the top of the
         // thread every time we retried it.
         created_at: composedAt ?? new Date().toISOString(),
-      });
+      };
+      await enqueue(userId, envelope);
 
       // Sending is the one thing that genuinely cannot work offline
       // ("不能傳新的資訊"). Mark the bubble immediately instead of
@@ -407,64 +646,20 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
         if (isMountedRef.current) setStatus(nonce, 'failed');
         return;
       }
-      try {
-        const { error: insErr } = await supabase
-          .from('piktag_messages')
-          .insert({
-            conversation_id: conversationId,
-            sender_id: userId,
-            body,
-            client_nonce: nonce,
-          })
-          .select()
-          .single();
-
-        if (insErr) {
-          if (isDuplicateSend(insErr)) {
-            // Already on the server (see isDuplicateSend). DELIVERED —
-            // clear the queue entry and show it as sent, instead of the
-            // old behaviour of failing a message plus raising an error
-            // banner for something the recipient can already read.
-            await dequeue(userId, nonce);
-            if (isMountedRef.current) setStatus(nonce, 'sent');
-            return;
-          }
-          if (isNetworkError(insErr)) {
-            // Stays queued; flushQueue retries it on reconnect.
-            if (isMountedRef.current) setStatus(nonce, 'failed');
-          } else {
-            // RLS / validation error: this send can never succeed, so it
-            // must LEAVE the queue or every future flush would spin on
-            // it forever. The bubble stays on screen as failed so the
-            // text is not silently destroyed, and a manual retry
-            // re-queues it if the user wants to try again.
-            await dequeue(userId, nonce);
-            if (isMountedRef.current) {
-              setStatus(nonce, 'failed');
-              setError(insErr.message);
-            }
-          }
-          return;
-        }
-
-        // Accepted. Dequeue HERE rather than waiting for the realtime
-        // echo to do it: the echo needs a live socket, and the sends
-        // that matter most are made just as connectivity returns, when
-        // it often is not up yet. The echo's own dequeue is now a
-        // redundant second line of defence rather than the only one.
-        await dequeue(userId, nonce);
-        if (isMountedRef.current) setStatus(nonce, 'sent');
-      } catch (e) {
-        if (isNetworkError(e)) {
-          // Stays queued; flushQueue retries it on reconnect.
-          if (isMountedRef.current) setStatus(nonce, 'failed');
-        } else {
-          await dequeue(userId, nonce);
-          if (isMountedRef.current) {
-            setStatus(nonce, 'failed');
-            setError(e instanceof Error ? e.message : 'Send failed');
-          }
-        }
+      // One classifier for both paths (see attemptSend / settleSend).
+      // On success or a duplicate the entry is dequeued HERE rather than
+      // waiting for the realtime echo: the echo needs a live socket, and
+      // the sends that matter most are made just as connectivity
+      // returns, when it often is not up yet. The echo's own dequeue is
+      // a redundant second line of defence, not the only one.
+      const attempt = await attemptSend(envelope);
+      const status = await settleSend(userId, nonce, attempt);
+      if (isMountedRef.current) {
+        setStatus(nonce, status);
+        // Only a positively-permanent refusal raises the banner. A
+        // 'retry' outcome is still owed a retry and stays queued, so
+        // telling the user it failed for good would be wrong.
+        if (attempt.outcome === 'permanent') setError(attempt.message);
       }
     },
     [conversationId, userId, setStatus],
@@ -534,39 +729,21 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
     });
   }, []);
 
-  // Serialises flushes. Mount, reconnect and foreground can each fire
-  // one at nearly the same instant; two concurrent passes over the same
-  // queue would double-send (the second reads the queue before the first
-  // has dequeued anything) and lean on the 23505 handler to clean up.
-  const flushingRef = useRef<boolean>(false);
-
+  // Delegates to the process-wide flusher, which drains the queue for
+  // EVERY conversation and not only this one — see flushChatSendQueue.
+  // The bindings below are what let this thread's own bubbles animate
+  // 傳送中 → 已送出 while they go out; other conversations are sent
+  // silently and rebuild their bubbles from the queue when opened.
   const flushQueue = useCallback(async (): Promise<void> => {
     if (!userId || !conversationId) return;
-    if (flushingRef.current) return;
-    flushingRef.current = true;
-    try {
-      const items: QueuedSend[] = await peek(userId);
-      // Only entries belonging to this conversation + this user; other
-      // threads own their own entries and flush them when opened.
-      const mine = ownQueued(items, conversationId, userId);
-      if (mine.length === 0) return;
-      // A queued message now sends whether or not its bubble is on
-      // screen. The old code did `continue` when the bubble was missing,
-      // on the theory that "a fresh send in a new mount will replace it"
-      // — but nothing ever rebuilt those bubbles, so leaving the
-      // conversation once meant the message was never retried and never
-      // sent. Restore the bubble instead, so the user watches the very
-      // message they wrote go out.
-      restoreQueuedBubbles(mine);
-      for (const q of mine) {
-        if (!isMountedRef.current) return;
-        setStatus(q.nonce, 'sending');
-        await doInsert(q.nonce, q.body, q.created_at);
-      }
-    } finally {
-      flushingRef.current = false;
-    }
-  }, [conversationId, userId, doInsert, setStatus, restoreQueuedBubbles]);
+    await flushChatSendQueue(userId, {
+      conversationId,
+      isMounted: () => isMountedRef.current,
+      restore: restoreQueuedBubbles,
+      setStatus,
+      setError,
+    });
+  }, [conversationId, userId, setStatus, restoreQueuedBubbles]);
 
   // Disk hydration (stale-while-revalidate). Paints the last N messages
   // we saw in this thread before the network answers — and, with no
@@ -720,6 +897,16 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
   useLoadDeadline(loading, () => {
     setLoading(false);
     if (messagesRef.current.length === 0) setError('offline');
+  });
+
+  // Same safety net for pagination. checkOffline() above covers the
+  // airplane-mode case; this covers the one it cannot see — NetInfo says
+  // "connected" but the request is doomed anyway (captive portal, venue
+  // wifi that associates and routes nowhere). No error surface here: the
+  // thread is already readable, so the honest outcome is simply to stop
+  // claiming that older messages are one moment away.
+  useLoadDeadline(loadingMore, () => {
+    setLoadingMore(false);
   });
 
   // Explicit-retry surface used by the screen-level <ErrorState>.

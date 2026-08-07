@@ -49,7 +49,17 @@ import { useAskFeed } from '../hooks/useAskFeed';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import { useLoadDeadline } from '../hooks/useLoadDeadline';
 import { checkOffline } from '../lib/netStatus';
+import { CACHE_KEYS, getPersistentCache } from '../lib/dataCache';
 import type { PiktagProfile, Biolink } from '../types';
+
+// The two fields of a cached inbox row the offline "Message" button
+// needs. Structural rather than importing InboxConversation on purpose:
+// this screen reads exactly these two, and a narrow shape cannot break
+// when the chat types move. Mirrors FriendDetailScreen's CachedInboxRow.
+type CachedInboxRow = {
+  id?: string;
+  other_user_id?: string;
+};
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
 import { isIdModePlatform, isSafeBiolinkUrl } from '../lib/platforms';
 import { openOrCopyBiolink } from '../lib/biolinks';
@@ -1242,7 +1252,53 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const handleOpenChat = async () => {
     if (!authUser || !resolvedUserId || messageLoading) return;
     setMessageLoading(true);
+    const openThread = (conversationId: string): void => {
+      // ChatThread lives in RootStack alongside UserDetail, so a plain
+      // push keeps the navigation history (TagDetail → UserDetail →
+      // ChatThread → back returns to UserDetail).
+      (navigation as any).navigate('ChatThread', {
+        conversationId,
+        otherUserId: resolvedUserId,
+        otherDisplayName: profile?.full_name ?? profile?.username ?? '',
+        otherAvatarUrl: profile?.avatar_url,
+      });
+    };
     try {
+      // ── Offline: resolve the conversation from the inbox snapshot ──
+      // The unfixed twin of FriendDetailScreen's Message button (fixed
+      // in d6ddeee5). With no signal this had no guard at all: the RPC
+      // sat through supabase-js's ~25s auth-refresh backoff behind a
+      // spinner, then the `catch` swallowed the failure silently — or,
+      // when supabase-js resolved the transport error instead of
+      // throwing, the `else` branch below put a raw English
+      // `TypeError: Network request failed` in an Alert in front of a
+      // zh-TW user.
+      //
+      // CACHE_KEYS.CHAT_INBOX already holds the conversation id keyed by
+      // `other_user_id`, so anyone you have talked to from this device
+      // walks straight into the thread — whose history is itself cached
+      // (CHAT_THREADS) and whose composer queues offline sends.
+      // Read-only: nothing here writes a cache, so this path cannot
+      // degrade a snapshot.
+      if (await checkOffline()) {
+        const cachedInbox = await getPersistentCache<CachedInboxRow[]>(
+          CACHE_KEYS.CHAT_INBOX,
+          authUser.id,
+        );
+        const row = Array.isArray(cachedInbox)
+          ? cachedInbox.find((c) => c?.other_user_id === resolvedUserId)
+          : null;
+        if (row?.id) {
+          openThread(String(row.id));
+          return;
+        }
+        // Never talked to this person from this device, so there is no
+        // id to reuse and only the server can mint one. Say that in the
+        // user's own language — never a raw error string.
+        Alert.alert(t('app.offline'), t('common.willAutoRetry'));
+        return;
+      }
+
       const { data, error } = await supabase.rpc('get_or_create_conversation', {
         other_user_id: resolvedUserId,
       });
@@ -1254,22 +1310,18 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         } else if (code === 'invalid_participants' || msg.includes('invalid_participants')) {
           Alert.alert(t('chat.cannotMessageSelf'));
         } else {
-          Alert.alert(error.message ?? 'Error');
+          // Anything else is a load failure as far as the user is
+          // concerned. `error.message` is a raw English server/transport
+          // string — never put one in front of someone.
+          Alert.alert(t('common.loadFailed'), t('common.checkConnection'));
         }
         return;
       }
       const conversationId = typeof data === 'string' ? data : (data as any)?.id ?? (data as any)?.conversation_id ?? data;
-      // ChatThread lives in RootStack alongside UserDetail, so a plain
-      // push keeps the navigation history (TagDetail → UserDetail →
-      // ChatThread → back returns to UserDetail).
-      (navigation as any).navigate('ChatThread', {
-        conversationId,
-        otherUserId: resolvedUserId,
-        otherDisplayName: profile?.full_name ?? profile?.username ?? '',
-        otherAvatarUrl: profile?.avatar_url,
-      });
+      openThread(conversationId);
     } catch (err) {
       console.warn('handleOpenChat error:', err);
+      Alert.alert(t('common.loadFailed'), t('common.checkConnection'));
     } finally {
       setMessageLoading(false);
     }

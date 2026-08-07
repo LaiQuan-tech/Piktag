@@ -350,6 +350,13 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   // hydration below from painting over a fresher live result that won
   // the race.
   const liveFetchDoneRef = useRef<boolean>(false);
+  // Did the MOST RECENT pass actually get answers for the stats row?
+  // `statsKnown` cannot be used for this: it is sticky by design (once
+  // we have real counts we keep showing them rather than falling back to
+  // 「—」), so after one good load followed by one failed load it stays
+  // true and the reconnect gate below would never re-fire. This tracks
+  // the last attempt rather than the best one.
+  const statsAnsweredRef = useRef<boolean>(false);
 
   // ── Offline read of a friend you already have ──────────────────────
   // Founder 2026-08-08: 「沒辦法看舊的好友資料」. This screen was 100%
@@ -443,6 +450,28 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     try {
       setLoading(true);
       setLoadError(false);
+      // RE-ARM THE PAINT DEADLINE ON EVERY LOAD, not just on mount.
+      //
+      // `awaitingServer` used to be raised only by the [user?.id,
+      // friendId] effect below, i.e. exactly once per friend. Every
+      // SECOND load through this function — coming back from the chat or
+      // tag screen (useFocusEffect), the <ErrorState> retry, the
+      // reconnect refetch — therefore raised `loading` with the deadline
+      // already disarmed, and useLoadDeadline had nothing to fire. On
+      // venue wifi that associates but routes nowhere (the case
+      // checkOffline() answers `false` for) the PageLoader then covered
+      // a friend the user could already read for the full ~25-50s of
+      // auth-refresh backoff, with no error surface and no retry — worse
+      // than before the deadline existed, when it hung off `loading` and
+      // so covered every load.
+      //
+      // Setting it here means one arming point for the first load and
+      // every load after it. Re-setting a flag that is already true is a
+      // no-op, so the mount path is unaffected and the timer is not
+      // restarted mid-wait.
+      setAwaitingServer(true);
+      // Assume nothing until this pass proves otherwise.
+      statsAnsweredRef.current = false;
 
       // FAIL FAST WHEN THERE IS NO NETWORK. Every query below goes
       // through supabase-js, which resolves auth.getSession() first; with
@@ -576,30 +605,54 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         supabase.from('piktag_follows').select('id').eq('follower_id', user!.id).eq('following_id', friendId).maybeSingle(),
       ]);
       const fFollowerCount = followerResult.count;
-      setIsFollowing(!!followingResult.data);
+      // Only a query that ANSWERED may flip the follow button. A
+      // transport failure resolves as `{data: null, error}`, and taking
+      // that null at face value told a user they were not following
+      // someone they are — one tap from an unfollow they never intended.
+      if (!followingResult.error) setIsFollowing(!!followingResult.data);
 
-      // `profile` is set CONDITIONALLY below: supabase-js resolves a
-      // transport failure as `{data: null, error}`, so assigning
-      // `profileResult.data ?? null` unconditionally would blank a
-      // header we had just painted from cache whenever this one query
-      // failed on venue wifi. A confirmed null (no error) still clears
-      // it — that is a deleted account, which the 404 path handles.
-      const initialPayload: Partial<FriendData> = {
-          biolinks: filterBiolinksByVisibility(
-            biolinksResult.data ?? [],
-            // Map RPC relation to the visibility tier when available.
-            // 'self' / 'friend' have direct equivalents; 'blocked' / 'none'
-            // collapse to 'stranger'. Close-friend status is computed
-            // separately below, so we treat the RPC result as the floor.
-            rpcRelation
-              ? (rpcRelation === 'self' ? 'self'
-                  : rpcRelation === 'friend' ? 'friend'
-                  : 'stranger')
-              : await getViewerRelation(user?.id, friendId)
-          ),
-          mutualFriends: mutualFriendsCount,
-          followerCount: fFollowerCount ?? 0,
-      };
+      // EVERY FIELD BELOW IS SET CONDITIONALLY, and for one reason:
+      // supabase-js resolves a transport failure as `{data: null,
+      // error}` rather than throwing, so "the promise settled" says
+      // nothing about whether we learned anything. Assigning a default
+      // on that path overwrites good data with a fabricated answer.
+      //
+      // `mutualFriends` and `followerCount` were the two that stayed
+      // unconditional, which is how "0 共同好友 / 0 追蹤者" came back
+      // after d6ddeee5 was supposed to have removed it: one successful
+      // load followed by one failed load (walk into a venue, wifi
+      // associates, nothing routes) replaced real counts with real-
+      // looking zeroes — and `statsKnown`, already true from the first
+      // load, rendered them as fact instead of as 「—」. Keeping the last
+      // known values is stale; printing 0 is false, and this screen's
+      // whole job is telling you who you know.
+      const initialPayload: Partial<FriendData> = {};
+      // Biolinks: same rule. A failed fetch produced `[]`, which erased
+      // the link section the previous load had painted.
+      if (!biolinksResult.error) {
+        initialPayload.biolinks = filterBiolinksByVisibility(
+          biolinksResult.data ?? [],
+          // Map RPC relation to the visibility tier when available.
+          // 'self' / 'friend' have direct equivalents; 'blocked' / 'none'
+          // collapse to 'stranger'. Close-friend status is computed
+          // separately below, so we treat the RPC result as the floor.
+          rpcRelation
+            ? (rpcRelation === 'self' ? 'self'
+                : rpcRelation === 'friend' ? 'friend'
+                : 'stranger')
+            : await getViewerRelation(user?.id, friendId)
+        );
+      }
+      // The count is only meaningful when the source that produced it
+      // actually spoke — the RPC, or BOTH legacy connection queries.
+      // Otherwise `mutualFriendsCount` is the `return 0` fallback.
+      if (rpcOk || (!!myConnectionsResult.data && !!friendConnectionsResult.data)) {
+        initialPayload.mutualFriends = mutualFriendsCount;
+      }
+      // `.count` is null on failure AND legitimately 0 for someone with
+      // no followers, so the error flag is the only way to tell them
+      // apart.
+      if (!followerResult.error) initialPayload.followerCount = fFollowerCount ?? 0;
       // Blank the tag list ONLY when the tag query actually answered —
       // phase 2 refills it a moment later. When that query failed, keep
       // what is on screen, which after the disk hydration above may be
@@ -621,14 +674,17 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         setBirthday(connData.birthday || '');
       }
 
-      // Check close friend status
-      const { data: cfData } = await supabase
+      // Check close friend status. Same conditional rule as the payload
+      // above: a failed query resolves with `data: null`, and treating
+      // that as "not a close friend" silently demoted someone whose
+      // status we simply could not read.
+      const { data: cfData, error: cfError } = await supabase
         .from('piktag_close_friends')
         .select('id')
         .eq('user_id', user.id)
         .eq('close_friend_id', friendId)
         .maybeSingle();
-      setIsCloseFriend(!!cfData);
+      if (!cfError) setIsCloseFriend(!!cfData);
 
       // Phase 2: queries that depend on phase 1 results (run in parallel)
       const phase2: Promise<void>[] = [];
@@ -779,7 +835,10 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         !connTagsResult.error &&
         (rpcOk ||
           (!!myConnectionsResult.data && !!friendConnectionsResult.data));
-      if (!signal.aborted && statsAnswered) setStatsKnown(true);
+      if (!signal.aborted && statsAnswered) {
+        statsAnsweredRef.current = true;
+        setStatsKnown(true);
+      }
     } catch (err) {
       if (!signal.aborted) {
         console.error('Error fetching friend data:', err);
@@ -828,7 +887,14 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     // also when it merely never answered — a cache-painted header with
     // unknown counts is exactly the state a returning connection should
     // resolve, and gating on `loadError` alone left it stranded.
-    if (loadError || !statsKnown) {
+    //
+    // `statsAnsweredRef` is the third case, and the one the payload
+    // guards above created: a good load followed by a failed one now
+    // KEEPS the real counts on screen (instead of printing 0), which
+    // leaves `statsKnown` true and `loadError` false even though the
+    // numbers are stale. Without this the screen would sit on stale
+    // stats until the user navigated away and back.
+    if (loadError || !statsKnown || !statsAnsweredRef.current) {
       fetchData();
     }
   }, [loadError, statsKnown, fetchData]));

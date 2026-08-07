@@ -12,6 +12,8 @@ import {
 } from '../lib/dataCache';
 import { checkOffline } from '../lib/netStatus';
 import { useLoadDeadline } from './useLoadDeadline';
+import { useNetInfoReconnect } from './useNetInfoReconnect';
+import { flushChatSendQueue } from './useChatThread';
 import type { InboxConversation, InboxTab, Message } from '../types/chat';
 
 // How many conversation rows we keep on disk for offline reading. The
@@ -315,17 +317,37 @@ export function useChatInbox(): UseChatInboxReturn {
     if (conversationsRef.current.length === 0) setError('offline');
   });
 
+  // ── Drain the send queue from the INBOX, not just from a thread ────
+  // The queue is one list per account, but its flusher used to live
+  // inside a mounted useChatThread and only ever looked at that hook's
+  // own conversation. Messages written offline in three conversations
+  // meant reopening all three by hand. The inbox is the screen the user
+  // lands on when they come back into signal, so draining here is what
+  // makes "it sends itself" true. flushChatSendQueue no-ops on an empty
+  // queue, short-circuits while offline, and is serialised process-wide
+  // against the thread-level flush, so this cannot double-send.
+  const flushSendQueue = useCallback((): void => {
+    if (!userId) return;
+    void flushChatSendQueue(userId);
+  }, [userId]);
+
+  useNetInfoReconnect(flushSendQueue);
+
   useEffect(() => {
     isMountedRef.current = true;
     setLoading(true);
     fetchInbox();
+    // Cold start that is ALREADY online never sees an offline→online
+    // transition, so mount is its own trigger — same reasoning as the
+    // mount flush in useChatThread.
+    flushSendQueue();
     subscribe();
 
     return () => {
       isMountedRef.current = false;
       unsubscribe();
     };
-  }, [fetchInbox, subscribe, unsubscribe]);
+  }, [fetchInbox, subscribe, unsubscribe, flushSendQueue]);
 
   useEffect(() => {
     // Pause realtime while backgrounded so we don't hold a socket open
@@ -335,6 +357,10 @@ export function useChatInbox(): UseChatInboxReturn {
       if (state === 'active') {
         subscribe();
         fetchInbox();
+        // Returning from background on a phone that never reported a
+        // connectivity change is the other way a queued message gets
+        // stranded.
+        flushSendQueue();
       } else if (state === 'background' || state === 'inactive') {
         unsubscribe();
       }
@@ -344,7 +370,7 @@ export function useChatInbox(): UseChatInboxReturn {
     return () => {
       sub.remove();
     };
-  }, [subscribe, unsubscribe, fetchInbox]);
+  }, [subscribe, unsubscribe, fetchInbox, flushSendQueue]);
 
   return {
     conversations,

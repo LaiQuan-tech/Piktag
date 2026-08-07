@@ -28,7 +28,21 @@ import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { ANALYTICS_OPT_IN_KEY, setAnalyticsOptIn } from '../lib/analytics';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
+import { checkOffline } from '../lib/netStatus';
 import type { PiktagProfile } from '../types';
+
+/**
+ * Hard ceiling on the delete-user Edge Function call.
+ *
+ * Not NETWORK_PAINT_DEADLINE_MS: that bound answers "how long may a
+ * screen imply content is coming?" and 8s is right for a read that still
+ * paints if it lands late. This is a WRITE that cascades an account
+ * delete, and cutting a slow-but-live one off would leave the user
+ * unable to tell whether it happened. 30s is long enough that any
+ * request actually reaching the server completes, and short enough that
+ * a black-hole connection ends in a sentence instead of never.
+ */
+const DELETE_ACCOUNT_TIMEOUT_MS = 30000;
 
 type SettingsScreenProps = {
   navigation: any;
@@ -406,6 +420,16 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             // hook value is exactly the 防呆 "silent drop" defect — the user
             // taps confirm and NOTHING happens. The !token branch alerts.
             try {
+              // FAIL FAST WHEN THERE IS NO NETWORK. Deleting an account
+              // is irreversibly server-side, so unlike a read there is
+              // no cached answer and no degraded mode — the only honest
+              // thing to do with no signal is say so and keep the
+              // account intact. Settings was the last screen making
+              // network calls with no checkOffline() guard at all.
+              if (await checkOffline()) {
+                Alert.alert(t('app.offline'), t('common.checkConnection'));
+                return;
+              }
               const { data: { session } } = await supabase.auth.getSession();
               const token = session?.access_token;
               if (!token) {
@@ -433,15 +457,41 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
               // survived, Google sign-in returned the SAME account
               // (onboarding_completed=true), and the wizard "never showed".
               // One missing header, both symptoms (2026-06-10).
-              const res = await fetch(`${supabaseUrl}/functions/v1/delete-user`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`,
-                  'apikey': supabaseAnonKey,
-                },
-                body: JSON.stringify({}),
-              });
+              //
+              // BOUNDED. This is a raw `fetch`, so none of supabase-js's
+              // machinery applies and nothing else would ever end it: on
+              // a captive portal (wifi associates, nothing routes — the
+              // condition checkOffline() above correctly answers `false`
+              // for) the promise simply never settles. There is no
+              // spinner on this button, so the screen sat there looking
+              // idle while the user tapped 刪除 again and again.
+              //
+              // DELETE_TIMEOUT_MS is deliberately far longer than the
+              // 8s paint deadline used for reads: this call cascades a
+              // full account delete server-side, and aborting a slow but
+              // LIVE delete would leave the user unsure whether it
+              // happened. The abort exists to end a dead connection, not
+              // to police a slow one.
+              const timeoutController = new AbortController();
+              const timeoutId = setTimeout(
+                () => timeoutController.abort(),
+                DELETE_ACCOUNT_TIMEOUT_MS,
+              );
+              let res: Response;
+              try {
+                res = await fetch(`${supabaseUrl}/functions/v1/delete-user`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'apikey': supabaseAnonKey,
+                  },
+                  body: JSON.stringify({}),
+                  signal: timeoutController.signal,
+                });
+              } finally {
+                clearTimeout(timeoutId);
+              }
               if (!res.ok) {
                 const detail = await res.text().catch(() => '');
                 Alert.alert(t('common.error'), (t('settings.alertDeleteError', { defaultValue: '刪除失敗' })) + ` (${res.status})`);
@@ -484,7 +534,16 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                 { cancelable: false },
               );
             } catch (err: any) {
-              Alert.alert(t('common.error'), err.message || t('settings.alertDeleteError'));
+              // NEVER a raw error string. `err.message` here is whatever
+              // the platform produced — `Network request failed`, or
+              // `Aborted` from the timeout above — English, untranslated,
+              // and meaningless to the zh-TW user this app is built for.
+              // An abort or a transport failure both mean the same thing
+              // to them, and it is not "your account is in a weird
+              // state": the delete never reached the server, so the
+              // account is exactly as it was.
+              console.warn('[DeleteAccount] failed:', err?.message ?? err);
+              Alert.alert(t('common.loadFailed'), t('common.checkConnection'));
             }
           },
         },
@@ -544,6 +603,15 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             [
               { text: t('common.cancel'), style: 'cancel' },
               { text: cta, onPress: async () => {
+                // The screen's other server write. Same guard, same
+                // reason: with no signal this sits through the ~25s
+                // auth-refresh backoff (see lib/netStatus.ts) and then
+                // reports a generic failure, when we could have said the
+                // true thing immediately.
+                if (await checkOffline()) {
+                  Alert.alert(t('app.offline'), t('common.checkConnection'));
+                  return;
+                }
                 const { error } = await supabase.auth.resetPasswordForEmail(user?.email || '', {
                   redirectTo: 'https://pikt.ag/reset-password',
                 });
