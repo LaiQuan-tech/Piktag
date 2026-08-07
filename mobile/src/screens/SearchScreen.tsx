@@ -50,6 +50,8 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthProfile } from '../context/AuthContext';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
+import { useLoadDeadline } from '../hooks/useLoadDeadline';
+import { checkOffline } from '../lib/netStatus';
 import { useRotatingPlaceholder } from '../hooks/useRotatingPlaceholder';
 import ErrorState from '../components/ErrorState';
 import LogoLoader from '../components/loaders/LogoLoader';
@@ -475,6 +477,17 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // One-shot: the disk snapshot is a cold-start fallback, not a source
   // that competes with live data on every re-render.
   const bootstrapHydratedRef = useRef(false);
+  // The bootstrap the network gave us, held until we have a user id to
+  // namespace it under. `runBootstrap` is a stable callback that fires
+  // exactly once on mount, so if the RPC answered before AuthContext
+  // resolved the session, persistSearchBootstrap's `if (!uid) return`
+  // silently dropped the write and Search had NOTHING on disk to show
+  // the next time the phone was offline. Kept here, written by the
+  // effect below the moment the id lands.
+  const pendingBootstrapRef = useRef<{ tags: Tag[]; categories: string[] } | null>(null);
+  // Is anything already painted on the default browse surface? Read by
+  // runBootstrap, which must not blank a cached grid on a refresh.
+  const hasTagsRef = useRef(false);
 
 
   // Refs for stable closures
@@ -725,13 +738,37 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // re-created when `user` lands would re-fire the whole bootstrap
   // (an extra RPC round-trip on every cold start).
   const persistSearchBootstrap = useCallback((tagList: Tag[], categories: string[]) => {
+    if (tagList.length === 0) return;
     const uid = bootstrapUserIdRef.current;
-    if (!uid || tagList.length === 0) return;
+    if (!uid) {
+      // No id yet — park it rather than drop it. See pendingBootstrapRef.
+      pendingBootstrapRef.current = { tags: tagList, categories };
+      return;
+    }
+    pendingBootstrapRef.current = null;
     void setPersistentCache<SearchBootstrapSnapshot>(CACHE_KEYS.SEARCH_BOOTSTRAP, uid, {
       tags: tagList.slice(0, SEARCH_BOOTSTRAP_MAX_TAGS),
       categories,
     });
   }, []);
+
+  useEffect(() => {
+    hasTagsRef.current = tags.length > 0;
+  }, [tags]);
+
+  // Drain the parked bootstrap once the session resolves. This is what
+  // guarantees that a normal ONLINE visit to Search always leaves a
+  // snapshot on disk, regardless of which of the two races won.
+  useEffect(() => {
+    const uid = user?.id;
+    const pending = pendingBootstrapRef.current;
+    if (!uid || !pending) return;
+    pendingBootstrapRef.current = null;
+    void setPersistentCache<SearchBootstrapSnapshot>(CACHE_KEYS.SEARCH_BOOTSTRAP, uid, {
+      tags: pending.tags.slice(0, SEARCH_BOOTSTRAP_MAX_TAGS),
+      categories: pending.categories,
+    });
+  }, [user?.id]);
 
   const loadPopularTags = useCallback(async () => {
     const cached = getCache<Tag[]>(CACHE_KEY_POPULAR_TAGS);
@@ -954,7 +991,18 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const loadInitialViaRpc = useCallback(async (): Promise<boolean> => {
     try {
       const { data, error } = await supabase.rpc('search_screen_init');
-      if (error || !data || typeof data !== 'object') return false;
+      if (error) {
+        // supabase-js RESOLVES `{data:null, error}` on a transport
+        // failure instead of rejecting, so this branch — not the catch
+        // below — is where a dead network actually lands. It used to
+        // return false silently, `bootstrapFailed` stayed false, and the
+        // retry surface at the bottom of listData could never render:
+        // the user got a permanently blank Search tab with no
+        // explanation and no way to ask again.
+        setBootstrapFailed(true);
+        return false;
+      }
+      if (!data || typeof data !== 'object') return false;
       const payload = data as {
         popular_tags?: any[];
         recent_categories?: any[];
@@ -990,9 +1038,28 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // signal the network is the problem, not the data.
   const runBootstrap = useCallback(async () => {
     setBootstrapFailed(false);
-    setInitialLoading(true);
+    // Only raise the loader when there is nothing on screen worth
+    // keeping. A reconnect refresh runs over an already-painted (cached)
+    // tag grid, and blanking it back to the "#" LogoLoader would be the
+    // very thing this change exists to stop.
+    if (!hasTagsRef.current) setInitialLoading(true);
     // Always load recent searches (local-only, cheap, doesn't need net).
     loadRecentSearches();
+
+    // FAIL FAST WHEN THERE IS NO NETWORK. The RPC and both legacy
+    // loaders below each pay auth-js's ~25s refresh backoff before
+    // resolving with an error (see lib/netStatus.ts) — chained, that is
+    // over a minute of the LogoLoader the founder photographed and read
+    // as "app is broken". The disk hydration effect runs independently
+    // and paints the cached tag world if there is one; if it does, it
+    // fills `tags` and the retry surface stops rendering on its own.
+    if (await checkOffline()) {
+      setBootstrapFailed(true);
+      setLoading(false);
+      setInitialLoading(false);
+      return;
+    }
+
     const ok = await loadInitialViaRpc();
     if (ok) return;
     // Legacy fallback. We await so the failure flag is meaningful;
@@ -1038,7 +1105,19 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         uid,
       );
       if (cancelled || !isMountedRef.current) return;
-      if (!snap || !Array.isArray(snap.tags) || snap.tags.length === 0) return;
+      if (!snap || !Array.isArray(snap.tags) || snap.tags.length === 0) {
+        // Nothing on disk. Offline that is the final answer for this
+        // surface, so stop the loader NOW and let the <ErrorState>
+        // branch of listData explain itself — never leave the "#"
+        // LogoLoader spinning against a network that cannot answer.
+        if (await checkOffline()) {
+          if (cancelled || !isMountedRef.current) return;
+          setLoading(false);
+          setInitialLoading(false);
+          setBootstrapFailed(true);
+        }
+        return;
+      }
       // Never clobber anything the network already painted.
       setTags((prev) => (prev.length > 0 ? prev : snap.tags));
       setTagCategories((prev) =>
@@ -1067,11 +1146,39 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // flagged a network failure. Without this, users who opened Search
   // while offline would be stuck on the error surface even after
   // connectivity returned.
+  const onDefaultSurface = searchQuery.trim() === '' && !intersectionMode;
+
   useNetInfoReconnect(useCallback(() => {
-    if (bootstrapFailed) {
-      void runBootstrap();
-    }
-  }, [bootstrapFailed, runBootstrap]));
+    // Was gated on `bootstrapFailed`, which meant that offline WITH a
+    // disk snapshot — where we paint cached tags and set no failure
+    // flag — Search kept showing the stale tag world for the rest of the
+    // session even after signal returned. Now it refreshes either way.
+    //
+    // Still scoped to the DEFAULT surface: `tags` doubles as "the tags
+    // this query matched", so running the bootstrap while results are on
+    // screen would overwrite them with the popular-tag list.
+    if (!onDefaultSurface) return;
+    void runBootstrap();
+  }, [onDefaultSurface, runBootstrap]));
+
+  // Online but going nowhere. Stop the LogoLoader and offer retry; if
+  // the request does eventually land it still paints over this.
+  //
+  // Two deadlines, because the two surfaces mean different things.
+  // DEFAULT surface (no query): a dead bootstrap is a load failure, so
+  // flag it and let listData render <ErrorState> with a retry.
+  useLoadDeadline((loading || initialLoading) && onDefaultSurface, () => {
+    setLoading(false);
+    setInitialLoading(false);
+    setBootstrapFailed(true);
+  });
+  // QUERY surface: a dead search is just "no results" — never flag
+  // bootstrapFailed here or clearing the query would drop the user onto
+  // an error screen for a tag world we may well still have cached.
+  useLoadDeadline((loading || initialLoading) && !onDefaultSurface, () => {
+    setLoading(false);
+    setInitialLoading(false);
+  });
 
   // ── Event handlers (all useCallback) ──
 
@@ -1175,6 +1282,23 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       // Clear any stale AI-extracted-keywords chip from the previous
       // search; recovery will repopulate this only if it actually fires.
       setLlmExtractedKeywords([]);
+
+      // Searching is one of the things that genuinely cannot work
+      // offline: every path here (tags, aliases, profiles, biolinks, and
+      // even local contacts, which live in piktag_local_contacts on the
+      // server) is a query. Land on the empty result in a second instead
+      // of spinning the LogoLoader through ~25s of auth-refresh backoff
+      // first. The tag world the user browses by default still comes
+      // from the disk snapshot — only typed search is unavailable.
+      if (await checkOffline()) {
+        if (!isMountedRef.current || seq !== searchSeqRef.current) return;
+        setTags([]);
+        setProfiles([]);
+        setTagUsers([]);
+        setLoading(false);
+        saveRecentSearch(query.trim());
+        return;
+      }
 
       try {
         // Search tags: match ANY keyword. Order by popularity_score
@@ -2388,6 +2512,17 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     let cancelled = false;
     (async () => {
       try {
+        // Every branch below is a server query, so with no signal this
+        // whole block is ~25s of auth-refresh backoff per await for a
+        // guaranteed-empty result. Bail — performSearch has already
+        // cleared the result state. Release the sig guard on the way out
+        // so the next dependency change (a keystroke, or tags landing
+        // after reconnect) actually re-runs this instead of being
+        // short-circuited as "already done for this query".
+        if (await checkOffline()) {
+          manualTagSigRef.current = '';
+          return;
+        }
         // 1. Resolve concept-sibling tag ids/names (only if any tag matched).
         let allTagIds: string[] = [];
         let allTagNames: string[] = [];

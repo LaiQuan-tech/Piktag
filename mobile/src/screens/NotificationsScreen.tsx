@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -32,6 +32,10 @@ import {
 } from '../lib/dataCache';
 import type { Notification } from '../types';
 import { SkeletonBox } from '../components/SkeletonLoader';
+import ErrorState from '../components/ErrorState';
+import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
+import { useLoadDeadline } from '../hooks/useLoadDeadline';
+import { checkOffline } from '../lib/netStatus';
 import CoachMark from '../components/CoachMark';
 import RingedAvatar from '../components/RingedAvatar';
 import { bidiMark } from '../lib/normalizeTag';
@@ -494,15 +498,23 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  // Nothing cached and no way to fetch. Renders the retry surface
+  // instead of the "你還沒有通知" empty state, which would be a lie.
+  const [loadFailed, setLoadFailed] = useState(false);
+  // Mirrors `notifications` for the loaders / deadline, which must not
+  // take it as a dep (fetchNotifications is a useEffect dep).
+  const notificationsRef = useRef<Notification[]>([]);
 
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
 
     // Show cached data immediately (stale-while-revalidate)
+    let painted = false;
     const cached = getCache<Notification[]>(CACHE_KEYS.NOTIFICATIONS);
     if (cached) {
       setNotifications(cached);
       setLoading(false);
+      painted = cached.length > 0;
     } else {
       // Cold start: the in-memory Map died with the last process. Fall
       // back to the disk snapshot (same key, namespaced per user id) so
@@ -521,9 +533,22 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
       if (persisted && persisted.length > 0) {
         setNotifications(persisted);
         setLoading(false);
+        painted = true;
       } else {
         setLoading(true);
       }
+    }
+
+    // FAIL FAST WHEN THERE IS NO NETWORK. The query below sits through
+    // auth-js's ~25s refresh backoff before it resolves with an error
+    // (see lib/netStatus.ts) — long enough that the user concludes the
+    // feed is broken. Paint the cache, be honest about the empty case,
+    // write nothing, and let useNetInfoReconnect retry.
+    if (await checkOffline()) {
+      if (!painted && notificationsRef.current.length === 0) setLoadFailed(true);
+      setLoading(false);
+      setRefreshing(false);
+      return;
     }
 
     // Always fetch fresh data in the background. is_dismissed=false
@@ -557,6 +582,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
             setCache(CACHE_KEYS.NOTIFICATIONS, fallback.data);
             void setPersistentCache(CACHE_KEYS.NOTIFICATIONS, user.id, fallback.data);
             setNotifications(fallback.data);
+            setLoadFailed(false);
           }
           return;
         }
@@ -565,6 +591,9 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
       }
 
       if (data) {
+        // The server answered — clear any earlier offline/deadline flag
+        // so the genuine "no notifications yet" empty state can show.
+        setLoadFailed(false);
         setCache(CACHE_KEYS.NOTIFICATIONS, data);
         // ...and to disk for the next cold start. Bounded by the query's
         // own .limit(50) above — we persist exactly what the feed shows,
@@ -583,6 +612,27 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
+
+  // Keep the ref the loaders read in sync with what is rendered.
+  useEffect(() => {
+    notificationsRef.current = notifications;
+  }, [notifications]);
+
+  // Connectivity returned: fetchNotifications short-circuits offline, so
+  // something has to restart it.
+  useNetInfoReconnect(
+    useCallback(() => {
+      setLoadFailed(false);
+      void fetchNotifications();
+    }, [fetchNotifications]),
+  );
+
+  // Online but the request is going nowhere. Drop the skeleton rather
+  // than hold it through the ~25s auth-refresh backoff.
+  useLoadDeadline(loading, () => {
+    setLoading(false);
+    if (notificationsRef.current.length === 0) setLoadFailed(true);
+  });
 
   // Opening the Notifications tab = the user cares about notifications —
   // the other contextual moment (besides first friend-add) to fire the
@@ -913,8 +963,20 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
   // Stable ListEmptyComponent reference
   const emptyStateText = t('notifications.emptyState');
   const listEmptyComponent = useMemo(
-    () => <EmptyState text={emptyStateText} />,
-    [emptyStateText]
+    () => (loadFailed ? (
+      // "You have no notifications" is a claim about the server's state.
+      // We never make it when we could not reach the server — ErrorState
+      // reads NetInfo itself and picks the offline wording + retry.
+      <ErrorState
+        onRetry={() => {
+          setLoadFailed(false);
+          void fetchNotifications();
+        }}
+      />
+    ) : (
+      <EmptyState text={emptyStateText} />
+    )),
+    [emptyStateText, loadFailed, fetchNotifications]
   );
 
   // Stable RefreshControl reference

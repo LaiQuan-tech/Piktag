@@ -302,10 +302,12 @@ export default function ChatListScreen({ navigation }: Props) {
   // list — refresh-on-pull handles user-initiated retry, and the
   // OfflineBanner already covers the "you're offline" awareness.
   useNetInfoReconnect(useCallback(() => {
-    if (inboxError) {
-      void refresh();
-    }
-  }, [inboxError, refresh]));
+    // Unconditional (was: only when `inboxError`). Offline WITH a cached
+    // inbox we render the snapshot and set no error, so the old gate
+    // left the list stale for the rest of the session after signal came
+    // back. `refresh` is a single RPC — cheap enough to always run here.
+    void refresh();
+  }, [refresh]));
 
   // Decide which empty-state copy + CTA to show based on whether this
   // is a search miss, an empty non-primary bucket (no CTA — user can't

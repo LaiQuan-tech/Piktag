@@ -16,6 +16,8 @@ import {
   recoverSessionForNullEvent,
   clearPersistedSession,
 } from '../lib/authSession';
+import { checkOffline } from '../lib/netStatus';
+import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import type { User, Session } from '@supabase/supabase-js';
 import type { PiktagProfile } from '../types';
 
@@ -44,7 +46,13 @@ type AuthContextValue = {
   profile: PiktagProfile | null;
   loading: boolean;
   profileLoading: boolean;
-  refreshProfile: () => Promise<void>;
+  /**
+   * Re-fetch the profile row. Resolves TRUE only when the server
+   * actually answered. Callers use that to decide whether their own
+   * derived snapshot is safe to persist — a failed refresh must never
+   * be mistaken for "the account really has nothing".
+   */
+  refreshProfile: () => Promise<boolean>;
   setProfileLocal: (patch: Partial<PiktagProfile> | PiktagProfile | null) => void;
   signOut: () => Promise<void>;
 };
@@ -97,10 +105,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
-  const fetchProfileFor = useCallback(async (uid: string) => {
-    if (!uid) return;
+  const fetchProfileFor = useCallback(async (uid: string): Promise<boolean> => {
+    if (!uid) return false;
     // Coalesce concurrent calls for the same user.
-    if (inflightProfileFor.current === uid) return;
+    if (inflightProfileFor.current === uid) return false;
+    // With no signal this query does not fail — it SITS THERE for ~25s
+    // while auth-js retries the token refresh (see lib/netStatus.ts).
+    // Nothing here can succeed offline and the disk hydration above has
+    // already painted, so skip it and let the reconnect path retry.
+    if (await checkOffline()) return false;
     inflightProfileFor.current = uid;
     setProfileLoading(true);
     try {
@@ -111,15 +124,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .maybeSingle();
       if (!error && data) {
         setProfile(data as PiktagProfile);
-        // Mirror into the existing in-memory cache so legacy readers
-        // that still look at CACHE_KEYS.PROFILE stay warm.
+        // Mirror into the existing in-memory cache.
+        //
+        // NOTE THE SHAPE: `{ profile }` and nothing else. ProfileScreen
+        // stores a WIDER 5-field snapshot under CACHE_KEYS.PROFILE, so
+        // this narrow object is a partial of that key. ProfileScreen's
+        // reader validates the shape before accepting a hit — do not
+        // widen or narrow either side without checking the other, and
+        // never let a partial reach ProfileScreen's disk writer, which
+        // is how a good offline snapshot got emptied out.
         setCache(CACHE_KEYS.PROFILE, { profile: data });
         // ...and to disk, so the next cold start has something to show
         // before (or without) a successful network round-trip.
         void setPersistentCache(CACHE_KEYS.AUTH_PROFILE, uid, data);
+        return true;
       }
       // A failed fetch leaves `profile` exactly as it was. It is a
       // network problem, never a reason to blank the user's own data.
+      return false;
     } finally {
       inflightProfileFor.current = null;
       setProfileLoading(false);
@@ -189,11 +211,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [fetchProfileFor, hydrateProfileFromDisk, clearLocalAccountState]);
 
-  const refreshProfile = useCallback(async () => {
-    if (user?.id) {
-      inflightProfileFor.current = null; // force a re-fetch
-      await fetchProfileFor(user.id);
-    }
+  // Connectivity came back: go get the profile row we deliberately did
+  // not fetch while offline. Without this the only thing that would
+  // re-run it is auth-js's 30s auto-refresh tick emitting
+  // TOKEN_REFRESHED — real, but not something the UI should depend on.
+  useNetInfoReconnect(
+    useCallback(() => {
+      const uid = sessionRef.current?.user?.id;
+      if (!uid) return;
+      inflightProfileFor.current = null;
+      void fetchProfileFor(uid);
+    }, [fetchProfileFor]),
+  );
+
+  const refreshProfile = useCallback(async (): Promise<boolean> => {
+    if (!user?.id) return false;
+    inflightProfileFor.current = null; // force a re-fetch
+    return await fetchProfileFor(user.id);
   }, [user?.id, fetchProfileFor]);
 
   const setProfileLocal = useCallback((patch: Partial<PiktagProfile> | PiktagProfile | null) => {
@@ -294,7 +328,7 @@ export function useAuthContext(): AuthContextValue {
       profile: null,
       loading: true,
       profileLoading: false,
-      refreshProfile: async () => {},
+      refreshProfile: async () => false,
       setProfileLocal: () => {},
       signOut: async () => {},
     };

@@ -46,6 +46,10 @@ import {
   splitTelUrl,
 } from '../lib/countryCodes';
 import { useAuth } from '../hooks/useAuth';
+import { useAuthProfile } from '../context/AuthContext';
+import { useLoadDeadline } from '../hooks/useLoadDeadline';
+import { checkOffline } from '../lib/netStatus';
+import { CACHE_KEYS, getPersistentCache } from '../lib/dataCache';
 import { useRotatingPlaceholder } from '../hooks/useRotatingPlaceholder';
 import { toBirthdayDate } from '../lib/birthday';
 import BirthdayInput from '../components/BirthdayInput';
@@ -54,7 +58,7 @@ import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import PlatformSearchModal from '../components/PlatformSearchModal';
 import TagChip from '../components/TagChip';
-import type { Biolink, Tag, UserTag } from '../types';
+import type { Biolink, PiktagProfile, Tag, UserTag } from '../types';
 import {
   PLATFORM_MAP,
   getQuickPickKeys,
@@ -426,6 +430,11 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
   );
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+  // The profile AuthContext already holds. It is hydrated from the
+  // AUTH_PROFILE disk cache before any network call, and AuthContext
+  // rewrites that cache on every successful launch — so this is the one
+  // source that is reliably present offline.
+  const { profile: ctxProfile } = useAuthProfile();
   // myAsk drives the avatar's gradient ring on this screen too — same
   // semantic as ProfileScreen: the gradient ring signals "I have an
   // active Ask", subtle when not. Without this, every user editing
@@ -443,6 +452,14 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
   });
   const [biolinks, setBiolinks] = useState<Biolink[]>([]);
   const [loading, setLoading] = useState(true);
+  // Has the user typed into the form? Once true, nothing — not the disk
+  // seed, not a late network answer — is allowed to overwrite what they
+  // are editing.
+  const formTouchedRef = useRef<boolean>(false);
+  // Has the SERVER answered for this form yet? The disk seed defers to
+  // it, so a slow AsyncStorage read cannot paint stale values over the
+  // real row.
+  const formLiveRef = useRef<boolean>(false);
   const [saving, setSaving] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -593,8 +610,19 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
         Alert.alert(t('common.error'), t('editProfile.alertLoadError'));
         return;
       }
+      formLiveRef.current = true;
+      if (formTouchedRef.current) return;
       setForm({ full_name: '', username: '', headline: '', bio: '', birthday: '' });
       setAvatarUrl(null);
+      return;
+    }
+    formLiveRef.current = true;
+    // Never stomp on an in-progress edit. Before the offline seed below
+    // existed the form was blank until this landed, so there was nothing
+    // to protect; now a user can start typing over cached values while
+    // the refetch is still in flight.
+    if (formTouchedRef.current) {
+      setAvatarUrl(data.avatar_url);
       return;
     }
     setForm({
@@ -774,10 +802,86 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
   // returning from ManageTagsScreen) does refetch.
   const focusSkippedOnceRef = useRef<boolean>(false);
 
+  // ── Offline read of your OWN saved profile ─────────────────────────
+  // Founder 2026-08-08: 「沒辦法看自己已編輯好的資料」. This screen was
+  // 100% network — offline it rendered every field as its placeholder,
+  // i.e. it looked like the user's saved profile had been lost.
+  //
+  // No new cache key. Two snapshots that normal online use already
+  // writes cover the whole form:
+  //   * CACHE_KEYS.AUTH_PROFILE — the full piktag_profiles row, written
+  //     by AuthContext on EVERY successful launch, and already in memory
+  //     here as `ctxProfile`. Supplies all five fields + the avatar.
+  //   * CACHE_KEYS.PROFILE — ProfileScreen's 5-field snapshot. Supplies
+  //     the tag list and the biolinks.
+  // Both are user-namespaced and swept by clearPersistentCaches(); there
+  // is nothing new to keep in sync.
+  //
+  // Strictly a SEED: it never overwrites a live answer (formLiveRef) and
+  // never overwrites the user's own typing (formTouchedRef). Saving is
+  // unchanged — it still needs the network, which is the correct half of
+  // 「不能傳新的資訊，但已在手機的資料都要能使用」.
+  const seedFormFromProfile = useCallback((p: Partial<PiktagProfile> | null | undefined) => {
+    if (!p) return false;
+    if (formLiveRef.current || formTouchedRef.current) return false;
+    setForm({
+      full_name: p.full_name || '',
+      username: p.username || '',
+      headline: p.headline || '',
+      bio: p.bio || '',
+      birthday: p.birthday || '',
+    });
+    setAvatarUrl(p.avatar_url ?? null);
+    return true;
+  }, []);
+
+  useEffect(() => {
+    if (!ctxProfile) return;
+    if (seedFormFromProfile(ctxProfile)) setLoading(false);
+  }, [ctxProfile, seedFormFromProfile]);
+
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    void (async () => {
+      const snap = await getPersistentCache<{
+        profile?: PiktagProfile;
+        userTags?: (UserTag & { tag?: Tag })[];
+        biolinks?: Biolink[];
+      }>(CACHE_KEYS.PROFILE, userId);
+      if (cancelled || !snap) return;
+      seedFormFromProfile(snap.profile);
+      // Lists are filled ONLY while still empty, so a live answer that
+      // already landed (or a genuinely empty list the user just cleared)
+      // is never resurrected by a slow disk read.
+      if (Array.isArray(snap.userTags) && snap.userTags.length > 0) {
+        setUserTags((prev) => (prev.length > 0 ? prev : snap.userTags!));
+      }
+      if (Array.isArray(snap.biolinks) && snap.biolinks.length > 0) {
+        setBiolinks((prev) => (prev.length > 0 ? prev : snap.biolinks!));
+      }
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, seedFormFromProfile]);
+
   useEffect(() => {
     let isMounted = true;
     const load = async () => {
       setLoading(true);
+      // FAIL FAST WHEN THERE IS NO NETWORK. Each loader below pays
+      // auth-js's ~25s refresh backoff before reporting failure (see
+      // lib/netStatus.ts), and fetchProfile ends that wait with an
+      // "讀不到個人資料" alert — telling the user their profile is broken
+      // when the only problem is that they are in airplane mode. The
+      // seeds above have already painted; the focus/reconnect paths
+      // refetch when there is a network to refetch over.
+      if (await checkOffline()) {
+        if (isMounted) setLoading(false);
+        return;
+      }
       await Promise.all([
         fetchProfile(),
         fetchBiolinks(),
@@ -793,6 +897,10 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
       isMounted = false;
     };
   }, [fetchProfile, fetchBiolinks, fetchUserTags, fetchPopularTags]);
+
+  // Online but going nowhere. Stop the full-screen loader; the fetches
+  // still paint if they land.
+  useLoadDeadline(loading, () => setLoading(false));
 
   // Refresh tags whenever the screen regains focus — i.e. on every
   // return from ManageTagsScreen. Reported case: user deletes all
@@ -815,6 +923,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
   }, [navigation, fetchUserTags]);
 
   const updateField = (field: keyof FormData, value: string) => {
+    formTouchedRef.current = true;
     setForm((prev) => ({ ...prev, [field]: value }));
     // Bio / name / headline edits invalidate the previous "AI returned
     // nothing" hint — the user is changing the prompt, so the next lightning

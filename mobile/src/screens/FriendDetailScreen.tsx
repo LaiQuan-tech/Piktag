@@ -65,6 +65,9 @@ import ErrorState from '../components/ErrorState';
 import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
+import { useLoadDeadline } from '../hooks/useLoadDeadline';
+import { checkOffline } from '../lib/netStatus';
+import { CACHE_KEYS, getPersistentCache } from '../lib/dataCache';
 import { supabase } from '../lib/supabase';
 import { toBirthdayDate } from '../lib/birthday';
 import { useAuth } from '../hooks/useAuth';
@@ -121,6 +124,16 @@ type FriendTag = {
   isMutual: boolean;    // We share this tag
   isPinned: boolean;    // Friend pinned this tag
   position: number;     // Friend's own tag order
+};
+
+// The subset of ConnectionsScreen's cached row that this screen reads.
+// Declared structurally rather than imported so the two screens do not
+// become coupled through a shared type they would then both have to
+// change together.
+type CachedConnectionRow = {
+  connected_user_id?: string;
+  birthday?: string | null;
+  connected_user?: Partial<PiktagProfile> | null;
 };
 
 type FriendData = {
@@ -225,6 +238,10 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const [loadError, setLoadError] = useState(false);
   const [friendData, dispatchFriendData] = useReducer(friendDataReducer, initialFriendData);
   const { connection, profile, tags, biolinks, mutualFriends, mutualTags, followerCount, scanEventTags } = friendData;
+  // Mirrors friendData for the loaders, which must be able to ask "did
+  // the cache already paint someone?" without taking it as a dependency.
+  const friendDataRef = useRef<FriendData>(friendData);
+  friendDataRef.current = friendData;
 
   // Follow state
   const [isFollowing, setIsFollowing] = useState(false);
@@ -293,6 +310,56 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   // friendId changes, so a slow network on a prior screen doesn't
   // write state for the wrong friend.
   const abortRef = useRef<AbortController | null>(null);
+  // Set once the server has answered for THIS friend. Guards the disk
+  // hydration below from painting over a fresher live result that won
+  // the race.
+  const liveFetchDoneRef = useRef<boolean>(false);
+
+  // ── Offline read of a friend you already have ──────────────────────
+  // Founder 2026-08-08: 「沒辦法看舊的好友資料」. This screen was 100%
+  // network: with no signal it rendered "Unknown / @ / UN" for someone
+  // sitting in the friends list two taps earlier — because the friends
+  // list reads a disk snapshot and this screen did not.
+  //
+  // No new cache key: CACHE_KEYS.CONNECTIONS already holds every row
+  // this header needs (nickname, met_at, birthday, and the joined
+  // `connected_user` profile: full_name, username, avatar_url,
+  // is_verified). Same per-user namespace, same clearPersistentCaches()
+  // sweep — nothing new to keep in sync.
+  //
+  // Read-only and additive: mutual counts, follower count, biolinks and
+  // pick counts are NOT in that snapshot, so they stay at their zero
+  // defaults until the network answers. Showing the person is the point;
+  // inventing their numbers is not.
+  useEffect(() => {
+    liveFetchDoneRef.current = false;
+    const uid = user?.id;
+    if (!uid || !friendId) return;
+    let cancelled = false;
+    void (async () => {
+      const cached = await getPersistentCache<CachedConnectionRow[]>(
+        CACHE_KEYS.CONNECTIONS,
+        uid,
+      );
+      if (cancelled || liveFetchDoneRef.current) return;
+      const row = Array.isArray(cached)
+        ? cached.find((c) => c?.connected_user_id === friendId)
+        : null;
+      if (!row) return;
+      dispatchFriendData({
+        type: 'SET_INITIAL',
+        payload: {
+          connection: row as unknown as Connection,
+          profile: (row.connected_user ?? null) as PiktagProfile | null,
+        },
+      });
+      if (row.birthday) setBirthday(row.birthday);
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, friendId]);
 
   const fetchData = useCallback(async () => {
     if (!user || !friendId) return;
@@ -305,6 +372,34 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     try {
       setLoading(true);
       setLoadError(false);
+
+      // FAIL FAST WHEN THERE IS NO NETWORK. Every query below goes
+      // through supabase-js, which resolves auth.getSession() first; with
+      // an expired token and no signal that is ~25s of refresh backoff
+      // per wave before anything reports failure (see lib/netStatus.ts).
+      // The disk hydration above has already painted whoever we know;
+      // returning here writes nothing. useNetInfoReconnect below retries.
+      if (await checkOffline()) {
+        setLoading(false);
+        // Only surface the retry screen when the cache really has
+        // nothing — over a painted header it would hide the very data
+        // the user opened this screen to read. We re-read the snapshot
+        // here rather than trusting `friendDataRef`: the hydration effect
+        // above is async and may not have resolved yet, and a one-frame
+        // flash of the error screen in front of a friend we DO have on
+        // disk is precisely the "app is broken" impression to avoid.
+        if (!friendDataRef.current.profile) {
+          const cached = await getPersistentCache<CachedConnectionRow[]>(
+            CACHE_KEYS.CONNECTIONS,
+            user.id,
+          );
+          const haveIt =
+            Array.isArray(cached) &&
+            cached.some((c) => c?.connected_user_id === friendId);
+          if (!haveIt) setLoadError(true);
+        }
+        return;
+      }
 
       // Fast path: one RPC returns the page-ready slice (profile bits +
       // tags + mutual count + viewer→friend relation). On success we use
@@ -409,11 +504,13 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       const fFollowerCount = followerResult.count;
       setIsFollowing(!!followingResult.data);
 
-      dispatchFriendData({
-        type: 'SET_INITIAL',
-        payload: {
-          connection: connData ?? null,
-          profile: profileResult.data ?? null,
+      // `profile` is set CONDITIONALLY below: supabase-js resolves a
+      // transport failure as `{data: null, error}`, so assigning
+      // `profileResult.data ?? null` unconditionally would blank a
+      // header we had just painted from cache whenever this one query
+      // failed on venue wifi. A confirmed null (no error) still clears
+      // it — that is a deleted account, which the 404 path handles.
+      const initialPayload: Partial<FriendData> = {
           biolinks: filterBiolinksByVisibility(
             biolinksResult.data ?? [],
             // Map RPC relation to the visibility tier when available.
@@ -429,8 +526,16 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           tags: [], // will be set in phase 2 after pick data is fetched
           mutualFriends: mutualFriendsCount,
           followerCount: fFollowerCount ?? 0,
-        },
-      });
+      };
+      if (!profileResult.error) initialPayload.profile = profileResult.data ?? null;
+      // Same rule for the connection row, and for the same reason: the
+      // nickname and met_at live on it. Only a query we ACTUALLY ran and
+      // that ACTUALLY answered may clear it.
+      if (connectionId && !connResult.error) initialPayload.connection = connData ?? null;
+      dispatchFriendData({ type: 'SET_INITIAL', payload: initialPayload });
+      // From here the server's answer owns the screen — the disk
+      // hydration effect must not paint over it if it lands late.
+      liveFetchDoneRef.current = true;
 
       if (connData) {
         setBirthday(connData.birthday || '');
@@ -606,6 +711,14 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   // Auto-refetch when the network comes back, but only when the prior
   // pass actually errored so we don't wastefully refetch already-loaded
   // friends.
+  // Online but the request is going nowhere. Drop the PageLoader rather
+  // than hold it through the ~25s auth-refresh backoff; a late response
+  // still paints over whatever this leaves on screen.
+  useLoadDeadline(loading, () => {
+    setLoading(false);
+    if (!friendDataRef.current.profile) setLoadError(true);
+  });
+
   useNetInfoReconnect(useCallback(() => {
     if (loadError) {
       fetchData();

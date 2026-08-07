@@ -40,6 +40,10 @@ import RingedAvatar from '../components/RingedAvatar';
 import { AskCreateModal } from '../components/ask/AskStoryRow';
 import { useAskFeed } from '../hooks/useAskFeed';
 import { ProfileScreenSkeleton } from '../components/SkeletonLoader';
+import ErrorState from '../components/ErrorState';
+import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
+import { useLoadDeadline } from '../hooks/useLoadDeadline';
+import { checkOffline } from '../lib/netStatus';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { PiktagProfile, UserTag, Biolink } from '../types';
 import { hashDisplay } from '../lib/normalizeTag';
@@ -88,6 +92,22 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [qrVisible, setQrVisible] = useState(false);
+  // Do the numbers on screen mean anything yet? Tags/friends/followers
+  // all default to 0/[], and offline-with-only-an-auth-profile that
+  // would render "0 標籤 · 0 朋友 · 0 追蹤者" — a confident lie about the
+  // user's own account. Until a snapshot or a live answer sets this,
+  // the stat row shows an em dash instead.
+  const [statsKnown, setStatsKnown] = useState(false);
+  // True once THIS screen's five queries have all answered. The disk
+  // writer below refuses to run without it, so a partial or failed load
+  // can never overwrite a good snapshot.
+  const [dataFresh, setDataFresh] = useState(false);
+  // Set ONLY where we have positive evidence the network was the
+  // problem: the offline short-circuit, and the paint deadline. It gates
+  // the error surface, so an account that genuinely has no profile row
+  // still falls through to the normal (mostly empty) profile render
+  // rather than being told to check its connection.
+  const [unreachable, setUnreachable] = useState(false);
 
   // Ask creation entry — the avatar's "+" badge launches the same
   // AskCreateModal used by AskStoryRow on the Connections tab. Reuses
@@ -108,63 +128,92 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     if (ctxProfile) setProfile(ctxProfile);
   }, [ctxProfile]);
 
-  const fetchProfile = useCallback(async () => {
-    if (!userId) return;
+  // Every loader below answers TRUE only when the SERVER answered.
+  // supabase-js resolves `{data: null, error}` on a transport failure
+  // rather than rejecting, so "didn't throw" proves nothing — and the
+  // disk writer keys off these booleans.
+  const fetchProfile = useCallback(async (): Promise<boolean> => {
+    if (!userId) return false;
     // Delegate to AuthContext — one place to coalesce concurrent
     // callers + update the cross-screen cache.
-    await refreshProfile();
+    return await refreshProfile();
   }, [userId, refreshProfile]);
 
-  const fetchUserTags = useCallback(async () => {
-    if (!userId) return;
+  const fetchUserTags = useCallback(async (): Promise<boolean> => {
+    if (!userId) return false;
     const { data, error } = await supabase
       .from('piktag_user_tags')
       .select('*, tag:piktag_tags(*)')
       .eq('user_id', userId)
       .order('position');
-    if (!error && data) {
-      // Pinned tags first, then by position
-      const sorted = [...data].sort((a: UserTag, b: UserTag) => {
-        const aPinned = a.is_pinned ? 1 : 0;
-        const bPinned = b.is_pinned ? 1 : 0;
-        if (aPinned !== bPinned) return bPinned - aPinned;
-        return (a.position || 0) - (b.position || 0);
-      });
-      setUserTags(sorted as UserTag[]);
-    }
+    if (error || !data) return false;
+    // Pinned tags first, then by position
+    const sorted = [...data].sort((a: UserTag, b: UserTag) => {
+      const aPinned = a.is_pinned ? 1 : 0;
+      const bPinned = b.is_pinned ? 1 : 0;
+      if (aPinned !== bPinned) return bPinned - aPinned;
+      return (a.position || 0) - (b.position || 0);
+    });
+    setUserTags(sorted as UserTag[]);
+    return true;
   }, [userId]);
 
-  const fetchBiolinks = useCallback(async () => {
-    if (!userId) return;
+  const fetchBiolinks = useCallback(async (): Promise<boolean> => {
+    if (!userId) return false;
     const { data, error } = await supabase
       .from('piktag_biolinks')
       .select('*')
       .eq('user_id', userId)
       .order('position');
-    if (!error && data) setBiolinks(data as Biolink[]);
+    if (error || !data) return false;
+    setBiolinks(data as Biolink[]);
+    return true;
   }, [userId]);
 
-  const fetchFollowerCount = useCallback(async () => {
-    if (!userId) return;
+  const fetchFollowerCount = useCallback(async (): Promise<boolean> => {
+    if (!userId) return false;
     const { count, error } = await supabase
       .from('piktag_follows')
       .select('id', { count: 'exact', head: true })
       .eq('following_id', userId);
-    if (!error && count !== null) setFollowerCount(count);
+    if (error || count === null) return false;
+    setFollowerCount(count);
+    return true;
   }, [userId]);
 
-  const fetchFriendCount = useCallback(async () => {
-    if (!userId) return;
+  const fetchFriendCount = useCallback(async (): Promise<boolean> => {
+    if (!userId) return false;
     const { count, error } = await supabase
       .from('piktag_connections')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', userId);
-    if (!error && count !== null) setFriendCount(count);
+    if (error || count === null) return false;
+    setFriendCount(count);
+    return true;
   }, [userId]);
 
-  const fetchAllData = useCallback(async () => {
-    await Promise.all([fetchProfile(), fetchUserTags(), fetchBiolinks(), fetchFollowerCount(), fetchFriendCount()]);
-  }, [fetchProfile, fetchUserTags, fetchBiolinks, fetchFollowerCount, fetchFriendCount]);
+  const fetchAllData = useCallback(async (): Promise<boolean> => {
+    if (!userId) return false;
+    // Offline these five queries do not fail — they each sit through
+    // auth-js's ~25s refresh backoff (see lib/netStatus.ts) and only
+    // then resolve with an error. Skip them; the caches have already
+    // painted and useNetInfoReconnect below retries when signal returns.
+    if (await checkOffline()) return false;
+    const results = await Promise.all([
+      fetchProfile(),
+      fetchUserTags(),
+      fetchBiolinks(),
+      fetchFollowerCount(),
+      fetchFriendCount(),
+    ]);
+    const complete = results.every(Boolean);
+    if (complete) {
+      setStatsKnown(true);
+      setDataFresh(true);
+      setUnreachable(false);
+    }
+    return complete;
+  }, [userId, fetchProfile, fetchUserTags, fetchBiolinks, fetchFollowerCount, fetchFriendCount]);
 
   // Persist the five state slices to the in-memory dataCache so that
   // re-entering ProfileScreen within the TTL window paints instantly
@@ -178,6 +227,19 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     // onto disk would clobber a good offline snapshot before the loader
     // below has had a chance to read it back.
     if (loading) return;
+    // ...and never write a snapshot the network did not fully back.
+    //
+    // `loading === false` is NOT proof of a good load, which is how the
+    // offline profile got emptied out: AuthContext writes the narrow
+    // `{ profile }` object under the SAME in-memory key this screen uses
+    // for its 5-field snapshot, the loader below accepted it as a cache
+    // hit and cleared `loading` with userTags/biolinks still [] and both
+    // counts still 0 — and this effect then wrote exactly that onto
+    // disk. Online the real fetch repaired it within a second. Offline
+    // it stood, so the disk snapshot degraded to "name only" simply
+    // because the user opened their Profile tab. `dataFresh` is set in
+    // ONE place: fetchAllData, and only when all five queries answered.
+    if (!dataFresh) return;
     const snapshot = {
       profile,
       userTags,
@@ -191,7 +253,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     // profile — and hands QrCodeModal an empty username, i.e. a QR nobody
     // can scan. This is the single most important thing to have offline.
     void setPersistentCache(CACHE_KEYS.PROFILE, userId, snapshot);
-  }, [userId, loading, profile, userTags, biolinks, followerCount, friendCount]);
+  }, [userId, loading, dataFresh, profile, userTags, biolinks, followerCount, friendCount]);
 
   useEffect(() => {
     let isMounted = true;
@@ -202,6 +264,16 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       followerCount: number;
       friendCount: number;
     };
+    // Is this actually the 5-field snapshot, or the narrow `{ profile }`
+    // object AuthContext.fetchProfileFor puts under the same in-memory
+    // key? Accepting the narrow one used to blank the tags, the links
+    // and both counts — and then get that written to disk. The array
+    // check is the discriminator: only this screen's writer ever sets
+    // `userTags`.
+    const isFullSnapshot = (snap: unknown): snap is ProfileSnapshot => {
+      const s = snap as ProfileSnapshot | null;
+      return !!s?.profile && Array.isArray(s.userTags) && Array.isArray(s.biolinks);
+    };
     const applySnapshot = (snap: ProfileSnapshot) => {
       setProfile(snap.profile);
       // Defensive defaults: an older/partial snapshot must not put
@@ -210,15 +282,27 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       setBiolinks(snap.biolinks ?? []);
       setFollowerCount(snap.followerCount ?? 0);
       setFriendCount(snap.friendCount ?? 0);
+      // The numbers came from a real (if stale) snapshot, so they may
+      // be shown. NOT `dataFresh` — that one gates the disk WRITE and
+      // may only be set by a completed live fetch.
+      setStatsKnown(true);
       setLoading(false);
     };
     const load = async () => {
+      // This effect re-runs only when `userId` changes, so a different
+      // account starts from "we know nothing": otherwise A's completed
+      // load would leave `dataFresh` true and the writer would persist
+      // A's still-in-state tags under B's cache key.
+      setDataFresh(false);
+      setStatsKnown(false);
       // Stale-while-revalidate: if we have a cached snapshot, paint it
       // immediately and refetch in the background without a loading state.
       const cached = getCache<ProfileSnapshot>(CACHE_KEYS.PROFILE);
 
-      if (cached) {
+      let painted = false;
+      if (isFullSnapshot(cached)) {
         applySnapshot(cached);
+        painted = true;
       } else {
         // Cold start: fall back to the disk snapshot before showing a
         // skeleton. Works with no network at all.
@@ -227,12 +311,29 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           userId,
         );
         if (!isMounted) return;
-        if (persisted?.profile) applySnapshot(persisted);
-        else setLoading(true);
+        if (isFullSnapshot(persisted)) {
+          applySnapshot(persisted);
+          painted = true;
+        }
+      }
+
+      // NOTHING CACHED. What we do next depends on whether a fetch can
+      // plausibly work — never on waiting to find out. Offline we stop
+      // here so the render below can show the profile we DO have (the
+      // AuthContext row, hydrated from AUTH_PROFILE on disk) or, failing
+      // that, the honest offline surface. Previously this path left
+      // `loading` true through ~25s of auth-refresh backoff, which is
+      // the all-skeleton Profile tab in the founder's screenshot.
+      if (!painted && (await checkOffline())) {
+        if (!isMounted) return;
+        setUnreachable(true);
+        setLoading(false);
+        return;
       }
 
       await fetchAllData();
-      if (isMounted) setLoading(false);
+      if (!isMounted) return;
+      setLoading(false);
     };
     load();
     return () => { isMounted = false; };
@@ -260,7 +361,32 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     setRefreshing(false);
   }, [fetchAllData]);
 
+  // Connectivity returned mid-session: fetchAllData short-circuits while
+  // offline, so something has to restart it. A successful pass also
+  // replaces the em-dash stats and retires the error surface, since both
+  // are derived from `statsKnown` / `profile`.
+  useNetInfoReconnect(
+    useCallback(() => {
+      setUnreachable(false);
+      void fetchAllData();
+    }, [fetchAllData]),
+  );
+
+  // Online but the request is going nowhere (captive portal, dead venue
+  // wifi). Drop the skeleton rather than hold it through the ~25s
+  // auth-refresh backoff; the fetch still paints if it ever lands.
+  useLoadDeadline(loading, () => {
+    setLoading(false);
+    setUnreachable(true);
+  });
+
   // --- Computed values ---
+
+  // Em dash, not 0, while the counts are unknown — see `statsKnown`.
+  const statText = useCallback(
+    (value: string | number): string => (statsKnown ? String(value) : '—'),
+    [statsKnown],
+  );
 
   const formattedFollowerCount = useMemo((): string => {
     if (followerCount >= 1000000) return `${(followerCount / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
@@ -332,7 +458,41 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
   // --- Render ---
 
-  if (loading) return <ProfileScreenSkeleton />;
+  // The skeleton is now gated on HAVING NOTHING, not on "a request is in
+  // flight". `profile` may already be here from AuthContext, which
+  // hydrates it from the AUTH_PROFILE disk cache before any network call
+  // — that snapshot is written on every successful launch, so the second
+  // launch offline shows the user their own name, avatar, bio and a
+  // scannable QR instead of the all-grey placeholder they reported.
+  if (loading && !profile) return <ProfileScreenSkeleton />;
+
+  // Nothing cached and the network could not be reached. Say so, in one
+  // screen, with a retry — ErrorState reads NetInfo itself and picks the
+  // offline copy. Deliberately NOT `if (!profile)`: an account whose
+  // profile row is genuinely missing is not a connectivity problem and
+  // must keep falling through to the normal render below.
+  if (!profile && unreachable) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={TOP_EDGES}>
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
+        <View style={styles.header}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('profile.pageTitle')}</Text>
+          <View style={styles.headerRight}>
+            <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.6} onPress={handleNavigateSettings} accessibilityLabel={t('settings.headerTitle', { defaultValue: '設定' })} accessibilityRole="button">
+              <Settings size={24} color={colors.gray900} />
+            </TouchableOpacity>
+          </View>
+        </View>
+        <ErrorState
+          onRetry={() => {
+            setUnreachable(false);
+            setLoading(true);
+            void fetchAllData().finally(() => setLoading(false));
+          }}
+        />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={TOP_EDGES}>
@@ -459,7 +619,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
               accessibilityLabel={t('profile.statTagsA11y', { defaultValue: '查看我的標籤' })}
             >
               <Text style={styles.statText}>
-                <Text style={styles.statNumber}>{userTags.length}</Text>
+                <Text style={styles.statNumber}>{statText(userTags.length)}</Text>
                 <Text style={styles.statLabel}>{t('profile.statTags')}</Text>
               </Text>
             </TouchableOpacity>
@@ -472,7 +632,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
               accessibilityLabel={t('profile.statFriendsA11y', { defaultValue: '查看我的朋友' })}
             >
               <Text style={styles.statText}>
-                <Text style={styles.statNumber}>{friendCount}</Text>
+                <Text style={styles.statNumber}>{statText(friendCount)}</Text>
                 <Text style={styles.statLabel}>{t('profile.statFriends')}</Text>
               </Text>
             </TouchableOpacity>
@@ -485,7 +645,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
               accessibilityLabel={t('profile.statFollowersA11y', { defaultValue: '查看我的追蹤者' })}
             >
               <Text style={styles.statText}>
-                <Text style={styles.statNumber}>{formattedFollowerCount}</Text>
+                <Text style={styles.statNumber}>{statText(formattedFollowerCount)}</Text>
                 <Text style={styles.statLabel}>{t('profile.statFollowers')}</Text>
               </Text>
             </TouchableOpacity>

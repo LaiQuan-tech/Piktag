@@ -17,6 +17,8 @@ import {
   setPersistentThreadMessages,
 } from '../lib/dataCache';
 import { useNetInfo } from './useNetInfo';
+import { useLoadDeadline } from './useLoadDeadline';
+import { checkOffline } from '../lib/netStatus';
 
 const PAGE_SIZE = 50;
 
@@ -100,6 +102,19 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
     }
 
     const reqId = ++requestIdRef.current;
+
+    // FAIL FAST WHEN THERE IS NO NETWORK — offline this select does not
+    // fail, it sits through ~25s of auth-refresh backoff first (see
+    // lib/netStatus.ts). The disk hydration below has already restored
+    // the tail of this thread; returning here writes nothing, so the
+    // cached messages and the send queue are both untouched.
+    if (await checkOffline()) {
+      if (!isMountedRef.current || reqId !== requestIdRef.current) return;
+      if (messagesRef.current.length === 0) setError('offline');
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data, error: selErr } = await supabase
         .from('piktag_messages')
@@ -266,6 +281,23 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
   const doInsert = useCallback(
     async (nonce: string, body: string): Promise<void> => {
       if (!userId) return;
+      // Sending is the one thing that genuinely cannot work offline
+      // ("不能傳新的資訊"). Queue it and mark the bubble immediately
+      // instead of letting the insert hang ~25s first — the user should
+      // find out in a second that the message is waiting, not after
+      // staring at a pending bubble. Identical outcome to the
+      // isNetworkError branch below, just without the wait.
+      if (await checkOffline()) {
+        await enqueue(userId, {
+          nonce,
+          conversation_id: conversationId,
+          sender_id: userId,
+          body,
+          created_at: new Date().toISOString(),
+        });
+        if (isMountedRef.current) setStatus(nonce, 'failed');
+        return;
+      }
       try {
         const { error: insErr } = await supabase
           .from('piktag_messages')
@@ -396,13 +428,25 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
       const cached = await getPersistentThreadMessages<Message>(userId, conversationId);
       if (cancelled || !isMountedRef.current) return;
       if (liveFetchDoneRef.current) return;
-      if (!Array.isArray(cached) || cached.length === 0) return;
+      if (!Array.isArray(cached) || cached.length === 0) {
+        // Nothing cached for this thread. Offline that is final — stop
+        // the spinner and let the screen show its retry surface.
+        if (await checkOffline()) {
+          if (cancelled || !isMountedRef.current) return;
+          if (messagesRef.current.length === 0) setError('offline');
+          setLoading(false);
+        }
+        return;
+      }
       const restored: ThreadMessage[] = cached.map((m) => ({ ...m, status: 'sent' }));
       // Only fill an empty thread — never overwrite live rows.
       setMessages((prev) => (prev.length > 0 ? prev : restored));
       // hasMoreRef stays TRUE on purpose: a bounded cache proves nothing
       // about what the server still holds, so pagination must remain
       // able to probe once connectivity returns.
+      // Readable history on screen — drop any offline flag so the thread
+      // renders instead of the retry card.
+      setError(null);
       setLoading(false);
     })();
     return () => {
@@ -446,14 +490,24 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
 
   // Auto-flush queued sends when network connectivity transitions from
   // offline to online. Manual retry on failed bubbles still works as a
-  // fallback if the user tapped retry while offline.
+  // fallback if the user tapped retry while offline. The same transition
+  // re-runs fetchLatest, which short-circuits while offline and so needs
+  // an explicit restart to pick up anything missed.
   useEffect(() => {
     const wasConnected = wasConnectedRef.current;
     wasConnectedRef.current = isConnected;
     if (!wasConnected && isConnected) {
       void flushQueue();
+      void fetchLatest();
     }
-  }, [isConnected, flushQueue]);
+  }, [isConnected, flushQueue, fetchLatest]);
+
+  // Online but the select is going nowhere. Stop the spinner; a late
+  // response still paints over whatever this leaves on screen.
+  useLoadDeadline(loading, () => {
+    setLoading(false);
+    if (messagesRef.current.length === 0) setError('offline');
+  });
 
   // Explicit-retry surface used by the screen-level <ErrorState>.
   // We clear the in-place error and bounce the loading flag back on

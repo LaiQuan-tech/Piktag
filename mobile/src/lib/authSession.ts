@@ -1,6 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import type { Session } from '@supabase/supabase-js';
 import { supabase, supabaseUrl } from './supabase';
+import { checkOffline } from './netStatus';
 
 // ─────────────────────────────────────────────────────────────────────
 // Offline-safe auth session helpers.
@@ -242,6 +243,23 @@ export async function clearPersistedSession(): Promise<void> {
 export async function resolveStartupSession(
   timeoutMs: number = STARTUP_SESSION_TIMEOUT_MS,
 ): Promise<Session | null> {
+  // Shortcut for case 3 when we can already PROVE it applies. With no
+  // connectivity `getSession()` cannot verify anything — it just spends
+  // ~25s retrying a refresh that has no network to use — so the race
+  // below is a guaranteed 2.5s wait for a known answer. Every screen
+  // hydrates from user-namespaced caches and therefore cannot paint
+  // ANYTHING until `user` lands, so that 2.5s is 2.5s of skeletons on
+  // exactly the launch the founder filmed. Reading SecureStore directly
+  // takes ~50ms.
+  //
+  // This cannot make a sign-out more likely: it lands on the same
+  // trusted-persisted-session path the timeout would have reached, and
+  // `checkOffline()` only answers true on positive evidence of no
+  // connection (see lib/netStatus.ts).
+  if (await checkOffline()) {
+    return await readTrustedPersistedSession();
+  }
+
   // `.catch` on the live call rather than a try/catch around the race:
   // when the timeout wins, a later rejection would otherwise surface as an
   // unhandled promise rejection. A throw here is a transport failure, never

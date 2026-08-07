@@ -58,6 +58,8 @@ import { useAuthProfile } from '../context/AuthContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
 import { useAskFeed } from '../hooks/useAskFeed';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
+import { useLoadDeadline } from '../hooks/useLoadDeadline';
+import { checkOffline } from '../lib/netStatus';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { shouldShowPhonePrompt, dismissPhonePrompt } from '../lib/phonePrompt';
 import AskStoryRow from '../components/ask/AskStoryRow';
@@ -291,6 +293,11 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // onboarding empty state (which previously made offline failures
   // look like the user had no connections at all).
   const [loadError, setLoadError] = useState(false);
+  // Mirrors `connections` for the loaders. They must be able to ask "is
+  // anything already on screen?" without taking `connections` as a dep —
+  // that would re-create fetchConnections on every data change and
+  // re-fire the whole useFocusEffect chain.
+  const connectionsRef = useRef<ConnectionWithTags[]>([]);
 
   const [closeFriendCount, setCloseFriendCount] = useState(0);
   const [unreviewedCount, setUnreviewedCount] = useState(0);
@@ -349,6 +356,27 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     if (cached && cached.length > 0) {
       setConnections(cached);
       setLoading(false);
+    }
+
+    // FAIL FAST WHEN THERE IS NO NETWORK.
+    //
+    // Everything below goes through supabase-js, which asks
+    // `auth.getSession()` first; with an expired access token and no
+    // signal that call burns ~25s of refresh backoff BEFORE resolving
+    // (see lib/netStatus.ts for the exact mechanism), and wave 2 pays it
+    // again — ~50s of skeleton for a request that cannot succeed. That
+    // is the "離線時開啟app，沒有內容" report.
+    //
+    // So: paint whatever the caches gave us, decide the empty case
+    // honestly, and write NOTHING. Returning here cannot damage a
+    // snapshot — every cache write lives below this line. `useNetInfoReconnect`
+    // re-runs this the moment connectivity returns.
+    if (await checkOffline()) {
+      const painted =
+        (cached && cached.length > 0) || connectionsRef.current.length > 0;
+      if (!painted) setLoadError(true);
+      setLoading(false);
+      return;
     }
 
     try {
@@ -417,6 +445,10 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       if (connectionsData.length === 0) {
         setConnections([]);
         setUnreviewedCount(0);
+        // The server answered. Whatever earlier failure/deadline set the
+        // error flag is now resolved — show the onboarding empty state,
+        // not a retry CTA.
+        setLoadError(false);
         setCache(CACHE_KEYS.CONNECTIONS, []);
         void setPersistentCache(CACHE_KEYS.CONNECTIONS, user.id, []);
         return;
@@ -542,6 +574,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         void setPersistentCache(CACHE_KEYS.CONNECTIONS, user.id, merged);
       }
       setConnections(merged);
+      setLoadError(false);
     } catch (err) {
       console.error('Unexpected error fetching connections:', err);
       if (!cached) {
@@ -614,12 +647,28 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // Bypass the 30s cooldown — a manual reconnect signal is a strong
   // hint that the user wants their data right now.
   useNetInfoReconnect(useCallback(() => {
-    if (loadError) {
-      lastFetchRef.current = 0;
-      setLoadError(false);
-      void fetchConnections();
-    }
-  }, [loadError, fetchConnections]));
+    // Unconditional now (was: only when `loadError`). Offline WITH a
+    // cached list we render the snapshot and set no error flag, so the
+    // old gate meant the list stayed stale until the 30s cooldown
+    // expired AND the tab was re-focused. Coming back online is exactly
+    // the moment to go get the real thing.
+    lastFetchRef.current = 0;
+    setLoadError(false);
+    void fetchConnections();
+  }, [fetchConnections]));
+
+  // Keep the ref the loaders read in sync with what is actually rendered.
+  useEffect(() => {
+    connectionsRef.current = connections;
+  }, [connections]);
+
+  // Safety net for "NetInfo says we're connected but the request is
+  // doomed anyway" (captive portal / venue wifi). Never cancels the
+  // fetch — it just stops the skeleton from implying content is coming.
+  useLoadDeadline(loading, () => {
+    setLoading(false);
+    if (connectionsRef.current.length === 0) setLoadError(true);
+  });
 
   // Sort by user-chosen mode, then apply tag filter on top.
   // 'recent'      → created_at desc (newest connection first)
