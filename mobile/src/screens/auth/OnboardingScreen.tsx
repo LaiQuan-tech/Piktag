@@ -45,6 +45,10 @@ import { ChevronRight, ChevronLeft, Camera, X, Plus } from 'lucide-react-native'
 import BoltIcon from '../../components/BoltIcon';
 import GradientButton from '../../components/GradientButton';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase';
+// Same NetInfo event source the offline banner and every offline-capable
+// screen already use — no new dependency for the username retry path.
+import { checkOffline } from '../../lib/netStatus';
+import { useNetInfoReconnect } from '../../hooks/useNetInfoReconnect';
 import { normalizeTagName } from '../../lib/normalizeTag';
 import { addUserTagByName } from '../../lib/userTags';
 import { recordAiSuggestions, markAiSuggestionAccepted } from '../../lib/aiTagLogger';
@@ -121,6 +125,122 @@ function isUsernameFormatValid(u: string): boolean {
   return /^[a-z0-9_.]+$/.test(u);
 }
 
+// ─── Reserved handles (local mirror of the two server rules) ───────
+// The server rejects reserved handles in TWO different places, with TWO
+// different matching rules, and they do NOT agree:
+//
+//   1. check_username_available (20260605010000) returns false for an
+//      EXACT lower(btrim(...)) match against the pikt.ag route list.
+//      The UI would render that as "already taken", which is a lie.
+//   2. The BEFORE INSERT/UPDATE trigger enforce_reserved_username
+//      (20260703060000) strips every non-alphanumeric character and
+//      rejects the impersonation list plus anything starting with
+//      "piktag". The RPC knows NOTHING about this list — so `piktagfan`
+//      or `staff` pass the live check, light the CTA green, and then
+//      blow up on the profile write. Before this mirror existed that
+//      write error was swallowed in goToTags and only surfaced at the
+//      very end of the wizard as a generic "couldn't save".
+//
+// This is an EARLY, HONEST filter only — the server stays authoritative,
+// and isUsernameRejection() below still catches whatever drifts past.
+// Both rules are reproduced exactly, each with its own matching mode.
+const RESERVED_ROUTE_HANDLES = new Set([
+  'privacy', 'terms', 'contact', 'reset-password', 'pitch', 'download',
+  'scan', 'child-safety', 'delete-account', 'api', 'www', 'admin', 'app',
+  'about', 'help', 'support', 'login', 'register', 'settings', 'profile',
+  'search', 'explore', 'tag', 'tags', 'u', 'user', 'pikt', 'piktag',
+]);
+const RESERVED_IDENTITY_HANDLES = new Set([
+  'support', 'admin', 'administrator', 'official', 'staff', 'team',
+  'help', 'contact', 'security', 'moderator', 'mod', 'root', 'system',
+  'piktagofficial', 'piktagsupport', 'piktagteam', 'piktaghelp',
+]);
+function isReservedUsername(raw: string): boolean {
+  const u = (raw || '').trim().toLowerCase();
+  if (!u) return false;
+  // Rule 1: exact match, separators intact (the RPC's route list).
+  if (RESERVED_ROUTE_HANDLES.has(u)) return true;
+  // Rule 2: separators stripped (the trigger's impersonation list).
+  const norm = u.replace(/[^a-z0-9]/g, '');
+  if (!norm) return false;
+  if (norm.startsWith('piktag')) return true;
+  return RESERVED_IDENTITY_HANDLES.has(norm);
+}
+
+// A PostgREST error that means "this handle specifically was refused",
+// as opposed to "the network/DB was unhappy". 23514 = check_violation,
+// which is what enforce_reserved_username raises; 23505 = unique
+// violation, which is what a UNIQUE INDEX on lower(username) would raise
+// if/when the tracked follow-up in 20260605010000 lands. Both must send
+// the user back to the handle field, never to a "check your network"
+// dead end.
+function isUsernameRejection(
+  error: { code?: string | null; message?: string | null } | null | undefined,
+): boolean {
+  if (!error) return false;
+  const code = (error.code || '').trim();
+  if (code === '23505' || code === '23514') return true;
+  const msg = (error.message || '').toLowerCase();
+  if (msg.includes('is reserved')) return true;
+  return msg.includes('username') && (msg.includes('duplicate') || msg.includes('unique'));
+}
+
+// ─── Username availability check: timing ──────────────────────────
+const USERNAME_CHECK_DEBOUNCE_MS = 400;
+// Automatic re-check ladder after a FAILED check (server unreachable).
+// The old code re-ran only when `username` changed, so "try again later"
+// was a lie: waiting did nothing and the only escape from step 1 — which
+// has no back button and no skip — was to retype the handle. Three
+// bounded attempts, then the visible Retry button and the reconnect
+// listener take over. Cheap while offline: checkOffline() short-circuits
+// before the doomed RPC (which otherwise sits in supabase-js's ~25s auth
+// refresh backoff).
+const USERNAME_RETRY_BACKOFF_MS = [4000, 8000, 16000];
+// How many verified alternatives to offer when a handle is taken.
+const USERNAME_SUGGESTION_COUNT = 3;
+
+// Build alternative handles from what the user typed and from their
+// display name. NOTHING here is offered to the user before the same
+// check_username_available RPC has confirmed it is free (the verifying
+// loop lives in the "Alternatives for a TAKEN handle" effect). Order
+// matters: the earliest candidates are verified — and shown — first, so
+// the most natural variants lead.
+function buildUsernameCandidates(base: string, nameSeed: string): string[] {
+  const out: string[] = [];
+  const push = (raw: string) => {
+    const c = normalizeUsername(raw);
+    if (!c || c === base) return;
+    if (!isUsernameFormatValid(c)) return;
+    if (isReservedUsername(c)) return;
+    if (out.includes(c)) return;
+    out.push(c);
+  };
+  // Keep root+suffix inside USERNAME_MAX by trimming the root, never the
+  // suffix (a truncated suffix would produce nonsense like "alice1").
+  const withSuffix = (root: string, suffix: string) =>
+    `${root.slice(0, Math.max(1, USERNAME_MAX - suffix.length))}${suffix}`;
+
+  const roots = [base];
+  const fromName = normalizeUsername(nameSeed);
+  // A CJK-only display name normalizes to '' — then there is simply no
+  // second root, and every candidate comes from the typed handle.
+  if (fromName && fromName !== base && isUsernameFormatValid(fromName)) roots.push(fromName);
+
+  // Randomised digits, not a fixed "1"/"2" ladder: at a busy venue the
+  // fixed ones are exactly what the previous person already took, and a
+  // shown-then-stale suggestion is the wall we are removing.
+  const d2 = 10 + Math.floor(Math.random() * 90);
+  const d3 = 100 + Math.floor(Math.random() * 900);
+
+  if (roots.length > 1) push(roots[1]);            // their name as a handle
+  for (const root of roots) push(withSuffix(root, String(d2)));
+  for (const root of roots) push(withSuffix(root, `_${d2}`));
+  for (const root of roots) push(withSuffix(root, String(d3)));
+  for (const root of roots) push(withSuffix(root, `.${d2}`));
+  for (const root of roots) for (const s of ['_pik', '_real']) push(withSuffix(root, s));
+  return out;
+}
+
 type OnboardingScreenProps = { navigation: any };
 
 export default function OnboardingScreen({ navigation }: OnboardingScreenProps) {
@@ -149,12 +269,36 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   // excludes self, rejects reserved route names). usernameStatus drives
   // the inline ✓/✗ indicator AND gates the CTA.
   const [username, setUsername] = useState('');
-  type UsernameStatus = 'idle' | 'invalid' | 'checking' | 'available' | 'taken' | 'error';
+  type UsernameStatus =
+    | 'idle'
+    | 'invalid'
+    | 'reserved'   // server WILL refuse this one — say so before they walk 3 steps
+    | 'checking'
+    | 'available'
+    | 'taken'
+    | 'error';     // we could not reach the server — NOT the same as 'taken'
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>('idle');
   // The value the live-check last RESOLVED for — guards against a slow
   // response landing after the user kept typing (stale-write race).
   const usernameCheckSeq = useRef(0);
   const usernameInputRef = useRef<TextInput>(null);
+  // Bumping this re-runs the availability effect for the SAME handle.
+  // Without it the effect keyed on [username] alone, so a failed check
+  // could only be retried by editing the text — the trap this fixes.
+  const [usernameCheckTick, setUsernameCheckTick] = useState(0);
+  // Did the failure happen with positive evidence of no connection?
+  // Drives "you're offline, we'll re-check automatically" vs. "we
+  // couldn't reach the server, tap Retry" — different user actions.
+  const [usernameOffline, setUsernameOffline] = useState(false);
+  // Automatic attempts spent on the current handle (see
+  // USERNAME_RETRY_BACKOFF_MS). Reset by a manual retry or a new handle.
+  const usernameAutoRetriesRef = useRef(0);
+  // Verified-available alternatives shown when the handle is taken.
+  // EVERY entry has come back available from check_username_available —
+  // an unverified suggestion would just move the wall one tap away.
+  const [usernameSuggestions, setUsernameSuggestions] = useState<string[]>([]);
+  const [usernameSuggestLoading, setUsernameSuggestLoading] = useState(false);
+  const usernameSuggestSeq = useRef(0);
   // Keys of tags removed BEFORE their optimistic insert resolved — so
   // addTagLocal can undo the DB write instead of leaving an orphan row
   // (add-then-remove within the network round-trip). 2026-06-05.
@@ -367,30 +511,150 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     return () => { cancelled = true; };
   }, []);
 
+  // Read inside the suggestion effect WITHOUT putting displayName in its
+  // deps — otherwise every keystroke in the name field would throw away
+  // the verified suggestions and fire a fresh round of RPCs.
+  const displayNameRef = useRef(displayName);
+  useEffect(() => { displayNameRef.current = displayName; }, [displayName]);
+
+  // A new handle starts a fresh automatic-retry budget.
+  useEffect(() => { usernameAutoRetriesRef.current = 0; }, [username]);
+
+  /** Re-check the CURRENT handle now. The user-facing escape hatch. */
+  const retryUsernameCheck = useCallback(() => {
+    usernameAutoRetriesRef.current = 0; // a manual tap earns a fresh ladder
+    setUsernameCheckTick((n) => n + 1);
+  }, []);
+
   // ─── Live username availability ─────────────────────────
   // Format-validate locally first (no point pinging the server for a
-  // malformed handle), then debounce 400ms and call the RPC. The seq
-  // guard drops a slow response that resolves after a newer keystroke.
+  // malformed handle), then debounce and call the RPC. The seq guard
+  // drops a slow response that resolves after a newer keystroke.
+  //
+  // `usernameCheckTick` is the second key: without it this effect ran
+  // only when the TEXT changed, so a failed check was permanent until
+  // the user retyped — on step 1, which has no back button and no skip,
+  // that is a locked door. Manual Retry, the reconnect listener and the
+  // backoff ladder all re-enter through the tick.
   useEffect(() => {
     const u = username.trim();
-    if (!u) { setUsernameStatus('idle'); return; }
-    if (!isUsernameFormatValid(u)) { setUsernameStatus('invalid'); return; }
+    if (!u) { setUsernameStatus('idle'); setUsernameOffline(false); return; }
+    if (!isUsernameFormatValid(u)) { setUsernameStatus('invalid'); setUsernameOffline(false); return; }
+    // Reserved handles are refused by the DB trigger at WRITE time, and
+    // the availability RPC does not know about that list. Catch them
+    // here so the user is told now, not after three more steps.
+    if (isReservedUsername(u)) { setUsernameStatus('reserved'); setUsernameOffline(false); return; }
     setUsernameStatus('checking');
     const seq = ++usernameCheckSeq.current;
     const handle = setTimeout(async () => {
+      // Known-offline: skip the doomed RPC entirely. supabase-js runs an
+      // auth refresh before every request, which on a dead connection
+      // sits in ~25s of backoff — a "checking…" spinner that long IS the
+      // dead end, even though it eventually resolves.
+      if (await checkOffline()) {
+        if (seq !== usernameCheckSeq.current) return;
+        setUsernameOffline(true);
+        setUsernameStatus('error');
+        return;
+      }
       try {
         const { data, error } = await supabase.rpc('check_username_available', {
           p_username: u,
         });
         if (seq !== usernameCheckSeq.current) return; // superseded
-        if (error) { setUsernameStatus('error'); return; }
+        if (error) {
+          const off = await checkOffline();
+          if (seq !== usernameCheckSeq.current) return;
+          setUsernameOffline(off);
+          setUsernameStatus('error');
+          return;
+        }
+        setUsernameOffline(false);
         setUsernameStatus(data ? 'available' : 'taken');
       } catch {
-        if (seq === usernameCheckSeq.current) setUsernameStatus('error');
+        const off = await checkOffline();
+        if (seq !== usernameCheckSeq.current) return;
+        setUsernameOffline(off);
+        setUsernameStatus('error');
       }
-    }, 400);
+    }, USERNAME_CHECK_DEBOUNCE_MS);
     return () => clearTimeout(handle);
-  }, [username]);
+  }, [username, usernameCheckTick]);
+
+  // Bounded automatic re-check after a failure, so WAITING actually
+  // helps — the old copy said "try again later" while nothing ever
+  // retried. Stops after the ladder is spent; Retry and reconnect
+  // remain available forever.
+  useEffect(() => {
+    if (usernameStatus !== 'error') return;
+    const attempt = usernameAutoRetriesRef.current;
+    if (attempt >= USERNAME_RETRY_BACKOFF_MS.length) return;
+    const handle = setTimeout(() => {
+      usernameAutoRetriesRef.current = attempt + 1;
+      setUsernameCheckTick((n) => n + 1);
+    }, USERNAME_RETRY_BACKOFF_MS[attempt]);
+    return () => clearTimeout(handle);
+  }, [usernameStatus, usernameCheckTick]);
+
+  // Signal came back → re-check immediately. This is the venue case the
+  // whole fix is about: wifi drops while they pick a handle, the check
+  // fails, and the moment the connection returns the field heals itself
+  // without the user understanding what went wrong.
+  useNetInfoReconnect(() => {
+    if (usernameStatus === 'error') retryUsernameCheck();
+  });
+
+  // ─── Alternatives for a TAKEN handle ────────────────────
+  // Only meaningful when the server ANSWERED. On a failed check there is
+  // nothing to verify against, so no suggestions are produced — that
+  // path gets Retry instead.
+  useEffect(() => {
+    if (usernameStatus !== 'taken') {
+      usernameSuggestSeq.current += 1; // cancel anything in flight
+      setUsernameSuggestions([]);
+      setUsernameSuggestLoading(false);
+      return;
+    }
+    const base = normalizeUsername(username.trim());
+    if (!base) return;
+    const seq = ++usernameSuggestSeq.current;
+    setUsernameSuggestions([]);
+    setUsernameSuggestLoading(true);
+    (async () => {
+      const candidates = buildUsernameCandidates(base, displayNameRef.current);
+      const found: string[] = [];
+      // Verify in small parallel batches and stop as soon as we have
+      // enough. Every shown handle has been CONFIRMED free by the same
+      // RPC that gates the CTA — never a guess.
+      for (
+        let i = 0;
+        i < candidates.length && found.length < USERNAME_SUGGESTION_COUNT;
+        i += USERNAME_SUGGESTION_COUNT
+      ) {
+        const batch = candidates.slice(i, i + USERNAME_SUGGESTION_COUNT);
+        const results = await Promise.all(
+          batch.map(async (candidate) => {
+            try {
+              const { data, error } = await supabase.rpc('check_username_available', {
+                p_username: candidate,
+              });
+              if (error) return null;
+              return data === true ? candidate : null;
+            } catch {
+              return null;
+            }
+          }),
+        );
+        if (seq !== usernameSuggestSeq.current) return; // superseded
+        for (const r of results) {
+          if (r && found.length < USERNAME_SUGGESTION_COUNT) found.push(r);
+        }
+      }
+      if (seq !== usernameSuggestSeq.current) return;
+      setUsernameSuggestions(found);
+      setUsernameSuggestLoading(false);
+    })();
+  }, [usernameStatus, username]);
 
   // ─── Step 1 → Step 2 advance ────────────────────────────
   // Upsert {id, full_name, username} BEFORE entering the tag step so
@@ -404,9 +668,29 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase
+        const { error } = await supabase
           .from('piktag_profiles')
           .upsert({ id: user.id, full_name: trimmed, username: uname }, { onConflict: 'id' });
+        // The write is the only place that sees the DB's own reserved /
+        // uniqueness rules. If THIS handle was refused, stay on step 1
+        // and say so — advancing would carry a handle that can never be
+        // saved through two more steps and fail at the finish line.
+        if (isUsernameRejection(error)) {
+          // 'taken' also lights up the verified-alternatives row; a
+          // reserved-word refusal gets its own honest wording instead.
+          setUsernameStatus(/is reserved/i.test(error?.message || '') ? 'reserved' : 'taken');
+          Alert.alert(
+            t('auth.onboarding.usernameRejectedTitle', { defaultValue: '這個帳號不能用' }),
+            t('auth.onboarding.usernameRejectedMessage', {
+              defaultValue: '送出時被伺服器退回了（可能剛被別人選走，或是系統保留字）。換一個帳號再試一次。',
+            }),
+          );
+          return;
+        }
+        if (error) {
+          console.warn('[Onboarding] identity pre-save failed:', error.message);
+          // Non-fatal — handleComplete upserts again at the end. Proceed.
+        }
       }
     } catch (e) {
       console.warn('[Onboarding] identity pre-save failed:', e);
@@ -414,7 +698,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     }
     trackWizardStepCompleted('profile');
     setStep(STEP_TAGS);
-  }, [displayName, username, usernameStatus]);
+  }, [displayName, username, usernameStatus, t]);
 
   // ─── Step 2: tags (immediate-persist) ───────────────────
   const addTagLocal = useCallback(async (rawName: string) => {
@@ -833,6 +1117,22 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         .upsert({ id: user.id, ...profilePatch, onboarding_completed: true }, { onConflict: 'id' });
       if (error) {
         console.warn('[Onboarding] profile upsert failed:', error.message);
+        // "The server refused THIS handle" is not "check your network".
+        // Send them back to the field that has to change, with the
+        // handle already flagged red — never leave them on the finish
+        // step tapping a CTA that can never succeed.
+        if (isUsernameRejection(error)) {
+          setUsernameStatus(/is reserved/i.test(error.message || '') ? 'reserved' : 'taken');
+          setStep(STEP_PROFILE);
+          Alert.alert(
+            t('auth.onboarding.usernameRejectedTitle', { defaultValue: '這個帳號不能用' }),
+            t('auth.onboarding.usernameRejectedMessage', {
+              defaultValue: '送出時被伺服器退回了（可能剛被別人選走，或是系統保留字）。換一個帳號再試一次。',
+            }),
+          );
+          setSaving(false);
+          return;
+        }
         Alert.alert(
           t('common.error', { defaultValue: '錯誤' }),
           t('auth.onboarding.saveFailed', {
@@ -942,6 +1242,20 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     // require it again on this screen. Gate the CTA only on username
     // availability in that case (the name is already in `displayName`
     // from prefill — it just isn't shown / re-asked).
+    //
+    // The CTA STAYS GATED on a confirmed-available handle — deliberately.
+    // Letting an unverified handle through would need the write to be the
+    // safety net, and there is NO unique constraint behind it: both
+    // 20260605010000_username_availability_rpc.sql and
+    // 20260715000000_get_ask_public_is_official.sql state in so many words
+    // that lower(username) has no UNIQUE INDEX yet. An optimistic pass
+    // would therefore not bounce — it would SUCCEED, and two people would
+    // own pikt.ag/{same handle}: a silently broken share link and an
+    // impersonation vector, which is far worse than a blocked button.
+    // What un-traps the user instead is that 'error' is now always
+    // recoverable: automatic backoff retries, an auto re-check the moment
+    // the connection returns, and a Retry button that is always one tap
+    // away.
     const ctaDisabled = saving
       || (!nameFromOAuth && !displayName.trim())
       || usernameStatus !== 'available';
@@ -1044,46 +1358,120 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
             returnKeyType="done"
           />
         </View>
-        {/* Status / why-this line. */}
-        <View style={styles.usernameStatusRow}>
-          {usernameStatus === 'checking' && (
-            <>
-              <ActivityIndicator size="small" color={colors.gray400} />
-              <Text style={[styles.usernameStatusText, { color: colors.gray500 }]}>
-                {t('auth.onboarding.usernameChecking', { defaultValue: '檢查中…' })}
+        {/* Status / why-this line, plus the two recovery paths:
+            TAKEN (server answered)      → verified alternatives to tap
+            ERROR (server never answered)→ Retry + auto re-check on
+                                           reconnect. Never the same copy
+                                           for both: one means "pick a
+                                           different name", the other
+                                           means "we couldn't ask". */}
+        <View style={styles.usernameStatusBlock}>
+          <View style={styles.usernameStatusRow}>
+            {usernameStatus === 'checking' && (
+              <>
+                <ActivityIndicator size="small" color={colors.gray400} />
+                <Text style={[styles.usernameStatusText, { color: colors.gray500 }]}>
+                  {t('auth.onboarding.usernameChecking', { defaultValue: '檢查中…' })}
+                </Text>
+              </>
+            )}
+            {usernameStatus === 'available' && (
+              <Text style={[styles.usernameStatusText, { color: colors.green500 }]}>
+                {t('auth.onboarding.usernameAvailable', { defaultValue: '可使用' })}
               </Text>
-            </>
-          )}
-          {usernameStatus === 'available' && (
-            <Text style={[styles.usernameStatusText, { color: colors.green500 }]}>
-              {t('auth.onboarding.usernameAvailable', { defaultValue: '可使用' })}
-            </Text>
-          )}
-          {usernameStatus === 'taken' && (
-            <Text style={[styles.usernameStatusText, { color: colors.red500 }]}>
-              {t('auth.onboarding.usernameTaken', { defaultValue: '這個帳號已被使用' })}
-            </Text>
-          )}
-          {usernameStatus === 'invalid' && (
-            <Text style={[styles.usernameStatusText, { color: colors.gray500 }]}>
-              {t('auth.onboarding.usernameInvalid', {
-                defaultValue: '3–30 字，限小寫英文、數字、_ 與 .',
-              })}
-            </Text>
-          )}
+            )}
+            {usernameStatus === 'taken' && (
+              <Text style={[styles.usernameStatusText, { color: colors.red500 }]}>
+                {t('auth.onboarding.usernameTaken', { defaultValue: '這個帳號已被使用' })}
+              </Text>
+            )}
+            {usernameStatus === 'reserved' && (
+              <Text style={[styles.usernameStatusText, { color: colors.red500 }]}>
+                {t('auth.onboarding.usernameReserved', {
+                  defaultValue: '這是系統保留的帳號，換一個吧',
+                })}
+              </Text>
+            )}
+            {usernameStatus === 'invalid' && (
+              <Text style={[styles.usernameStatusText, { color: colors.gray500 }]}>
+                {t('auth.onboarding.usernameInvalid', {
+                  defaultValue: '3–30 字，限小寫英文、數字、_ 與 .',
+                })}
+              </Text>
+            )}
+            {usernameStatus === 'error' && (
+              <>
+                <Text style={[styles.usernameStatusText, { color: colors.gray500 }]}>
+                  {usernameOffline
+                    ? t('app.offline', { defaultValue: '目前離線' })
+                    : t('auth.onboarding.usernameCheckError', {
+                        defaultValue: '暫時無法檢查，稍後再試',
+                      })}
+                </Text>
+                <TouchableOpacity
+                  onPress={retryUsernameCheck}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.retry', { defaultValue: '重試' })}
+                >
+                  <Text style={styles.usernameRetryText}>
+                    {t('common.retry', { defaultValue: '重試' })}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
+            {(usernameStatus === 'idle') && (
+              <Text style={[styles.usernameStatusText, { color: colors.gray500 }]}>
+                {t('auth.onboarding.usernameWhy', {
+                  defaultValue: '這是你的名片網址：pikt.ag/你的帳號',
+                })}
+              </Text>
+            )}
+          </View>
+
+          {/* Second line for the failed-check case: what to do while
+              waiting. Offline → it heals itself; online-but-failed →
+              the connection is the thing to look at. */}
           {usernameStatus === 'error' && (
-            <Text style={[styles.usernameStatusText, { color: colors.gray500 }]}>
-              {t('auth.onboarding.usernameCheckError', {
-                defaultValue: '暫時無法檢查，稍後再試',
-              })}
+            <Text style={[styles.usernameStatusText, styles.usernameStatusHint, { color: colors.gray400 }]}>
+              {usernameOffline
+                ? t('auth.onboarding.usernameOfflineHint', {
+                    defaultValue: '連上網路後會自動重新檢查',
+                  })
+                : t('common.checkConnection', { defaultValue: '請檢查網路連線後重試' })}
             </Text>
           )}
-          {(usernameStatus === 'idle') && (
-            <Text style={[styles.usernameStatusText, { color: colors.gray500 }]}>
-              {t('auth.onboarding.usernameWhy', {
-                defaultValue: '這是你的名片網址：pikt.ag/你的帳號',
-              })}
-            </Text>
+
+          {/* Verified alternatives. Tapping one only FILLS the field —
+              it re-runs the same live check, so the CTA still opens on a
+              confirmed handle and nothing here is a bypass. */}
+          {usernameStatus === 'taken'
+            && (usernameSuggestLoading || usernameSuggestions.length > 0) && (
+            <View style={styles.usernameSuggestBlock}>
+              <Text style={styles.usernameSuggestLabel}>
+                {usernameSuggestLoading
+                  ? t('auth.onboarding.usernameChecking', { defaultValue: '檢查中…' })
+                  : t('auth.onboarding.usernameSuggestions', {
+                      defaultValue: '這些可以用，點一下就換：',
+                    })}
+              </Text>
+              {usernameSuggestions.length > 0 && (
+                <View style={styles.usernameSuggestRow}>
+                  {usernameSuggestions.map((s) => (
+                    <TouchableOpacity
+                      key={`uname-${s}`}
+                      style={styles.usernameSuggestChip}
+                      activeOpacity={0.8}
+                      onPress={() => setUsername(s)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`pikt.ag/${s}`}
+                    >
+                      <Text style={styles.usernameSuggestChipText}>{s}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
           )}
         </View>
 
@@ -1719,11 +2107,17 @@ function makeStyles(c: ColorPalette) {
     color: c.gray900,
     padding: 0,
   },
-  // Username live-status / why-this line under the 帳號 input.
+  // Username live-status / why-this line under the 帳號 input, plus the
+  // recovery affordances that hang off it (Retry, verified alternatives).
+  usernameStatusBlock: {
+    alignSelf: 'stretch',
+    alignItems: 'center',
+  },
   usernameStatusRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    flexWrap: 'wrap',
     gap: 6,
     marginTop: 8,
     minHeight: 18,
@@ -1732,6 +2126,47 @@ function makeStyles(c: ColorPalette) {
   usernameStatusText: {
     fontSize: 13,
     textAlign: 'center',
+  },
+  usernameStatusHint: {
+    marginTop: 2,
+    paddingHorizontal: 8,
+  },
+  // Retry reads as a link, not a second button competing with the CTA.
+  usernameRetryText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: c.piktag600,
+    textDecorationLine: 'underline',
+  },
+  usernameSuggestBlock: {
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  usernameSuggestLabel: {
+    fontSize: 13,
+    color: c.gray600,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  usernameSuggestRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  usernameSuggestChip: {
+    backgroundColor: c.piktag50,
+    borderWidth: 1,
+    borderColor: c.piktag100,
+    borderRadius: BORDER_RADIUS.full,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+  },
+  usernameSuggestChipText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: c.piktag600,
   },
 
   // ── Step header (back + 3-segment progress) ──
