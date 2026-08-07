@@ -192,10 +192,21 @@ jobs:
           }
 
       - name: Upload AAB artifact
+        # NON-BLOCKING on purpose. This is a debugging convenience — a copy
+        # of the AAB kept on the run for a few days. Shipping to Play does
+        # not need it. Run #826 proved why that matters: the AAB built
+        # fine, this step then failed with "Artifact storage quota has been
+        # hit", and because it was a hard link in the chain the actual
+        # "Upload to Google Play" step was SKIPPED — a full archive bucket
+        # stopped a release from reaching testers.
+        # retention-days is trimmed from the 90-day default so the bucket
+        # drains itself instead of needing a manual purge.
+        continue-on-error: true
         uses: actions/upload-artifact@v5
         with:
           name: android-aab
           path: mobile/android/app/build/outputs/bundle/release/*.aab
+          retention-days: 5
 
       - name: Upload JS sourcemaps to Sentry
         # Explicit sourcemap upload — Gradle's Sentry hook can be

@@ -340,11 +340,18 @@ jobs:
 
       - name: Upload build log on failure
         if: failure()
+        # continue-on-error so a full artifact bucket cannot mask the real
+        # build failure this log exists to explain; retention trimmed from
+        # the 90-day default so the bucket drains itself. This step is
+        # already failure-only so, unlike Android's, it could never block a
+        # release - but it eats the same quota.
+        continue-on-error: true
         uses: actions/upload-artifact@v5
         with:
           name: xcodebuild-log
           path: ${{ runner.temp }}/xcodebuild.log
           if-no-files-found: ignore
+          retention-days: 5
 
       - name: Export and Upload to TestFlight
         run: |
