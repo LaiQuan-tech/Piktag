@@ -47,6 +47,8 @@ import {
   setPersistentQrGroupDetail,
 } from '../lib/dataCache';
 import { useAuth } from '../hooks/useAuth';
+import { useLoadDeadline } from '../hooks/useLoadDeadline';
+import { checkOffline } from '../lib/netStatus';
 import RingedAvatar from '../components/RingedAvatar';
 import QrShareBody from '../components/QrShareBody';
 import { appendLang } from '../lib/shareProfile';
@@ -206,6 +208,22 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
     // whatever is being displayed, so those are deliberately NOT gated.
     const reqGroupId = groupId;
     const onScreen = () => groupIdRef.current === reqGroupId;
+    // No signal: the disk hydration below has already painted this
+    // group's snapshot if we have one, and every query here would only
+    // add ~25s of auth-refresh backoff (lib/netStatus.ts) before
+    // failing. Return before setLoading(true) so a group with no
+    // snapshot reaches its placeholder in a second rather than a
+    // spinner. Nothing is written on this path, so the snapshot — and
+    // in particular any `notFound` conclusion — is left alone.
+    if (await checkOffline()) {
+      if (onScreen()) {
+        // "We couldn't ask" retracts an earlier "it's gone", exactly as
+        // the transport-failure branch below does.
+        setNotFound(false);
+        setLoading(false);
+      }
+      return;
+    }
     // Stamped like every other setState in here. writeTags and
     // handleSaveName re-call fetchGroup from closures captured under a
     // PREVIOUS groupId, so an unstamped setLoading(true) could switch
@@ -378,7 +396,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
       // failed" while the real fetch is still in flight.
       if (onScreen()) setLoading(false);
     }
-  }, [groupId, user]);
+  }, [groupId, user?.id]);
 
   // Stale-while-revalidate, disk layer. Paint the last known state of
   // this group immediately so a host with no signal can still SHOW the
@@ -417,6 +435,14 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
       fetchGroup();
     }, [fetchGroup]),
   );
+
+  // Online but going nowhere. Drop the spinner so the placeholder can
+  // say 載入失敗 instead of 處理中… forever; a late response still
+  // paints over it, and a cached group is unaffected because the render
+  // gates on "is there a group for this id", not on `loading`.
+  useLoadDeadline(loading, () => {
+    setLoading(false);
+  });
 
   // Save name. Optimistic update so the title doesn't blink.
   const handleSaveName = useCallback(async () => {

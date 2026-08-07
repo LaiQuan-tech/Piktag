@@ -47,6 +47,8 @@ import { ilikeEscape, hashDisplay, bidiMark } from '../lib/normalizeTag';
 import { useAuth } from '../hooks/useAuth';
 import { useAskFeed } from '../hooks/useAskFeed';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
+import { useLoadDeadline } from '../hooks/useLoadDeadline';
+import { checkOffline } from '../lib/netStatus';
 import type { PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
 import { isIdModePlatform, isSafeBiolinkUrl } from '../lib/platforms';
@@ -239,6 +241,25 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     abortRef.current = controller;
     const { signal } = controller;
 
+    // ── No signal: stop, and say so ───────────────────────────────────
+    // Every query below goes through supabase-js, which resolves
+    // auth.getSession() first; with an expired token and no connection
+    // that is ~25s of refresh backoff before anything reports failure
+    // (lib/netStatus.ts). This screen showed a full-page loader for the
+    // whole window and then an ErrorState.
+    //
+    // We DELIBERATELY do not invent a profile from cache here. This is a
+    // stranger — nothing on this device legitimately describes them, and
+    // a header assembled from scraps would be a fabrication. An honest
+    // offline surface with a retry is the correct outcome, and
+    // useNetInfoReconnect below re-runs the moment signal returns.
+    if (await checkOffline()) {
+      if (signal.aborted) return;
+      setLoadError(true);
+      setLoading(false);
+      return;
+    }
+
     // Resolve userId: either passed directly or looked up from username.
     // `.maybeSingle()` — a missing username shouldn't throw, it should
     // render the "user not found" state.
@@ -419,6 +440,14 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     }
   }, [authUser, resolvedUserId, paramUsername]);
 
+  // Online but the request is going nowhere (captive portal, dead venue
+  // wifi). Drop the full-page loader rather than hold it through the
+  // ~25s auth-refresh backoff; the fetch still paints if it ever lands.
+  useLoadDeadline(loading, () => {
+    setLoading(false);
+    if (!profile) setLoadError(true);
+  });
+
   // Auto-retry when connectivity comes back, but only if the previous
   // attempt failed. Hands the trigger over to fetchData; it does its
   // own loading-state gating.
@@ -582,7 +611,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
       const { detectRecentBurst, markBurstOffered } = await import('../lib/burstTag');
       const burst = authUser?.id ? await detectRecentBurst(authUser.id) : null;
       if (burst) {
-        void markBurstOffered(burst);
+        void markBurstOffered(authUser!.id, burst);
         navigation.navigate('BatchTag', { people: burst });
       }
     } catch {

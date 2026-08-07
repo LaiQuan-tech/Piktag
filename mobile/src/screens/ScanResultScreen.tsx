@@ -83,7 +83,12 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
     if (user) {
       fetchData();
     }
-  }, [user]);
+  // user?.id, not `user`: AuthContext hands out a NEW user object on
+  // every token refresh (hourly, and on every foreground). This only
+  // needs the identity, and depending on the object re-ran the whole
+  // query on every refresh — wasted bandwidth on exactly the weak venue
+  // networks this app exists for.
+  }, [user?.id]);
 
   const fetchData = async () => {
     if (!user) return;
@@ -405,7 +410,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
               const { detectRecentBurst, markBurstOffered } = await import('../lib/burstTag');
               const burst = user?.id ? await detectRecentBurst(user.id) : null;
               if (burst) {
-                void markBurstOffered(burst);
+                void markBurstOffered(user!.id, burst);
                 navigation.replace('BatchTag', {
                   people: burst,
                   next: { friendId: hostUserId, connectionId: connectionData.id },

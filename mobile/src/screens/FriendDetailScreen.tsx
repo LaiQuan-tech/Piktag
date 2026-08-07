@@ -134,7 +134,29 @@ type CachedConnectionRow = {
   connected_user_id?: string;
   birthday?: string | null;
   connected_user?: Partial<PiktagProfile> | null;
+  // The viewer's OWN tags on this connection, as ConnectionsScreen
+  // stores them: DISPLAY strings built by hashDisplay(), i.e. a bidi
+  // mark + '#' + name. Never query or compare with these — strip them
+  // back to the bare name first (cachedTagName below).
+  tags?: string[];
 };
+
+// The two fields of a cached inbox row the offline "Message" button
+// needs. Structural rather than importing InboxConversation on purpose:
+// this screen reads exactly these two, and a narrow shape cannot break
+// when the chat types move.
+type CachedInboxRow = {
+  id?: string;
+  other_user_id?: string;
+};
+
+// Undo hashDisplay(): strip the leading bidi mark(s) and '#' so a stored
+// display string becomes the real tag name again. The mark is invisible
+// but is a real code point, and leaving it on makes every lookup miss.
+function cachedTagName(display: string): string {
+  // U+200E (LRM) / U+200F (RLM) are the two marks bidiMark() can emit.
+  return String(display).replace(/^[\u200E\u200F]+/, '').replace(/^#+/, '');
+}
 
 type FriendData = {
   connection: Connection | null;
@@ -236,6 +258,20 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   // True when the initial fetch threw — drives the <ErrorState> render
   // path. Cleared on every fresh attempt; auto-retried on reconnect.
   const [loadError, setLoadError] = useState(false);
+  // ── Has the SERVER answered about this friend yet? ─────────────────
+  // Separate from `loading` because the disk hydration below clears
+  // `loading` the instant it paints a cached header. That made
+  // useLoadDeadline(loading, ...) disarm before it ever fired, so on
+  // reachable-but-dead wifi the screen sat forever on the cached header
+  // with no error surface and no retry. The deadline hangs off THIS
+  // flag, which only a real answer (or a real failure) can clear.
+  const [awaitingServer, setAwaitingServer] = useState(true);
+  // Do the three numbers in the stats row mean anything yet? They all
+  // default to 0, and a cache-painted header would otherwise state
+  // "0 共同好友 · 0 共同標籤 · 0 追蹤者" as fact about a friend whose
+  // counts we never managed to ask for. Same contract as ProfileScreen's
+  // `statsKnown`: em dash until a live answer says otherwise.
+  const [statsKnown, setStatsKnown] = useState(false);
   const [friendData, dispatchFriendData] = useReducer(friendDataReducer, initialFriendData);
   const { connection, profile, tags, biolinks, mutualFriends, mutualTags, followerCount, scanEventTags } = friendData;
   // Mirrors friendData for the loaders, which must be able to ask "did
@@ -333,6 +369,10 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   // inventing their numbers is not.
   useEffect(() => {
     liveFetchDoneRef.current = false;
+    // A different friend (or account) is a fresh question for the
+    // server, so re-arm the deadline and un-trust the previous stats.
+    setAwaitingServer(true);
+    setStatsKnown(false);
     const uid = user?.id;
     if (!uid || !friendId) return;
     let cancelled = false;
@@ -346,14 +386,45 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         ? cached.find((c) => c?.connected_user_id === friendId)
         : null;
       if (!row) return;
+      // The snapshot carries `tags` — the viewer's own tags on this
+      // connection — and hydration used to drop them on the floor, so
+      // the entire tag section (the thing this app is FOR) vanished
+      // offline for a friend whose tags the friends list had shown two
+      // taps earlier. They map into the same FriendTag shape the live
+      // fetch produces; only the fields a snapshot cannot know stay at
+      // their defaults.
+      const cachedTags: FriendTag[] = Array.isArray(row.tags)
+        ? row.tags
+            .map((display) => cachedTagName(display))
+            .filter((name) => !!name)
+            .map((name, i) => ({
+              // No tag id in the snapshot. Empty string rather than a
+              // fabricated one: the chip's onPress reads it and falls
+              // back to navigating by NAME, which TagDetailScreen
+              // already resolves. A made-up id would query for a row
+              // that does not exist and dead-end that screen.
+              tagId: '',
+              name,
+              isPicked: false,
+              isHidden: false,
+              pickCount: 0,
+              isMutual: false,
+              isPinned: false,
+              position: i,
+            }))
+        : [];
       dispatchFriendData({
         type: 'SET_INITIAL',
         payload: {
           connection: row as unknown as Connection,
           profile: (row.connected_user ?? null) as PiktagProfile | null,
+          ...(cachedTags.length > 0 ? { tags: cachedTags } : {}),
         },
       });
       if (row.birthday) setBirthday(row.birthday);
+      // Content is on screen, so stop the PageLoader — but do NOT clear
+      // `awaitingServer`: the server has said nothing yet, and the
+      // deadline that turns this into an honest surface must stay armed.
       setLoading(false);
     })();
     return () => {
@@ -381,6 +452,9 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       // returning here writes nothing. useNetInfoReconnect below retries.
       if (await checkOffline()) {
         setLoading(false);
+        // A definite answer about the network, so the deadline has
+        // nothing left to wait for. The counts stay unknown ("—").
+        setAwaitingServer(false);
         // Only surface the retry screen when the cache really has
         // nothing — over a painted header it would hide the very data
         // the user opened this screen to read. We re-read the snapshot
@@ -523,10 +597,16 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                   : 'stranger')
               : await getViewerRelation(user?.id, friendId)
           ),
-          tags: [], // will be set in phase 2 after pick data is fetched
           mutualFriends: mutualFriendsCount,
           followerCount: fFollowerCount ?? 0,
       };
+      // Blank the tag list ONLY when the tag query actually answered —
+      // phase 2 refills it a moment later. When that query failed, keep
+      // what is on screen, which after the disk hydration above may be
+      // the cached tags; clearing them unconditionally (the old
+      // `tags: []`) let one flaky query on venue wifi erase the tag
+      // section it had just painted.
+      if (!connTagsResult.error) initialPayload.tags = [];
       if (!profileResult.error) initialPayload.profile = profileResult.data ?? null;
       // Same rule for the connection row, and for the same reason: the
       // nickname and met_at live on it. Only a query we ACTUALLY ran and
@@ -689,15 +769,30 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       }
 
       if (phase2.length > 0) await Promise.all(phase2);
+
+      // The stats row may stop lying only when every query behind it
+      // actually answered. supabase-js resolves a transport failure as
+      // `{data: null, error}`, so each `.error` is checked explicitly —
+      // "the promise settled" proves nothing here.
+      const statsAnswered =
+        !followerResult.error &&
+        !connTagsResult.error &&
+        (rpcOk ||
+          (!!myConnectionsResult.data && !!friendConnectionsResult.data));
+      if (!signal.aborted && statsAnswered) setStatsKnown(true);
     } catch (err) {
       if (!signal.aborted) {
         console.error('Error fetching friend data:', err);
         setLoadError(true);
       }
     } finally {
-      if (!signal.aborted) setLoading(false);
+      if (!signal.aborted) {
+        setLoading(false);
+        // Answered or failed, either way we are no longer waiting on it.
+        setAwaitingServer(false);
+      }
     }
-  }, [user, connectionId, friendId]);
+  }, [user?.id, connectionId, friendId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -714,16 +809,29 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   // Online but the request is going nowhere. Drop the PageLoader rather
   // than hold it through the ~25s auth-refresh backoff; a late response
   // still paints over whatever this leaves on screen.
-  useLoadDeadline(loading, () => {
+  // Armed off `awaitingServer`, NOT `loading` — see the state
+  // declaration. On reachable-but-dead wifi this is the only thing that
+  // ends the wait: the request is never cancelled and still paints if it
+  // lands, we just stop implying an answer is a moment away.
+  useLoadDeadline(awaitingServer, () => {
+    setAwaitingServer(false);
     setLoading(false);
+    // Full-page retry ONLY when nothing is painted. Over a cached header
+    // it would hide the very friend the user opened the screen to read;
+    // there, the honest signal is the em-dash stats plus the automatic
+    // refetch below.
     if (!friendDataRef.current.profile) setLoadError(true);
   });
 
   useNetInfoReconnect(useCallback(() => {
-    if (loadError) {
+    // Retry when the last pass failed OUTRIGHT (nothing painted) and
+    // also when it merely never answered — a cache-painted header with
+    // unknown counts is exactly the state a returning connection should
+    // resolve, and gating on `loadError` alone left it stranded.
+    if (loadError || !statsKnown) {
       fetchData();
     }
-  }, [loadError, fetchData]));
+  }, [loadError, statsKnown, fetchData]));
 
   // --- Note CRUD ---
   // Fetch friend's public tags for the pick modal — returns tags array
@@ -993,7 +1101,47 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const handleOpenChat = async () => {
     if (!user || !friendId || messageLoading) return;
     setMessageLoading(true);
+    const openThread = (conversationId: string) => {
+      (navigation as any).navigate('ChatThread', {
+        conversationId,
+        otherUserId: friendId,
+        otherDisplayName: profile?.full_name ?? profile?.username ?? '',
+        otherAvatarUrl: profile?.avatar_url,
+      });
+    };
     try {
+      // ── Offline: resolve the conversation from the inbox snapshot ──
+      // This was the one major navigation action on the screen with no
+      // network guard, so with no signal the button spun for ~25-30s
+      // (the auth-refresh backoff explained in lib/netStatus.ts) and
+      // then raised an Alert containing a raw English transport error.
+      //
+      // The RPC is called get_or_create_conversation, but for someone
+      // already in your friends list the conversation almost always
+      // EXISTS, and CACHE_KEYS.CHAT_INBOX already holds its id keyed by
+      // `other_user_id`. Read it and walk straight into the thread,
+      // whose history is itself cached (CHAT_THREADS) and whose composer
+      // queues offline sends. Read-only: nothing here writes a cache, so
+      // this path cannot degrade a snapshot.
+      if (await checkOffline()) {
+        const cachedInbox = await getPersistentCache<CachedInboxRow[]>(
+          CACHE_KEYS.CHAT_INBOX,
+          user.id,
+        );
+        const row = Array.isArray(cachedInbox)
+          ? cachedInbox.find((c) => c?.other_user_id === friendId)
+          : null;
+        if (row?.id) {
+          openThread(String(row.id));
+          return;
+        }
+        // Genuinely never talked to this person from this device, so
+        // there is no id to reuse and only the server can mint one. Say
+        // that in the user's own language — never a raw error string.
+        Alert.alert(t('app.offline'), t('common.willAutoRetry'));
+        return;
+      }
+
       const { data, error } = await supabase.rpc('get_or_create_conversation', {
         other_user_id: friendId,
       });
@@ -1005,7 +1153,10 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         } else if (code === 'invalid_participants' || msg.includes('invalid_participants')) {
           Alert.alert(t('chat.cannotMessageSelf'));
         } else {
-          Alert.alert(error.message ?? 'Error');
+          // Anything else is a load failure as far as the user is
+          // concerned. `error.message` is a raw English server/transport
+          // string — never put one in front of someone.
+          Alert.alert(t('common.loadFailed'), t('common.checkConnection'));
         }
         return;
       }
@@ -1013,18 +1164,21 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         typeof data === 'string'
           ? data
           : (data as any)?.id ?? (data as any)?.conversation_id ?? data;
-      (navigation as any).navigate('ChatThread', {
-        conversationId,
-        otherUserId: friendId,
-        otherDisplayName: profile?.full_name ?? profile?.username ?? '',
-        otherAvatarUrl: profile?.avatar_url,
-      });
+      openThread(conversationId);
     } catch (err) {
       console.warn('handleOpenChat error:', err);
+      Alert.alert(t('common.loadFailed'), t('common.checkConnection'));
     } finally {
       setMessageLoading(false);
     }
   };
+
+  // Em dash, not 0, while the counts are unknown — see `statsKnown`.
+  // Identical to ProfileScreen's helper of the same name.
+  const statText = useCallback(
+    (value: number): string => (statsKnown ? String(value) : '—'),
+    [statsKnown],
+  );
 
   const handleOpenLink = async (link: Biolink) => {
     // Interactable = a copy-mode ID (WeChat) OR an openable safe URL.
@@ -1346,7 +1500,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 // Picker modal selected-state stays purple (different
                 // context: interactive selection feedback).
                 <TouchableOpacity
-                  key={tag.tagId}
+                  key={tag.tagId || `name:${tag.name}`}
                   style={styles.tagChip}
                   activeOpacity={0.6}
                   // displayLabel carries the localized official-account
@@ -1354,7 +1508,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                   // flash the raw (possibly foreign-language) tagName.
                   onPress={() =>
                     navigation.navigate('TagDetail', {
-                      tagId: tag.tagId,
+                      // Cache-derived chips have no tag id (see the
+                      // hydration effect). Omit the param entirely
+                      // rather than passing '' — TagDetailScreen
+                      // resolves by name when tagId is absent, and would
+                      // query for a nonexistent row if handed a blank.
+                      ...(tag.tagId ? { tagId: tag.tagId } : {}),
                       tagName: tag.name,
                       ...(officialLabel ? { displayLabel: officialLabel } : {}),
                     })
@@ -1449,7 +1608,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 <OverlappingAvatars users={mutualFriendProfiles} total={mutualFriends} size={24} max={3} />
               )}
               <Text style={[styles.statText, mutualFriendProfiles.length > 0 && { marginLeft: 6 }]}>
-                <Text style={styles.statNumber}>{mutualFriends}</Text>
+                <Text style={styles.statNumber}>{statText(mutualFriends)}</Text>
                 <Text style={styles.statLabel}>{t('friendDetail.mutualFriendsLabel')}</Text>
               </Text>
             </View>
@@ -1463,7 +1622,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               </TouchableOpacity>
             ) : (
               <Text style={styles.statText}>
-                <Text style={styles.statNumber}>{mutualTags}</Text>
+                <Text style={styles.statNumber}>{statText(mutualTags)}</Text>
                 <Text style={styles.statLabel}>{t('friendDetail.mutualTagsLabel')}</Text>
               </Text>
             )}
@@ -1478,7 +1637,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               accessibilityLabel={t('friendDetail.followersLabel')}
             >
               <Text style={styles.statText}>
-                <Text style={styles.statNumber}>{followerCount}</Text>
+                <Text style={styles.statNumber}>{statText(followerCount)}</Text>
                 <Text style={styles.statLabel}>{t('friendDetail.followersLabel')}</Text>
               </Text>
             </TouchableOpacity>

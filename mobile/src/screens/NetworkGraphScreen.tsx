@@ -165,7 +165,12 @@ export default function NetworkGraphScreen({ navigation }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  // user?.id, not `user`: AuthContext hands out a NEW user object on
+  // every token refresh (hourly, and on every foreground). This only
+  // needs the identity, and depending on the object re-ran the whole
+  // query on every refresh — wasted bandwidth on exactly the weak venue
+  // networks this app exists for.
+  }, [user?.id]);
 
   useEffect(() => { fetchGraph(); }, [fetchGraph]);
 

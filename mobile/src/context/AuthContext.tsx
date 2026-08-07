@@ -21,10 +21,26 @@ import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import type { User, Session } from '@supabase/supabase-js';
 import type { PiktagProfile } from '../types';
 
-// Must match the key in AppNavigator/OnboardingScreen. On sign-out we
-// wipe it so a different user logging in on the same device still goes
-// through onboarding as they should.
+// Must match the keys in AppNavigator/OnboardingScreen.
+//
+// ACCOUNT ISOLATION FOR ONBOARDING IS NOT DONE HERE. It is done by the
+// per-user NAMING in AppNavigator (`onboardingFlagKey`), which appends
+// the user id — that is what stops one account's completion from
+// skipping another's wizard, and it works whether or not anyone ever
+// signs out. This comment used to claim the opposite while the line
+// below removed the BARE key, which the app has not written since the
+// flag went per-user: a no-op dressed up as the isolation guarantee.
+//
+// What sign-out removes below is RESIDUE: the outgoing account's own
+// per-user flag (so a deleted account leaves nothing behind), the bare
+// legacy key (one-time cleanup for devices that still carry it), and the
+// pre-auth deep-link envelope, which cannot be user-namespaced because
+// it is captured before anyone is signed in — see the comment on
+// PENDING_DEEP_LINK_KEY in AppNavigator.
 const ONBOARDING_COMPLETED_KEY = 'piktag_onboarding_completed_v1';
+const onboardingFlagKeyFor = (userId: string) =>
+  `${ONBOARDING_COMPLETED_KEY}_${userId}`;
+const PENDING_DEEP_LINK_KEY = 'piktag_pending_deep_link';
 
 // AuthContext hydrates the current auth user + the `piktag_profiles`
 // row exactly once, and exposes them to the whole tree. This replaces
@@ -265,13 +281,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // (GoTrueClient.js:1204), `_signOut` skips the /logout POST for want of
   // an access token, reaches `_removeSession()` and emits SIGNED_OUT.
   const signOut = useCallback(async () => {
-    // Clear onboarding flag first so a different user logging in on
-    // this device still goes through onboarding. Non-fatal on failure —
-    // worst case the next user skips onboarding once.
-    try {
-      await AsyncStorage.removeItem(ONBOARDING_COMPLETED_KEY);
-    } catch {}
     const outgoingUserId = lastUserIdRef.current;
+
+    // Residue that is NOT in CACHE_KEYS and so is not covered by
+    // clearPersistentCaches below. All best-effort: a failure here costs
+    // one redundant round-trip or one re-shown wizard, never a stuck
+    // session.
+    try {
+      await AsyncStorage.multiRemove([
+        // The outgoing account's own onboarding fast-path flag. Removing
+        // it means a deleted account leaves nothing on the device; the
+        // server column stays the source of truth, so the worst case is
+        // one extra query on the next sign-in.
+        ...(outgoingUserId ? [onboardingFlagKeyFor(outgoingUserId)] : []),
+        // One-time cleanup of the bare pre-namespacing key, which this
+        // line used to remove ON ITS OWN while a comment claimed it was
+        // what kept onboarding account-isolated. It is not — the
+        // per-user naming is. See the key declarations at the top.
+        ONBOARDING_COMPLETED_KEY,
+        // Pre-auth invite envelope. Device-global by necessity, so
+        // sign-out is the only place it can be scoped: without this it
+        // survives a handover and offers user A's inviter to user B.
+        PENDING_DEEP_LINK_KEY,
+      ]);
+    } catch {}
 
     // 1. Credentials. This — not the auth-js call — is what actually
     //    logs the user out, and it is pure local I/O, so it cannot fail

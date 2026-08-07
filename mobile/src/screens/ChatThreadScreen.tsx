@@ -31,6 +31,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
 import { useChatThread } from '../hooks/useChatThread';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
+import { checkOffline } from '../lib/netStatus';
 import { supabase } from '../lib/supabase';
 import { hashDisplay } from '../lib/normalizeTag';
 import type { ThreadMessage } from '../types/chat';
@@ -245,9 +246,18 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
 
     if (!(isEmpty || isDormant || forced)) return;
 
-    icebreakerTriggeredRef.current = true;
-    setIcebreakerLoading(true);
     void (async () => {
+      // Hide the affordance entirely rather than spin on it. Note the
+      // "already triggered" latch is NOT set on this path: no attempt
+      // was made, so when connectivity returns and this effect re-runs
+      // (it depends on `messages`, which the reconnect refetch updates)
+      // the suggestions can still be fetched.
+      if (await checkOffline()) return;
+      // Check-and-set is synchronous from here, so two concurrent runs
+      // cannot both get through.
+      if (icebreakerTriggeredRef.current) return;
+      icebreakerTriggeredRef.current = true;
+      setIcebreakerLoading(true);
       const out = await generateIcebreakers({
         recipientId: otherUserId,
         askId: routeAskId ?? null,

@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import PostHog from 'posthog-react-native';
 
 // PostHog product analytics — tracks the core events that map to
@@ -132,6 +133,32 @@ export const setAnalyticsOptIn = (optedIn: boolean): void => {
     posthog.optIn();
   } else {
     posthog.optOut();
+  }
+};
+
+/** The one place this preference is stored. */
+export const ANALYTICS_OPT_IN_KEY = 'analytics_opt_in';
+
+/**
+ * Re-assert the user's stored analytics choice on the PostHog client.
+ *
+ * PostHog is constructed at module load and starts CAPTURING
+ * immediately, and its opt-out state does not survive a cold start on
+ * its own. Nothing ever called setAnalyticsOptIn — SettingsScreen
+ * imported it and never used it — so an opt-out lasted exactly as long
+ * as the process that made it: the user turned tracking off, relaunched
+ * the app, and was tracked again, forever. Called once from App.tsx, as
+ * early as possible.
+ *
+ * Default is opted IN; only an explicit 'false' counts as an opt-out,
+ * matching how SettingsScreen has always read the key.
+ */
+export const applyStoredAnalyticsOptIn = async (): Promise<void> => {
+  try {
+    const stored = await AsyncStorage.getItem(ANALYTICS_OPT_IN_KEY);
+    setAnalyticsOptIn(stored !== 'false');
+  } catch {
+    // Best-effort: a read failure leaves PostHog at its default.
   }
 };
 

@@ -208,11 +208,21 @@ async function readTrustedPersistedSession(): Promise<Session | null> {
  * Hard-clear the persisted session. Only ever called from the explicit
  * user-initiated log-out path.
  */
+const LEGACY_SESSION_KEY = 'supabase.auth.token';
+
 export async function clearPersistedSession(): Promise<void> {
   const keys = [
     AUTH_STORAGE_KEY,
     `${AUTH_STORAGE_KEY}-code-verifier`,
     `${AUTH_STORAGE_KEY}-user`,
+    // The pre-2026 storage key. lib/supabase.ts migrates any value found
+    // under it from AsyncStorage INTO SecureStore on every cold start,
+    // and nothing ever deleted the SecureStore copy — so a device that
+    // upgraded across that migration kept a full refresh token for the
+    // account, readable after log-out and after account deletion. It is
+    // not the key auth-js reads any more, which is exactly why nobody
+    // noticed it was still there.
+    LEGACY_SESSION_KEY,
   ];
   for (const key of keys) {
     try {

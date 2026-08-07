@@ -25,7 +25,7 @@ import {
 } from 'expo-location';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
-import { setAnalyticsOptIn } from '../lib/analytics';
+import { ANALYTICS_OPT_IN_KEY, setAnalyticsOptIn } from '../lib/analytics';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 import type { PiktagProfile } from '../types';
@@ -170,12 +170,21 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           }
         }
 
-        const storedAnalytics = await AsyncStorage.getItem('analytics_opt_in');
+        const storedAnalytics = await AsyncStorage.getItem(ANALYTICS_OPT_IN_KEY);
         // Dark mode is NOT read here — ThemeContext owns its own
         // persistence (piktag_theme_mode) and re-applies on launch.
         // The Switch reads `isDark` straight from ThemeContext.
         // Default = opted in. Only an explicit 'false' counts as opt-out.
-        setAnalyticsOptInState(storedAnalytics !== 'false');
+        const optedIn = storedAnalytics !== 'false';
+        setAnalyticsOptInState(optedIn);
+        // ...and APPLY it. This read used to populate a state variable
+        // and stop there: `setAnalyticsOptIn` was imported at the top of
+        // this file and called from nowhere in the repository, so a user
+        // who had opted out went on being captured by PostHog for the
+        // whole session. The authoritative application happens at
+        // startup (applyStoredAnalyticsOptIn in lib/analytics, called
+        // from App.tsx); this is the belt-and-braces re-assert.
+        setAnalyticsOptIn(optedIn);
       } catch (err) {
         console.warn('Failed to load settings:', err);
       } finally {
@@ -184,7 +193,12 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     };
 
     loadSettings();
-  }, [user]);
+  // user?.id, not `user`: AuthContext hands out a NEW user object on
+  // every token refresh (hourly, and on every foreground). This only
+  // needs the identity, and depending on the object re-ran the whole
+  // query on every refresh — wasted bandwidth on exactly the weak venue
+  // networks this app exists for.
+  }, [user?.id]);
 
   // Shared boolean-column toggle on piktag_profiles (notification
   // categories + personalized recommendations). Optimistic flip → DB
@@ -447,7 +461,22 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                 [{
                   text: t('common.confirm', { defaultValue: 'OK' }),
                   onPress: async () => {
-                    await supabase.auth.signOut();
+                    // AuthContext.signOut(), NOT supabase.auth.signOut().
+                    // See the long comment on AuthContext.signOut: with
+                    // no signal auth-js bails inside _useSession before
+                    // it reaches _removeSession, and it RESOLVES with
+                    // that error rather than throwing, so the `await`
+                    // here caught nothing and the user was left fully
+                    // signed in on a device whose account no longer
+                    // exists. The shared path clears the credentials
+                    // itself, which is local I/O and cannot fail for
+                    // being offline.
+                    //
+                    // No scope concern on this path: the Edge Function
+                    // above has already deleted auth.users, so every
+                    // session for this account is dead server-side
+                    // whatever we do here.
+                    await signOut();
                     // SIGNED_OUT → AuthContext → AppNavigator → AuthNavigator
                     // (no manual navigation.reset needed)
                   },
@@ -782,7 +811,24 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                       );
                       return;
                     }
-                    await supabase.auth.signOut();
+                    // Best-effort revocation of this account's sessions
+                    // on OTHER devices, preserving what the bare
+                    // supabase.auth.signOut() (scope 'global') used to
+                    // do here. Scope 'others' rather than 'global' on
+                    // purpose: it leaves THIS device's token in place,
+                    // so it cannot race the credential clearing inside
+                    // signOut() below. Not awaited — offline it would
+                    // sit through the auth lock for ~30s, and it is not
+                    // required for correctness.
+                    void supabase.auth
+                      .signOut({ scope: 'others' })
+                      .catch(() => {});
+                    // The local sign-out that actually has to work. See
+                    // B1 above and the comment on AuthContext.signOut:
+                    // the bare call silently did nothing offline, so the
+                    // user believed they had deactivated and logged out
+                    // while still fully signed in.
+                    await signOut();
                   },
                 },
               ]

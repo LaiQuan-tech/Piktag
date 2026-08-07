@@ -11,10 +11,17 @@
 // in 20260507120000_local_contacts.sql — the client just creates
 // rows, the server handles the rest.
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { ensureTagsRegistered } from '../lib/ensureTags';
+import { CACHE_KEYS, getPersistentCache, setPersistentCache } from '../lib/dataCache';
+import { checkOffline } from '../lib/netStatus';
 import { useAuth } from './useAuth';
+
+// Rows kept on disk. A user with more than 500 un-promoted contacts is
+// not scrolling past 500 with no signal, and the list is ordered newest
+// first, so the cap keeps exactly the cards they just scanned.
+const LOCAL_CONTACTS_CACHE_MAX = 500;
 
 export type LocalContact = {
   id: string;
@@ -103,11 +110,23 @@ export function normalizePhone(raw: string | null | undefined): string | null {
 
 export function useLocalContacts() {
   const { user } = useAuth();
+  const userId = user?.id ?? null;
   const [contacts, setContacts] = useState<LocalContact[]>([]);
   const [loading, setLoading] = useState(false);
+  // Set the first time the server answers for this account. The disk
+  // hydration below refuses to paint after that, so a slow AsyncStorage
+  // read can never overwrite fresher server rows.
+  const liveFetchDoneRef = useRef(false);
 
   const refresh = useCallback(async () => {
-    if (!user) return;
+    if (!userId) return;
+    // ── No signal ────────────────────────────────────────────────────
+    // These are SERVER rows with (until now) no snapshot, so at an event
+    // with no signal every business card the user had scanned simply
+    // disappeared from the friends list — the core product moment. The
+    // hydration effect below has already painted the cached copy;
+    // returning here writes NOTHING, so the snapshot is untouched.
+    if (await checkOffline()) return;
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -119,13 +138,57 @@ export function useLocalContacts() {
         // the list tight without any client-side post-filtering.
         .is('promoted_to_connection_id', null)
         .order('created_at', { ascending: false });
-      if (!error && data) setContacts(data as LocalContact[]);
+      // `!error && data` is the whole guarantee. supabase-js RESOLVES
+      // with { data: null, error } when the request never left the
+      // phone, so this is also the transport-failure branch: we neither
+      // blank the list nor write the snapshot. A user who genuinely has
+      // no contacts still refreshes normally — an empty ARRAY with no
+      // error is a real answer and is written as one.
+      if (!error && data) {
+        const rows = data as LocalContact[];
+        liveFetchDoneRef.current = true;
+        setContacts(rows);
+        void setPersistentCache(
+          CACHE_KEYS.LOCAL_CONTACTS,
+          userId,
+          rows.slice(0, LOCAL_CONTACTS_CACHE_MAX),
+        );
+      }
     } catch (err) {
       console.warn('[useLocalContacts] refresh failed:', err);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [userId]);
+
+  // Stale-while-revalidate, disk layer. Paints the last known contacts
+  // immediately so the list is not empty at a venue, then `refresh`
+  // overwrites it when the network answers.
+  //
+  // Only `refresh` writes the snapshot, deliberately: add/update/remove
+  // below mutate this instance's `contacts`, and several screens mount
+  // their own copy of this hook whose list may never have loaded. One of
+  // those writing its near-empty state back would be precisely the
+  // "a failed fetch degrades a good snapshot" bug. They only ever run
+  // online anyway, so the next refresh records them.
+  useEffect(() => {
+    liveFetchDoneRef.current = false;
+    if (!userId) return;
+    let cancelled = false;
+    void (async () => {
+      const cached = await getPersistentCache<LocalContact[]>(
+        CACHE_KEYS.LOCAL_CONTACTS,
+        userId,
+      );
+      if (cancelled || liveFetchDoneRef.current) return;
+      if (!Array.isArray(cached) || cached.length === 0) return;
+      // Never clobber rows that already landed from the network.
+      setContacts((prev) => (prev.length > 0 ? prev : cached));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
 
   useEffect(() => {
     refresh();

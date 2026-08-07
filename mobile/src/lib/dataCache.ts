@@ -66,6 +66,37 @@ export const CACHE_KEYS = {
   // per-conversation scheme escapes clearPersistentCaches(), which iterates
   // exactly this object.
   CHAT_SEND_QUEUE: 'chatSendQueue',
+  // ── 2026-08-08, round 2: the device-global keys that were still out
+  //    there after the chat-send-queue migration ──────────────────────
+  // The commit that moved CHAT_SEND_QUEUE here called it "the last of
+  // the four" device-global keys holding user data. That was wrong, and
+  // believing it is worse than the leak: four more were still live.
+  //
+  // The viewer's recent search queries (SearchScreen). Was the
+  // device-global `piktag_recent_searches`, and the worst of the
+  // remaining four by a distance: it stores the literal NAMES and
+  // COMPANIES a user typed, up to ten of them, and sign-out never
+  // touched it. On a shared phone user B opened Search and read user A's
+  // last ten searches.
+  RECENT_SEARCHES: 'recentSearches',
+  // Scanned business cards / not-yet-registered contacts
+  // (useLocalContacts). New cache rather than a migration: these rows
+  // had no snapshot at all, so every card scanned at an event vanished
+  // from the offline friends list with no explanation.
+  LOCAL_CONTACTS: 'localContacts',
+  // Which Asks this viewer has already opened (AskStoryRow). Was the
+  // device-global `piktag_viewed_ask_ids`, so A's read state greyed out
+  // B's unread Asks.
+  VIEWED_ASKS: 'viewedAsks',
+  // The connection id of the last post-event burst we offered to batch
+  // tag (lib/burstTag). Was `piktag_burst_tag_prompted_v1` and held one
+  // of A's piktag_connections ids.
+  BURST_TAG_PROMPT: 'burstTagPrompt',
+  // Cached AI tag suggestions (ManageTagsScreen). Already per-user by
+  // name (`piktag_ai_tags_<uid>`) but under its own prefix, so
+  // clearPersistentCaches — which iterates exactly this object — never
+  // reached it and a deleted account's suggestions stayed on disk.
+  AI_TAG_SUGGESTIONS: 'aiTagSuggestions',
 } as const;
 
 const DEFAULT_TTL_MS = 300_000; // 5 minutes

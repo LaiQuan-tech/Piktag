@@ -31,6 +31,7 @@ import OverlappingAvatars from '../OverlappingAvatars';
 import { COLORS, type ColorPalette } from '../../constants/theme';
 import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
+import { CACHE_KEYS, getPersistentCache, setPersistentCache } from '../../lib/dataCache';
 import { normalizeTagName as sharedNormalizeTag, ilikeEscape, hashDisplay } from '../../lib/normalizeTag';
 import { recordAiSuggestions, markAiSuggestionAccepted } from '../../lib/aiTagLogger';
 import { recordAskResponse } from '../../lib/searchLearning';
@@ -212,26 +213,44 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
   // asks lose their gradient ring and sort to the end of the row, so
   // unviewed ones (the urgent / unaddressed) stay in front. Persisted
   // locally per device so it survives app restarts.
-  const VIEWED_ASKS_KEY = 'piktag_viewed_ask_ids';
+  // ── 2026-08-08: off the device-global key ─────────────────────────
+  // `piktag_viewed_ask_ids` was device-global and never swept, so user
+  // A's read state greyed out user B's unread Asks on a shared phone.
+  // Per user now (CACHE_KEYS.VIEWED_ASKS), therefore cleared on
+  // sign-out. Legacy key deleted, never read.
+  const LEGACY_VIEWED_ASKS_KEY = 'piktag_viewed_ask_ids';
   const [viewedAskIds, setViewedAskIds] = useState<Set<string>>(new Set());
+  // Held in a ref so the persist helper stays a stable callback while
+  // still writing under the CURRENT account.
+  const viewedAsksUserIdRef = useRef<string | null>(user?.id ?? null);
+  viewedAsksUserIdRef.current = user?.id ?? null;
+  const persistViewedAsks = useCallback(async (ids: Set<string>) => {
+    const uid = viewedAsksUserIdRef.current;
+    if (!uid) return;
+    await setPersistentCache<string[]>(CACHE_KEYS.VIEWED_ASKS, uid, [...ids]);
+  }, []);
 
   // Load viewed IDs once on mount and prune any that no longer
   // correspond to an active ask in the current feed (asks expire after
   // 24h, so the set would otherwise grow forever). The prune happens on
   // every feed change too, see effect below.
   useEffect(() => {
-    AsyncStorage.getItem(VIEWED_ASKS_KEY)
-      .then((raw) => {
-        if (!raw) return;
-        try {
-          const arr = JSON.parse(raw);
-          if (Array.isArray(arr)) setViewedAskIds(new Set(arr));
-        } catch {
-          // corrupt cache — drop it silently
-        }
-      })
-      .catch(() => {});
-  }, []);
+    AsyncStorage.removeItem(LEGACY_VIEWED_ASKS_KEY).catch(() => {});
+    const uid = user?.id;
+    if (!uid) return;
+    let cancelled = false;
+    void (async () => {
+      const stored = await getPersistentCache<unknown>(CACHE_KEYS.VIEWED_ASKS, uid);
+      if (cancelled) return;
+      if (Array.isArray(stored)) {
+        setViewedAskIds(new Set(stored.filter((s): s is string => typeof s === 'string')));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   // Garbage-collect viewed IDs against the current feed. Keeps storage
   // bounded and prevents a stale viewed-state lingering if a server
@@ -247,7 +266,7 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
     }
     if (dropped) {
       setViewedAskIds(next);
-      AsyncStorage.setItem(VIEWED_ASKS_KEY, JSON.stringify([...next])).catch(() => {});
+      void persistViewedAsks(next);
     }
     // We intentionally only re-prune when the feed changes (not when
     // viewedAskIds changes), so omit viewedAskIds from the dep array.
@@ -259,10 +278,10 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
       if (prev.has(askId)) return prev;
       const next = new Set(prev);
       next.add(askId);
-      AsyncStorage.setItem(VIEWED_ASKS_KEY, JSON.stringify([...next])).catch(() => {});
+      void persistViewedAsks(next);
       return next;
     });
-  }, []);
+  }, [persistViewedAsks]);
 
   // Apple Guideline 1.2: long-press an Ask circle to report objectionable
   // content or hide the author from the rail.

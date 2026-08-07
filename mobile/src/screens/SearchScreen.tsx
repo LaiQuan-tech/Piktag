@@ -59,7 +59,22 @@ import { AskCreateModal } from '../components/ask/AskStoryRow';
 import { useAskFeed } from '../hooks/useAskFeed';
 import type { Tag, PiktagProfile } from '../types';
 
-const RECENT_SEARCHES_KEY = 'piktag_recent_searches';
+// ── Recent searches: per-account, on disk ────────────────────────────
+// This was `piktag_recent_searches`, a DEVICE-GLOBAL AsyncStorage key
+// holding up to ten literal queries — the names and companies the user
+// typed. It was not in CACHE_KEYS, so clearPersistentCaches() (which
+// iterates exactly that object) never touched it: user A signed out,
+// user B signed in on the same phone, opened Search, and read A's last
+// ten searches. It now lives under CACHE_KEYS.RECENT_SEARCHES, keyed by
+// user id and therefore swept on sign-out.
+//
+// The legacy key is DELETED, never read as a fallback — the same
+// contract as the piktag_recent_locations / piktag_user_presets /
+// piktag_chat_send_queue_v1 migrations before it. Carrying entries over
+// would mean reading a store we cannot attribute to an account, which
+// is the leak itself. The cost is bounded: one user loses one search
+// history once, at update time.
+const LEGACY_RECENT_SEARCHES_KEY = 'piktag_recent_searches';
 const MAX_RECENT_SEARCHES = 10;
 const CACHE_KEY_POPULAR_TAGS = 'search_popular_tags';
 const CACHE_KEY_SEARCH_QUERY = 'search_last_query';
@@ -470,6 +485,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // failure. The render path swaps in <ErrorState> with a retry CTA
   // when this is true.
   const [bootstrapFailed, setBootstrapFailed] = useState(false);
+  // A typed query returned nothing because we could not ASK, not because
+  // the user's network has nobody matching. Set only on positive
+  // evidence (the offline short-circuit and the query-surface deadline);
+  // cleared at the start of every search.
+  const [searchUnreachable, setSearchUnreachable] = useState(false);
   // Current user id for the offline bootstrap snapshot, held in a ref so
   // the cache writers stay stable callbacks (see persistSearchBootstrap).
   const bootstrapUserIdRef = useRef<string | null>(null);
@@ -585,7 +605,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  // user?.id, not `user`: AuthContext hands out a NEW user object on
+  // every token refresh (hourly, and on every foreground). This only
+  // needs the identity, and depending on the object re-ran the whole
+  // query on every refresh — wasted bandwidth on exactly the weak venue
+  // networks this app exists for.
+  }, [user?.id]);
   const recentSearchesRef = useRef(recentSearches);
   recentSearchesRef.current = recentSearches;
   const isMountedRef = useRef(true);
@@ -642,7 +667,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       if (c.connected_user_id && c.id) m.set(c.connected_user_id, c.id);
     }
     setMyFriendIds(m);
-  }, [user]);
+  // user?.id, not `user`: AuthContext hands out a NEW user object on
+  // every token refresh (hourly, and on every foreground). This only
+  // needs the identity, and depending on the object re-ran the whole
+  // query on every refresh — wasted bandwidth on exactly the weak venue
+  // networks this app exists for.
+  }, [user?.id]);
 
   useEffect(() => {
     fetchMyFriendIds();
@@ -676,7 +706,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     } catch (err) {
       console.warn('[SearchScreen] get_friend_of_friend_ids threw:', err);
     }
-  }, [user]);
+  // user?.id, not `user`: AuthContext hands out a NEW user object on
+  // every token refresh (hourly, and on every foreground). This only
+  // needs the identity, and depending on the object re-ran the whole
+  // query on every refresh — wasted bandwidth on exactly the weak venue
+  // networks this app exists for.
+  }, [user?.id]);
 
   useEffect(() => {
     fetchFoFIds();
@@ -690,21 +725,40 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   // ── Data loaders (all wrapped in useCallback) ──
 
-  const loadRecentSearches = useCallback(async () => {
+  // Best-effort, once-per-app-run deletion of the device-global key.
+  // Delete only — it is never read. See LEGACY_RECENT_SEARCHES_KEY.
+  const purgeLegacyRecentSearches = useCallback(async () => {
     try {
-      const stored = await AsyncStorage.getItem(RECENT_SEARCHES_KEY);
-      if (stored) {
-        // Defensive parse: a corrupted/wrong-shape AsyncStorage value
-        // (older app version, manual edit, hot-reload swap) would
-        // otherwise set recentSearches to a non-array and crash
-        // every .map / .filter render downstream.
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          setRecentSearches(parsed.filter((s) => typeof s === 'string'));
-        }
-      }
+      await AsyncStorage.removeItem(LEGACY_RECENT_SEARCHES_KEY);
     } catch {}
   }, []);
+
+  // Writes go through this one helper so the per-user namespacing can
+  // never be forgotten at a call site.
+  const persistRecentSearches = useCallback(async (list: string[]) => {
+    const uid = bootstrapUserIdRef.current;
+    if (!uid) return;
+    await setPersistentCache(CACHE_KEYS.RECENT_SEARCHES, uid, list);
+  }, []);
+
+  const loadRecentSearches = useCallback(async () => {
+    try {
+      void purgeLegacyRecentSearches();
+      const uid = bootstrapUserIdRef.current;
+      if (!uid) return;
+      const stored = await getPersistentCache<unknown>(
+        CACHE_KEYS.RECENT_SEARCHES,
+        uid,
+      );
+      // Defensive parse: a corrupted/wrong-shape stored value (older app
+      // version, manual edit, hot-reload swap) would otherwise set
+      // recentSearches to a non-array and crash every .map / .filter
+      // render downstream.
+      if (Array.isArray(stored)) {
+        setRecentSearches(stored.filter((s): s is string => typeof s === 'string'));
+      }
+    } catch {}
+  }, [purgeLegacyRecentSearches]);
 
   const saveRecentSearch = useCallback(async (query: string) => {
     try {
@@ -716,9 +770,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         MAX_RECENT_SEARCHES,
       );
       setRecentSearches(updated);
-      await AsyncStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+      await persistRecentSearches(updated);
     } catch {}
-  }, []);
+  }, [persistRecentSearches]);
 
   // Detect tag language from text characters
   const detectTagLang = useCallback((name: string): string => {
@@ -976,7 +1030,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     } finally {
       if (isMountedRef.current) setLoading(false);
     }
-  }, [user]);
+  // user?.id, not `user`: AuthContext hands out a NEW user object on
+  // every token refresh (hourly, and on every foreground). This only
+  // needs the identity, and depending on the object re-ran the whole
+  // query on every refresh — wasted bandwidth on exactly the weak venue
+  // networks this app exists for.
+  }, [user?.id]);
 
   // ── Load initial data on mount (parallel) ──
 
@@ -1142,6 +1201,18 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     };
   }, [runBootstrap]);
 
+  // Recent searches are per-account now, so they are (re)loaded when the
+  // account id lands or changes. runBootstrap also calls this, but it
+  // fires on mount — possibly before AuthContext has resolved a session,
+  // in which case there is no id to read under and the list would stay
+  // empty for the whole launch. Signing in as someone else re-runs this
+  // and swaps in THEIR history rather than leaving the previous user's
+  // on screen.
+  useEffect(() => {
+    setRecentSearches([]);
+    void loadRecentSearches();
+  }, [user?.id, loadRecentSearches]);
+
   // Auto-retry the bootstrap on reconnect when the previous attempt
   // flagged a network failure. Without this, users who opened Search
   // while offline would be stuck on the error surface even after
@@ -1178,6 +1249,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   useLoadDeadline((loading || initialLoading) && !onDefaultSurface, () => {
     setLoading(false);
     setInitialLoading(false);
+    // Never bootstrapFailed here — clearing the query would then drop
+    // the user onto an error screen for a tag world we may well still
+    // have cached. But the QUERY did go unanswered, and saying "nobody
+    // in your network matches" on the strength of a request that never
+    // came back is the same lie the offline branch used to tell.
+    setSearchUnreachable(true);
   });
 
   // ── Event handlers (all useCallback) ──
@@ -1279,6 +1356,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       const seq = ++searchSeqRef.current;
       setLoading(true);
       setActiveCategory(null);
+      // Fresh attempt: nothing is known to be unreachable yet.
+      setSearchUnreachable(false);
       // Clear any stale AI-extracted-keywords chip from the previous
       // search; recovery will repopulate this only if it actually fires.
       setLlmExtractedKeywords([]);
@@ -1295,6 +1374,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         setTags([]);
         setProfiles([]);
         setTagUsers([]);
+        // WITHOUT this flag the empty result fell into the dead-end
+        // branch and told the user 「你的人脈裡還沒有「X」的人」 — a
+        // confident statement about their network that we had no
+        // grounds for — under a 發 Ask CTA that cannot post offline
+        // either. Now the same empty result renders <ErrorState>, the
+        // way NotificationsScreen already does.
+        setSearchUnreachable(true);
         setLoading(false);
         saveRecentSearch(query.trim());
         return;
@@ -2317,11 +2403,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     const updated = recentSearches.filter((q) => q !== query);
     setRecentSearches(updated);
     try {
-      await AsyncStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+      await persistRecentSearches(updated);
     } catch {
       // best-effort — UI already updated
     }
-  }, [recentSearches]);
+  }, [recentSearches, persistRecentSearches]);
 
   // ── Computed display flags (memoized) ──
 
@@ -2408,6 +2494,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     | { type: 'tagsEmpty' }
     | { type: 'tagsGrid' }
     | { type: 'bootstrapError' }
+    | { type: 'searchError' }
     | { type: 'intersectionTabs' }
     | { type: 'searchTabs'; friendsCount: number; exploreCount: number }
     | { type: 'aiThinking' }
@@ -2954,7 +3041,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         // it — the tags grid above + this make the result honest.
         // isDeadEnd carries the concept into the title + drops the
         // standalone chip / hint / clear (clean 3-element layout).
-        items.push({ type: 'profilesEmpty', isDeadEnd, conceptLabel });
+        if (searchUnreachable) {
+          // We could not ask. Say that, with a retry — never "there is
+          // nobody", and never the Ask CTA, which needs the network too.
+          items.push({ type: 'searchError' });
+        } else {
+          items.push({ type: 'profilesEmpty', isDeadEnd, conceptLabel });
+        }
       }
     } else if (isFocused && recentSearches.length > 0) {
       // IG-style: recent searches only appear when the user taps the input.
@@ -2984,6 +3077,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   }, [
     loading,
     initialLoading,
+    searchUnreachable,
     showRecent,
     recentSearches,
     showProfiles,
@@ -3094,6 +3188,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             <ErrorState onRetry={() => void runBootstrap()} />
           );
 
+        case 'searchError':
+          // ErrorState reads NetInfo itself and picks the offline vs
+          // load-failed wording; retry re-runs the same query.
+          return (
+            <ErrorState onRetry={() => void performSearch(trimmedQuery)} />
+          );
+
         case 'intersectionTabs':
           return (
             <View>
@@ -3199,7 +3300,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                       text: t('common.confirm'),
                       style: 'destructive',
                       onPress: async () => {
-                        await AsyncStorage.removeItem(RECENT_SEARCHES_KEY);
+                        await persistRecentSearches([]);
                         setRecentSearches([]);
                       },
                     },
@@ -3219,7 +3320,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
               {item.showClear && (
                 <TouchableOpacity
                   onPress={async () => {
-                    await AsyncStorage.removeItem(RECENT_SEARCHES_KEY);
+                    await persistRecentSearches([]);
                     setRecentSearches([]);
                   }}
                   activeOpacity={0.7}

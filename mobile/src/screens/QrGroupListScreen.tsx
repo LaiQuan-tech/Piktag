@@ -58,6 +58,8 @@ import {
   setPersistentCache,
 } from '../lib/dataCache';
 import { useAuth } from '../hooks/useAuth';
+import { useLoadDeadline } from '../hooks/useLoadDeadline';
+import { checkOffline } from '../lib/netStatus';
 import { joinEventRoom } from '../lib/eventRoom';
 import { bidiMark } from '../lib/normalizeTag';
 
@@ -137,6 +139,17 @@ export default function QrGroupListScreen({ navigation }: Props) {
       setLoading(false);
       return;
     }
+    // The disk hydration below has already painted whatever this account
+    // has; with no signal these queries would only add ~25s of
+    // auth-refresh backoff (lib/netStatus.ts) before failing. Return
+    // BEFORE setLoading(true) so an empty-cache launch lands on the
+    // load-failed card in a second instead of a spinner. Nothing is
+    // written here, so no snapshot can be degraded.
+    if (await checkOffline()) {
+      setLoadFailed(true);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const fullCols =
@@ -202,13 +215,16 @@ export default function QrGroupListScreen({ navigation }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user?.id]);
 
   const loadAttended = useCallback(async () => {
     if (!user) {
       setAttended([]);
       return;
     }
+    // Same reasoning as loadGroups. This section keeps whatever the
+    // cache painted; it never writes on this path.
+    if (await checkOffline()) return;
     try {
       // Every query below is error-checked, not just try/caught: on a
       // transport failure supabase-js RESOLVES with { data: null,
@@ -286,7 +302,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
     } catch {
       /* section simply stays hidden */
     }
-  }, [user]);
+  }, [user?.id]);
 
   const openAttendedRoom = useCallback(
     async (sessionId: string) => {
@@ -347,6 +363,15 @@ export default function QrGroupListScreen({ navigation }: Props) {
       void loadAttended();
     }, [loadGroups, loadAttended]),
   );
+
+  // Online but going nowhere. Stop the spinner and let the render fall
+  // through to the load-failed card. `loadFailed` is only ever CONSULTED
+  // when both lists are empty (see the render), so setting it here
+  // cannot hide a cached list; a successful load clears it again.
+  useLoadDeadline(loading, () => {
+    setLoading(false);
+    setLoadFailed(true);
+  });
 
 
   const handleCreateNew = useCallback(() => {

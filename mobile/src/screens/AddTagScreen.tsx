@@ -251,7 +251,12 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     } catch (err) {
       console.warn('[AddTag] loadPresets:', err);
     }
-  }, [user]);
+  // user?.id, not `user`: AuthContext hands out a NEW user object on
+  // every token refresh (hourly, and on every foreground). This only
+  // needs the identity, and depending on the object re-ran the whole
+  // query on every refresh — wasted bandwidth on exactly the weak venue
+  // networks this app exists for.
+  }, [user?.id]);
 
   useEffect(() => {
     // Cancelled-flag pattern for unmount safety. All async callbacks in
@@ -389,7 +394,12 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  // user?.id, not `user`: AuthContext hands out a NEW user object on
+  // every token refresh (hourly, and on every foreground). This only
+  // needs the identity, and depending on the object re-ran the whole
+  // query on every refresh — wasted bandwidth on exactly the weak venue
+  // networks this app exists for.
+  }, [user?.id]);
 
   useEffect(() => {
     // GPS → reverse-geocode → primary place + multi-level joined

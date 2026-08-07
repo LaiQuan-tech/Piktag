@@ -109,6 +109,32 @@ export async function dequeue(
   }
 }
 
+/**
+ * Drop several entries in ONE read-modify-write.
+ *
+ * Called when a thread fetch proves the server already holds rows with
+ * these nonces — the durable proof of delivery that the realtime echo
+ * was supposed to provide but does not when the socket was down at the
+ * moment the row landed. Looping `dequeue` instead would interleave N
+ * read-modify-write cycles on the same key and lose entries.
+ *
+ * Only ever called with nonces the server CONFIRMED; "I couldn't ask"
+ * must never reach this function.
+ */
+export async function dequeueMany(
+  userId: string | null | undefined,
+  nonces: Iterable<string>,
+): Promise<void> {
+  if (!userId) return;
+  const drop = new Set(nonces);
+  if (drop.size === 0) return;
+  const items = await loadQueue(userId);
+  const next = items.filter((q) => !drop.has(q.nonce));
+  if (next.length !== items.length) {
+    await saveQueue(userId, next);
+  }
+}
+
 export async function peek(userId: string | null | undefined): Promise<QueuedSend[]> {
   return loadQueue(userId);
 }

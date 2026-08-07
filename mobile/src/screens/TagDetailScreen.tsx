@@ -17,10 +17,13 @@ import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import RingedAvatar from '../components/RingedAvatar';
 import AskListByTag from '../components/ask/AskListByTag';
+import ErrorState from '../components/ErrorState';
 import { supabase } from '../lib/supabase';
 import { getSiblingTagIds } from '../lib/tagSiblings';
 import { ilikeEscape, hashDisplay } from '../lib/normalizeTag';
 import { useAuth } from '../hooks/useAuth';
+import { useLoadDeadline } from '../hooks/useLoadDeadline';
+import { checkOffline } from '../lib/netStatus';
 
 type TagDetailScreenProps = {
   navigation: any;
@@ -111,6 +114,19 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
   const [tagSemanticType, setTagSemanticType] = useState<string | null>(null);
   const [parentTagName, setParentTagName] = useState<string | null>(null);
   const [relatedTags, setRelatedTags] = useState<{ id: string; name: string; usage_count: number }[]>([]);
+  // ── "We could not ask" is not "there is nobody" ───────────────────
+  // This screen was never in scope of the offline work, so with no
+  // signal a tag tapped from the cached Search grid gave a full-page
+  // loader for ~25s and then 「尚無相關人脈」 — stating as fact that the
+  // tag has no people, when the truth is that we never got to ask. Set
+  // ONLY where there is positive evidence the network was the problem
+  // (the offline short-circuits and the paint deadline), so a tag that
+  // genuinely has nobody still shows the real empty state.
+  const [unreachable, setUnreachable] = useState(false);
+  // The resolve query ANSWERED and this tag does not exist. Kept apart
+  // from `unreachable` for the same reason: one is a fact about the
+  // data, the other about the connection.
+  const [tagNotFound, setTagNotFound] = useState(false);
 
   // Map of friend user_id → connection_id (mirrors SearchScreen's
   // pattern from 2026-05-26). Needed so that taps on a profile in the
@@ -135,7 +151,12 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
       setMyFriendIds(m);
     })();
     return () => { cancelled = true; };
-  }, [user]);
+    // user?.id, not `user`: AuthContext hands out a NEW user object on
+    // every token refresh (hourly, and on every foreground), and this
+    // effect only needs the identity. Depending on the object re-ran the
+    // query on every refresh — pure waste on the weak venue networks
+    // this app is built for.
+  }, [user?.id]);
 
   // Single helper used by all three "tap a profile" entry points in
   // this screen (Explore row, Explore "view profile" button, Ask
@@ -158,11 +179,21 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
     if (paramTagId) { setResolvedTagId(paramTagId); return; }
     if (!tagName) return;
     const resolve = async () => {
+      // No signal: this lookup would sit through the ~25s auth-refresh
+      // backoff (lib/netStatus.ts) before failing, and its failure was
+      // then read as "tag genuinely not found". Stop here instead and
+      // let the render show an honest offline surface.
+      if (await checkOffline()) {
+        setUnreachable(true);
+        setLoading(false);
+        setExploreLoading(false);
+        return;
+      }
       // .single() ERRORS (not just empties) when the name has
       // duplicate rows (legacy mixed-case dupes) — so an existing
       // tag failed to resolve and the screen dead-ended. limit(1)
       // tolerates dupes (take the first) and 0 rows (empty array).
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('piktag_tags')
         .select('id')
         // Case-insensitive (ilike + escape wildcards) — a tagName from a
@@ -171,8 +202,25 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         // the screen. See normalizeTag.ts (the "標籤加不了" footgun).
         .ilike('name', ilikeEscape(tagName))
         .limit(1);
-      if (data && data[0]) setResolvedTagId(data[0].id);
-      else setLoading(false); // tag genuinely not found
+      if (error) {
+        // THE QUERY FAILED. supabase-js resolves a transport failure as
+        // `{data: null, error}`, so the old `if (data && data[0]) … else
+        // "tag genuinely not found"` branch turned every failed lookup
+        // into a confident claim that the tag does not exist. These are
+        // different facts and now render differently.
+        setUnreachable(true);
+        setLoading(false);
+        setExploreLoading(false);
+        return;
+      }
+      if (data && data[0]) {
+        setResolvedTagId(data[0].id);
+        return;
+      }
+      // Answered, and the answer is that there is no such tag.
+      setTagNotFound(true);
+      setLoading(false);
+      setExploreLoading(false);
     };
     resolve();
   }, [paramTagId, tagName]);
@@ -182,6 +230,14 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
   // --- Fetch connections with this tag (existing logic) ---
   const fetchTagConnections = useCallback(async () => {
     if (!user || !tagId) return;
+    // Every query below goes through supabase-js and pays the ~25s
+    // auth-refresh backoff before reporting failure. Return now; nothing
+    // is written, so nothing on screen is disturbed.
+    if (await checkOffline()) {
+      setUnreachable(true);
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
 
@@ -249,17 +305,25 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         .filter((conn: any) => conn && conn.connected_user_id);
 
       setConnections(allConnections);
+      // The server answered. Whatever earlier failure or deadline set
+      // the flag is now resolved.
+      setUnreachable(false);
     } catch (err) {
       console.error('Unexpected error:', err);
       setConnections([]);
     } finally {
       setLoading(false);
     }
-  }, [user, tagId]);
+  }, [user?.id, tagId]);
 
   // --- Fetch all public users with this tag (NEW: explore) ---
   const fetchExploreUsers = useCallback(async () => {
     if (!user || !tagId) return;
+    if (await checkOffline()) {
+      setUnreachable(true);
+      setExploreLoading(false);
+      return;
+    }
     try {
       setExploreLoading(true);
 
@@ -382,7 +446,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
     } finally {
       setExploreLoading(false);
     }
-  }, [user, tagId]);
+  }, [user?.id, tagId]);
 
   // --- Fetch tag metadata (semantic_type, parent) ---
   const fetchTagMeta = useCallback(async () => {
@@ -440,6 +504,10 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
   // 'connections' (the social-priority view).
   useEffect(() => {
     if (loading) return;
+    // Never auto-flip tabs on a load we never got. "No friends with this
+    // tag" is a conclusion, and offline we have not earned it. Same for
+    // a tag the server says does not exist: there is nothing to explore.
+    if (unreachable || tagNotFound) return;
     if (userPickedTabRef.current) return;
     // Stay on 'connections' if EITHER member connections OR manually-
     // tagged local contacts exist — both live in that tab now.
@@ -450,7 +518,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
     ) {
       setActiveTab('explore');
     }
-  }, [loading, connections.length, taggedContacts.length, activeTab]);
+  }, [loading, unreachable, tagNotFound, connections.length, taggedContacts.length, activeTab]);
 
   // --- Connection item renderer ---
   const renderConnectionItem = useCallback(({ item }: { item: ConnTabItem }) => {
@@ -582,6 +650,33 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
 
   const isConnectionsTab = activeTab === 'connections';
   const currentLoading = isConnectionsTab ? loading : exploreLoading;
+  // Online but going nowhere (captive portal, venue wifi that associates
+  // and routes nowhere). Stop both spinners and say so; a late response
+  // still paints over whatever this leaves behind.
+  useLoadDeadline(loading || exploreLoading, () => {
+    setLoading(false);
+    setExploreLoading(false);
+    setUnreachable(true);
+  });
+
+  // Retry both halves of the screen. Clearing the flag first so the
+  // surface swaps to a spinner immediately rather than looking frozen
+  // between the tap and the response.
+  const handleRetry = useCallback(() => {
+    setUnreachable(false);
+    setTagNotFound(false);
+    void fetchTagConnections();
+    void fetchExploreUsers();
+  }, [fetchTagConnections, fetchExploreUsers]);
+
+  // One honest surface for both tabs: we could not reach the server, so
+  // we are not going to claim anything about who uses this tag.
+  // ErrorState reads NetInfo itself and picks the offline vs
+  // load-failed wording, exactly as the list screens already do.
+  const unreachableEmpty = useMemo(
+    () => <ErrorState compact onRetry={handleRetry} />,
+    [handleRetry],
+  );
   const currentData = isConnectionsTab ? connectionsData : exploreUsers;
 
   // Active asks tagged with this tag — surfaces "who is currently
@@ -709,11 +804,15 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           ]}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Hash size={48} color={colors.gray200} strokeWidth={1.5} />
-              <Text style={styles.emptyTitle}>{t('tagDetail.emptyTitle')}</Text>
-              <Text style={styles.emptyText}>{t('tagDetail.emptyText')}</Text>
-            </View>
+            unreachable ? (
+              unreachableEmpty
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Hash size={48} color={colors.gray200} strokeWidth={1.5} />
+                <Text style={styles.emptyTitle}>{t('tagDetail.emptyTitle')}</Text>
+                <Text style={styles.emptyText}>{t('tagDetail.emptyText')}</Text>
+              </View>
+            )
           }
           initialNumToRender={10}
           maxToRenderPerBatch={10}
@@ -731,11 +830,15 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           ]}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Users size={48} color={colors.gray200} strokeWidth={1.5} />
-              <Text style={styles.emptyTitle}>{t('tagDetail.exploreEmptyTitle')}</Text>
-              <Text style={styles.emptyText}>{t('tagDetail.exploreEmptyText')}</Text>
-            </View>
+            unreachable ? (
+              unreachableEmpty
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Users size={48} color={colors.gray200} strokeWidth={1.5} />
+                <Text style={styles.emptyTitle}>{t('tagDetail.exploreEmptyTitle')}</Text>
+                <Text style={styles.emptyText}>{t('tagDetail.exploreEmptyText')}</Text>
+              </View>
+            )
           }
           initialNumToRender={10}
           maxToRenderPerBatch={10}

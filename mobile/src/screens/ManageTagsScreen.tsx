@@ -20,6 +20,7 @@ import BoltIcon from '../components/BoltIcon';
 import SectionTitle from '../components/SectionTitle';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
+import { CACHE_KEYS, getPersistentCache, setPersistentCache } from '../lib/dataCache';
 import { logApiUsage } from '../lib/apiUsage';
 import { recordAiSuggestions, markAiSuggestionAccepted } from '../lib/aiTagLogger';
 import { normalizeTagName, ilikeEscape, hashDisplay } from '../lib/normalizeTag';
@@ -30,6 +31,11 @@ import { useTheme } from '../context/ThemeContext';
 const DraggableChips = Platform.OS !== 'web' ? require('../components/DraggableChips').default : null;
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Tag, UserTag } from '../types';
+
+// Shape of the cached AI tag suggestions. Same fields the old
+// hand-rolled JSON blob carried, now typed because it goes through
+// get/setPersistentCache.
+type AiTagCache = { suggestions: string[]; timestamp: number };
 
 const MAX_TAGS = 10;
 const MAX_TAG_LENGTH = 30;
@@ -69,7 +75,12 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       .eq('user_id', user.id)
       .order('position');
     if (!error && data) setMyTags(data);
-  }, [user]);
+  // user?.id, not `user`: AuthContext hands out a NEW user object on
+  // every token refresh (hourly, and on every foreground). This only
+  // needs the identity, and depending on the object re-ran the whole
+  // query on every refresh — wasted bandwidth on exactly the weak venue
+  // networks this app exists for.
+  }, [user?.id]);
 
   const loadPopularTags = useCallback(async () => {
     const { data, error } = await supabase
@@ -92,16 +103,22 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     try {
       setAiLoading(true);
 
-      const cacheKey = `piktag_ai_tags_${user.id}`;
-      const cached = await AsyncStorage.getItem(cacheKey);
-      if (cached) {
-        try {
-          const { suggestions, timestamp } = JSON.parse(cached);
-          if (Date.now() - timestamp < 24 * 60 * 60 * 1000 && suggestions?.length > 0) {
-            setAiSuggestions(suggestions);
-            return;
-          }
-        } catch {}
+      // Was `piktag_ai_tags_<uid>` — per-user by name, but under its own
+      // prefix, so clearPersistentCaches() (which iterates CACHE_KEYS)
+      // never reached it and a deleted account's suggestions stayed on
+      // the device. Same data, now on a swept key.
+      const cached = await getPersistentCache<AiTagCache>(
+        CACHE_KEYS.AI_TAG_SUGGESTIONS,
+        user.id,
+      );
+      if (
+        cached &&
+        Date.now() - (cached.timestamp ?? 0) < 24 * 60 * 60 * 1000 &&
+        Array.isArray(cached.suggestions) &&
+        cached.suggestions.length > 0
+      ) {
+        setAiSuggestions(cached.suggestions);
+        return;
       }
 
       // Run profile + existing-tags fetches in parallel — both feed the
@@ -177,7 +194,10 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       }
 
       setAiSuggestions(data.suggestions);
-      AsyncStorage.setItem(cacheKey, JSON.stringify({ suggestions: data.suggestions, timestamp: Date.now() }));
+      void setPersistentCache<AiTagCache>(CACHE_KEYS.AI_TAG_SUGGESTIONS, user.id, {
+        suggestions: data.suggestions,
+        timestamp: Date.now(),
+      });
       // Principle #5: log shown suggestions for calibration (fresh fetch
       // only — the cache-hit path was already recorded on first fetch).
       void (async () => {
@@ -510,7 +530,13 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                   style={styles.aiRetryBtn}
                   onPress={() => {
                     // Clear cache so retry actually hits the API
-                    if (user) AsyncStorage.removeItem(`piktag_ai_tags_${user.id}`);
+                    if (user) {
+                      void setPersistentCache<AiTagCache>(
+                        CACHE_KEYS.AI_TAG_SUGGESTIONS,
+                        user.id,
+                        { suggestions: [], timestamp: 0 },
+                      );
+                    }
                     loadAiSuggestions();
                   }}
                 >

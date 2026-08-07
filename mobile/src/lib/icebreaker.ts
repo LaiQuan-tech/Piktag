@@ -12,6 +12,7 @@
  */
 import i18n from '../i18n';
 import { supabase } from './supabase';
+import { checkOffline, NETWORK_PAINT_DEADLINE_MS } from './netStatus';
 
 export type IcebreakerInput = {
   /** The friend / contact you're chatting with. */
@@ -23,8 +24,14 @@ export type IcebreakerInput = {
 
 /** Best-effort: returns at most 3 short message suggestions. */
 export async function generateIcebreakers(input: IcebreakerInput): Promise<string[]> {
+  // An edge-function invoke is still a supabase-js call, so offline it
+  // sits through the ~25s auth-refresh backoff (lib/netStatus.ts) before
+  // failing. The caller shows a spinner for that whole window for a
+  // suggestion that cannot arrive. "No suggestions" is the documented
+  // empty answer, so return it immediately.
+  if (await checkOffline()) return [];
   try {
-    const { data, error } = await supabase.functions.invoke<{ suggestions: string[] }>(
+    const invocation = supabase.functions.invoke<{ suggestions: string[] }>(
       'generate-icebreaker',
       {
         body: {
@@ -37,6 +44,23 @@ export async function generateIcebreakers(input: IcebreakerInput): Promise<strin
         },
       },
     );
+    // The case checkOffline cannot see: NetInfo reports a connection but
+    // the request is doomed anyway (captive portal, dead venue wifi).
+    // The invoke is never cancelled — a late answer is simply ignored —
+    // we just stop holding a spinner open for it. Icebreakers are a
+    // nicety; the composer works without them.
+    const TIMED_OUT = Symbol('timeout');
+    const raced = await Promise.race([
+      invocation,
+      new Promise<typeof TIMED_OUT>((resolve) =>
+        setTimeout(() => resolve(TIMED_OUT), NETWORK_PAINT_DEADLINE_MS),
+      ),
+    ]);
+    if (raced === TIMED_OUT) {
+      console.warn('[icebreaker] generate timed out');
+      return [];
+    }
+    const { data, error } = raced;
     if (error) {
       console.warn('[icebreaker] generate failed:', error.message);
       return [];

@@ -14,6 +14,7 @@ import {
   User,
 } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
+import { checkOffline } from '../lib/netStatus';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useAuthContext } from '../context/AuthContext';
@@ -445,7 +446,24 @@ function parseSidFromUrl(url: string | null): { username?: string; sid?: string 
   return null;
 }
 
+// The one key here that genuinely CANNOT be user-namespaced: it is
+// written at cold start, before anyone has signed in, precisely because
+// it carries the invite that leads to registration. There is no user id
+// to scope it to at capture time, and inventing one would recreate a
+// global key under a different name.
+//
+// Two bounds instead, so a stale invite cannot attach itself to an
+// unrelated later registration on a shared phone:
+//   • the stored envelope carries its capture time, and a link older
+//     than PENDING_DEEP_LINK_TTL_MS is discarded on read;
+//   • AuthContext.signOut() removes it, so it never survives a handover
+//     from one user to the next.
 const PENDING_DEEP_LINK_KEY = 'piktag_pending_deep_link';
+// One hour. Long enough for capture → app-store install → sign-up on a
+// slow connection, far short of "still here tomorrow for whoever picks
+// up the phone". The consumer already refuses accounts older than five
+// minutes; this bounds the OTHER side of the same window.
+const PENDING_DEEP_LINK_TTL_MS = 60 * 60 * 1000;
 const ONBOARDING_COMPLETED_KEY = 'piktag_onboarding_completed_v1';
 // Per-account cache key. The bare ONBOARDING_COMPLETED_KEY was a
 // DEVICE-GLOBAL flag, so onboarding-completion leaked across accounts
@@ -556,7 +574,10 @@ export default function AppNavigator() {
             // Persist as a safety net: if the app is killed between
             // cold-start capture and register completion, we still get
             // a chance to resolve the pending connection next launch.
-            AsyncStorage.setItem(PENDING_DEEP_LINK_KEY, JSON.stringify(parsed)).catch(() => {});
+            AsyncStorage.setItem(
+              PENDING_DEEP_LINK_KEY,
+              JSON.stringify({ ...parsed, capturedAt: Date.now() }),
+            ).catch(() => {});
           }
         };
 
@@ -707,6 +728,18 @@ export default function AppNavigator() {
         return 'skip';
       }
 
+      // ── No signal: do not spend the 4s race finding that out ────────
+      // This is the ONLY network call on the startup path without a
+      // connectivity guard, and it sits directly under the splash
+      // loader. Offline the query below cannot succeed, so the race
+      // always ran its full 4 seconds and then returned `failDecision`
+      // anyway — four seconds of white screen for an answer we already
+      // know. Return the SAME decision immediately. (checkOffline fails
+      // open, so an unknown NetInfo state still takes the real path.)
+      if (await checkOffline()) {
+        return failDecision;
+      }
+
       // Bound the query with a timeout. It sits on the launch / sign-in
       // gate, and RN fetch never times out — a stalled query (e.g. a
       // token refresh holding the auth lock) would otherwise pin the
@@ -766,7 +799,22 @@ export default function AppNavigator() {
       let pending = pendingDeepLinkRef.current;
       if (!pending) {
         const stored = await AsyncStorage.getItem(PENDING_DEEP_LINK_KEY);
-        if (stored) pending = JSON.parse(stored) as { username?: string; sid?: string };
+        if (stored) {
+          const parsed = JSON.parse(stored) as {
+            username?: string;
+            sid?: string;
+            capturedAt?: number;
+          };
+          // Expired, or written before this build stamped a time. Either
+          // way we cannot tell whose invite it is, so drop it rather
+          // than attach a stranger's inviter to this registration.
+          const capturedAt = parsed?.capturedAt ?? 0;
+          if (Date.now() - capturedAt > PENDING_DEEP_LINK_TTL_MS) {
+            await AsyncStorage.removeItem(PENDING_DEEP_LINK_KEY).catch(() => {});
+          } else {
+            pending = parsed;
+          }
+        }
       }
 
       if (!pending?.sid) return;
