@@ -11,7 +11,7 @@ import time
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
-from typing import Sequence
+from typing import Optional, Sequence
 
 import onnxruntime as ort
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
@@ -49,13 +49,24 @@ WORKING_LONG_EDGE = 2048
 # at 2048x1365 — keeps R2 storage low and download fast.
 JPEG_QUALITY = 90
 
-# Cutout vertical fit: scale subject to this fraction of canvas height,
-# anchored to bottom (typical event photo: standing or upper body).
-CUTOUT_HEIGHT_RATIO = 0.92
+# Safe zone for the person cutout — reserves space for title frames baked
+# into the background. TOP_RESERVE = fraction of canvas height taken by a
+# top title frame; BOTTOM_RESERVE = fraction taken by a bottom text band.
+# Both default to 0 (full bleed). Set per-event in watch.py or via constants.
+SAFE_TOP_RATIO    = 0.28   # top 28% = title cartouche (台北永心扶輪社…3RD ANNIVERSARY)
+SAFE_BOTTOM_RATIO = 0.12   # bottom 12% = footer (Taipei First heart forever / 台北永心扶輪社)
+
+# Cutout vertical fit: scale subject to fill SAFE_ZONE_FILL of the available
+# safe zone height, feet anchored to the bottom of the safe zone.
+SAFE_ZONE_FILL = 0.96
 
 # Watermark: width as fraction of canvas, margin from edges in px
 WATERMARK_WIDTH_RATIO = 0.12
 WATERMARK_MARGIN_PX = 40
+
+# Event logo overlay (bottom-right corner)
+LOGO_WIDTH_RATIO = 0.15   # 15% of canvas width — visible but not dominating
+LOGO_MARGIN_PX = 30       # padding from each edge
 
 # Event title overlay — rendered ON TOP of the cutout (in front of the person)
 # at bottom-center. Three lines: title / subtitle / today's date. White text +
@@ -75,16 +86,26 @@ TITLE_STROKE_WIDTH = 2           # crisp 1-2 px outline for edge contrast
 # Font selection — bold preferred for the main title, regular for subtitle.
 # Tries macOS first, then Linux fonts. Falls back to PIL's default (small)
 # if nothing found, which is ugly enough that it'd prompt manual fix.
+# Gold overlay color — rich warm gold with black stroke for legibility on any bg
+TITLE_FILL_COLOR = (255, 210, 80)
+TITLE_STROKE_COLOR = (80, 50, 0)
+
 TITLE_BOLD_FONT_CANDIDATES = [
+    "/System/Library/Fonts/PingFang.ttc",                    # macOS CJK (best for Chinese)
+    "/System/Library/Fonts/STHeiti Light.ttc",               # macOS CJK fallback
     "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
     "/Library/Fonts/Arial Bold.ttf",
-    "/System/Library/Fonts/HelveticaNeue.ttc",  # tries index 8 = Bold
+    "/System/Library/Fonts/HelveticaNeue.ttc",
+    "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
     "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
 ]
 TITLE_REGULAR_FONT_CANDIDATES = [
+    "/System/Library/Fonts/PingFang.ttc",
+    "/System/Library/Fonts/STHeiti Light.ttc",
     "/System/Library/Fonts/Supplemental/Arial.ttf",
     "/Library/Fonts/Arial.ttf",
-    "/System/Library/Fonts/HelveticaNeue.ttc",  # index 0 = Regular
+    "/System/Library/Fonts/HelveticaNeue.ttc",
+    "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
     "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
 ]
 
@@ -105,9 +126,12 @@ class Processor:
         backgrounds: Sequence[Path],
         watermark_path: Path,
         model: str = "birefnet-portrait",
+        event_title: str = "",
+        event_subtitle: str = "",
+        logo_path: Optional[Path] = None,
     ):
-        if len(backgrounds) != 5:
-            raise ValueError(f"Need exactly 5 backgrounds, got {len(backgrounds)}")
+        if not backgrounds:
+            raise ValueError("Need at least 1 background")
 
         # Load bg images eagerly. They're reused across every photo, so this
         # avoids repeated decoding. Convert to RGB (no alpha needed for bg).
@@ -119,6 +143,16 @@ class Processor:
         # Watermark stays RGBA — alpha mask is required for transparent paste
         self.watermark: Image.Image = Image.open(watermark_path).convert("RGBA")
 
+        # Optional event text overlaid at the bottom of every composite.
+        # Leave both empty when the background image already contains event branding.
+        self.event_title = event_title
+        self.event_subtitle = event_subtitle
+
+        # Optional logo pasted bottom-right over every composite.
+        self.logo: Optional[Image.Image] = None
+        if logo_path and logo_path.exists():
+            self.logo = Image.open(logo_path).convert("RGBA")
+
         # rembg session: load model once, reuse for every image.
         # birefnet-portrait is the strongest free model for human subjects.
         # First call downloads ~973MB to ~/.u2net/.
@@ -128,7 +162,8 @@ class Processor:
         self.session = new_session(model, providers=self.providers)
 
     def process(self, input_path: Path, output_dir: Path, code: str) -> ProcessResult:
-        """Run full pipeline on one input photo. Writes 1.jpg ... 5.jpg to output_dir."""
+        """Run full pipeline on one input photo. Writes 1.jpg … N.jpg to output_dir,
+        where N = number of backgrounds supplied (1–5)."""
         t0 = time.perf_counter()
         output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -168,23 +203,31 @@ class Processor:
     def _compose(self, cutout: Image.Image, bg: Image.Image) -> Image.Image:
         canvas = bg.copy()
 
-        # Scale cutout so its height = CUTOUT_HEIGHT_RATIO of canvas height.
-        # Anchored bottom-center: works for standing/seated/upper-body shots.
-        # If a background's composition needs the subject off-center, we'd
-        # add per-background anchor points — out of scope for v1.0.
-        target_h = int(canvas.height * CUTOUT_HEIGHT_RATIO)
+        # Safe zone: exclude top title frame and bottom text band.
+        safe_top    = int(canvas.height * SAFE_TOP_RATIO)
+        safe_bottom = int(canvas.height * (1 - SAFE_BOTTOM_RATIO))
+        safe_height = safe_bottom - safe_top
+
+        # Scale person to fill SAFE_ZONE_FILL of the safe zone height,
+        # feet anchored to the bottom of the safe zone.
+        target_h = int(safe_height * SAFE_ZONE_FILL)
         scale = target_h / cutout.height
         new_size = (int(cutout.width * scale), target_h)
         cutout_resized = cutout.resize(new_size, Image.LANCZOS)
 
         x = (canvas.width - cutout_resized.width) // 2
-        y = canvas.height - cutout_resized.height
+        y = safe_top + (safe_height - target_h) // 2
         # Third arg = alpha mask. Without it, you get black halos around hair.
         canvas.paste(cutout_resized, (x, y), cutout_resized)
 
-        # Title at bottom-center — drawn AFTER the cutout so it sits in front
-        # of the person rather than getting hidden by their legs/feet.
-        _draw_title_overlay(canvas)
+        # Optional title overlay — drawn AFTER cutout so text sits in front of
+        # the person. Disabled when event_title and event_subtitle are both
+        # empty (e.g. when the background image already contains event branding).
+        if self.event_title or self.event_subtitle:
+            _draw_title_overlay(canvas, self.event_title, self.event_subtitle)
+
+        if self.logo:
+            _paste_logo(canvas, self.logo)
 
         return canvas
 
@@ -193,6 +236,17 @@ class Processor:
         ratio = target_w / self.watermark.width
         target_h = int(self.watermark.height * ratio)
         return self.watermark.resize((target_w, target_h), Image.LANCZOS)
+
+
+def _paste_logo(canvas: Image.Image, logo: Image.Image) -> None:
+    """Paste event logo bottom-right, scaled to LOGO_WIDTH_RATIO of canvas width."""
+    target_w = int(canvas.width * LOGO_WIDTH_RATIO)
+    ratio = target_w / logo.width
+    target_h = int(logo.height * ratio)
+    logo_scaled = logo.resize((target_w, target_h), Image.LANCZOS)
+    x = canvas.width - target_w - LOGO_MARGIN_PX
+    y = canvas.height - target_h - LOGO_MARGIN_PX
+    canvas.paste(logo_scaled, (x, y), logo_scaled)
 
 
 def _load_title_font(size: int, bold: bool) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
@@ -241,14 +295,14 @@ def _draw_text_with_shadow(
     shadow_layer = shadow_layer.filter(ImageFilter.GaussianBlur(TITLE_SHADOW_BLUR_RADIUS))
     canvas.paste(shadow_layer, (0, 0), shadow_layer)
 
-    # 2) White text + crisp black stroke (helps against busy/light backgrounds).
+    # 2) Gold text + dark stroke (helps against any background).
     ImageDraw.Draw(canvas).text(
         (x_pos, y_pos),
         text,
         font=font,
-        fill=(255, 255, 255),
+        fill=TITLE_FILL_COLOR,
         stroke_width=TITLE_STROKE_WIDTH,
-        stroke_fill=(0, 0, 0),
+        stroke_fill=TITLE_STROKE_COLOR,
     )
 
 
@@ -263,26 +317,26 @@ def _format_event_date(d: date) -> str:
     return f"{d.strftime('%B')}. {day}{suffix}, {d.year}"
 
 
-def _draw_title_overlay(canvas: Image.Image):
-    """Render the three-line event title (title / subtitle / today's date)
-    centered at the bottom of the canvas. Date auto-updates per process run."""
+def _draw_title_overlay(canvas: Image.Image, title: str, subtitle: str):
+    """Render up to three lines (title / subtitle / today's date) centered at
+    the bottom of the canvas. Pass empty strings to skip a line."""
     font_main = _load_title_font(TITLE_LINE_1_FONT_SIZE, bold=True)
     font_sub = _load_title_font(TITLE_LINE_2_FONT_SIZE, bold=False)
     font_date = _load_title_font(TITLE_DATE_FONT_SIZE, bold=False)
 
     date_str = _format_event_date(date.today())
 
-    _, h1, _ = _measure(TITLE_LINE_1, font_main)
-    _, h2, _ = _measure(TITLE_LINE_2, font_sub)
-    _, h3, _ = _measure(date_str, font_date)
+    lines: list[tuple[str, object]] = []
+    if title:
+        lines.append((title, font_main))
+    if subtitle:
+        lines.append((subtitle, font_sub))
+    lines.append((date_str, font_date))
 
-    # Stack height (3 lines + 2 gaps). Place so the bottom of the date line
-    # sits at canvas.height - TITLE_BOTTOM_MARGIN_PX.
-    total_h = h1 + TITLE_LINE_GAP_PX + h2 + TITLE_LINE_GAP_PX + h3
+    heights = [_measure(t, f)[1] for t, f in lines]
+    total_h = sum(heights) + TITLE_LINE_GAP_PX * (len(lines) - 1)
     y = canvas.height - TITLE_BOTTOM_MARGIN_PX - total_h
 
-    _draw_text_with_shadow(canvas, TITLE_LINE_1, font_main, y)
-    y += h1 + TITLE_LINE_GAP_PX
-    _draw_text_with_shadow(canvas, TITLE_LINE_2, font_sub, y)
-    y += h2 + TITLE_LINE_GAP_PX
-    _draw_text_with_shadow(canvas, date_str, font_date, y)
+    for (text, font), h in zip(lines, heights):
+        _draw_text_with_shadow(canvas, text, font, y)
+        y += h + TITLE_LINE_GAP_PX

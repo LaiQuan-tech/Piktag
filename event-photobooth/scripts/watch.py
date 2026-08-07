@@ -10,6 +10,7 @@ Stop with Ctrl+C.
 import argparse
 import signal
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -27,6 +28,7 @@ from app.watcher import InboxHandler  # noqa: E402
 
 BG_DIR = ROOT / "assets" / "backgrounds"
 WM_PATH = ROOT / "assets" / "watermark.png"
+ASSETS_DIR = ROOT / "assets"
 ENV_FILE = ROOT / ".env"
 
 # Real-world directories on the event laptop
@@ -35,6 +37,53 @@ INBOX = PHOTOBOOTH_ROOT / "inbox"
 PROCESSED = PHOTOBOOTH_ROOT / "processed"
 ERRORS = PHOTOBOOTH_ROOT / "errors"
 OUTPUT_ROOT = PHOTOBOOTH_ROOT / "output"
+
+IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".heic", ".heif", ".webp"}
+ERROR_RETRY_INTERVAL_SEC = 5 * 60   # move errors/ → inbox/ every 5 minutes
+HEALTH_WRITE_INTERVAL_SEC = 30      # update health.txt every 30 seconds
+
+
+def _move_errors_to_inbox(errors: Path, inbox: Path) -> int:
+    """Move image files from errors/ back to inbox/ for reprocessing.
+    Returns the count of files moved."""
+    moved = 0
+    for p in sorted(errors.iterdir()):
+        if p.is_file() and p.suffix.lower() in IMAGE_EXTS:
+            dest = inbox / p.name
+            if dest.exists():
+                # Avoid clobbering a file already queued; add suffix to distinguish.
+                dest = inbox / f"retry_{p.name}"
+            try:
+                p.rename(dest)
+                moved += 1
+            except Exception as exc:
+                print(f"  auto-retry: could not move {p.name}: {exc}")
+    if moved:
+        print(f"  auto-retry: moved {moved} file(s) from errors/ → inbox/")
+    return moved
+
+
+def _background_error_retry(errors: Path, inbox: Path, stop_event: threading.Event):
+    """Background thread: retry errors/ every ERROR_RETRY_INTERVAL_SEC."""
+    while not stop_event.wait(timeout=ERROR_RETRY_INTERVAL_SEC):
+        try:
+            _move_errors_to_inbox(errors, inbox)
+        except Exception as exc:
+            print(f"  auto-retry thread error: {exc}")
+
+
+def _background_health(health_path: Path, stop_event: threading.Event):
+    """Background thread: write ISO timestamp to health.txt every 30s.
+    An external monitor (cron, watch, Slack bot) can check this file to
+    confirm the watcher is alive."""
+    while not stop_event.wait(timeout=HEALTH_WRITE_INTERVAL_SEC):
+        try:
+            import datetime
+            health_path.write_text(
+                datetime.datetime.now().isoformat(timespec="seconds") + "\n"
+            )
+        except Exception:
+            pass
 
 
 def main():
@@ -59,6 +108,21 @@ def main():
         action="store_true",
         help="Don't print receipts (useful for dev without printer connected).",
     )
+    parser.add_argument(
+        "--event-title",
+        default="",
+        help="First line of text overlaid at photo bottom. Empty = no overlay (use when background already has event branding).",
+    )
+    parser.add_argument(
+        "--event-subtitle",
+        default="",
+        help="Second line of text overlaid at photo bottom.",
+    )
+    parser.add_argument(
+        "--no-logo",
+        action="store_true",
+        help="Skip logo overlay (use when background already contains the event logo).",
+    )
     args = parser.parse_args()
 
     # Ensure dirs exist
@@ -67,10 +131,10 @@ def main():
 
     # Assets
     backgrounds = sorted(BG_DIR.glob("*.jpg")) + sorted(BG_DIR.glob("*.png"))
-    if len(backgrounds) < 5:
+    if not backgrounds:
         sys.exit(
-            f"Need 5 backgrounds in {BG_DIR}, found {len(backgrounds)}.\n"
-            f"Run: python scripts/generate_placeholders.py"
+            f"Need at least 1 background image in {BG_DIR}.\n"
+            f"Add a .jpg or .png and restart."
         )
     if not WM_PATH.exists():
         sys.exit(
@@ -81,8 +145,23 @@ def main():
     # Load .env if present
     load_dotenv(ENV_FILE)
 
-    print(f"Loading {args.model} model …")
-    processor = Processor(backgrounds=backgrounds[:5], watermark_path=WM_PATH, model=args.model)
+    # Logo overlay: auto-detect logo_*.png unless --no-logo flag set.
+    # Disable when the background already contains the event logo.
+    logo_candidates = sorted(ASSETS_DIR.glob("logo_*.png"))
+    logo_path = logo_candidates[0] if (logo_candidates and not args.no_logo) else None
+
+    n_bg = min(len(backgrounds), 5)
+    print(f"Loading {args.model} model … ({n_bg} background(s))")
+    if logo_path:
+        print(f"  Logo: {logo_path.name}")
+    processor = Processor(
+        backgrounds=backgrounds[:n_bg],
+        watermark_path=WM_PATH,
+        model=args.model,
+        event_title=args.event_title,
+        event_subtitle=args.event_subtitle,
+        logo_path=logo_path,
+    )
     print(f"  providers: {processor.providers}")
 
     uploader = None
@@ -94,8 +173,10 @@ def main():
             uploader = SupabaseUploader(sb_cfg)
             ok, msg = uploader.check_connection()
             if not ok:
-                sys.exit(f"Supabase connection failed: {msg}")
-            print(f"  Supabase OK (bucket={sb_cfg.bucket}, org={sb_cfg.org})")
+                print(f"WARNING: Supabase connection failed: {msg}")
+                print("  Upload will be retried per photo — continuing anyway.")
+            else:
+                print(f"  Supabase OK (bucket={sb_cfg.bucket}, org={sb_cfg.org})")
 
     printer = None
     if not args.no_print:
@@ -128,9 +209,35 @@ def main():
     print("Drop photos into the inbox to process. Ctrl+C to stop.")
     print()
 
+    # At startup: move any files left in errors/ back to inbox so they get
+    # reprocessed automatically (network outage → files stuck in errors/;
+    # next morning restart picks them all up without manual intervention).
+    _move_errors_to_inbox(ERRORS, INBOX)
+
     # Catch anything already in inbox at startup (e.g. files dropped before
     # the watcher came up, or leftovers from a previous crashed session).
     handler.scan_inbox(INBOX)
+
+    stop_event = threading.Event()
+
+    # Background: retry errors/ every 5 min (covers mid-session network blips).
+    retry_thread = threading.Thread(
+        target=_background_error_retry,
+        args=(ERRORS, INBOX, stop_event),
+        daemon=True,
+        name="error-retry",
+    )
+    retry_thread.start()
+
+    # Background: write health.txt so an external check can confirm we're alive.
+    health_path = PHOTOBOOTH_ROOT / "health.txt"
+    health_thread = threading.Thread(
+        target=_background_health,
+        args=(health_path, stop_event),
+        daemon=True,
+        name="health",
+    )
+    health_thread.start()
 
     # Graceful stop
     stop = False
@@ -147,8 +254,10 @@ def main():
             time.sleep(0.5)
     finally:
         print("\nStopping watcher …")
+        stop_event.set()
         observer.stop()
         observer.join()
+        handler.shutdown()   # drain in-flight jobs + close print worker
         print("Stopped.")
 
 

@@ -17,8 +17,13 @@ Deno.serve(async (req) => {
     return new Response(null, { status: 204, headers: CORS });
   }
 
+  const url = new URL(req.url);
+  const org = url.searchParams.get("org") ?? "rotary";
+
   const sb = createClient(SUPABASE_URL, SERVICE_ROLE);
-  const { data, error } = await sb.rpc("list_event_sessions", { p_limit: 2000 });
+  const { data, error } = await sb
+    .rpc("list_event_sessions", { p_org: org, p_limit: 9999 })
+    .range(0, 9998);
 
   if (error) {
     return new Response(JSON.stringify({ ok: false, error: error.message }), {

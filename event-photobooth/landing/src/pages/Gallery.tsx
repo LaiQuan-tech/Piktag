@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { formatDisplay, isValid, normalize } from '../lib/code'
-import { allPhotoUrls, PHOTO_COUNT } from '../lib/photo'
+import { allPhotoUrls, EVENT_SUBTITLE, EVENT_TITLE, PHOTO_COUNT } from '../lib/photo'
 import PikTagPromo from '../components/PikTagPromo'
 
 type ImageStatus = 'loading' | 'ok' | 'error'
@@ -31,12 +31,16 @@ export default function Gallery() {
   return (
     <div className="min-h-screen bg-white text-neutral-900">
       <header className="pt-12 pb-10 px-6 text-center">
-        <h1 className="text-xl font-medium leading-snug tracking-wide">
-          2026 Rotary International<br />Convention in Taipei
-        </h1>
-        <p className="mt-2 text-sm text-neutral-500 tracking-wide">
-          House of Friendship
-        </p>
+        {EVENT_TITLE && (
+          <h1 className="text-xl font-medium leading-snug tracking-wide">
+            {EVENT_TITLE}
+          </h1>
+        )}
+        {EVENT_SUBTITLE && (
+          <p className="mt-2 text-sm text-neutral-500 tracking-wide">
+            {EVENT_SUBTITLE}
+          </p>
+        )}
         <p className="mt-5 text-[11px] text-neutral-500 font-mono tracking-[0.3em]">
           {formatDisplay(code)}
         </p>
@@ -78,7 +82,7 @@ export default function Gallery() {
       <PikTagPromo />
 
       <p className="text-center pb-10 px-6 text-[10px] text-neutral-400">
-        Photos auto-delete after 30 days
+        Photos auto-delete after 7 days
       </p>
 
       {lightboxUrl && <Lightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />}
@@ -117,7 +121,7 @@ function NotReadyOrExpired() {
       <p className="text-sm text-neutral-800 mb-2">Photos not ready</p>
       <p className="text-xs text-neutral-500 leading-relaxed">
         Just took the photo? Refresh in ~30 seconds.<br />
-        Older than 30 days? Photos have been deleted.
+        Older than 7 days? Photos have been deleted.
       </p>
     </div>
   )

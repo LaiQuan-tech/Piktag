@@ -5,7 +5,9 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? ''
 const BUCKET = import.meta.env.VITE_SUPABASE_BUCKET ?? 'event'
 const ORG = import.meta.env.VITE_ORG ?? 'rotary'
 
-export const PHOTO_COUNT = 5
+export const PHOTO_COUNT = parseInt(import.meta.env.VITE_PHOTO_COUNT ?? '5', 10)
+export const EVENT_TITLE = import.meta.env.VITE_EVENT_TITLE ?? ''
+export const EVENT_SUBTITLE = import.meta.env.VITE_EVENT_SUBTITLE ?? ''
 
 export function photoUrl(code: string, index: number): string {
   return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${ORG}/${code}/${index}.jpg`

@@ -7,19 +7,14 @@ and we want the receipt to look EXACTLY how we previewed it.
 
 Receipt layout (in dots, 1 dot = 1/8mm at 203 DPI):
     ┌──────────── 384 dots wide (48 mm) ────────────┐
-    │                  (30 dot top margin)          │
-    │                                                │
+    │                  (24 dot top margin)          │
     │              ┌────────────┐                    │
-    │              │            │                    │
-    │              │  QR  280×  │                    │
-    │              │     280    │                    │
-    │              │            │                    │
+    │              │  QR  280×280                   │
     │              └────────────┘                    │
-    │                                                │
-    │              K4Q8-M2P3        (36px mono bold)│
-    │                                                │
-    │           rotary.pikt.ag/K4Q8M2P3  (18px)     │
-    │                                                │
+    │              台北永心扶輪社     (28px Chinese) │
+    │           2025-26第三屆社慶    (26px Chinese) │
+    │              K4Q8-M2P3        (40px mono bold)│
+    │           rotary.pikt.ag/...  (20px)          │
     └────────────────────────────────────────────────┘
 """
 
@@ -45,20 +40,35 @@ PRINT_WIDTH_DOTS = 384  # 48mm at 203 DPI
 QR_BOX_SIZE = 9        # px per QR module; 9 yields ~280px at 8 module border
 QR_BORDER = 2
 TOP_MARGIN = 24
-QR_TO_CODE_GAP = 24
-CODE_TO_URL_GAP = 16
+QR_TO_EVENT_GAP = 18
+EVENT_LINE_GAP = 6
+EVENT_TO_CODE_GAP = 14
+CODE_TO_URL_GAP = 14
 BOTTOM_MARGIN = 32
 
+EVENT_LINE_1_FONT_SIZE = 28
+EVENT_LINE_2_FONT_SIZE = 26
 CODE_FONT_SIZE = 40
 URL_FONT_SIZE = 20
 
-# Font candidates, ordered by preference. Sticks to monospace bold for
-# digit/letter alignment of the backup code.
+# Change these for each event (displayed on every printed receipt).
+RECEIPT_EVENT_LINE_1 = "台北永心扶輪社"
+RECEIPT_EVENT_LINE_2 = "2025-26第三屆社慶"
+
+# Monospace font for the backup code + URL.
 FONT_CANDIDATES = [
     "/System/Library/Fonts/Menlo.ttc",            # macOS
     "/System/Library/Fonts/Monaco.ttf",           # macOS
     "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf",  # Linux
     "C:\\Windows\\Fonts\\consolab.ttf",           # Windows
+]
+
+# Chinese-capable fonts for the event name lines.
+CHINESE_FONT_CANDIDATES = [
+    "/System/Library/Fonts/PingFang.ttc",                               # macOS (SC/TC)
+    "/System/Library/Fonts/STHeiti Light.ttc",                          # macOS fallback
+    "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",          # Linux
+    "/usr/share/fonts/opentype/noto/NotoSansCJKtc-Regular.otf",        # Linux (TC)
 ]
 
 
@@ -71,9 +81,7 @@ class PrintResult:
 
 
 def _load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
-    """Find the first installed monospace font from our preference list.
-    Falls back to PIL's default if none found (the default is small —
-    receipts will still print but the code will look tiny)."""
+    """Find the first installed monospace font from our preference list."""
     for path in FONT_CANDIDATES:
         if Path(path).exists():
             try:
@@ -81,6 +89,17 @@ def _load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
             except (OSError, IOError):
                 continue
     return ImageFont.load_default()
+
+
+def _load_chinese_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    """Find the first Chinese-capable font. Falls back to monospace if none found."""
+    for path in CHINESE_FONT_CANDIDATES:
+        if Path(path).exists():
+            try:
+                return ImageFont.truetype(path, size)
+            except (OSError, IOError):
+                continue
+    return _load_font(size)
 
 
 def _build_qr(data: str, box_size: int) -> Image.Image:
@@ -103,7 +122,9 @@ def render_receipt(code: str, domain: str = "rotary.pikt.ag") -> Image.Image:
 
     Layout:
         [Photo QR]
-        K4Q8-M2P3
+        RECEIPT_EVENT_LINE_1   (Chinese)
+        RECEIPT_EVENT_LINE_2   (Chinese)
+        K4Q8-M2P3              (monospace)
         rotary.pikt.ag/...
     """
     display_code = display(code)
@@ -113,16 +134,22 @@ def render_receipt(code: str, domain: str = "rotary.pikt.ag") -> Image.Image:
     qr_w = min(qr_img.width, PRINT_WIDTH_DOTS - 16)
     qr_img.thumbnail((qr_w, qr_w), Image.LANCZOS)
 
+    ev1_font = _load_chinese_font(EVENT_LINE_1_FONT_SIZE)
+    ev2_font = _load_chinese_font(EVENT_LINE_2_FONT_SIZE)
     code_font = _load_font(CODE_FONT_SIZE)
     url_font = _load_font(URL_FONT_SIZE)
 
+    _, ev1_h = _text_size(RECEIPT_EVENT_LINE_1, ev1_font)
+    _, ev2_h = _text_size(RECEIPT_EVENT_LINE_2, ev2_font)
     _, code_h = _text_size(display_code, code_font)
     _, url_h = _text_size(short_url, url_font)
 
     total_h = (
         TOP_MARGIN
         + qr_img.height
-        + QR_TO_CODE_GAP
+        + QR_TO_EVENT_GAP
+        + ev1_h + EVENT_LINE_GAP + ev2_h
+        + EVENT_TO_CODE_GAP
         + code_h
         + CODE_TO_URL_GAP
         + url_h
@@ -134,7 +161,15 @@ def render_receipt(code: str, domain: str = "rotary.pikt.ag") -> Image.Image:
 
     y = TOP_MARGIN
     canvas.paste(qr_img, ((PRINT_WIDTH_DOTS - qr_img.width) // 2, y))
-    y += qr_img.height + QR_TO_CODE_GAP
+    y += qr_img.height + QR_TO_EVENT_GAP
+
+    ev1_w, _ = _text_size(RECEIPT_EVENT_LINE_1, ev1_font)
+    draw.text(((PRINT_WIDTH_DOTS - ev1_w) // 2, y), RECEIPT_EVENT_LINE_1, font=ev1_font, fill=0)
+    y += ev1_h + EVENT_LINE_GAP
+
+    ev2_w, _ = _text_size(RECEIPT_EVENT_LINE_2, ev2_font)
+    draw.text(((PRINT_WIDTH_DOTS - ev2_w) // 2, y), RECEIPT_EVENT_LINE_2, font=ev2_font, fill=0)
+    y += ev2_h + EVENT_TO_CODE_GAP
 
     code_w, _ = _text_size(display_code, code_font)
     draw.text(((PRINT_WIDTH_DOTS - code_w) // 2, y), display_code, font=code_font, fill=0)

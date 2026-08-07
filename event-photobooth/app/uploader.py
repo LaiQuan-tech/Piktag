@@ -24,8 +24,8 @@ from .config import SupabaseConfig
 # Per-file retry policy for transient network failures (ConnectError, read/write
 # timeouts, "Connection reset by peer"). At the event we'd rather wait 7 seconds
 # than fail the whole pipeline + miss the print. Backoff: 0.5s, 1s, 2s, 4s.
-UPLOAD_MAX_ATTEMPTS = 4
-UPLOAD_BACKOFF_BASE_SEC = 0.5
+UPLOAD_MAX_ATTEMPTS = 15
+UPLOAD_BACKOFF_BASE_SEC = 0.2
 
 
 @dataclass
@@ -55,13 +55,13 @@ class SupabaseUploader:
             return False, f"{type(e).__name__}: {e}"
 
     def upload_set(self, code: str, files: list[Path]) -> UploadResult:
-        """Upload 5 composited photos for one guest. Synchronous.
+        """Upload composited photos for one guest (1–5 files). Synchronous.
 
         For the live event loop, call this from a background thread so
         the next photo's processing isn't blocked on network I/O.
         """
-        if len(files) != 5:
-            raise ValueError(f"Expected 5 files, got {len(files)}")
+        if not files:
+            raise ValueError("No files to upload")
 
         t0 = time.perf_counter()
         keys: list[str] = []
@@ -100,7 +100,10 @@ class SupabaseUploader:
                     file_options={
                         "content-type": "image/jpeg",
                         "cache-control": "public, max-age=2592000, immutable",
-                        "upsert": "false",
+                        # upsert=true so a network drop mid-upload (request reaches
+                        # the server, response is lost) doesn't 409 on retry — the
+                        # code is a unique per-session random, overwriting is safe.
+                        "upsert": "true",
                     },
                 )
                 return
@@ -108,21 +111,19 @@ class SupabaseUploader:
                 last_err = e
                 msg = str(e).lower()
                 cls = type(e).__name__
-                # Only retry transient/network failures. Anything else (401, 409,
-                # bucket-not-found, etc.) will keep failing forever — bail fast.
-                transient = (
-                    "timeout" in msg
-                    or "timed out" in msg
-                    or "connection reset" in msg
-                    or "connection aborted" in msg
-                    or "server disconnected" in msg
-                    or "disconnected" in msg
-                    or "connect" in cls.lower()
-                    or "timeout" in cls.lower()
-                    or "remoteprotocol" in cls.lower()
-                    or "protocol" in cls.lower()
+                # 409 Duplicate = the file is ALREADY in storage (a prior retry's
+                # request actually succeeded; we just lost its response). The object
+                # exists with identical content → treat as success, not failure.
+                if "409" in msg or "duplicate" in msg or "already exists" in msg:
+                    return
+                # Only retry transient/network failures. Auth / bucket-missing will
+                # keep failing forever — bail fast. Everything else (bad venue WiFi)
+                # gets retried.
+                permanent = (
+                    "401" in msg or "403" in msg
+                    or ("bucket" in msg and "not found" in msg)
                 )
-                if not transient or attempt == UPLOAD_MAX_ATTEMPTS:
+                if permanent or attempt == UPLOAD_MAX_ATTEMPTS:
                     raise
                 wait = UPLOAD_BACKOFF_BASE_SEC * (2 ** (attempt - 1))
                 print(

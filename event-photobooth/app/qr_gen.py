@@ -11,7 +11,7 @@ import qrcode
 from qrcode.constants import ERROR_CORRECT_M
 
 DEFAULT_DOMAIN = "rotary.pikt.ag"
-DEFAULT_ORG = "rotary"  # used for Supabase Storage path prefix, NOT the URL anymore
+DEFAULT_ORG = "yongxin"  # used for Supabase Storage path prefix, NOT the URL anymore
 
 
 def url_for(code: str, org: str = DEFAULT_ORG, domain: str = DEFAULT_DOMAIN) -> str:
