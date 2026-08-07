@@ -206,7 +206,14 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
     // whatever is being displayed, so those are deliberately NOT gated.
     const reqGroupId = groupId;
     const onScreen = () => groupIdRef.current === reqGroupId;
-    setLoading(true);
+    // Stamped like every other setState in here. writeTags and
+    // handleSaveName re-call fetchGroup from closures captured under a
+    // PREVIOUS groupId, so an unstamped setLoading(true) could switch
+    // group Y's spinner on while this request's own `finally` — which
+    // IS gated on onScreen() — never switches it off, freezing the
+    // placeholder on "processing" instead of letting it fall through to
+    // load-failed.
+    if (onScreen()) setLoading(true);
     try {
       // Same migration-tolerance pattern as QrGroupListScreen: try
       // with `name`, fall back to without if the column doesn't
@@ -261,12 +268,25 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         setNotFound(true);
         return;
       }
-      if (!onScreen()) return;
-      liveFetchDoneRef.current = true;
-      setNotFound(false);
       const freshGroup = g as Group;
-      setGroup(freshGroup);
-      setNameInput(freshGroup.name ?? '');
+      // RENDERED state, therefore gated — but ONLY the rendered state.
+      // This used to be a bare `return`, which also skipped the snapshot
+      // write at the bottom of the try: a host who opened a group and
+      // navigated away before the fetch landed never got that group's
+      // offline copy refreshed, and the "disk writes are deliberately
+      // NOT gated" claim in the header comment was false. The write is
+      // keyed by reqGroupId, so it is correct no matter what is on
+      // screen; only the setStates care about that.
+      // liveFetchDoneRef is gated WITH them on purpose, not with the
+      // disk write: it suppresses the disk hydration effect, so letting
+      // a response for the previous group set it would starve the group
+      // now on screen of its cached first paint.
+      if (onScreen()) {
+        liveFetchDoneRef.current = true;
+        setNotFound(false);
+        setGroup(freshGroup);
+        setNameInput(freshGroup.name ?? '');
+      }
 
       // Host's @username for the present-mode card (same derivation
       // as AddTagScreen: profile username, fallback to the id).

@@ -53,6 +53,19 @@ export const CACHE_KEYS = {
   // tags, user_id) back to the shared key and offered them for B to
   // apply onto B's own QR. Per-user now, therefore swept on sign-out.
   TAG_PRESETS: 'tagPresets',
+  // ── 2026-08-08 ──
+  // Direct messages composed offline and not yet accepted by the server
+  // (lib/chatSendQueue). Was the device-global `piktag_chat_send_queue_v1`
+  // key, and the last one holding user data: it stored the full plaintext
+  // BODY of every unsent DM, and sign-out never touched it, so on a shared
+  // phone A's unsent message text stayed on disk after A logged out. The
+  // flush path already refused to send another account's entries
+  // (`sender_id === userId`, useChatThread.flushQueue) — the defect was the
+  // residue, not delivery. Per-user now, therefore swept on sign-out.
+  // ONE key holding the whole queue, never one key per conversation: a
+  // per-conversation scheme escapes clearPersistentCaches(), which iterates
+  // exactly this object.
+  CHAT_SEND_QUEUE: 'chatSendQueue',
 } as const;
 
 const DEFAULT_TTL_MS = 300_000; // 5 minutes

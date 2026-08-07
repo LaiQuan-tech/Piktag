@@ -5,7 +5,13 @@ import * as Crypto from 'expo-crypto';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
 import type { Message, MessageStatus, ThreadMessage } from '../types/chat';
-import { dequeue, enqueue, peek, type QueuedSend } from '../lib/chatSendQueue';
+import {
+  dequeue,
+  enqueue,
+  peek,
+  purgeLegacyChatSendQueue,
+  type QueuedSend,
+} from '../lib/chatSendQueue';
 import {
   getPersistentThreadMessages,
   setPersistentThreadMessages,
@@ -194,7 +200,7 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
             const next = prev.slice();
             next[idx] = { ...incoming, status: 'sent' };
             // Clear the queue entry now that the server acknowledged it.
-            void dequeue(incoming.client_nonce);
+            void dequeue(userId, incoming.client_nonce);
             return next;
           }
         }
@@ -274,7 +280,7 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
 
         if (insErr) {
           if (isNetworkError(insErr)) {
-            await enqueue({
+            await enqueue(userId, {
               nonce,
               conversation_id: conversationId,
               sender_id: userId,
@@ -297,7 +303,7 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
         // the optimistic row by client_nonce.
       } catch (e) {
         if (isNetworkError(e)) {
-          await enqueue({
+          await enqueue(userId, {
             nonce,
             conversation_id: conversationId,
             sender_id: userId,
@@ -354,9 +360,13 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
 
   const flushQueue = useCallback(async (): Promise<void> => {
     if (!userId) return;
-    const items: QueuedSend[] = await peek();
+    const items: QueuedSend[] = await peek(userId);
     // Only flush entries belonging to this conversation + this user;
     // other threads own their own queue entries and will flush them.
+    // The `sender_id` half of this filter is redundant now that the
+    // queue is stored per user id — keep it anyway: it is the check that
+    // makes "one account can never transmit another's text" true even if
+    // the storage layer is ever changed again.
     const mine = items.filter(
       (q) => q.conversation_id === conversationId && q.sender_id === userId,
     );
@@ -402,6 +412,13 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
 
   useEffect(() => {
     isMountedRef.current = true;
+    // One-way migration off the device-global send queue (see
+    // LEGACY_QUEUE_KEY in lib/chatSendQueue). Delete only, never read:
+    // anything left in it at update time is discarded on purpose. This
+    // is the screen that owns the queue, so this is where the old key
+    // gets dropped — the same shape as the piktag_last_qr /
+    // piktag_recent_locations / piktag_user_presets migrations.
+    void purgeLegacyChatSendQueue();
     setLoading(true);
     fetchLatest();
     subscribe();
