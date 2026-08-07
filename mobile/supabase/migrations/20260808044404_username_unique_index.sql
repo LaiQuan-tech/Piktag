@@ -50,9 +50,12 @@ BEGIN
   ) g;
 
   IF COALESCE(v_groups, 0) > 0 THEN
-    RAISE EXCEPTION
-      'Cannot add the unique username index: % handle(s) are already held by more than one profile.%Resolve these first (renaming breaks that user''s existing share links and QR codes, so decide deliberately):%%',
-      v_groups, E'\n', E'\n', v_collisions;
+    -- One placeholder per argument. RAISE treats %% as a literal percent and
+    -- consumes no argument, so mixing the two miscounts and fails with
+    -- "too many parameters specified for RAISE" before it can tell you
+    -- anything useful. Newlines are embedded in the format string instead.
+    RAISE EXCEPTION E'Cannot add the unique username index: % handle(s) are already held by more than one profile.\nResolve these first (renaming breaks that user''s existing share links and QR codes, so decide deliberately):\n%',
+      v_groups, v_collisions;
   END IF;
 END $$;
 
