@@ -142,7 +142,7 @@ _2026-08-06 更新。前一個 session 的 context 用盡於此;所有成果已 
   `piktag_user_presets` 已於 `ccd9ca4`、`piktag_recent_searches` 與
   `piktag_ai_tags_*` 已於 `a646c760` 納入 `CACHE_KEYS.AI_TAGS` 與登出清除
   (它本來就帶 uid,問題只在登出掃不到,不是 per-user 化);
-  `piktag_chat_send_queue_v1` 維持裝置全域但改為登出時清除。
+  `piktag_chat_send_queue_v1` 已於 `af9883b2` 遷成 `CACHE_KEYS.CHAT_SEND_QUEUE`。
   仍未處理的只剩 `piktag_viewed_ask_ids` 與
   `piktag_burst_tag_prompted_v1`。詳見上方待辦節與下方驗收節。)
 
@@ -234,10 +234,15 @@ captive portal 回 4xx 仍會被 auth-js 自己讀成登出(超出本次範圍,
   - `piktag_ai_tags_${user.id}` → `CACHE_KEYS.AI_TAGS`。本來就有命名空間,
     問題只在不被登出掃到。24 小時 TTL 保留(這是生成內容,重建要花模型呼叫,
     與離線快照刻意無 TTL 的理由不同)。
-  - `piktag_chat_send_queue_v1` → **維持裝置全域,但加入登出清除清單**。
-    送出路徑沒有 user id 可用,為了它重接整條 chat send path 風險不划算。
-    代價講明:登出會丟掉尚未送出的訊息。這是刻意取捨 —— 登出是使用者自己
-    按的,把某人未送出的訊息留在他已經還回去的手機上更糟。
+  - `piktag_chat_send_queue_v1` → **已由另一個 session 在 `af9883b2`
+    真正遷成 per-user**(`CACHE_KEYS.CHAT_SEND_QUEUE`),舊鍵刪不讀,
+    舊內容依創辦人明確裁決直接丟棄不遷移。
+    我原本的做法(維持裝置全域、只加登出清除 + `hasCacheOwner()` 護欄)
+    在 2026-08-08 的 rebase 中**整段退場** —— 他們重接了送出路徑,
+    我當時判斷「風險不划算」而避開。既然佇列改走 `setPersistentCache`,
+    它自動繼承 owner 護欄,`hasCacheOwner()` 因此成為死碼並已移除。
+    舊鍵仍留在 `SUPERSEDED_GLOBAL_KEYS`:那是給「從來沒開過聊天、
+    因此不會觸發模組自刪」的裝置用的。
 
 ### 第二輪驗收(2026-08-07,針對上述修復)
 
@@ -247,7 +252,8 @@ captive portal 回 4xx 仍會被 auth-js 自己讀成登出(超出本次範圍,
 `piktag_ai_tags_*` 的刪除寫在快取命中的 `return` 之後、且不在任何清除清單裡
 (移到 return 前,並加進 `clearPersistentCaches`);裝置全域鍵的清除被
 `if (!userId) return` 擋住(移到守衛之前);`chatSendQueue` 繞過 owner 護欄
-(加 `hasCacheOwner()` 檢查);preset prune 的存檔競態(加 `savingPresetRef`,
+(當時加 `hasCacheOwner()` 檢查,後於 rebase 退場,見上);
+preset prune 的存檔競態(加 `savingPresetRef`,
 存檔進行中不 prune);`QrGroupListScreen` 檔頭註解把 nulls 排序講反;
 文件行號引用失效。
 
@@ -264,13 +270,30 @@ captive portal 回 4xx 仍會被 auth-js 自己讀成登出(超出本次範圍,
 `try/finally`(已補,否則未來有人在中間插入會拋的程式碼,prune 會永久失效
 且無可見症狀)。
 
+### 2026-08-08 rebase(重要,接手前先看)
+
+這條分支曾與另一個 session 三度撞車。最後一次 rebase 到 `origin/main`
+(當時 `716ca57a`)時三個檔案實體衝突,解法記錄如下,**不要照舊描述回推**:
+
+- `chatSendQueue.ts` —— **整段採用他們的**(`af9883b2`),我的退場。
+- `dataCache.ts` —— `CACHE_KEYS` 兩邊的新增鍵都保留(他們的
+  `CHAT_SEND_QUEUE` + 我的 `RECENT_SEARCHES`/`AI_TAGS`);裝置全域鍵
+  因為聊天佇列已遷走,合併回**單一份** `SUPERSEDED_GLOBAL_KEYS`,
+  原本要拆的 `ACTIVE_...` 清單不再需要;`hasCacheOwner()` 移除。
+- `QrGroupDetailScreen.tsx` —— **採用他們的 gate 收窄**(把
+  `if (!onScreen()) return` 改成只包住 rendered state,讓底部的快照寫入
+  仍會執行),**保留我的三旗標拆分與 `membersFailed`**,兩者手工併起來。
+  他們順手修掉的 `setLoading(true)` 未 stamp 那條,已從「仍未處理」移除。
+
+教訓:這個 repo 同時有多個 session 在動同一批檔案。動手前先
+`git fetch && git log --oneline origin/main -5`,不要相信本檔或任何
+commit message 裡寫死的「最新狀態」。
+
 ### 仍未處理(低,已知)
 
 - 離線冷啟動時「載入失敗」可能閃一下才被快取內容取代(失敗分支的
   `finally` 無條件 `setLoading(false)`,磁碟讀是另一條 async)。內容最終
   正確,只有瞬間文案錯。
-- `fetchGroup` 的 `setLoading(true)` 沒過 `onScreen()`,陳舊 closure 被叫起
-  時會把 loading 設 true 卻不清。目前無可見影響。
 - 拖曳排序後不回寫 `QR_GROUPS` 快照,離線冷啟動看到舊順序。
 - 「載入失敗/請檢查網路連線」對 RLS 拒絕、JWT 過期、5xx 也照顯示,
   措辭誤導(不寫快照的行為是對的)。
