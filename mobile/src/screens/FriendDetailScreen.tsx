@@ -67,7 +67,14 @@ import BrandSpinner from '../components/loaders/BrandSpinner';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import { useLoadDeadline } from '../hooks/useLoadDeadline';
 import { checkOffline } from '../lib/netStatus';
-import { CACHE_KEYS, getPersistentCache } from '../lib/dataCache';
+import {
+  CACHE_KEYS,
+  getPersistentCache,
+  getPersistentFriendDetail,
+  mergePersistentFriendDetail,
+  FRIEND_DETAIL_CACHE_MAX_LINKS,
+  FRIEND_DETAIL_CACHE_MAX_TAGS,
+} from '../lib/dataCache';
 import { supabase } from '../lib/supabase';
 import { toBirthdayDate } from '../lib/birthday';
 import { useAuth } from '../hooks/useAuth';
@@ -139,6 +146,35 @@ type CachedConnectionRow = {
   // mark + '#' + name. Never query or compare with these — strip them
   // back to the bare name first (cachedTagName below).
   tags?: string[];
+};
+
+// What this screen persists for ONE friend, under the single per-user
+// CACHE_KEYS.FRIEND_DETAILS map (see the bounds and the merge contract
+// in lib/dataCache).
+//
+// Every field is optional, and that is load-bearing rather than lazy
+// typing: each one comes from a different query, and only the fields
+// whose query ACTUALLY ANSWERED are ever passed to the merge helper. A
+// friend whose links loaded but whose tag query failed keeps the tags
+// from the previous good pass.
+//
+// What is deliberately NOT here: the three numbers in the stats row
+// (mutual friends / mutual tags / followers) and the scan session id.
+// The counts because a cached count is a claim about the world right
+// now — this screen prints 「—」 for an unknown count and must keep
+// doing so offline, per the same rule that removed the fake zeroes. The
+// session id because RLS hands it out only while the event is still
+// live, so caching it would keep offering re-entry into a room the host
+// already closed. The event TAGS are cached; they are a fact about how
+// the two of you met and cannot go stale.
+type PersistedFriendDetail = {
+  /** Already filtered by visibility — i.e. exactly what was on screen. */
+  biolinks?: Biolink[];
+  /** The tag row as the live fetch built it: ids, hidden tags and all. */
+  tags?: FriendTag[];
+  scanEventTags?: string[];
+  isFollowing?: boolean;
+  isCloseFriend?: boolean;
 };
 
 // The two fields of a cached inbox row the offline "Message" button
@@ -370,10 +406,18 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   // is_verified). Same per-user namespace, same clearPersistentCaches()
   // sweep — nothing new to keep in sync.
   //
-  // Read-only and additive: mutual counts, follower count, biolinks and
-  // pick counts are NOT in that snapshot, so they stay at their zero
-  // defaults until the network answers. Showing the person is the point;
-  // inventing their numbers is not.
+  // The header was only half the complaint, though. Founder again, on a
+  // real device: 「點進去可以看到好友名稱，但沒有社交連結、標籤」. The
+  // CONNECTIONS snapshot has no biolinks in it at ALL and never did, so
+  // the second read below pulls this screen's OWN per-friend snapshot
+  // (CACHE_KEYS.FRIEND_DETAILS) — links, the real tag row, event tags,
+  // follow and close-friend state — written by every successful pass of
+  // fetchData. Stale-while-revalidate: paint it now, refetch behind it.
+  //
+  // Still read-only and still additive: mutual counts and follower count
+  // are NOT cached (see PersistedFriendDetail), so they stay 「—」 until
+  // the network answers. Showing the person is the point; inventing
+  // their numbers is not.
   useEffect(() => {
     liveFetchDoneRef.current = false;
     // A different friend (or account) is a fresh question for the
@@ -384,14 +428,20 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     if (!uid || !friendId) return;
     let cancelled = false;
     void (async () => {
-      const cached = await getPersistentCache<CachedConnectionRow[]>(
-        CACHE_KEYS.CONNECTIONS,
-        uid,
-      );
+      const [cached, detail] = await Promise.all([
+        getPersistentCache<CachedConnectionRow[]>(CACHE_KEYS.CONNECTIONS, uid),
+        getPersistentFriendDetail<PersistedFriendDetail>(uid, friendId),
+      ]);
       if (cancelled || liveFetchDoneRef.current) return;
       const row = Array.isArray(cached)
         ? cached.find((c) => c?.connected_user_id === friendId)
         : null;
+      // The header row gates the whole paint, including the detail
+      // snapshot: links and tags floating under a blank "Unknown / @"
+      // header would read as a broken screen, and the error path below
+      // keys off `profile` being null anyway. In the case this exists
+      // for — a friend the viewer opened before — the friends-list
+      // snapshot has the row, which is how the name already showed.
       if (!row) return;
       // The snapshot carries `tags` — the viewer's own tags on this
       // connection — and hydration used to drop them on the floor, so
@@ -420,14 +470,41 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               position: i,
             }))
         : [];
+      // PREFER this screen's own snapshot when it has one. Two reasons,
+      // both about matching what the viewer actually saw online:
+      //   1. It is the same set. The CONNECTIONS tags are the viewer's
+      //      OWN tags on the connection; this screen renders the
+      //      FRIEND's public tags plus the viewer's hidden ones. Falling
+      //      back to the former offline showed a different tag row than
+      //      the one the friend's page showed a minute earlier.
+      //   2. It has tag ids, so a chip tap resolves the exact tag
+      //      instead of re-resolving by name.
+      // The CONNECTIONS names stay as the fallback for a friend opened
+      // for the first time offline, whose tags the list had shown.
+      const snapshotTags = Array.isArray(detail?.tags) ? detail.tags : [];
+      const tagsToPaint = snapshotTags.length > 0 ? snapshotTags : cachedTags;
       dispatchFriendData({
         type: 'SET_INITIAL',
         payload: {
           connection: row as unknown as Connection,
           profile: (row.connected_user ?? null) as PiktagProfile | null,
-          ...(cachedTags.length > 0 ? { tags: cachedTags } : {}),
+          ...(tagsToPaint.length > 0 ? { tags: tagsToPaint } : {}),
+          // No cached entry for this friend means NO links section —
+          // never a fabricated one. `biolinks` simply stays at its []
+          // default and BiolinkSocialSection renders nothing, which is
+          // also the correct render for someone who genuinely has none.
+          ...(Array.isArray(detail?.biolinks) ? { biolinks: detail.biolinks } : {}),
+          ...(Array.isArray(detail?.scanEventTags) && detail.scanEventTags.length > 0
+            ? { scanEventTags: detail.scanEventTags }
+            : {}),
         },
       });
+      // Follow / close-friend state. Both default to false, i.e. the
+      // screen offered 「追蹤」 for someone the viewer already follows —
+      // one tap from a follow they already have. Only paint a real
+      // cached boolean; anything else leaves the default alone.
+      if (typeof detail?.isFollowing === 'boolean') setIsFollowing(detail.isFollowing);
+      if (typeof detail?.isCloseFriend === 'boolean') setIsCloseFriend(detail.isCloseFriend);
       if (row.birthday) setBirthday(row.birthday);
       // Content is on screen, so stop the PageLoader — but do NOT clear
       // `awaitingServer`: the server has said nothing yet, and the
@@ -627,21 +704,34 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       // known values is stale; printing 0 is false, and this screen's
       // whole job is telling you who you know.
       const initialPayload: Partial<FriendData> = {};
+      // May this pass's biolinks be written to disk? Answering the query
+      // is necessary but NOT sufficient: the list is then narrowed by the
+      // viewer's relation, and getViewerRelation() answers 'stranger'
+      // both for a real stranger and for "all my queries failed". Caching
+      // a public-only list produced by the second case would silently
+      // delete the friends-tier links from the offline snapshot.
+      let biolinksTrusted = false;
       // Biolinks: same rule. A failed fetch produced `[]`, which erased
       // the link section the previous load had painted.
       if (!biolinksResult.error) {
-        initialPayload.biolinks = filterBiolinksByVisibility(
-          biolinksResult.data ?? [],
-          // Map RPC relation to the visibility tier when available.
-          // 'self' / 'friend' have direct equivalents; 'blocked' / 'none'
-          // collapse to 'stranger'. Close-friend status is computed
-          // separately below, so we treat the RPC result as the floor.
-          rpcRelation
-            ? (rpcRelation === 'self' ? 'self'
-                : rpcRelation === 'friend' ? 'friend'
-                : 'stranger')
-            : await getViewerRelation(user?.id, friendId)
-        );
+        // Map RPC relation to the visibility tier when available.
+        // 'self' / 'friend' have direct equivalents; 'blocked' / 'none'
+        // collapse to 'stranger'. Close-friend status is computed
+        // separately below, so we treat the RPC result as the floor.
+        let relation: 'self' | 'close_friend' | 'friend' | 'stranger';
+        if (rpcRelation) {
+          relation =
+            rpcRelation === 'self' ? 'self' : rpcRelation === 'friend' ? 'friend' : 'stranger';
+          // The RPC gave a definite answer about the relationship.
+          biolinksTrusted = true;
+        } else {
+          relation = await getViewerRelation(user?.id, friendId);
+          // Any answer OTHER than 'stranger' proves those queries ran:
+          // 'stranger' is the only value the all-null failure path can
+          // produce, so it is the only one we refuse to cache behind.
+          biolinksTrusted = relation !== 'stranger';
+        }
+        initialPayload.biolinks = filterBiolinksByVisibility(biolinksResult.data ?? [], relation);
       }
       // The count is only meaningful when the source that produced it
       // actually spoke — the RPC, or BOTH legacy connection queries.
@@ -689,6 +779,17 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       // Phase 2: queries that depend on phase 1 results (run in parallel)
       const phase2: Promise<void>[] = [];
 
+      // What phase 2 learned, for the disk snapshot below. Null means
+      // "this pass did not establish it" and the merge leaves whatever
+      // the previous pass wrote in place. One object rather than two
+      // `let`s so the writes below — which happen inside phase-2
+      // closures — are visible to the reader after the await; a plain
+      // `let` assigned only from a callback stays narrowed to `null`.
+      const learned: { tags: FriendTag[] | null; scanEventTags: string[] | null } = {
+        tags: null,
+        scanEventTags: null,
+      };
+
       // Scan session tags (depends on connData.scan_session_id)
       if (connData?.scan_session_id) {
         phase2.push(
@@ -698,8 +799,15 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             .eq('id', connData.scan_session_id)
             .maybeSingle()
           ).then(({ data }) => {
-            if (data?.event_tags)
+            if (data?.event_tags) {
               dispatchFriendData({ type: 'SET_SCAN_EVENT_TAGS', scanEventTags: data.event_tags });
+              learned.scanEventTags = data.event_tags as string[];
+            }
+            // Note what is NOT recorded for the cache: an empty/absent
+            // answer. RLS hides a session once the host closes it, so
+            // `data: null` here means "the event ended" at least as
+            // often as it means "no tags" — and the tags of an event you
+            // attended do not stop being true when it ends.
             // Row readable = session still active (RLS) → room re-entry shows.
             if ((data as any)?.id) setEventSessionId(String((data as any).id));
           }),
@@ -780,12 +888,20 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             }));
 
           // 5a. Append hidden tags (my private tags for this friend)
+          // `hiddenAnswered` gates the disk snapshot below: the viewer's
+          // private tags on this connection are the most personal thing
+          // on the page, and a friendTags array assembled while THIS
+          // query was failing is a friendTags array with the hidden tags
+          // missing. Writing that over a good snapshot would delete them
+          // from the offline view.
+          let hiddenAnswered = true;
           if (connectionId) {
-            const { data: hiddenData } = await supabase
+            const { data: hiddenData, error: hiddenError } = await supabase
               .from('piktag_connection_tags')
               .select('tag_id, piktag_tags!inner(id, name)')
               .eq('connection_id', connectionId)
               .eq('is_private', true);
+            hiddenAnswered = !hiddenError;
             if (hiddenData) {
               for (const ht of hiddenData) {
                 const htName = (ht as any).piktag_tags?.name;
@@ -816,6 +932,10 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           });
 
           dispatchFriendData({ type: 'SET_TAGS', tags: friendTags });
+          // Cache-worthy only if the hidden-tag half also answered. The
+          // public half is guaranteed: this block runs at all only when
+          // connTagsResult.data exists.
+          if (hiddenAnswered) learned.tags = friendTags;
 
           // 6. Also set mutual tags count + names
           const mutualList = friendTags.filter(t => myTagIds.has(t.tagId));
@@ -825,6 +945,34 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       }
 
       if (phase2.length > 0) await Promise.all(phase2);
+
+      // ── Disk snapshot for the offline read above ─────────────────────
+      // Field by field, and ONLY the fields this pass actually
+      // established. Anything omitted from the patch keeps its previous
+      // cached value (see mergePersistentFriendDetail) — so half a
+      // network is strictly better than none, and never worse than the
+      // last good load.
+      //
+      // Note what an EMPTY list means here. `biolinksResult` answering
+      // with `[]` and no error is a real fact — "this person has no
+      // links" — and gets stored, so unpublishing your last link removes
+      // it from your friends' offline copies too. Only the `.error`
+      // branch withholds the write; emptiness never does.
+      if (!signal.aborted) {
+        const detailPatch: PersistedFriendDetail = {};
+        if (biolinksTrusted && initialPayload.biolinks) {
+          detailPatch.biolinks = initialPayload.biolinks.slice(0, FRIEND_DETAIL_CACHE_MAX_LINKS);
+        }
+        if (learned.tags) detailPatch.tags = learned.tags.slice(0, FRIEND_DETAIL_CACHE_MAX_TAGS);
+        if (learned.scanEventTags) detailPatch.scanEventTags = learned.scanEventTags;
+        if (!followingResult.error) detailPatch.isFollowing = !!followingResult.data;
+        if (!cfError) detailPatch.isCloseFriend = !!cfData;
+        void mergePersistentFriendDetail<PersistedFriendDetail>(
+          user.id,
+          friendId,
+          detailPatch,
+        );
+      }
 
       // The stats row may stop lying only when every query behind it
       // actually answered. supabase-js resolves a transport failure as

@@ -97,6 +97,20 @@ export const CACHE_KEYS = {
   // clearPersistentCaches — which iterates exactly this object — never
   // reached it and a deleted account's suggestions stayed on disk.
   AI_TAG_SUGGESTIONS: 'aiTagSuggestions',
+  // ── 2026-08-08, round 3 (founder, on a real device with no signal:
+  //    「好友清單可以看到，點進去可以看到好友名稱，但沒有社交連結、標籤」) ──
+  // Per-friend detail snapshots (FriendDetailScreen): the friend's
+  // SOCIAL LINKS above all, plus the tag row as that screen actually
+  // renders it. CACHE_KEYS.CONNECTIONS carries the header (name,
+  // avatar, nickname) and the viewer's own tag NAMES, but it has never
+  // carried biolinks at all — so a friend the viewer had opened online
+  // still lost their whole link section the moment the signal went.
+  // ONE map under ONE key, never one key per friend — same contract as
+  // CHAT_THREADS / QR_GROUP_DETAILS above, for the same reason: a
+  // key-per-friend scheme escapes clearPersistentCaches(), which
+  // iterates exactly this object, and the previous account's friends'
+  // links would survive a sign-out on a shared phone.
+  FRIEND_DETAILS: 'friendDetails',
 } as const;
 
 const DEFAULT_TTL_MS = 300_000; // 5 minutes
@@ -365,6 +379,106 @@ export async function dropPersistentQrGroupDetail(
     await setPersistentCache(CACHE_KEYS.QR_GROUP_DETAILS, userId, next);
   } catch {
     // best-effort
+  }
+}
+
+// ── Friend detail bounds ─────────────────────────────────────────────
+// 30 = the most recently OPENED friends. A friend list runs to hundreds
+// of people and mirroring all of them to disk is a sync engine, not a
+// cache; but the ones the viewer needs offline at a venue are, almost by
+// definition, the ones they just looked at. 30 covers a full day of
+// working a room with room to spare.
+//
+// The per-friend arrays are capped as well, because the bound has to hold
+// against the pathological account, not the average one: a friend can
+// carry up to 100 public tags (the live query's own limit) and an
+// unbounded number of links. 30 x (12 links + 40 tags) is roughly 90 KB
+// worst case, the same order as the chat and QR caches above.
+export const FRIEND_DETAIL_CACHE_MAX_FRIENDS = 30;
+export const FRIEND_DETAIL_CACHE_MAX_LINKS = 12;
+export const FRIEND_DETAIL_CACHE_MAX_TAGS = 40;
+
+type FriendDetailEntry<T> = { updatedAt: number; snapshot: T };
+type FriendDetailMap<T> = Record<string, FriendDetailEntry<T>>;
+
+// A STRICTLY increasing stamp, because the eviction below is only as
+// good as its ordering. Date.now() has millisecond resolution, so two
+// writes in the same tick tie; Array.sort is stable, ties therefore
+// resolve to insertion order — i.e. OLDEST first — and the pruner then
+// evicts the most recent writes and keeps the stale ones, the exact
+// inverse of what a most-recently-viewed bound is for. Verified against
+// the real helper: filling the map in a loop dropped the newest entries.
+// Resetting to 0 on a cold start is harmless: the next Date.now() is
+// larger than every stamp already on disk.
+let lastFriendDetailStamp = 0;
+function friendDetailStamp(): number {
+  const now = Date.now();
+  lastFriendDetailStamp = now > lastFriendDetailStamp ? now : lastFriendDetailStamp + 1;
+  return lastFriendDetailStamp;
+}
+
+/** One friend's detail snapshot out of the single per-user map. */
+export async function getPersistentFriendDetail<T>(
+  userId: string | null | undefined,
+  friendId: string | null | undefined,
+): Promise<T | null> {
+  if (!userId || !friendId) return null;
+  const map = await getPersistentCache<FriendDetailMap<T>>(
+    CACHE_KEYS.FRIEND_DETAILS,
+    userId,
+  );
+  return (map?.[friendId]?.snapshot ?? null) as T | null;
+}
+
+/**
+ * MERGE a patch into one friend's snapshot, pruning the map back to the N
+ * most recently written friends.
+ *
+ * Merge, not replace, and that is the whole point of the signature: this
+ * screen's fields come from a handful of INDEPENDENT queries, and
+ * supabase-js resolves a transport failure as `{data: null, error}`
+ * rather than throwing. The caller passes only the fields whose query
+ * actually answered, so a half-answered load tops up what it learned and
+ * leaves every other field of the previous good snapshot untouched —
+ * instead of writing a fabricated "this friend has no links" over the
+ * links the viewer saw an hour ago.
+ *
+ * Keys explicitly set to `undefined` are dropped rather than merged, so a
+ * caller cannot erase a field by accident.
+ */
+export async function mergePersistentFriendDetail<T extends object>(
+  userId: string | null | undefined,
+  friendId: string | null | undefined,
+  patch: Partial<T>,
+): Promise<void> {
+  if (!userId || !friendId) return;
+  const defined = Object.fromEntries(
+    Object.entries(patch).filter(([, value]) => value !== undefined),
+  ) as Partial<T>;
+  if (Object.keys(defined).length === 0) return;
+  try {
+    const existing =
+      (await getPersistentCache<FriendDetailMap<T>>(CACHE_KEYS.FRIEND_DETAILS, userId)) ?? {};
+    const next: FriendDetailMap<T> = {
+      ...existing,
+      [friendId]: {
+        updatedAt: friendDetailStamp(),
+        snapshot: { ...(existing[friendId]?.snapshot ?? {}), ...defined } as T,
+      },
+    };
+    const ids = Object.keys(next);
+    if (ids.length > FRIEND_DETAIL_CACHE_MAX_FRIENDS) {
+      const keep = ids
+        .sort((a, b) => (next[b]?.updatedAt ?? 0) - (next[a]?.updatedAt ?? 0))
+        .slice(0, FRIEND_DETAIL_CACHE_MAX_FRIENDS);
+      const pruned: FriendDetailMap<T> = {};
+      for (const id of keep) pruned[id] = next[id];
+      await setPersistentCache(CACHE_KEYS.FRIEND_DETAILS, userId, pruned);
+      return;
+    }
+    await setPersistentCache(CACHE_KEYS.FRIEND_DETAILS, userId, next);
+  } catch {
+    // Best-effort, same contract as every other write here.
   }
 }
 
