@@ -134,7 +134,11 @@ export default function BiolinkSocialSection({
               onPress={() => handlePress(bl)}
               onLongPress={() => handleLongPress(bl)}
               delayLongPress={350}
-              accessibilityLabel={`${getPlatformLabel(bl.platform, t)} ${value}`}
+              accessibilityLabel={
+                bl.platform === 'wechat'
+                  ? getPlatformLabel(bl.platform, t)
+                  : `${getPlatformLabel(bl.platform, t)} ${value}`
+              }
               accessibilityRole="link"
             >
               {variant === 'highlight' ? (
@@ -173,7 +177,11 @@ export default function BiolinkSocialSection({
               onPress={() => handlePress(bl)}
               onLongPress={() => handleLongPress(bl)}
               delayLongPress={350}
-              accessibilityLabel={`${getPlatformLabel(bl.platform, t)} ${value}`}
+              accessibilityLabel={
+                bl.platform === 'wechat'
+                  ? getPlatformLabel(bl.platform, t)
+                  : `${getPlatformLabel(bl.platform, t)} ${value}`
+              }
               accessibilityRole="link"
             >
               <View style={styles.linkCardIcon}>
@@ -216,10 +224,20 @@ export default function BiolinkSocialSection({
                   number / address / handle is readable WITHOUT tapping
                   anything, without another app, and without a network.
                   selectable so it can be dragged out on a long-press
-                  too, on top of the row's own long-press copy. */}
-              <Text style={styles.linkCardValue} numberOfLines={1} selectable>
-                {value}
-              </Text>
+                  too, on top of the row's own long-press copy.
+
+                  WeChat is the one exception, by the founder's call
+                  (2026-08-08, reaffirming 2026-07-17): the 微信號 is not
+                  put on the card at all, on either line. It is still
+                  reachable — tapping copies it, long-press reveals it —
+                  so the row is not the dead button the rest of this
+                  change exists to remove; the ID just is not left
+                  sitting in the open. */}
+              {bl.platform !== 'wechat' && (
+                <Text style={styles.linkCardValue} numberOfLines={1} selectable>
+                  {value}
+                </Text>
+              )}
               </View>
               <ExternalLink size={variant === 'compact' ? 14 : 16} color={colors.gray400} />
             </TouchableOpacity>
