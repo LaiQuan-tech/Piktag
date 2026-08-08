@@ -53,6 +53,8 @@
     "add": "Add",
     "update": "Update",
     "close": "Close",
+    "copy": "Copy",
+    "copied": "Copied",
     "done": "Done",
     "gotIt": "Got it",
     "back": "Back",

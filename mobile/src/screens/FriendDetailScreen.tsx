@@ -1395,23 +1395,36 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   );
 
   const handleOpenLink = async (link: Biolink) => {
-    // Interactable = a copy-mode ID (WeChat) OR an openable safe URL.
-    // Non-interactable rows (scheme outside the allowlist) skip BOTH
-    // tracking and action — don't credit a "click" on a link we refuse
-    // to act on. The copy-vs-open branch itself lives in openOrCopyBiolink.
-    if (!isIdModePlatform(link.platform) && !isSafeBiolinkUrl(link.url)) return;
-    // Track click
-    if (user) {
-      supabase
-        .from('piktag_biolink_clicks')
-        // source='friend_detail' → friend-profile click, so the
-        // notify_biolink_click trigger DOES notify the owner (existing
-        // behaviour). Stranger/public clicks (UserDetailScreen) use
-        // 'user_detail' and are recorded silently.
-        .insert({ biolink_id: link.id, clicker_user_id: user.id, source: 'friend_detail' })
-        .then(({ error }) => {
+    // The ACTION now runs unconditionally. It used to early-return for
+    // any row outside the isSafeBiolinkUrl allowlist, which rendered a
+    // card and then did literally nothing when it was tapped — a dead
+    // button, the exact thing the founder called 徒有其表. The allowlist
+    // is still enforced, inside openOrCopyBiolink, where "not safe to
+    // hand to Linking.openURL" now means "show the value instead" rather
+    // than "silence".
+    //
+    // Tracking is gated separately: only credit a click on a link we
+    // would actually open. And it is fire-and-forget by construction —
+    // awaited inside its own async IIFE with a catch, so a dead network
+    // (which is the whole point of this screen working offline) can
+    // neither block nor reject the tap. Nothing on the path from tap to
+    // contact information touches the network.
+    const trackable = isIdModePlatform(link.platform) || isSafeBiolinkUrl(link.url);
+    if (user && trackable) {
+      void (async () => {
+        try {
+          const { error } = await supabase
+            .from('piktag_biolink_clicks')
+            // source='friend_detail' → friend-profile click, so the
+            // notify_biolink_click trigger DOES notify the owner (existing
+            // behaviour). Stranger/public clicks (UserDetailScreen) use
+            // 'user_detail' and are recorded silently.
+            .insert({ biolink_id: link.id, clicker_user_id: user.id, source: 'friend_detail' });
           if (error) console.warn('Biolink click tracking failed:', error.message);
-        });
+        } catch {
+          // Offline / transport failure. Never surfaced, never blocking.
+        }
+      })();
     }
     await openOrCopyBiolink({ platform: link.platform, url: link.url, id: link.id }, t);
   };

@@ -1394,24 +1394,30 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   };
 
   const handleOpenLink = (link: Biolink) => {
-    // Interactable = a copy-mode ID (WeChat) OR an openable safe URL.
-    // Non-interactable rows (scheme outside the allowlist) skip BOTH
-    // tracking and action — don't credit a click on a link we refuse to
-    // act on. The copy-vs-open branch itself lives in openOrCopyBiolink.
-    if (!isIdModePlatform(link.platform) && !isSafeBiolinkUrl(link.url)) return;
+    // Same contract as FriendDetailScreen.handleOpenLink: the action is
+    // unconditional (a rendered row must never be a dead tap — the
+    // allowlist is enforced inside openOrCopyBiolink, where "unsafe to
+    // open" means "reveal the value" instead of "do nothing"), while
+    // tracking is gated to links we would actually open and is
+    // fire-and-forget so it can neither block nor reject the tap.
+    const trackable = isIdModePlatform(link.platform) || isSafeBiolinkUrl(link.url);
     // Track the click. This is a NON-friend / scanned / public profile
     // view, so source='user_detail' — the strategically valuable
     // install-funnel "a stranger tapped your link" signal that wasn't
     // being recorded before. The notify_biolink_click trigger records it
     // for stats but does NOT notify the owner for this source (only
     // friend-profile clicks notify).
-    if (authUser) {
-      supabase
-        .from('piktag_biolink_clicks')
-        .insert({ biolink_id: link.id, clicker_user_id: authUser.id, source: 'user_detail' })
-        .then(({ error }) => {
+    if (authUser && trackable) {
+      void (async () => {
+        try {
+          const { error } = await supabase
+            .from('piktag_biolink_clicks')
+            .insert({ biolink_id: link.id, clicker_user_id: authUser.id, source: 'user_detail' });
           if (error) console.warn('Biolink click tracking failed:', error.message);
-        });
+        } catch {
+          // Offline / transport failure. Never surfaced, never blocking.
+        }
+      })();
     }
     void openOrCopyBiolink({ platform: link.platform, url: link.url, id: link.id }, t);
   };

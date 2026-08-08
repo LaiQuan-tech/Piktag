@@ -6,6 +6,8 @@ import PlatformIcon from './PlatformIcon';
 import { useTheme } from '../context/ThemeContext';
 import { type ColorPalette } from '../constants/theme';
 import { getPlatformLabel } from '../lib/platforms';
+import { biolinkDisplayValue, revealBiolinkValue } from '../lib/biolinks';
+import { useNetInfo } from '../hooks/useNetInfo';
 import type { Biolink } from '../types';
 
 /**
@@ -36,6 +38,19 @@ import type { Biolink } from '../types';
  * The behavior (filter by display_mode, horizontal-scroll-when-
  * overflow, center-when-fits, localized label fallback, dark-mode
  * aware) is shared. The visual envelope is parameterized.
+ *
+ * 2026-08-08 — offline usability. Founder, build 1098, no signal:
+ * 「有看到社交連結…但也就只是顯示按鈕，點擊電話按鈕沒有內容…徒有其表」.
+ * The links were cached and rendered, but a row's only outcome was
+ * handing its url to another app, so offline it answered nothing. Three
+ * changes, all here so no screen can drift from them:
+ *   1. Card rows SHOW the value (number / address / handle) under the
+ *      platform name. Readable at rest, no tap, no network.
+ *   2. Long-press anywhere reveals the value large with a copy action.
+ *   3. A row with nothing readable behind it is not rendered at all —
+ *      a dead button is the specific thing being objected to.
+ * Tapping is otherwise unchanged, except that while disconnected an
+ * http(s) row reveals instead of launching a browser onto an error page.
  */
 export type BiolinkSocialVariant = 'compact' | 'highlight';
 
@@ -55,16 +70,49 @@ export default function BiolinkSocialSection({
 }: Props) {
   const { colors } = useTheme();
   const { t } = useTranslation();
+  const { isConnected } = useNetInfo();
   const styles = useMemo(() => makeStyles(colors, variant), [colors, variant]);
 
-  const iconLinks = biolinks.filter(
-    (bl) => bl.display_mode === 'icon' || bl.display_mode === 'both',
+  // Every row is paired with the value a human can actually read off it.
+  // Founder, build 1098, offline on a device: 「其他連結都只是有按鈕，但
+  // 沒有內容…徒有其表」. A row with no readable value behind it is the
+  // specific thing being objected to — it costs a tap and answers
+  // nothing — so it is not rendered at all rather than rendered dead.
+  const rows = useMemo(
+    () =>
+      biolinks
+        .map((bl) => ({ bl, value: biolinkDisplayValue(bl.platform, bl.url) }))
+        .filter((r) => !!r.value),
+    [biolinks],
   );
-  const cardLinks = biolinks.filter(
-    (bl) => bl.display_mode === 'card' || bl.display_mode === 'both',
+
+  const iconLinks = rows.filter(
+    ({ bl }) => bl.display_mode === 'icon' || bl.display_mode === 'both',
+  );
+  const cardLinks = rows.filter(
+    ({ bl }) => bl.display_mode === 'card' || bl.display_mode === 'both',
   );
 
   if (iconLinks.length === 0 && cardLinks.length === 0) return null;
+
+  // Offline, a web link is a dead browser tab: the tap ejects you from
+  // the app and shows an error page — strictly worse than no tap. So
+  // while disconnected, http(s) rows reveal their value instead (the
+  // handle IS the content you need when you are standing in front of
+  // the person). tel: / mailto: / app schemes still open: the dialer,
+  // the mail composer and an installed app all work with no signal, and
+  // dialling is the whole point of a phone row.
+  const needsNetworkToOpen = (url: string) => /^https?:/i.test((url ?? '').trim());
+  const handlePress = (bl: Biolink) => {
+    if (isConnected === false && needsNetworkToOpen(bl.url)) {
+      revealBiolinkValue(bl, t);
+      return;
+    }
+    onPress(bl);
+  };
+  // Long-press anywhere = read it out / copy it. 「把號碼唸給我」 at a
+  // venue is a real need, and it must never depend on another app.
+  const handleLongPress = (bl: Biolink) => revealBiolinkValue(bl, t);
 
   const iconSize = variant === 'compact' ? 22 : 28;
   const cardIconSize = variant === 'compact' ? 24 : 22;
@@ -78,13 +126,15 @@ export default function BiolinkSocialSection({
           style={styles.iconRowScroll}
           contentContainerStyle={styles.iconRowContent}
         >
-          {iconLinks.map((bl) => (
+          {iconLinks.map(({ bl, value }) => (
             <TouchableOpacity
               key={bl.id}
               style={styles.iconItem}
               activeOpacity={0.7}
-              onPress={() => onPress(bl)}
-              accessibilityLabel={bl.label || bl.platform}
+              onPress={() => handlePress(bl)}
+              onLongPress={() => handleLongPress(bl)}
+              delayLongPress={350}
+              accessibilityLabel={`${getPlatformLabel(bl.platform, t)} ${value}`}
               accessibilityRole="link"
             >
               {variant === 'highlight' ? (
@@ -115,13 +165,15 @@ export default function BiolinkSocialSection({
 
       {cardLinks.length > 0 && (
         <View style={styles.cardSection}>
-          {cardLinks.map((bl) => (
+          {cardLinks.map(({ bl, value }) => (
             <TouchableOpacity
               key={bl.id}
               style={styles.linkCard}
               activeOpacity={0.7}
-              onPress={() => onPress(bl)}
-              accessibilityLabel={bl.label || bl.platform}
+              onPress={() => handlePress(bl)}
+              onLongPress={() => handleLongPress(bl)}
+              delayLongPress={350}
+              accessibilityLabel={`${getPlatformLabel(bl.platform, t)} ${value}`}
               accessibilityRole="link"
             >
               <View style={styles.linkCardIcon}>
@@ -132,6 +184,7 @@ export default function BiolinkSocialSection({
                   url={bl.url}
                 />
               </View>
+              <View style={styles.linkCardTextWrap}>
               <Text style={styles.linkCardLabel} numberOfLines={1}>
                 {/* Locale-derive for branded platforms (mirrors the
                     save-side rule in EditProfileScreen.handleSaveBiolink).
@@ -145,16 +198,29 @@ export default function BiolinkSocialSection({
                     Founder caught the EN-viewer regression 2026-06-03;
                     the 2026-05-31 partial fix here used `bl.label ||
                     derived` which only helped when label was null. */}
-                {/* idMode platforms (WeChat) have no openable URL — the
-                    row just shows the platform name (like every other
-                    row) for a clean, uniform look; tapping copies the
-                    bare 微信號 to the clipboard with a toast (see
-                    openOrCopyBiolink). Founder 2026-07-17: don't spill
-                    the account onto the card. */}
+                {/* idMode platforms (WeChat) have no openable URL —
+                    tapping copies the bare 微信號 to the clipboard with
+                    a toast (see openOrCopyBiolink). The TITLE line stays
+                    the platform name for every row, WeChat included:
+                    founder 2026-07-17 rejected "WeChat: armand7951"
+                    crammed into the title, and that verdict still
+                    stands. The account now lives on its own muted
+                    second line instead, which is the 2026-08-08 verdict
+                    — 「有按鈕，但沒有內容」 — and the two are compatible:
+                    uniform titles, content underneath. */}
                 {bl.platform === 'custom'
                   ? (bl.label || getPlatformLabel(bl.platform, t))
                   : getPlatformLabel(bl.platform, t)}
               </Text>
+              {/* The value itself. This is the offline answer: the
+                  number / address / handle is readable WITHOUT tapping
+                  anything, without another app, and without a network.
+                  selectable so it can be dragged out on a long-press
+                  too, on top of the row's own long-press copy. */}
+              <Text style={styles.linkCardValue} numberOfLines={1} selectable>
+                {value}
+              </Text>
+              </View>
               <ExternalLink size={variant === 'compact' ? 14 : 16} color={colors.gray400} />
             </TouchableOpacity>
           ))}
@@ -237,11 +303,24 @@ function makeStyles(c: ColorPalette, variant: BiolinkSocialVariant) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    linkCardLabel: {
+    // Title + value stack. `flex: 1` moved here from linkCardLabel so
+    // the two lines share the row's free width and the ExternalLink
+    // chevron stays pinned right.
+    linkCardTextWrap: {
       flex: 1,
+      gap: 2,
+    },
+    linkCardLabel: {
       fontSize: isCompact ? 15 : 16,
       fontWeight: '600',
       color: c.gray900,
+    },
+    // Muted, one step down in size — the platform name still reads as
+    // the row's title, the value as its content.
+    linkCardValue: {
+      fontSize: isCompact ? 13 : 14,
+      fontWeight: '500',
+      color: c.gray500,
     },
   });
 }

@@ -25,8 +25,11 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { ArrowLeft, Phone, Smartphone, Mail, MapPin, Globe, Gift, ExternalLink } from 'lucide-react-native';
 import { toBirthdayDate } from '../lib/birthday';
+import { buildDialUrl, revealContactValue } from '../lib/biolinks';
+import { useNetInfo } from '../hooks/useNetInfo';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useAuthProfile } from '../context/AuthContext';
@@ -40,6 +43,85 @@ import BrandSpinner from '../components/loaders/BrandSpinner';
 
 type Props = { navigation: any; route: any };
 
+/**
+ * One contact-method row: icon, label, and — the point of this
+ * component — the VALUE, rendered so it can be read without tapping
+ * anything.
+ *
+ * Founder on a device with no signal (build 1098): a row that only
+ * shows 「電話」 and hands off to another app is 徒有其表 — offline you
+ * still do not know the number, so you may as well open the phone's own
+ * contacts app. A scanned business card is the case where that hurts
+ * most: the card is on disk, the person is in front of you, and the
+ * screen was showing a label.
+ *
+ * Three affordances, none of which needs a network:
+ *   - the value is on screen at rest,
+ *   - long-press reveals it large with a copy action,
+ *   - tap still opens the dialer / mail / maps, and if that open
+ *     REJECTS (malformed number, no handler) it reveals instead of
+ *     failing silently.
+ */
+function ContactLinkCard({
+  styles,
+  colors,
+  icon,
+  label,
+  value,
+  onOpen,
+  opensWeb,
+  isConnected,
+  t,
+}: {
+  styles: ReturnType<typeof makeStyles>;
+  colors: ColorPalette;
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  onOpen: () => Promise<unknown>;
+  /** True when opening needs the network (maps / website). Offline
+   *  those launch a browser onto an error page, which is worse than no
+   *  tap at all — so offline they reveal the value instead. */
+  opensWeb?: boolean;
+  /** Read once by the screen and passed down, rather than one NetInfo
+   *  subscription per row. */
+  isConnected: boolean;
+  t: TFunction;
+}) {
+  const reveal = () => revealContactValue(label, value, t);
+  const handlePress = () => {
+    if (opensWeb && isConnected === false) {
+      reveal();
+      return;
+    }
+    void Promise.resolve()
+      .then(onOpen)
+      .catch(() => reveal());
+  };
+  return (
+    <TouchableOpacity
+      style={styles.linkCard}
+      activeOpacity={0.7}
+      onPress={handlePress}
+      onLongPress={reveal}
+      delayLongPress={350}
+      accessibilityLabel={`${label} ${value}`}
+      accessibilityRole="link"
+    >
+      {icon}
+      <View style={styles.linkCardTextWrap}>
+        <Text style={styles.linkCardText} numberOfLines={1}>
+          {label}
+        </Text>
+        <Text style={styles.linkCardValue} numberOfLines={1} selectable>
+          {value}
+        </Text>
+      </View>
+      <ExternalLink size={16} color={colors.gray400} />
+    </TouchableOpacity>
+  );
+}
+
 export default function LocalContactDetailScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
@@ -47,6 +129,9 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const contactId: string | undefined = route.params?.contactId;
   const { contacts, loading, refresh, update } = useLocalContacts();
+  // One NetInfo subscription for the whole screen; each contact card
+  // reads it as a prop.
+  const { isConnected } = useNetInfo();
   const { profile: myProfile } = useAuthProfile();
 
   // Refetch every focus so returning from the 編輯 form shows the
@@ -219,109 +304,97 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
         {/* Contact methods → FriendDetail's linkCard pattern
             (rectangular, gray200 border, icon + label + ExternalLink
             arrow). Tap = tel: / mailto:. Mirrors what a member friend
-            with biolinks looks like, 1:1. */}
+            with biolinks looks like, 1:1.
+
+            Every card now shows its VALUE under the label. A scanned
+            business card's phone number is the single most important
+            offline datum in this app — the person is standing in front
+            of you and there is no signal — and until now it lived only
+            in `accessibilityLabel`, i.e. nowhere a sighted user could
+            read it. Long-press reveals + copies. Both are pure local
+            state; nothing on this path touches the network. */}
         {(existing.phone_normalized || existing.mobile_normalized || existing.email_lower || existing.address || existing.website) && (
           <View style={styles.linkBioSection}>
             {existing.phone_normalized && (
-              <TouchableOpacity
-                style={styles.linkCard}
-                activeOpacity={0.7}
-                onPress={() =>
-                  Linking.openURL(`tel:${existing.phone_normalized}`).catch(
-                    () => {},
-                  )
-                }
-                accessibilityLabel={existing.phone_normalized}
-                accessibilityRole="link"
-              >
-                <Phone size={22} color={colors.gray900} strokeWidth={2.2} />
-                <Text style={styles.linkCardText} numberOfLines={1}>
-                  {t('localContact.linkPhone', { defaultValue: '電話' })}
-                </Text>
-                <ExternalLink size={16} color={colors.gray400} />
-              </TouchableOpacity>
+              <ContactLinkCard
+                styles={styles}
+                colors={colors}
+                icon={<Phone size={22} color={colors.gray900} strokeWidth={2.2} />}
+                label={t('localContact.linkPhone', { defaultValue: '電話' })}
+                value={existing.phone_normalized}
+                // buildDialUrl strips spaces / dashes / parens a scanned
+                // card can carry. iOS refuses to build an NSURL from a
+                // string with raw spaces, so the old raw interpolation
+                // could reject and the `.catch(() => {})` ate it: the tap
+                // did nothing at all.
+                onOpen={() => Linking.openURL(buildDialUrl(existing.phone_normalized!))}
+                isConnected={isConnected}
+                t={t}
+              />
             )}
             {existing.mobile_normalized && (
-              <TouchableOpacity
-                style={styles.linkCard}
-                activeOpacity={0.7}
-                onPress={() =>
-                  Linking.openURL(`tel:${existing.mobile_normalized}`).catch(
-                    () => {},
-                  )
-                }
-                accessibilityLabel={existing.mobile_normalized}
-                accessibilityRole="link"
-              >
-                <Smartphone size={22} color={colors.gray900} strokeWidth={2.2} />
-                <Text style={styles.linkCardText} numberOfLines={1}>
-                  {t('localContact.mobileLabel', { defaultValue: 'Mobile' })}
-                </Text>
-                <ExternalLink size={16} color={colors.gray400} />
-              </TouchableOpacity>
+              <ContactLinkCard
+                styles={styles}
+                colors={colors}
+                icon={<Smartphone size={22} color={colors.gray900} strokeWidth={2.2} />}
+                label={t('localContact.mobileLabel', { defaultValue: 'Mobile' })}
+                value={existing.mobile_normalized}
+                onOpen={() => Linking.openURL(buildDialUrl(existing.mobile_normalized!))}
+                isConnected={isConnected}
+                t={t}
+              />
             )}
             {existing.email_lower && (
-              <TouchableOpacity
-                style={styles.linkCard}
-                activeOpacity={0.7}
-                onPress={() =>
-                  Linking.openURL(`mailto:${existing.email_lower}`).catch(
-                    () => {},
-                  )
-                }
-                accessibilityLabel={existing.email_lower}
-                accessibilityRole="link"
-              >
-                <Mail size={22} color={colors.gray900} strokeWidth={2.2} />
-                <Text style={styles.linkCardText} numberOfLines={1}>
-                  {t('localContact.linkEmail', { defaultValue: 'Email' })}
-                </Text>
-                <ExternalLink size={16} color={colors.gray400} />
-              </TouchableOpacity>
+              <ContactLinkCard
+                styles={styles}
+                colors={colors}
+                icon={<Mail size={22} color={colors.gray900} strokeWidth={2.2} />}
+                label={t('localContact.linkEmail', { defaultValue: 'Email' })}
+                value={existing.email_lower}
+                onOpen={() => Linking.openURL(`mailto:${existing.email_lower}`)}
+                isConnected={isConnected}
+                t={t}
+              />
             )}
             {existing.address && (
-              <TouchableOpacity
-                style={styles.linkCard}
-                activeOpacity={0.7}
-                onPress={() =>
+              <ContactLinkCard
+                styles={styles}
+                colors={colors}
+                icon={<MapPin size={22} color={colors.gray900} strokeWidth={2.2} />}
+                label={t('localContact.linkAddress', { defaultValue: '地址' })}
+                value={existing.address}
+                onOpen={() =>
                   Linking.openURL(
                     // Cross-platform Maps deep link — opens Apple Maps
                     // on iOS, Google Maps app on Android, falls back to
                     // browser web map elsewhere.
                     `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(existing.address!)}`,
-                  ).catch(() => {})
+                  )
                 }
-                accessibilityLabel={existing.address}
-                accessibilityRole="link"
-              >
-                <MapPin size={22} color={colors.gray900} strokeWidth={2.2} />
-                <Text style={styles.linkCardText} numberOfLines={1}>
-                  {t('localContact.linkAddress', { defaultValue: '地址' })}
-                </Text>
-                <ExternalLink size={16} color={colors.gray400} />
-              </TouchableOpacity>
+                opensWeb
+                isConnected={isConnected}
+                t={t}
+              />
             )}
             {existing.website && (
-              <TouchableOpacity
-                style={styles.linkCard}
-                activeOpacity={0.7}
-                onPress={() => {
+              <ContactLinkCard
+                styles={styles}
+                colors={colors}
+                icon={<Globe size={22} color={colors.gray900} strokeWidth={2.2} />}
+                label={t('localContact.linkWebsite', { defaultValue: '網址' })}
+                value={existing.website}
+                onOpen={() => {
                   // Card scans often store bare domains ("acme.com") with
                   // no scheme — prepend https:// so Linking can open it.
                   // A pre-existing scheme passes through unchanged.
                   const raw = existing.website!.trim();
                   const url = /^[a-z]+:\/\//i.test(raw) ? raw : `https://${raw}`;
-                  Linking.openURL(url).catch(() => {});
+                  return Linking.openURL(url);
                 }}
-                accessibilityLabel={existing.website}
-                accessibilityRole="link"
-              >
-                <Globe size={22} color={colors.gray900} strokeWidth={2.2} />
-                <Text style={styles.linkCardText} numberOfLines={1}>
-                  {t('localContact.linkWebsite', { defaultValue: '網址' })}
-                </Text>
-                <ExternalLink size={16} color={colors.gray400} />
-              </TouchableOpacity>
+                opensWeb
+                isConnected={isConnected}
+                t={t}
+              />
             )}
           </View>
         )}
@@ -485,11 +558,23 @@ function makeStyles(c: ColorPalette) {
     paddingHorizontal: 18,
     gap: 12,
   },
-  linkCardText: {
+  // Label + value stack. `flex: 1` moved here from linkCardText so the
+  // two lines share the row's free width and the chevron stays pinned
+  // right — same structure as BiolinkSocialSection's card row, which
+  // this screen deliberately mirrors 1:1.
+  linkCardTextWrap: {
     flex: 1,
+    gap: 2,
+  },
+  linkCardText: {
     fontSize: 16,
     fontWeight: '600',
     color: c.gray900,
+  },
+  linkCardValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: c.gray500,
   },
   // (recordCard / reminderRow / recordLabel / recordValue moved
   // into the shared RecordCard component — task #38 follow-up.)
