@@ -52,6 +52,79 @@ function escapeHtml(str) {
 }
 
 // ─────────────────────────────────────────────────────────
+// SEO / discoverability primitives
+// ─────────────────────────────────────────────────────────
+// The one production origin. Never derive this from req.headers.host —
+// that header is client-controlled and these values end up in canonical
+// tags, JSON-LD @id values and the sitemap (see the cache-poisoning note
+// in api/home.js).
+const SITE_ORIGIN = 'https://pikt.ag';
+
+// The username shape the public profile route accepts. Anything that
+// fails this test 404s at /:username (see api/u/[username].js), so the
+// sitemap MUST apply the identical test or it will list dead URLs —
+// today 48 of the 112 non-test public profiles carry a legacy dotted
+// handle ("karlcohen.71222") whose page is a hard 404.
+// Exported so the route and the sitemap can never drift apart.
+const VALID_USERNAME = /^[a-zA-Z0-9_]{2,30}$/;
+
+// Handles that are obviously throwaway test accounts but are NOT flagged
+// piktag_profiles.is_test_account = true. The DB flag is the real gate
+// (see 20260705030000_test_accounts.sql); this is a belt-and-braces guard
+// so a handle like "testuser12345" cannot end up in the sitemap or in an
+// AI assistant's answer about who is on PikTag.
+//
+// PROPER FIX: flag these accounts from the admin backend
+// (/users → toggle is_test_account) and delete this constant. Every name
+// matched here is a data-hygiene bug, not a permanent rule.
+const TEST_HANDLE_PATTERN = /^(test|demo|qa|fake|bot|dummy|sample|placeholder)/i;
+
+// True when a profile row may be advertised to search engines and AI
+// assistants. Single source of truth — used by the sitemap AND by the
+// robots meta tag on the profile page itself, so the two can never
+// disagree.
+//
+// Gates, and why each one is here:
+//   is_public !== true   — the app sets is_public = false when a user
+//                          DEACTIVATES their account (mobile
+//                          SettingsScreen.tsx: "停用後你的個人頁將隱藏").
+//                          A deactivated person must never be indexed.
+//   is_test_account      — 83 of 195 rows are QA/seed accounts. Feeding
+//                          fake people to Google poisons quality signals.
+//   is_active === false  — reserved kill switch; today no row uses it,
+//                          but if it is ever set it means "not a live
+//                          account", which is not indexable.
+//   VALID_USERNAME       — the profile URL would 404 (see above).
+//   TEST_HANDLE_PATTERN  — unflagged obvious testers (see above).
+// Deliberately NOT a gate: is_official. The @piktag account is a real,
+// wanted page — it just gets Organization markup instead of Person.
+function isIndexableProfile(p) {
+  if (!p) return false;
+  if (p.is_public !== true) return false;
+  if (p.is_test_account === true) return false;
+  if (p.is_active === false) return false;
+  if (!p.username || !VALID_USERNAME.test(p.username)) return false;
+  if (TEST_HANDLE_PATTERN.test(p.username)) return false;
+  return true;
+}
+
+// Serialize a JSON-LD graph into a <script> body.
+//
+// JSON.stringify alone is NOT safe inside <script>: a "</script>" inside
+// any user-supplied string (a bio, a tag name) would close the element
+// early and turn the rest of the page into markup. Escaping "<" as the
+// < JSON escape keeps the value byte-identical to a parser while
+// making an early close impossible. Also drops U+2028/U+2029, which are
+// legal in JSON but illegal raw in a JS string literal.
+function jsonLd(graph) {
+  return JSON.stringify(graph)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
+// ─────────────────────────────────────────────────────────
 // i18n translations for public-facing pages
 // ─────────────────────────────────────────────────────────
 const TRANSLATIONS = {
@@ -1375,6 +1448,11 @@ fbq('trackCustom','share_link_viewed',{share_type:'${safeType}',share_identifier
 module.exports = {
   SUPABASE_URL,
   SUPABASE_ANON_KEY,
+  SITE_ORIGIN,
+  VALID_USERNAME,
+  TEST_HANDLE_PATTERN,
+  isIndexableProfile,
+  jsonLd,
   BRAND_COLOR,
   BRAND_ACCENT,
   BRAND_DARK,

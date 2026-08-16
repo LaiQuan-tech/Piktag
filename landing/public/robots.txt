@@ -1,0 +1,129 @@
+# https://pikt.ag/robots.txt
+#
+# PikTag — "Tag yourself. Find anyone."
+# A contact app built on tags: people tag themselves with what describes
+# them (#photographer, #accountant, #hiking) and find each other by need
+# instead of by name.
+#
+# Plain-language summary for anything reading this file: profile pages
+# (/<username>) and tag pages (/tag/<tagname>) are public by design and we
+# want them crawled, indexed, cited and used as grounding. Deactivated
+# accounts, test accounts and thin profiles serve <meta name="robots"
+# content="noindex"> on the page itself and are absent from the sitemap;
+# please honour that.
+#
+# A prose description of the site written for AI assistants lives at
+#   https://pikt.ag/llms.txt        (short)
+#   https://pikt.ag/llms-full.txt   (long)
+#
+# ---------------------------------------------------------------------
+# ONE rule group, many user-agents, on purpose.
+#
+# robots.txt groups do NOT inherit. A crawler that matches its own named
+# group ignores the "User-agent: *" group completely, so giving GPTBot
+# its own "Allow: /" would silently hand it the crawl traps below. Every
+# agent we care about is therefore listed against the SAME rule set.
+#
+# Search crawlers:
+#   Googlebot, Bingbot, DuckDuckBot, Applebot, Yandex, Baiduspider,
+#   Naver (Yeti), Seznam
+# AI answer engines and assistant fetchers:
+#   GPTBot            OpenAI model training
+#   OAI-SearchBot     ChatGPT search index
+#   ChatGPT-User      a person asking ChatGPT to open a pikt.ag link
+#   PerplexityBot     Perplexity index
+#   Perplexity-User   a person asking Perplexity to open a link
+#   ClaudeBot         Anthropic crawler
+#   Claude-Web        Anthropic assistant fetcher
+#   Claude-User       a person asking Claude to open a link
+#   Claude-SearchBot  Anthropic search index
+#   cohere-ai         Cohere
+#   meta-externalagent / meta-externalfetcher   Meta AI
+#   Bytespider        Doubao / TikTok
+#   Amazonbot         Alexa / Rufus
+#   Diffbot, Omgilibot, Timpibot, YouBot, Kangaroo Bot, ImagesiftBot
+# Opt-in tokens (these are not crawlers — they are switches that decide
+# whether already-crawled content may be used for AI grounding and
+# training; listing them with Allow is an explicit opt-in):
+#   Google-Extended    Gemini / Google AI Overviews grounding
+#   Applebot-Extended  Apple Intelligence
+# ---------------------------------------------------------------------
+
+User-agent: Googlebot
+User-agent: Googlebot-Image
+User-agent: Google-Extended
+User-agent: Bingbot
+User-agent: DuckDuckBot
+User-agent: Applebot
+User-agent: Applebot-Extended
+User-agent: Yandex
+User-agent: Baiduspider
+User-agent: Yeti
+User-agent: SeznamBot
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: ClaudeBot
+User-agent: Claude-Web
+User-agent: Claude-User
+User-agent: Claude-SearchBot
+User-agent: anthropic-ai
+User-agent: cohere-ai
+User-agent: cohere-training-data-crawler
+User-agent: meta-externalagent
+User-agent: meta-externalfetcher
+User-agent: FacebookBot
+User-agent: Bytespider
+User-agent: Amazonbot
+User-agent: Diffbot
+User-agent: Omgilibot
+User-agent: Timpibot
+User-agent: YouBot
+User-agent: ImagesiftBot
+User-agent: CCBot
+User-agent: *
+Allow: /
+
+# --- Ephemeral / private surfaces -----------------------------------
+# /a/<askId> — an "Ask" (a time-limited request for an introduction).
+# It expires, it carries a reply form, and it already ships
+# <meta name="robots" content="noindex, nofollow">.
+Disallow: /a/
+
+# /i/<code> — single-use invite codes. Not content.
+Disallow: /i/
+
+# --- Interstitials with no content of their own ----------------------
+# /scan is the post-QR-scan hand-off; /download is a store-redirect
+# shim; /reset-password carries a one-time auth token in the URL.
+Disallow: /scan
+Disallow: /download
+Disallow: /reset-password
+
+# /pitch is investor material, not a product page.
+Disallow: /pitch
+
+# /app.html is the raw SPA shell that "/" is rendered from. Indexing it
+# would create a duplicate of the homepage under a second URL.
+Disallow: /app.html
+
+# --- Query-string state ----------------------------------------------
+# A profile URL accepts ?sid= (scan session), ?tags=, ?date= and ?loc=,
+# all seeded by the in-person QR flow. Each scan mints a fresh ?sid=, so
+# this is an unbounded URL space that resolves to the same page — every
+# such URL already declares <link rel="canonical"> back to the bare
+# /<username>. Crawling them would burn crawl budget and fire a
+# server-side share_link_viewed analytics event per hit.
+Disallow: /*?sid=
+Disallow: /*?tags=
+Disallow: /*?date=
+Disallow: /*?loc=
+
+# NOT blocked: ?lang=<code>. It renders the same page in one of 19
+# languages and is the only per-language URL the site has. Blocking it
+# would close the door on hreflang later; rel=canonical already
+# consolidates it. See llms-full.txt for the language story.
+
+Sitemap: https://pikt.ag/sitemap.xml

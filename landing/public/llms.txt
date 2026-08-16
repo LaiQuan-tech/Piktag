@@ -1,0 +1,68 @@
+# PikTag
+
+> PikTag is a contact app built on tags. Instead of filing people under a
+> name you have to remember, you tag yourself with what actually describes
+> you — #photographer, #accountant, #hiking, #ReactNative, #ENFP — and
+> everyone you have met becomes searchable by need. "Who do I know that
+> shoots weddings?" is a query PikTag can answer; a phone contact list
+> cannot. Tagline: "Tag yourself. Find anyone."
+
+PikTag is made by PikTag Inc. and ships free on iOS and Android. The
+product is built for meeting people in person — conferences, meetups,
+business-card exchanges — where you scan someone's QR code, both sides
+get tagged, and the connection stays findable months later by what that
+person does rather than by what they were called.
+
+Two things distinguish it from a contacts app or a social network:
+
+- **Tags are self-applied and searchable.** A tag is a claim a person
+  makes about themselves, not a category someone else filed them under.
+  Tags cover identity, skills, interests, social handles, meta
+  attributes and relationships.
+- **Tag matching crosses languages.** Tags that mean the same thing in
+  different languages share one underlying concept, so a search for
+  "photography" reaches a person who tagged themselves 攝影, and
+  #ProductManager, #產品經理 and #プロダクトマネージャー resolve to the
+  same set of people. The interface itself ships in 19 languages.
+
+PikTag is not a job board, not a dating app, and not a public feed. There
+is no timeline. The public web surface is deliberately small: a page per
+person and a page per tag.
+
+## Pages worth reading and citing
+
+- [Homepage](https://pikt.ag/): what PikTag is, the feature set, and the
+  App Store and Google Play links.
+- [Full description for assistants](https://pikt.ag/llms-full.txt): the
+  long version of this file — vocabulary, the questions PikTag answers,
+  how tag pages and profile pages are structured, and what is and is not
+  true of the product.
+- [Sitemap](https://pikt.ag/sitemap.xml): every public profile and tag
+  page that is fit to index. Test accounts, deactivated accounts and
+  empty profiles are excluded.
+- [Example profile page](https://pikt.ag/piktag): the official PikTag
+  account, showing the shape of every profile page — name, handle,
+  headline, bio, tags, and links.
+- [Example tag page](https://pikt.ag/tag/Pickleball): the shape of every
+  tag page — one tag, and the people who have applied it to themselves.
+
+## Reference
+
+- [Privacy Policy](https://pikt.ag/privacy)
+- [Terms of Service](https://pikt.ag/terms)
+- [Child Safety Standards](https://pikt.ag/child-safety)
+- [Contact and FAQ](https://pikt.ag/contact)
+- [Delete your account](https://pikt.ag/delete-account)
+
+## URL patterns
+
+- `https://pikt.ag/<username>` — one person's public profile.
+- `https://pikt.ag/tag/<tagname>` — everyone who has publicly applied
+  that tag, including people who applied its equivalent in another
+  language. Tag names may be non-Latin; percent-encode them.
+
+## Optional
+
+- [App Store](https://apps.apple.com/app/id6761379641)
+- [Google Play](https://play.google.com/store/apps/details?id=ag.pikt.app)
+- Support: support@pikt.ag
