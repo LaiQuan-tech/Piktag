@@ -87,7 +87,14 @@ jobs:
 
   build-and-upload:
     needs: gate
-    if: needs.gate.outputs.should_build == 'true'
+    # Fail open at the JOB level — same fix and same reasoning as the iOS
+    # workflow. A gate job that never got a runner (failure, no steps) left
+    # `should_build` unset, and `== 'true'` read that as "skip", so an infra
+    # blip on a ten-second job silently skipped the whole release. `always()`
+    # is what lets this run when the gate failed or was skipped. A gate that
+    # actually runs and says 'false' still skips, so the "do not rebuild an
+    # unchanged commit" saving is unaffected.
+    if: always() && needs.gate.outputs.should_build != 'false'
     runs-on: ubuntu-latest
     # Raised 45 → 60. Successful Android runs cluster at 27–31 minutes
     # wall-clock (observed 22m52s … 30m41s), so 45 left barely 14 minutes of

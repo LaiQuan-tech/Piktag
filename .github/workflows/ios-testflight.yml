@@ -107,7 +107,22 @@ jobs:
 
   build-and-upload:
     needs: gate
-    if: needs.gate.outputs.should_build == 'true'
+    # Fail open at the JOB level, not just inside the gate's script. Build
+    # unless the gate positively said not to. `always()` is what lets this
+    # run when the gate job itself failed or was skipped.
+    #
+    # Why: runs 31907532662 and its neighbours show `gate: failure,
+    # runner_name: "", steps: 0` — GitHub never allocated a runner, so the
+    # script never executed and could not fail open from the inside. With a
+    # plain `== 'true'` an unset output meant "skip", so a transient infra
+    # blip on a ten-second job silently skipped the entire release, twice in
+    # a row, and the app-side fixes it was carrying never reached TestFlight.
+    # Before this gate existed the same flakiness hit build-and-upload
+    # directly, which at least showed up as a failed build.
+    #
+    # The Apple-upload-slot protection is intact: a gate that actually RUNS
+    # and decides there is nothing new still emits 'false' and still skips.
+    if: always() && needs.gate.outputs.should_build != 'false'
     # macos-15 is proven good: "Build iOS Archive" succeeds here and
     # the Xcode-26 gate passes (setup-xcode resolves Xcode 26 on this
     # image). The earlier "stuck at 574" was NOT a runner/Xcode issue
