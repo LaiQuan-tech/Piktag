@@ -74,7 +74,7 @@ const DEFAULT_TITLE = TITLE_BY_LANG.en;
 
 module.exports = async function handler(req, res) {
   // SAFE FALLBACK: any error degrades "/" to the static English homepage
-  // via a 302 to /index.html. "/" must NEVER hard-break.
+  // via a 302 to /app.html. "/" must NEVER hard-break.
   try {
     const loc = resolveLocale(req);
     const lang = (loc && loc.htmlLang) || 'en';
@@ -151,8 +151,15 @@ module.exports = async function handler(req, res) {
     console.error('home card error:', err);
     // Absolute last resort: degrade to the static English homepage. "/"
     // can never hard-break.
+    //
+    // Target is /app.html, NOT /index.html. The postbuild step
+    // (scripts/rename-shell.mjs) renames dist/index.html to dist/app.html
+    // precisely so that "/" is not shadowed by a static file — which means
+    // /index.html does not exist in the deployed output. This fallback had
+    // been pointing at that dead path, so the one code path whose entire
+    // job is "never hard-break" was itself a 404.
     res.statusCode = 302;
-    res.setHeader('Location', '/index.html');
+    res.setHeader('Location', '/app.html');
     res.end();
   }
 };
