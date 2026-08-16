@@ -4,6 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PikTag - 有人想認識你</title>
+  <!-- Post-scan interstitial: no standalone content, only meaningful mid
+       scan-to-connect flow. robots.txt already disallows /scan, so a
+       compliant crawler never fetches this and never reads the tag —
+       it is here for the case where that Disallow is ever relaxed. -->
+  <meta name="robots" content="noindex, follow">
   <style>
     * {
       box-sizing: border-box;

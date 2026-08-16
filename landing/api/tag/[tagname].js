@@ -1,4 +1,5 @@
-const { SUPABASE_URL, SUPABASE_ANON_KEY, BRAND_COLOR, BRAND_ACCENT, BRAND_BG, BRAND_GRADIENT, escapeHtml, resolveLocale, trackShareLinkViewed, buildAnalyticsSnippet } = require('../_config');
+const { SUPABASE_URL, SUPABASE_ANON_KEY, SITE_ORIGIN, BRAND_COLOR, BRAND_ACCENT, BRAND_BG, BRAND_GRADIENT, escapeHtml, resolveLocale, trackShareLinkViewed, buildAnalyticsSnippet } = require('../_config');
+const { tagGraph, tagRobots } = require('../_seo');
 
 module.exports = async function handler(req, res) {
   const { tagname } = req.query;
@@ -90,10 +91,15 @@ function renderPage(tagName, usageCount, members, analyticsSnippet, locale) {
   // split/join (not String.replace) so a tag name containing a "$" pattern
   // ($&, $1, $$, ...) is inserted literally rather than interpreted as a
   // replacement token. Tag names are user data and "$" is legal in them.
+  // Kept RAW, and escaped once at each insertion point below. It used to
+  // interpolate escapeHtml(tagName) here and then get escaped AGAIN in
+  // the meta tags — the same double-escape artifact (&amp;#039;) that was
+  // already fixed once on the profile card. JSON-LD needs the raw form
+  // too: jsonLd() does its own <script>-safe escaping.
   const description = locale.tagPageDescription
     .split('{count}').join(String(usageCount))
-    .split('{tag}').join(escapeHtml(tagName));
-  const url = `https://pikt.ag/tag/${encodeURIComponent(tagName)}`;
+    .split('{tag}').join(tagName);
+  const url = `${SITE_ORIGIN}/tag/${encodeURIComponent(tagName)}`;
 
   const memberCards = members.map(m => {
     const verifiedSvg = m.verified
@@ -123,7 +129,7 @@ function renderPage(tagName, usageCount, members, analyticsSnippet, locale) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${title}</title>
   <meta name="description" content="${escapeHtml(description)}">
-  <meta name="robots" content="index, follow">
+  <meta name="robots" content="${tagRobots(members)}">
   <link rel="canonical" href="${url}">
   <meta property="og:type" content="website">
   <meta property="og:title" content="${title}">
@@ -133,6 +139,7 @@ function renderPage(tagName, usageCount, members, analyticsSnippet, locale) {
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${escapeHtml(description)}">
+  <script type="application/ld+json">${tagGraph({ tagName, members, pageUrl: url, description, locale })}</script>
   <link rel="icon" href="/favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">

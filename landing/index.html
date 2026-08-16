@@ -28,6 +28,69 @@
     <meta name="twitter:title" content="PikTag — Tag yourself. Find anyone." />
     <meta name="twitter:description" content="Tag yourself. Find anyone you know — by what they actually do." />
     <title>PikTag — Tag yourself. Find anyone.</title>
+    <!-- Site-level structured data: who publishes this site, what the site
+         is, and what the app is. Kept in the static shell (not injected by
+         api/home.js) because /contact, /pitch and /reset-password rewrite
+         straight to /app.html and never pass through that function.
+
+         MIRRORS siteGraph() in api/_seo.js — that function is the source of
+         truth for the server-rendered profile and tag pages, which reference
+         these same @id values ("https://pikt.ag/#organization" and
+         "https://pikt.ag/#website") so every page resolves to one publisher
+         rather than declaring a new organization each time. If you change one
+         of the two, change the other. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://pikt.ag/#organization",
+            "name": "PikTag",
+            "legalName": "PikTag Inc.",
+            "url": "https://pikt.ag/",
+            "logo": { "@type": "ImageObject", "url": "https://pikt.ag/logo.png" },
+            "email": "support@pikt.ag",
+            "slogan": "Tag yourself. Find anyone.",
+            "description": "PikTag is a contact app built on tags. You tag yourself with what describes you, and the people you meet become searchable by need instead of by name.",
+            "sameAs": [
+              "https://apps.apple.com/app/id6761379641",
+              "https://play.google.com/store/apps/details?id=ag.pikt.app"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://pikt.ag/#website",
+            "name": "PikTag",
+            "url": "https://pikt.ag/",
+            "publisher": { "@id": "https://pikt.ag/#organization" },
+            "inLanguage": "en",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://pikt.ag/tag/{search_term_string}"
+              },
+              "query-input": "required name=search_term_string"
+            }
+          },
+          {
+            "@type": "MobileApplication",
+            "@id": "https://pikt.ag/#app",
+            "name": "PikTag",
+            "operatingSystem": "iOS, Android",
+            "applicationCategory": "SocialNetworkingApplication",
+            "url": "https://pikt.ag/",
+            "publisher": { "@id": "https://pikt.ag/#organization" },
+            "installUrl": [
+              "https://apps.apple.com/app/id6761379641",
+              "https://play.google.com/store/apps/details?id=ag.pikt.app"
+            ],
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

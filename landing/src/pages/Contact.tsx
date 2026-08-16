@@ -38,8 +38,44 @@ export default function Contact() {
     { question: t('contact.faq4Question'), answer: t('contact.faq4Answer') },
   ];
 
+  // FAQPage structured data, built from the same `faqs` array the accordion
+  // renders — so the markup can never describe an answer the page does not
+  // show, which is what invalidates FAQ structured data.
+  //
+  // Localized for free: the strings come from i18n, so a German visitor
+  // emits German questions and answers.
+  //
+  // @id values point at the site graph declared in index.html, so this page
+  // attaches to the existing Organization/WebSite rather than declaring new
+  // ones.
+  //
+  // NOTE: /contact rewrites to the SPA shell, so this is CLIENT-rendered.
+  // Crawlers that execute JavaScript (Googlebot) see it; most AI crawlers
+  // do not. Moving it server-side would mean giving /contact its own
+  // function, which is a bigger change than this task.
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "@id": "https://pikt.ag/contact#faq",
+    isPartOf: { "@id": "https://pikt.ag/#website" },
+    publisher: { "@id": "https://pikt.ag/#organization" },
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: { "@type": "Answer", text: faq.answer },
+    })),
+  };
+
   return (
     <div className="min-h-screen bg-neutral-50 flex flex-col">
+      {/* Escaping "<" keeps a translated string containing "</script>" from
+          closing this element early — same rule as jsonLd() in api/_config.js. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(faqJsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       {/* Header */}
       <header className="border-b border-neutral-200 bg-white">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-3">
