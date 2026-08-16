@@ -1,4 +1,5 @@
-const { SUPABASE_URL, SUPABASE_ANON_KEY, BRAND_COLOR, BRAND_ACCENT, BRAND_DARK, BRAND_BG, BRAND_GRADIENT, escapeHtml, resolveLocale, trackShareLinkViewed, buildAnalyticsSnippet } = require('../_config');
+const { SUPABASE_URL, SUPABASE_ANON_KEY, SITE_ORIGIN, VALID_USERNAME, STATIC_ASSET_LIKE, BRAND_COLOR, BRAND_ACCENT, BRAND_DARK, BRAND_BG, BRAND_GRADIENT, escapeHtml, resolveLocale, trackShareLinkViewed, buildAnalyticsSnippet } = require('../_config');
+const { profileSeo } = require('../_seo');
 
 const PLATFORM_ICONS = {
   instagram: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>',
@@ -48,10 +49,13 @@ module.exports = async function handler(req, res) {
   // crawler probe. Without this guard those generated bogus
   // share_link_viewed events that polluted PostHog funnels.
   //
-  // Username rule: alphanumeric + underscore, 2-30 chars. Tightened in
-  // step with the mobile app's signup validator.
-  const VALID_USERNAME = /^[a-zA-Z0-9_]{2,30}$/;
-  if (!VALID_USERNAME.test(usernameStr)) {
+  // Username rule and the asset-extension guard both live in _config.js
+  // so this route and the sitemap can never drift apart — that drift is
+  // exactly what broke here. Dots and hyphens are legal (the mobile
+  // signup flow hands out `name.<random digits>` by default); paths
+  // ending in a real asset extension are not people. See the long note
+  // above VALID_USERNAME in _config.js for the full history.
+  if (!VALID_USERNAME.test(usernameStr) || STATIC_ASSET_LIKE.test(usernameStr)) {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     return res.status(404).send(notFoundPage(locale));
   }
@@ -61,7 +65,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const profileRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/piktag_profiles?username=eq.${encodeURIComponent(usernameStr)}&select=id,username,full_name,avatar_url,bio,headline,is_verified,website,location,is_official`,
+      `${SUPABASE_URL}/rest/v1/piktag_profiles?username=eq.${encodeURIComponent(usernameStr)}&select=id,username,full_name,avatar_url,bio,headline,is_verified,website,location,is_official,is_public,is_test_account,is_active`,
       {
         headers: {
           apikey: SUPABASE_ANON_KEY,
@@ -279,9 +283,15 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
     profile.avatar_url ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=f3f4f6&color=6b7280&size=200`;
   const isVerified = profile.is_verified;
-  const ogDescription = rawBio || `@${profile.username || ''} on PikTag`;
-  const pageTitle = `${name} (@${username}) | #PikTag`;
-  const pageUrl = `https://pikt.ag/${username}`;
+  // Title / description / robots / JSON-LD all come from _seo.js so the
+  // sitemap's idea of "is this page indexable" and the page's own robots
+  // meta tag can never disagree (isIndexableProfile is the shared gate).
+  // profileSeo returns BOTH raw and pre-escaped forms; use the *Html ones
+  // at every HTML insertion point and the raw ones inside JS/JSON.
+  const seo = profileSeo({ profile, tags, biolinks, locale, avatarUrl, rawName });
+  const ogDescription = seo.description;
+  const pageTitle = seo.titleHtml;
+  const pageUrl = seo.pageUrl;
 
   const verifiedBadge = isVerified
     ? '<svg viewBox="0 0 24 24" width="18" height="18" style="margin-left:4px;vertical-align:middle"><circle cx="12" cy="12" r="10" fill="#8c52ff"/><path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
@@ -368,7 +378,7 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
   <meta name="description" content="${escapeHtml(ogDescription)}">
   <meta name="keywords" content="${escapeHtml(tags.map(t => t.name || t).join(', '))}, #PikTag, ${escapeHtml(rawName)}, networking">
   <meta name="author" content="${escapeHtml(rawName)}">
-  <meta name="robots" content="index, follow">
+  <meta name="robots" content="${seo.robots}">
   <link rel="canonical" href="${pageUrl}">
   <meta property="og:type" content="profile">
   <meta property="og:title" content="${pageTitle}">
@@ -381,17 +391,7 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
   <meta name="twitter:title" content="${pageTitle}">
   <meta name="twitter:description" content="${escapeHtml(ogDescription)}">
   <meta name="twitter:image" content="${escapeHtml(avatarUrl)}">
-  <script type="application/ld+json">
-  ${JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Person",
-    name: name,
-    url: pageUrl,
-    image: avatarUrl,
-    description: ogDescription,
-    sameAs: biolinks.map(l => l.url).filter(u => u && (/^https?:\/\//i.test(u) || /^mailto:/i.test(u))),
-  }).replace(/</g, '\\u003c')}
-  </script>
+  <script type="application/ld+json">${seo.jsonLdScript}</script>
   <link rel="icon" href="/favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">

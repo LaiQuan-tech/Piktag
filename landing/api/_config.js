@@ -62,11 +62,32 @@ const SITE_ORIGIN = 'https://pikt.ag';
 
 // The username shape the public profile route accepts. Anything that
 // fails this test 404s at /:username (see api/u/[username].js), so the
-// sitemap MUST apply the identical test or it will list dead URLs —
-// today 48 of the 112 non-test public profiles carry a legacy dotted
-// handle ("karlcohen.71222") whose page is a hard 404.
+// sitemap MUST apply the identical test or it will list dead URLs.
 // Exported so the route and the sitemap can never drift apart.
-const VALID_USERNAME = /^[a-zA-Z0-9_]{2,30}$/;
+//
+// DOTS AND HYPHENS ARE LEGAL. This pattern must stay a superset of what
+// the mobile app can mint: normalizeUsername (mobile
+// OnboardingScreen.tsx) strips input to [a-z0-9_.] and
+// isUsernameFormatValid only bars a leading/trailing dot. When a handle
+// is taken, signup SUGGESTS `name.<random digits>` — so dotted handles
+// are the app's own default, not a legacy accident.
+//
+// Until 2026-08-17 this was /^[a-zA-Z0-9_]{2,30}$/, which excluded the
+// dot. That single missing character 404'd 48 of the 112 non-test
+// profiles (45 dotted, 3 legacy hyphenated): dead share links, dead QR
+// codes, and — because isIndexableProfile below reuses this pattern —
+// omission from the sitemap as well. Verified against the live table
+// 2026-08-17: this pattern accepts all 195 rows and rejects none.
+const VALID_USERNAME = /^[a-zA-Z0-9_](?:[a-zA-Z0-9_.-]{0,28}[a-zA-Z0-9_])?$/;
+
+// A path that ends in a real asset extension is not a person. Needed
+// because VALID_USERNAME now allows dots: the catch-all `/:username`
+// rewrite receives every path Vercel could not serve from the
+// filesystem, so a missing asset or a crawler probe would otherwise
+// pass the charset test and cost a DB round-trip plus a bogus
+// share_link_viewed event. Real static files never reach the route at
+// all — Vercel serves those before rewrites apply.
+const STATIC_ASSET_LIKE = /\.(?:ico|txt|xml|json|png|jpe?g|gif|svg|webp|avif|css|js|mjs|map|woff2?|ttf|eot|pdf|webmanifest|html?)$/i;
 
 // Handles that are obviously throwaway test accounts but are NOT flagged
 // piktag_profiles.is_test_account = true. The DB flag is the real gate
@@ -104,6 +125,7 @@ function isIndexableProfile(p) {
   if (p.is_test_account === true) return false;
   if (p.is_active === false) return false;
   if (!p.username || !VALID_USERNAME.test(p.username)) return false;
+  if (STATIC_ASSET_LIKE.test(p.username)) return false;
   if (TEST_HANDLE_PATTERN.test(p.username)) return false;
   return true;
 }
@@ -1450,6 +1472,7 @@ module.exports = {
   SUPABASE_ANON_KEY,
   SITE_ORIGIN,
   VALID_USERNAME,
+  STATIC_ASSET_LIKE,
   TEST_HANDLE_PATTERN,
   isIndexableProfile,
   jsonLd,
