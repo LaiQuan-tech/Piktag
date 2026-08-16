@@ -33,6 +33,11 @@
 
     { "source": "/favicon.ico",     "destination": "/logo.png" },
 
+    { "source": "/sitemap.xml",              "destination": "/api/sitemap" },
+    { "source": "/sitemap-static.xml",       "destination": "/api/sitemap?part=static" },
+    { "source": "/sitemap-profiles-:n.xml",  "destination": "/api/sitemap?part=profiles-:n" },
+    { "source": "/sitemap-tags-:n.xml",      "destination": "/api/sitemap?part=tags-:n" },
+
     { "source": "/:username",       "destination": "/api/u/:username" }
   ],
 
