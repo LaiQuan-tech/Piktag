@@ -22,7 +22,7 @@ import { useAppReady } from '../context/AppReadyContext';
 import { useTranslation } from 'react-i18next';
 import { registerForPushNotifications, refreshBadgeFromServer } from '../lib/pushNotifications';
 import { captureAcquisitionSource } from '../lib/acquisition';
-import { posthog } from '../lib/analytics';
+import { identifyUser } from '../lib/analytics';
 import { ChatUnreadProvider, useChatUnread } from '../hooks/useChatUnread';
 
 // Auth Screens — eager (needed before session resolves)
@@ -636,7 +636,12 @@ export default function AppNavigator() {
     // Coalesce email to '' so the property is always a string —
     // PostHog's `identify` properties accept strings/numbers/bools but
     // not `undefined`, and Supabase's session.user.email is optional.
-    posthog.identify(authUser.id, { email: authUser.email ?? '' });
+    //
+    // Goes through identifyUser(), NOT the raw `posthog` client: this was
+    // the one emit site in the app that bypassed lib/analytics entirely,
+    // so an opted-out user still had their id and EMAIL sent on every
+    // auth resolution. identifyUser checks the opt-out gate first.
+    identifyUser(authUser.id, { email: authUser.email ?? '' });
 
     void (async () => {
       const decision = await decideOnboarding(authUser.id, authUser.created_at);

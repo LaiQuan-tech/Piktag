@@ -26,10 +26,16 @@ import { touchLastActive } from './src/lib/pushNotifications';
 // app is open are silently dropped on iOS.
 // Re-assert the user's stored analytics choice before anything is
 // captured. PostHog is constructed at module load and begins capturing
-// immediately, and its opt-out does not survive a cold start on its own
-// — nothing in the app ever called setAnalyticsOptIn, so an opt-out
-// lasted only as long as the process that made it. Fire-and-forget: the
-// AsyncStorage read is a few milliseconds and must not gate startup.
+// immediately, and its opt-out does not survive a cold start on its own.
+// Fire-and-forget: the AsyncStorage read is a few milliseconds and must
+// not gate startup.
+//
+// This reads the DEVICE-level mirror, because at module load there is no
+// user id yet — Supabase has not resolved a session. The authoritative
+// per-account value is applied by AuthContext the moment one exists
+// (applyAccountAnalyticsOptIn). This call is what closes the cold-start
+// window in between, during which app-lifecycle autocapture and the
+// first trackScreen would otherwise fire for a user who opted out.
 void applyStoredAnalyticsOptIn();
 
 Notifications.setNotificationHandler({

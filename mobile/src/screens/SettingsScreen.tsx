@@ -15,7 +15,6 @@ import {
 import PageLoader from '../components/loaders/PageLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, ChevronRight, Check, X } from 'lucide-react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 import { changeLanguageSafe } from '../i18n';
 import {
@@ -25,7 +24,11 @@ import {
 } from 'expo-location';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
-import { ANALYTICS_OPT_IN_KEY, setAnalyticsOptIn } from '../lib/analytics';
+import {
+  applyAccountAnalyticsOptIn,
+  isAnalyticsOptedIn,
+  persistAnalyticsOptIn,
+} from '../lib/analytics';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 import { checkOffline } from '../lib/netStatus';
@@ -150,7 +153,13 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   const [currentLanguage, setCurrentLanguage] = useState(i18n.language);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
-  const [analyticsOptIn, setAnalyticsOptInState] = useState(true);
+  // Seeded from the LIVE gate, not from a hardcoded `true`. App.tsx has
+  // already applied the stored choice at module load, so on the first
+  // render of this screen `isAnalyticsOptedIn()` is what the app is
+  // actually doing — which means the Switch cannot render ON for a user
+  // whose events are being dropped. The per-account value replaces it a
+  // moment later in loadSettings below.
+  const [analyticsOptIn, setAnalyticsOptInState] = useState(isAnalyticsOptedIn);
 
   // Load profile and stored preferences on mount
   useEffect(() => {
@@ -184,21 +193,14 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           }
         }
 
-        const storedAnalytics = await AsyncStorage.getItem(ANALYTICS_OPT_IN_KEY);
-        // Dark mode is NOT read here — ThemeContext owns its own
-        // persistence (piktag_theme_mode) and re-applies on launch.
-        // The Switch reads `isDark` straight from ThemeContext.
-        // Default = opted in. Only an explicit 'false' counts as opt-out.
-        const optedIn = storedAnalytics !== 'false';
-        setAnalyticsOptInState(optedIn);
-        // ...and APPLY it. This read used to populate a state variable
-        // and stop there: `setAnalyticsOptIn` was imported at the top of
-        // this file and called from nowhere in the repository, so a user
-        // who had opted out went on being captured by PostHog for the
-        // whole session. The authoritative application happens at
-        // startup (applyStoredAnalyticsOptIn in lib/analytics, called
-        // from App.tsx); this is the belt-and-braces re-assert.
-        setAnalyticsOptIn(optedIn);
+        // Analytics opt-in. Read AND applied through the very same
+        // function AuthContext calls on sign-in, so this screen can never
+        // show one thing while the wire does another. Dark mode is NOT
+        // read here — ThemeContext owns its own persistence
+        // (piktag_theme_mode) and re-applies on launch; the Switch reads
+        // `isDark` straight from ThemeContext.
+        await applyAccountAnalyticsOptIn(user?.id);
+        setAnalyticsOptInState(isAnalyticsOptedIn());
       } catch (err) {
         console.warn('Failed to load settings:', err);
       } finally {
@@ -268,6 +270,18 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     updateProfileToggle('notif_memories', !notifMemories, setNotifMemories, notifMemories);
   const handlePersonalizedRecsToggle = () =>
     updateProfileToggle('personalized_recs', !personalizedRecs, setPersonalizedRecs, personalizedRecs);
+
+  // Analytics opt-in. Unlike the toggles above this one has no server
+  // column: it is a device/account-local choice about what we SEND, so
+  // there is nothing to roll back and nothing to fail. The optimistic
+  // flip is the truth. persistAnalyticsOptIn flips the runtime gate
+  // synchronously before it awaits either write, so events stop the
+  // instant the Switch moves rather than whenever AsyncStorage settles.
+  const handleAnalyticsOptInToggle = useCallback(async () => {
+    const next = !analyticsOptIn;
+    setAnalyticsOptInState(next);
+    await persistAnalyticsOptIn(user?.id, next);
+  }, [analyticsOptIn, user?.id]);
 
   const handleShareLocationToggle = async () => {
     // Re-entrancy guard — see locationToggleBusyRef declaration. A
@@ -658,6 +672,26 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
               onValueChange={handlePersonalizedRecsToggle}
               trackColor={{ false: colors.gray200, true: colors.piktag300 }}
               thumbColor={personalizedRecs ? colors.piktag500 : colors.gray400}
+            />
+          ),
+        },
+        // Product-analytics opt-out. Sits in this group because it is the
+        // same kind of choice as the two above — what leaves the device
+        // about you — and unlike them it is enforced entirely client-side
+        // (lib/analytics gates every emit), so OFF genuinely means
+        // nothing is sent, not that a server agreed to ignore it.
+        {
+          label: t('settings.analyticsOptIn', { defaultValue: '分析數據' }),
+          description: t('settings.analyticsOptInDescription', {
+            defaultValue: '幫助我們改善 App',
+          }),
+          onPress: handleAnalyticsOptInToggle,
+          rightElement: (
+            <Switch
+              value={analyticsOptIn}
+              onValueChange={handleAnalyticsOptInToggle}
+              trackColor={{ false: colors.gray200, true: colors.piktag300 }}
+              thumbColor={analyticsOptIn ? colors.piktag500 : colors.gray400}
             />
           ),
         },

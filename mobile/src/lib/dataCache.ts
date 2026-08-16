@@ -111,6 +111,19 @@ export const CACHE_KEYS = {
   // iterates exactly this object, and the previous account's friends'
   // links would survive a sign-out on a shared phone.
   FRIEND_DETAILS: 'friendDetails',
+  // ── 2026-08-17 ──
+  // Whether this account sends product analytics (lib/analytics, the
+  // Settings switch). Not a cache — a preference — and it lives here
+  // anyway, for the one property this object confers: membership in the
+  // set clearPersistentCaches() iterates. A privacy choice stored under
+  // its own device-global key is precisely the shape of the leak this
+  // file has documented five times over: on a shared phone user A's
+  // opt-out would silently govern user B, or worse, A's opt-out would be
+  // forgotten and A would be tracked again under B's session. Per-user,
+  // therefore swept on sign-out. The device-global ANALYTICS_OPT_IN_KEY
+  // that lib/analytics still keeps is a boot-time MIRROR of this value,
+  // not a second source of truth, and sign-out deletes it explicitly.
+  ANALYTICS_OPT_IN: 'analyticsOptIn',
 } as const;
 
 const DEFAULT_TTL_MS = 300_000; // 5 minutes

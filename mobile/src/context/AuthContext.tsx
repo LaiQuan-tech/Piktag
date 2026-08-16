@@ -16,6 +16,10 @@ import {
   recoverSessionForNullEvent,
   clearPersistedSession,
 } from '../lib/authSession';
+import {
+  applyAccountAnalyticsOptIn,
+  resetAnalyticsOptInOnSignOut,
+} from '../lib/analytics';
 import { checkOffline } from '../lib/netStatus';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import type { User, Session } from '@supabase/supabase-js';
@@ -176,6 +180,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // emptied, so user B can never be served a hit that user A left
         // behind within the 5-minute TTL.
         setCacheOwner(nextSession.user.id);
+        // This account's analytics choice, applied as soon as there is an
+        // account to apply it for. App.tsx has already applied the
+        // device-level mirror at module load — that covers the cold-start
+        // window before any user id exists; THIS is the authoritative
+        // per-account read, and it corrects the mirror if they disagree
+        // (a different account signing in on the same phone).
+        void applyAccountAnalyticsOptIn(nextSession.user.id);
         setSession(nextSession);
         setUser(nextSession.user);
         sessionRef.current = nextSession;
@@ -191,6 +202,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         clearLocalAccountState();
         void clearPersistentCaches(lastUserIdRef.current);
+        // The per-account opt-in value is a CACHE_KEYS member, so the
+        // sweep above already took it. This drops the device-level boot
+        // mirror as well and returns the runtime gate to its default —
+        // idempotent, and deliberately on the shared auth path so a
+        // server-initiated SIGNED_OUT is handled identically to the
+        // explicit sign-out below.
+        void resetAnalyticsOptInOnSignOut();
         lastUserIdRef.current = null;
       }
     };
@@ -316,6 +334,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     //    still readable, nor one where the caches are gone but the user
     //    is still signed in.
     await clearPersistentCaches(outgoingUserId);
+
+    // 2b. The analytics opt-in. Its per-account copy went out with the
+    //     sweep above (CACHE_KEYS.ANALYTICS_OPT_IN); this clears the
+    //     device-level boot mirror and resets the runtime gate and
+    //     PostHog's distinct_id, so nothing about the outgoing account's
+    //     analytics identity or choice survives into the next session.
+    await resetAnalyticsOptInOnSignOut();
 
     // 3. Flip the app to signed-out ourselves. We do NOT wait for
     //    SIGNED_OUT to come back and do it for us: it arrives from step
