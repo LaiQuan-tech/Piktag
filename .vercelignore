@@ -1,0 +1,15 @@
+# Vercel builds only `landing` (project rootDirectory). Everything below is
+# either rebuilt on the server or belongs to a different workspace, and
+# uploading it made a CLI deploy push 1.6GB over the wire.
+node_modules
+**/node_modules
+mobile
+supabase
+docs
+store-assets
+scripts
+.git
+.expo
+dist
+build
+*.log
