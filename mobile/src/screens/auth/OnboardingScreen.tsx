@@ -724,7 +724,21 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       if (user) {
         const { error } = await supabase
           .from('piktag_profiles')
-          .upsert({ id: user.id, full_name: trimmed, username: uname }, { onConflict: 'id' });
+          // is_public: false publishes NOTHING yet. This write claims the
+          // handle (it has to — the DB is the only place uniqueness is
+          // decided), but pikt.ag/<handle> stays a 404 until the wizard
+          // finishes and flips it true.
+          //
+          // Before this, step 1 put a live public page on the internet the
+          // instant a handle was claimed, so everyone who abandoned setup
+          // left behind a page with a name, an empty Follow button and
+          // nothing else. Only accounts inside the mandatory wizard reach
+          // this line (the gate is onboarding_completed = false), so no
+          // established or deactivated profile can be hidden by it.
+          .upsert(
+            { id: user.id, full_name: trimmed, username: uname, is_public: false },
+            { onConflict: 'id' },
+          );
         // The write is the only place that sees the DB's own reserved /
         // uniqueness rules. If THIS handle was refused, stay on step 1
         // and say so — advancing would carry a handle that can never be
@@ -1168,7 +1182,14 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       // can't ride along in the string-typed profilePatch.)
       const { error } = await supabase
         .from('piktag_profiles')
-        .upsert({ id: user.id, ...profilePatch, onboarding_completed: true }, { onConflict: 'id' });
+        // is_public: true is the publish moment — the profile goes live on
+        // pikt.ag here, with tags and links on it, and not a step earlier.
+        // Paired with the is_public: false written at the end of step 1;
+        // both must move together or a finished profile stays invisible.
+        .upsert(
+          { id: user.id, ...profilePatch, onboarding_completed: true, is_public: true },
+          { onConflict: 'id' },
+        );
       if (error) {
         console.warn('[Onboarding] profile upsert failed:', error.message);
         // "The server refused THIS handle" is not "check your network".

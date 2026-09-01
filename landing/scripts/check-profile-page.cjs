@@ -68,6 +68,22 @@ const BASE = {
   const en = await render({ ...BASE, onboarding_completed: false }, [], [], 'en-US');
   ck(en.body.includes("This profile isn't ready yet"), 'D 英文訪客看到英文文案');
 
+  // E. Visibility. `is_public: false` is written by two places: the
+  // deactivation switch in Settings (which promises the page is hidden) and
+  // the onboarding wizard at step 1 (which must not publish before setup is
+  // done). Both rely on the route actually refusing to render.
+  const hidden = await render({ ...BASE, onboarding_completed: true, is_public: false },
+    [{ tag_id: 't1', piktag_tags: { name: 'coffee' } }], [], 'zh-TW');
+  ck(hidden.code === 404, 'E is_public=false → 404(停用/未發布真的隱藏)');
+  ck(!hidden.body.includes('Karl Cohen'), 'E 隱藏頁不洩漏姓名');
+
+  // Legacy rows may have no value in the column at all. Treating that as
+  // hidden would take long-standing real profiles offline.
+  const legacy = await render({ ...BASE, onboarding_completed: true, is_public: null },
+    [{ tag_id: 't1', piktag_tags: { name: 'coffee' } }], [], 'zh-TW');
+  ck(legacy.code === 200 && legacy.body.includes('Karl Cohen'),
+     'E is_public=null(舊資料)→ 仍正常渲染,不可誤殺');
+
   console.log(bad ? `\n${bad} 項失敗` : '\n全部通過');
   process.exit(bad ? 1 : 0);
 })();

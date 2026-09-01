@@ -82,6 +82,24 @@ module.exports = async function handler(req, res) {
 
     const profile = profiles[0];
 
+    // A hidden profile must actually be hidden. `is_public` was being
+    // fetched and handed to profileRobots — so a deactivated account was
+    // merely noindex, while the page still rendered in full to anyone
+    // holding the URL. SettingsScreen writes is_public=false on deactivation
+    // after telling the user "停用後你的個人頁將隱藏"; this is what makes
+    // that true. It is also what lets the onboarding wizard keep a profile
+    // unpublished until setup is finished, instead of exposing an empty
+    // page from the moment the username is claimed at step 1.
+    //
+    // Strictly `=== false`, never `!== true`: rows where the column is null
+    // must keep rendering. Treating null as hidden would take real,
+    // long-standing profiles offline — the failure mode we just spent a
+    // fortnight recovering from.
+    if (profile.is_public === false) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      return res.status(404).send(notFoundPage(locale));
+    }
+
     // Active-Ask check is added to the parallel fetch chain so the
     // gradient avatar ring stays consistent with the mobile app: the
     // ring is the visual signal for "this person has an active Ask
