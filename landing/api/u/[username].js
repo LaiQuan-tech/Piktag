@@ -65,7 +65,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const profileRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/piktag_profiles?username=eq.${encodeURIComponent(usernameStr)}&select=id,username,full_name,avatar_url,bio,headline,is_verified,website,location,is_official,is_public,is_test_account,is_active`,
+      `${SUPABASE_URL}/rest/v1/piktag_profiles?username=eq.${encodeURIComponent(usernameStr)}&select=id,username,full_name,avatar_url,bio,headline,is_verified,website,location,is_official,is_public,is_test_account,is_active,onboarding_completed`,
       {
         headers: {
           apikey: SUPABASE_ANON_KEY,
@@ -348,6 +348,23 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
     }
     return t;
   };
+  // A profile with no tags AND no links has nothing to act on: the visitor
+  // cannot tell who this is or reach them, and the Follow button offers a
+  // relationship with an empty page. That state is reachable by ordinary
+  // means — the wizard writes username at step 1 (so the public page goes
+  // live immediately) but tags and links only on completion, so everyone
+  // who abandons setup midway leaves one behind.
+  //
+  // Judged on the person's OWN data (`tags`/`biolinks`), never `mergedTags`,
+  // which can carry event tags from the scan context in the URL. Those say
+  // nothing about whether this profile is set up.
+  //
+  // Self-correcting by construction: the moment they add a single tag or
+  // link, the normal page returns. Nothing here keys off onboarding_completed,
+  // so a legacy account that predates that flag is judged on what it
+  // actually has, not on a column that was never backfilled.
+  const isUnfinished = tags.length === 0 && biolinks.length === 0;
+
   const tagsHtml = mergedTags.length > 0
     ? `<div class="tags">${mergedTags.map((t) => `<a href="/tag/${encodeURIComponent(t)}" class="tag">#${escapeHtml(getDisplayTagName(t))}</a>`).join('')}</div>`
     : '';
@@ -434,6 +451,15 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
     .bio{font-size:15px;color:#555;text-align:center;line-height:1.7;margin-bottom:18px;max-width:360px;opacity:0;animation:fadeUp .5s ease .3s forwards}
     /* event-card styles removed — see comment in renderProfilePage */
 
+    /* Setup-pending notice — shown instead of the Follow button when the
+       profile has no tags and no links. Deliberately quiet: it is an
+       explanation, not a call to action, and must not read as the page's
+       main event the way the gradient Follow button does. */
+    .setup-pending{max-width:360px;margin:0 auto 20px;padding:18px 20px;background:#f6f4fb;border-radius:16px;text-align:center;opacity:0;animation:fadeUp .5s ease .35s forwards}
+    .setup-pending-heading{font-size:15px;font-weight:700;color:#3f3d56;margin-bottom:8px}
+    .setup-pending-text{font-size:14px;color:#666;line-height:1.6;margin:0 0 10px}
+    .setup-pending-owner{font-size:13px;color:#8a8a99;line-height:1.6;margin:0}
+
     /* Follow button */
     .follow-btn{background:${BRAND_GRADIENT};color:#fff;font-weight:700;border-radius:28px;padding:13px 52px;font-size:16px;border:none;cursor:pointer;margin-bottom:20px;box-shadow:0 4px 16px rgba(170,0,255,.3);transition:all .2s;opacity:0;animation:fadeUp .5s ease .35s forwards}
     .follow-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(170,0,255,.4)}
@@ -493,9 +519,15 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
     ${tribeSize > 0 ? `<div class="tribe-stat" title="Tribe size">Tribe ${tribeSize}</div>` : ''}
     ${headline ? `<div class="headline">${headline}</div>` : ''}
     ${bio ? `<div class="bio">${bio}</div>` : ''}
-    <button class="follow-btn" onclick="handleFollow()">${locale.follow}</button>
+    ${isUnfinished
+      ? `<div class="setup-pending">
+      <div class="setup-pending-heading">${locale.setupPendingHeading}</div>
+      <p class="setup-pending-text">${locale.setupPendingText}</p>
+      <p class="setup-pending-owner">${locale.setupPendingOwner}</p>
+    </div>`
+      : `<button class="follow-btn" onclick="handleFollow()">${locale.follow}</button>
     ${tagsHtml}
-    ${biolinksHtml ? `<div class="biolinks">${biolinksHtml}</div>` : ''}
+    ${biolinksHtml ? `<div class="biolinks">${biolinksHtml}</div>` : ''}`}
   </div>
   <a class="banner" href="https://pikt.ag/download?username=${username}${sid ? '&sid=' + escapeHtml(sid) : ''}">
     <span class="banner-text">${locale.bannerText}</span>

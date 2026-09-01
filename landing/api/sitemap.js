@@ -86,7 +86,7 @@ const AUTH_HEADERS = {
 // index's count and a child's slice.
 const PROFILE_QUERY =
   'piktag_profiles' +
-  '?select=username,updated_at,is_public,is_test_account,is_active' +
+  '?select=username,updated_at,is_public,is_test_account,is_active,onboarding_completed' +
   ',piktag_user_tags!inner(user_id)' +
   '&is_public=eq.true' +
   '&is_test_account=eq.false' +

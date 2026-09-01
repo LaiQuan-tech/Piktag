@@ -56,6 +56,14 @@ jobs:
       - name: Guard the username gate
         run: node landing/scripts/check-username-pattern.cjs
 
+      # An abandoned signup leaves a live public page with no tags and no
+      # links. Asserts it explains itself instead of showing an empty
+      # Follow button, and that it returns to normal the moment the person
+      # adds anything. Stubbed fetch — no network, no database.
+      - name: Guard the share page's unfinished-profile state
+        working-directory: landing
+        run: node scripts/check-profile-page.cjs
+
       - name: Check deploy credentials are present
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
