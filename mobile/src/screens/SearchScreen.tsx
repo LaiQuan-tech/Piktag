@@ -1465,25 +1465,70 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       // search; recovery will repopulate this only if it actually fires.
       setLlmExtractedKeywords([]);
 
-      // Searching is one of the things that genuinely cannot work
-      // offline: every path here (tags, aliases, profiles, biolinks, and
-      // even local contacts, which live in piktag_local_contacts on the
-      // server) is a query. Land on the empty result in a second instead
-      // of spinning the LogoLoader through ~25s of auth-refresh backoff
-      // first. The tag world the user browses by default still comes
-      // from the disk snapshot — only typed search is unavailable.
+      // Most of search is a query and cannot work offline: public tags,
+      // aliases, profiles, biolinks all need the server. Land on the
+      // result in a second instead of spinning the LogoLoader through
+      // ~25s of auth-refresh backoff first.
+      //
+      // YOUR OWN SAVED CONTACTS ARE THE EXCEPTION, and they are the ones
+      // you most need without signal — at the event, abroad, in a
+      // basement, trying to recall who someone was. "local" in
+      // piktag_local_contacts means owner-scoped, not on-device, so this
+      // used to be impossible; useLocalContacts now keeps a persistent
+      // disk snapshot (CACHE_KEYS.LOCAL_CONTACTS) that survives an
+      // offline cold start, so the data is already on the phone and only
+      // this path had not caught up.
+      //
+      // Matched on the same fields as the online private-world search
+      // (name / headline / note / met_location / tags) so a query does
+      // not quietly mean something different offline.
       if (await checkOffline()) {
         if (!isMountedRef.current || seq !== searchSeqRef.current) return;
         setTags([]);
         setProfiles([]);
         setTagUsers([]);
-        // WITHOUT this flag the empty result fell into the dead-end
-        // branch and told the user 「你的人脈裡還沒有「X」的人」 — a
-        // confident statement about their network that we had no
+
+        let offlineContacts: TaggedContact[] = [];
+        try {
+          const cached = await getPersistentCache<any[]>(CACHE_KEYS.LOCAL_CONTACTS, user?.id);
+          const needle = query.trim().toLowerCase();
+          if (cached && needle) {
+            offlineContacts = cached
+              .filter((c) => {
+                const hay = [
+                  c?.name,
+                  c?.headline,
+                  c?.note,
+                  c?.met_location,
+                  ...(Array.isArray(c?.tags) ? c.tags : []),
+                ]
+                  .filter((v) => typeof v === 'string' && v)
+                  .join(' ')
+                  .toLowerCase();
+                return hay.includes(needle);
+              })
+              .map((c) => ({
+                id: String(c.id),
+                name: c?.name || '',
+                avatar_url: c?.avatar_url ?? null,
+              }));
+          }
+        } catch {
+          // No snapshot yet, or unreadable — fall through to the honest
+          // offline state below rather than failing the search.
+        }
+        if (!isMountedRef.current || seq !== searchSeqRef.current) return;
+        setSearchTaggedContacts(offlineContacts);
+
+        // Only claim "we could not ask" when there is genuinely nothing
+        // to show. WITHOUT this flag an empty result fell into the
+        // dead-end branch and told the user 「你的人脈裡還沒有「X」的人」
+        // — a confident statement about their network that we had no
         // grounds for — under a 發 Ask CTA that cannot post offline
-        // either. Now the same empty result renders <ErrorState>, the
-        // way NotificationsScreen already does.
-        setSearchUnreachable(true);
+        // either. With matches, the results speak for themselves and the
+        // app-wide <OfflineBanner> already says why the rest is missing;
+        // a second per-screen badge would be a competing pattern.
+        setSearchUnreachable(offlineContacts.length === 0);
         setLoading(false);
         saveRecentSearch(query.trim());
         return;
