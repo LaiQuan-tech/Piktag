@@ -1535,7 +1535,9 @@
     "currentVibesTitle": "وہ حال ہی میں کیا ٹیگ کر رہے ہیں",
     "currentVibesHint": "یہ گروپ ابھی جو ٹیگز شیئر کر رہا ہے — کون دیکھنے کے لیے ٹیپ کریں۔",
     "membersFilterEmpty": "اس Tag میں ابھی کسی پر یہ ٹیگ نہیں ہے۔",
-    "currentVibesCount": "{{count}} لوگ"
+    "currentVibesCount": "{{count}} لوگ",
+    "quickCreatePlaceholder": "اس ایونٹ کے ٹیگز، مثلاً: بک کلب ڈیزائن",
+    "quickCreateCta": "بنائیں"
   },
   "batchTag": {
     "title": "ایک ہی تقریب میں ملے؟",

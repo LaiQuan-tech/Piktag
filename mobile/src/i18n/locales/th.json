@@ -1535,7 +1535,9 @@
     "currentVibesTitle": "แท็กที่พวกเขาแปะกันช่วงนี้",
     "currentVibesHint": "แท็กที่กลุ่มนี้แปะร่วมกันอยู่ตอนนี้ — แตะดูว่าใคร",
     "membersFilterEmpty": "ยังไม่มีใครใน Tag นี้แปะแท็กนั้น",
-    "currentVibesCount": "{{count}} คน"
+    "currentVibesCount": "{{count}} คน",
+    "quickCreatePlaceholder": "แท็กของงานนี้ เช่น ชมรมหนังสือ ดีไซน์",
+    "quickCreateCta": "สร้าง"
   },
   "batchTag": {
     "title": "รู้จักกันในงานเดียวกันใช่ไหม",

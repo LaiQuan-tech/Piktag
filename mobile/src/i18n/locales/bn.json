@@ -1535,7 +1535,9 @@
     "currentVibesTitle": "তারা ইদানীং কী ট্যাগ করছে",
     "currentVibesHint": "এই গ্রুপ এখন যে ট্যাগগুলো শেয়ার করছে — কে দেখতে ট্যাপ করুন।",
     "membersFilterEmpty": "এই Tag-এ কেউ এখনো সেই ট্যাগটি দেয়নি।",
-    "currentVibesCount": "{{count}} জন"
+    "currentVibesCount": "{{count}} জন",
+    "quickCreatePlaceholder": "এই ইভেন্টের ট্যাগ, যেমন: বুক ক্লাব ডিজাইন",
+    "quickCreateCta": "তৈরি করুন"
   },
   "batchTag": {
     "title": "একই অনুষ্ঠানে পরিচয়?",
