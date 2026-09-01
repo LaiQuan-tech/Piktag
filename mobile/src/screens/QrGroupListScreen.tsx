@@ -379,13 +379,15 @@ export default function QrGroupListScreen({ navigation }: Props) {
     navigation.navigate('AddTagCreate');
   }, [navigation]);
 
-  // Quick create, straight from this list. Creating an event QR was two
-  // levels down (a + in the header, then a setup screen) for what is a
-  // North-Star add-friend moment — you are usually standing at the event
-  // when you need it. Tags are the substance of an event QR, so they are
-  // asked for here and the setup step is skipped; the QR view's back
-  // button still opens setup, so date / location / presets are one tap
-  // away rather than mandatory. The header + remains the full-setup path.
+  // Create an event QR from this list: type the tags, press 建立, get the
+  // QR. No + to hunt for and no setup screen in between — putting event
+  // tags on a tab was to make this MORE reachable, so a step added back
+  // in the middle defeats it (founder, 2026-09-02).
+  //
+  // Nothing is skipped by going straight to the QR: tags are the only
+  // thing the setup step still collects — its date and location pickers
+  // were removed and are state-only now. The header + still opens that
+  // screen for presets and for adding tags to an existing draft.
   const [quickTagInput, setQuickTagInput] = useState('');
   const handleQuickCreate = useCallback(() => {
     const initialTags = quickTagInput
