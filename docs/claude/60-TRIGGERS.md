@@ -30,7 +30,7 @@
 | 15 | 大字體破版 | 用戶回報 Dynamic Type 破版 | 逐元件 maxFontSizeMultiplier(全域法在 RN 0.81+React19 不可靠) | ref-founder-style 字級節 | 未達 |
 | 16 | 程式一致性合併 | 下次動到對應畫面時順手做,不專程 | connectUsers 統一 ×4 處、UserDetail inline tag helper 換 lib 版 | ref-product-history 一致性 | 未達 |
 | 17 | v2 小號上線時 | v2 開工 | 排序面檢查表加第 5 點 `is_alt=false`;掃 23 支函式加謂詞 | ref-future-plans | 等 v2 |
-| 18 | 店面文案 Rev 3 貼上 | 下次送審新版本(**等創辦人開口才動**) | ASC 貼 17 語系新 DESCRIPTION(fr 必重貼 —— 之前就超標);Play 隨時可貼 | store-assets/STORE_LISTING_FINAL.md | 材料已備 |
+| 18 | 店面文案**精簡版**貼上 | Play 隨時可貼;ASC 的 Promotional Text 也是隨時生效,只有 **Description 要等下次版本送審**(**等創辦人開口才動**) | 照 `store-assets/STORE_PASTE_CHECKLIST.md` 逐步做(可交給 agent 執行)。ASC 17 語系、Play 19 語系(多 ur/bn);**SUBTITLE 與 KEYWORDS 不動**;fr 必重貼(長版曾超 4000 被截斷) | **store-assets/STORE_LISTING_SHORT_ALL.md**(2026-08-10 精簡版,~1695→~600 字。**取代** STORE_LISTING_FINAL.md 的長版 Rev 3 —— 長版只留歷史,不要貼) | 材料已備,未貼 |
 | 19 | **PikTag Pro 啟動**(貴人王+批次標籤+標籤置頂+CRM 進階,$5-8/mo 單一訂閱) | 門檻(暫定值,創辦人可調):WAU ≥500 且 週真實加好友 ≥200 且 推薦→加好友轉化 ≥10%(查法:PostHog WAU;friend_added 週計數;recommendation 通知→friend_added 歸因) | 啟動 Pro 設計 + IAP;免費=系統 cohort/付費=任選好友界線不變;置頂=補 pin UI(is_pinned 機制已在 FriendDetail 排序鏈最高位);冷啟動期不開賣 | ref-future-plans 收費節 | 未達 |
 | 20 | 真人認證徽章 | Pro 上線後,或 Ask/活動房間出現信任摩擦回報 | 低價($2-3/mo 或一次性);is_verified 只表真人,絕不與廣告主資格共用 flag | ref-future-plans 收費節 | 未達 |
 | 21 | 主辦方方案(B2B) | 同一 host 辦 ≥3 場活動,或主辦方主動詢價 | 大房間/名單匯出/品牌 QR/會後分析;向企業收費補貼用戶成長 | ref-future-plans 收費節 | 未達 |
