@@ -11,11 +11,12 @@ import {
   type ListRenderItemInfo,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { SquarePen } from 'lucide-react-native';
+import { SquarePen, Bell } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import ChatSearchBar from '../components/chat/ChatSearchBar';
+import { useNotificationUnread } from '../hooks/useNotificationUnread';
 import CoachMark from '../components/CoachMark';
 import ChatTabs from '../components/chat/ChatTabs';
 import ConversationActionSheet from '../components/chat/ConversationActionSheet';
@@ -70,6 +71,9 @@ export default function ChatListScreen({ navigation }: Props) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
   const { conversations, loading, error: inboxError, refresh } = useChatInbox();
+  // Drives the header bell's dot (see useNotificationUnread for why a
+  // dot and not a count).
+  const { hasUnread } = useNotificationUnread();
 
   const [activeTab, setActiveTab] = useState<InboxTab>('primary');
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -355,6 +359,24 @@ export default function ChatListScreen({ navigation }: Props) {
           </Text>
         </View>
 
+        {/* Notifications live here since 2026-09-01 — the bell gave its
+            tab to event tags. Placed LEFT of compose so compose keeps the
+            corner it has always had. A dot, never a number: the Chat tab
+            already shows a numeric unread-message badge, and two counts
+            on one surface make both untrustworthy. */}
+        <TouchableOpacity
+          onPress={() => (navigation as any).navigate('Notifications')}
+          activeOpacity={0.6}
+          style={styles.headerIconBtn}
+          accessibilityRole="button"
+          accessibilityLabel={t('tabs.notifications', { defaultValue: '通知' })}
+        >
+          <View>
+            <Bell size={22} color={colors.gray900} />
+            {hasUnread ? <View style={styles.bellDot} /> : null}
+          </View>
+        </TouchableOpacity>
+
         <TouchableOpacity
           onPress={handleCompose}
           activeOpacity={0.6}
@@ -428,6 +450,15 @@ function makeStyles(c: ColorPalette) {
     paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: c.gray100,
+  },
+  bellDot: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 9,
+    height: 9,
+    borderRadius: 9999,
+    backgroundColor: c.accentPop,
   },
   headerIconBtn: {
     padding: 8,

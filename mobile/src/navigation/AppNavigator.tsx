@@ -10,7 +10,7 @@ import {
   Search,
   QrCode,
   MessageCircle,
-  Bell,
+  Hash,
   User,
 } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
@@ -109,10 +109,18 @@ function ChatStackNavigator() {
   );
 }
 
-function NotificationStackNavigator() {
+// Event tags (the QR-group list) took the bell's tab slot, 2026-09-01.
+// Creating an event QR is a North-Star add-friend moment and it was
+// reachable only through a Hash icon in the Profile header — one icon,
+// two levels down. Notifications moved to the Chat header instead of
+// out of reach: chat is the surface people come back to daily, so the
+// bell stays on that path (and it is where IG-shaped muscle memory
+// looks). Notifications are still reached by push, which deep-links
+// straight to the row's target.
+function EventTagStackNavigator() {
   return (
     <NotificationStack.Navigator screenOptions={{ headerShown: false }}>
-      <NotificationStack.Screen name="NotificationMain" component={NotificationsScreen} />
+      <NotificationStack.Screen name="EventTagMain" component={QrGroupListScreen} />
     </NotificationStack.Navigator>
   );
 }
@@ -195,10 +203,14 @@ function MainTabs() {
         component={SearchStackNavigator}
         options={{
           tabBarAccessibilityLabel: t('tabs.search'),
-          // No tabBarBadge here — moved to NotificationsTab below.
-          // The chat inbox is reached through the bell-tab header's
-          // ChatList button, so an unread count on the magnifying
-          // glass misdirected users to a tab unrelated to messages.
+          // No tabBarBadge here: an unread count on the magnifying glass
+          // misdirects people to a tab that has nothing to do with
+          // messages. Unread messages are counted on ChatTab, which owns
+          // them. (This note used to say the count "moved to
+          // NotificationsTab" and that the inbox was reached from the
+          // bell tab's header — both stale long before the bell gave up
+          // its tab on 2026-09-01. Chat has been its own tab since
+          // 2026-06-24, and now carries the bell in ITS header.)
           tabBarIcon: ({ color, focused }) => (
             // Search is the exception (founder 2026-06-26): a filled magnifier
             // reads as a lollipop, so keep it outline even when active — the
@@ -236,17 +248,12 @@ function MainTabs() {
         }}
       />
       <Tab.Screen
-        name="NotificationsTab"
-        component={NotificationStackNavigator}
+        name="EventTagTab"
+        component={EventTagStackNavigator}
         options={{
-          tabBarAccessibilityLabel: t('tabs.notifications'),
+          tabBarAccessibilityLabel: t('tabs.eventTags'),
           tabBarIcon: ({ color, focused }) => (
-            <Bell
-              size={24}
-              color={color}
-              fill={focused ? color : 'none'}
-              strokeWidth={focused ? 2.5 : 2}
-            />
+            <Hash size={24} color={color} strokeWidth={focused ? 2.5 : 2} />
           ),
         }}
       />
@@ -299,6 +306,11 @@ const MainNavigator = React.memo(function MainNavigator({ needsOnboarding }: { n
             pushes reached from the Home header QR button + on_this_day
             deep links. Kept, not deleted — the conference/meetup case the
             store copy sells. */}
+        {/* Pushed from the Chat header bell (the bell lost its tab to
+            event tags, 2026-09-01). A RootStack route so it opens over
+            whichever tab you are on, and so push deep-links keep a
+            target. */}
+        <RootStack.Screen name="Notifications" component={NotificationsScreen} />
         <RootStack.Screen name="QrGroupList" component={QrGroupListScreen} />
         <RootStack.Screen name="AddTagCreate" component={AddTagScreen} />
         <RootStack.Screen

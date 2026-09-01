@@ -1086,7 +1086,10 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         { name: 'HomeTab' },
         { name: 'SearchTab' },
         { name: 'ChatTab' },
-        { name: 'NotificationsTab' },
+        // Renamed with the 2026-09-01 tab swap (bell → event tags). This
+        // list must match MainTabs exactly: a name that is not a real tab
+        // strands the brand-new user at the end of the wizard.
+        { name: 'EventTagTab' },
         { name: 'ProfileTab' },
       ],
     };
