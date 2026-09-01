@@ -1,15 +1,37 @@
 # Vercel builds only `landing` (project rootDirectory). Everything below is
 # either rebuilt on the server or belongs to a different workspace, and
 # uploading it made a CLI deploy push 1.6GB over the wire.
+#
+# ANCHOR ROOT-ONLY EXCLUDES WITH A LEADING SLASH.
+# These patterns use .gitignore semantics: a bare name matches a directory
+# of that name at ANY depth, not just the repo root. An unanchored
+# `scripts` here excluded `landing/scripts/` too — which holds
+# rename-shell.mjs, the `postbuild` step of the landing build. Every
+# deploy from 2026-08-20 onward failed with
+#   Command "npm ci && npm run build" exited with 1
+# and, because landing had no deploy automation, nobody saw it: the
+# share-link fix from 08-17 sat undeployed for two weeks while 48 real
+# users' links stayed dead. Anchor anything meant for the root only.
+
 node_modules
 **/node_modules
-mobile
-supabase
-docs
-store-assets
-scripts
-.git
-.expo
+
+# Root-only workspaces — anchored, so a future landing/docs (etc.) is safe.
+/mobile
+/supabase
+/docs
+/store-assets
+
+# (Removed: a bare `scripts`. There is no root-level scripts/ directory, so
+# it excluded nothing intended while breaking the landing build. Do not
+# reintroduce it unanchored.)
+
+/.git
+/.expo
+
+# Build output at any depth — Vercel rebuilds it server-side, and shipping a
+# stale local dist/ is worse than shipping none.
 dist
 build
+
 *.log

@@ -199,3 +199,13 @@ PK,`ERROR: duplicate key ... schema_migrations_pkey (SQLSTATE 23505)`,
   例:同上。landing 現在刻意比 mobile 寬鬆(mobile 要 3–30 字,守衛接受 1 字),
   這是安全的方向;反過來收緊就是 48 人掉線的成因。`check-username-pattern.cjs`
   有一條 case 明文釘住這個方向,別「順手修正」它。
+- [2026-09-01] 觸發:在 `.vercelignore` / `.dockerignore` 這類 gitignore 語意的檔案裡
+  寫**裸目錄名** → 規則:**只想排除根目錄的,一定要加前導斜線 `/name`**。裸名會
+  匹配任意深度的同名目錄。
+  例:`545573d`(8/20,本意是修「部署上傳 1.6GB」)寫了裸的 `scripts`。根目錄
+  **根本沒有** `scripts/`,但它把 `landing/scripts/` 一起排除了 —— 那裡放著
+  `rename-shell.mjs`,正是 landing 的 `postbuild`。於是 8/20 之後**每一次部署都失敗**:
+  `Command "npm ci && npm run build" exited with 1`。因為 landing 當時沒有部署
+  自動化,沒人看到,8/17 的分享連結修復就這樣躺了兩週,48 個真實使用者的連結
+  一直是死的。診斷法:本地 `cd landing && npm ci && npm run build` 會成功(檔案
+  在),只有 Vercel 會失敗(檔案沒被上傳)—— **本地過、線上掛,先懷疑 ignore 檔**。
