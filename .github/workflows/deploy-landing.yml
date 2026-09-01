@@ -1,0 +1,117 @@
+# Deploy the landing site (pikt.ag) to Vercel production.
+#
+# WHY THIS EXISTS
+# The share-link fix in e99c614 (2026-08-17) sat on main, fully correct and
+# with every CI check green, while every real user with a dotted handle —
+# 48 of 112 — kept getting "user not found" on their share link and QR.
+# Nothing was broken except that nobody ran a deploy. Landing was the only
+# deployable surface with no automation: iOS, Android and Supabase all ship
+# themselves, the website did not.
+#
+# So: main is the source of truth for pikt.ag, the same way it already is
+# for the apps. A merge that touches `landing/` reaches users on its own.
+#
+# workflow_dispatch is deliberate — it means production can be redeployed
+# from the GitHub web UI (a phone works) without a laptop or the Vercel CLI.
+#
+# REQUIRED REPOSITORY SECRETS (Settings → Secrets and variables → Actions):
+#   VERCEL_TOKEN       Account Settings → Tokens
+#   VERCEL_ORG_ID      from `.vercel/project.json` after `vercel link`,
+#   VERCEL_PROJECT_ID  or Project Settings → General
+# Until all three exist this workflow fails fast with a clear message
+# instead of half-deploying.
+name: Deploy Landing (Vercel)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'landing/**'
+      - '.vercelignore'
+      - '.github/workflows/deploy-landing.yml'
+  workflow_dispatch:
+
+# Never cancel a production deploy midway; queue instead.
+concurrency:
+  group: deploy-landing-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and deploy to production
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Cheap, deterministic, and guards the exact defect that motivated
+      # this workflow: a username gate stricter than what signup hands out
+      # takes real people's share links offline. Runs before we deploy so a
+      # regression never reaches production.
+      - name: Guard the username gate
+        run: node landing/scripts/check-username-pattern.cjs
+
+      - name: Check deploy credentials are present
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          missing=""
+          [ -z "$VERCEL_TOKEN" ]      && missing="$missing VERCEL_TOKEN"
+          [ -z "$VERCEL_ORG_ID" ]     && missing="$missing VERCEL_ORG_ID"
+          [ -z "$VERCEL_PROJECT_ID" ] && missing="$missing VERCEL_PROJECT_ID"
+          if [ -n "$missing" ]; then
+            echo "Missing repository secret(s):$missing"
+            echo "Add them under Settings -> Secrets and variables -> Actions,"
+            echo "then re-run this workflow. Nothing was deployed."
+            exit 1
+          fi
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      # `vercel pull` brings down the project settings, including
+      # rootDirectory=landing — that setting, plus the repo-root
+      # .vercelignore, is what keeps the upload at ~18MB instead of 1.6GB.
+      - name: Pull Vercel project settings
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
+
+      - name: Build
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: vercel build --prod --token="${{ secrets.VERCEL_TOKEN }}"
+
+      - name: Deploy to production
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: vercel deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}"
+
+      # "Deployed" is not the same as "reaching users" — that gap is the
+      # whole reason this file exists. Fail the run if the live site does
+      # not actually serve a profile after the deploy.
+      - name: Smoke-test production
+        run: |
+          set -e
+          url="https://pikt.ag/piktag"
+          for attempt in 1 2 3; do
+            code=$(curl -s -o /tmp/smoke.html -w '%{http_code}' -L --max-time 25 "$url" || echo 000)
+            if [ "$code" = "200" ]; then
+              echo "$url -> 200"
+              exit 0
+            fi
+            echo "attempt $attempt: $url -> $code (retrying)"
+            sleep 10
+          done
+          echo "Production did not serve $url after the deploy (last status: $code)."
+          exit 1

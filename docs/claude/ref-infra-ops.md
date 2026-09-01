@@ -180,3 +180,22 @@ PK,`ERROR: duplicate key ... schema_migrations_pkey (SQLSTATE 23505)`,
 - **根因防呆**:CLAUDE.md 的「寫戳前 `ls | tail -3`」擋不住**平行 session**
   在你檢查後才建的同戳檔。建戳時盡量用當下分秒(非整點 000000),可大幅降低
   對撞。回寫 migration 前先 `git pull --rebase` 拉進別人的新檔再看尾巴。
+
+- [2026-09-01] 觸發:某個修復 commit 進了 main、CI 全綠、大家都當它結案了 →
+  規則:**修完先問「這個 surface 靠什麼把 main 送到使用者手上」**。沒有自動
+  部署的 surface,commit ≠ 上線,必須當場部署或排進 CI。
+  例:`e99c614`(8/17)修好 landing 的 `VALID_USERNAME`(舊正則不含點,擋掉
+  app 自己產生的 `name.<數字>` 帳號,**112 個真實帳號中 48 個**分享連結與 QR
+  全死)。程式碼正確、在 main、沒被改回,但 landing 是**唯一沒有 CI 部署的
+  surface**(iOS/Android/Supabase 都會自己出貨,網站不會),而 Vercel 的 CLI
+  部署當時自己也壞著(根目錄部署上傳 1.6GB,到 8/20 才用 `.vercelignore` 修)。
+  結果修復躺了兩週,使用者端毫無改變,**沒有任何訊號會叫出來**。9/1 創辦人
+  親測 `pikt.ag/karlcohen.71222` 仍是「找不到這個使用者」才發現。
+  已補 `.github/workflows/deploy-landing.yml`(含 `workflow_dispatch`,手機也能
+  觸發)+ `landing/scripts/check-username-pattern.cjs` 守住該正則。
+- [2026-09-01] 觸發:想把「守衛正則」寫得比 signup 規則嚴 → 規則:**面向使用者
+  的路由守衛只擋「明顯不是人」(靜態檔、含斜線),能不能查到人交給 DB 決定;
+  守衛比 signup 嚴 = 直接讓真實使用者的連結消失**。
+  例:同上。landing 現在刻意比 mobile 寬鬆(mobile 要 3–30 字,守衛接受 1 字),
+  這是安全的方向;反過來收緊就是 48 人掉線的成因。`check-username-pattern.cjs`
+  有一條 case 明文釘住這個方向,別「順手修正」它。
