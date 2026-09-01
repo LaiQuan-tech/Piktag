@@ -209,3 +209,23 @@ PK,`ERROR: duplicate key ... schema_migrations_pkey (SQLSTATE 23505)`,
   自動化,沒人看到,8/17 的分享連結修復就這樣躺了兩週,48 個真實使用者的連結
   一直是死的。診斷法:本地 `cd landing && npm ci && npm run build` 會成功(檔案
   在),只有 Vercel 會失敗(檔案沒被上傳)—— **本地過、線上掛,先懷疑 ignore 檔**。
+- [2026-09-01] 觸發:新增 workflow 檔,action 版本憑記憶寫 → 規則:**先 grep repo
+  現有 workflow 用什麼版本,沿用它**,不要用記憶中的預設值。查法:
+  `grep -rhoE "uses:\s*[^ ]+" .github/workflows/ | sort | uniq -c`
+  例:我新增 `deploy-landing.yml` 時寫了 `actions/checkout@v4` + `setup-node@v4`,
+  但 repo 六個 workflow 早已被前一個 session 有意識地升到 v5/v6,並在
+  `ios-testflight.yml` 留了註解:GitHub **2026-09-16 移除 Node 20 runtime**。
+  等於在一個 15 天後會無聲壞掉的基礎上蓋新部署管線,而且會壞在最難聯想的地方。
+- [2026-09-01] 觸發:部署那一步顯示成功就當作上線了 → 規則:**部署管線最後一定
+  要打線上驗證**(至少一個已知存在的 URL 回 200),否則「部署成功」只證明上傳成功,
+  不證明使用者拿得到。
+  例:8/17 的分享連結修復 commit 正確、CI 全綠、Vercel 也顯示有部署,但建置其實
+  `exit 1`(`.vercelignore` 誤殺 postbuild 腳本),48 個真實使用者的連結死了兩週
+  沒有任何訊號。`deploy-landing.yml` 最後那步 curl `pikt.ag/piktag` 期待 200,
+  就是為了讓這種失敗當場紅燈。
+- [2026-09-01] 觸發:看到布林旗標就直接拿來當它字面意思用 → 規則:**用旗標判斷前
+  先讀它的 migration 回填條件** —— 回填的寬鬆程度決定了它到底能證明什麼。
+  例:`onboarding_completed` 看似「有沒有走完精靈」,但 `20260605030000` 的回填是
+  「有 username + full_name 就設 true」,而那正是 step-1 中途放棄者的特徵(該
+  migration 自己的註解就這麼寫)。所以它**不能**用來判斷檔案是否設定完成;分享頁
+  改用「這個人自己有沒有標籤/連結」判斷,才不會誤殺也不會漏抓。
