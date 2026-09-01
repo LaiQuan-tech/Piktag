@@ -43,11 +43,15 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v4
+      # Matches android-google-play.yml / ios-testflight.yml, the other two
+      # build-and-ship workflows. v4 of these actions targets the Node 20
+      # runner, which GitHub is retiring — it was already being forced onto
+      # Node 24 and warning on every run.
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: 22
 
       # Cheap, deterministic, and guards the exact defect that motivated
       # this workflow: a username gate stricter than what signup hands out
