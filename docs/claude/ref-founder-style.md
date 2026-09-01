@@ -626,3 +626,17 @@ don't quietly regress them:
   brandTagline is English-everywhere; landing hero.title1+title2
   is localized per locale (founder-approved zh-TW: "自己標自己，
   誰都找得到。"). See commit 107130a for the full 5-surface align.
+
+## 踩坑補遺
+
+- [2026-09-01] 觸發:想讓編輯頁「看起來像個人卡片」,於是把輸入框做成無邊框、
+  無底色 → 規則:**可編輯的東西必須看起來可編輯**。編輯表單的欄位一律
+  「標籤在上 + 有框輸入框」;把輸入框偽裝成展示文字 = 那個功能對使用者實質消失。
+  例:`ProfileIdentityHeader` 的可編輯模式把姓名渲染成無邊框標題(元件註解原文:
+  reads as profile TEXT, **not form boxes**)。職稱先因為這個理由被搬進表單,姓名
+  沒有 —— 結果掃名片 OCR 把 Racheil 讀成 Rachei 之後,**創辦人本人**判定「不能修改
+  姓名」。名字是整個產品存在的理由(標籤是在描述一個你叫不出名字的人),卻是唯一
+  沒人看得出能改的欄位。`d57f3079` 把姓名搬進表單並**刪除該可編輯模式**(留著等於
+  留一個會複製此 bug 的陷阱)。
+  **這條之所以被踩第二次,是因為它先前只寫在 EditLocalContactScreen 的一行註解裡,
+  沒有進制度** —— 同一個 repo 獨立犯兩次的規則,就該升級成制度層條目。
