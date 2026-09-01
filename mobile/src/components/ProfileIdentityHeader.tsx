@@ -7,35 +7,36 @@
 // gaps, type scale) live here once; they mirror FriendDetailScreen's
 // profileRow so a local contact reads like a member friend.
 //
-// Presentational + dual-mode:
-//   • read    — pass name/headline → rendered as Text.
-//   • editable — also pass onChangeName / onChangeHeadline → the
-//     same slots become borderless TextInputs that read as profile
-//     TEXT, not form boxes (that's the whole point: an edit screen
-//     that looks like a profile card, editing is secondary).
+// DISPLAY ONLY — do not add editing back.
+// This used to have an "editable" mode: pass onChangeName /
+// onChangeHeadline and the same slots became borderless TextInputs
+// "that read as profile TEXT, not form boxes". That was the bug. On
+// EditLocalContactScreen the name was one of those inputs, and nobody
+// could tell — the founder, who wrote the app, reported the name as
+// impossible to edit after a card scan misread "Racheil" as "Rachei".
+// An input that renders as a title is an input nobody uses.
+//
+// 職稱 had already been pulled out of this header for exactly the same
+// reason. Both now live in the form below as labeled, bordered inputs,
+// per the founder rule that edit-form fields must look like proper iOS
+// form inputs so users can see they are editable. This header shows the
+// name; it updates live as the field below is typed.
 //
 // FriendDetailScreen still has its own inline header; adopting this
 // there is a deliberate follow-up (that screen is 2.5k lines and a
 // read-only view — out of scope to refactor here).
 
 import React, { useMemo } from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import RingedAvatar, { BadgeKind } from './RingedAvatar';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 
 type Props = {
   name: string;
-  onChangeName?: (v: string) => void;
-  namePlaceholder?: string;
-  autoFocusName?: boolean;
-  nameMaxLength?: number;
-  /** Small line under the name (e.g. "尚未加入 PikTag"). Read-only. */
+  /** Small line under the name (e.g. "尚未加入 PikTag"). */
   subtitle?: string;
   headline?: string;
-  onChangeHeadline?: (v: string) => void;
-  headlinePlaceholder?: string;
-  headlineMaxLength?: number;
   avatarUrl?: string | null;
   /** Tap-the-avatar handler (e.g. open image picker). When set, the
    *  avatar becomes pressable and shows the chosen badge. */
@@ -47,27 +48,17 @@ type Props = {
 
 export default function ProfileIdentityHeader({
   name,
-  onChangeName,
-  namePlaceholder,
-  autoFocusName,
-  nameMaxLength,
   subtitle,
   headline,
-  onChangeHeadline,
-  headlinePlaceholder,
-  headlineMaxLength,
   avatarUrl,
   onAvatarPress,
   avatarBadge,
 }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const headlineShown = onChangeHeadline !== undefined || !!headline;
   return (
     <View style={styles.root}>
-      <View
-        style={[styles.row, { marginBottom: headlineShown ? 10 : 2 }]}
-      >
+      <View style={[styles.row, { marginBottom: headline ? 10 : 2 }]}>
         <RingedAvatar
           size={64}
           ringStyle="subtle"
@@ -77,22 +68,9 @@ export default function ProfileIdentityHeader({
           badge={avatarBadge ?? null}
         />
         <View style={styles.nameSection}>
-          {onChangeName ? (
-            <TextInput
-              style={styles.name}
-              value={name}
-              onChangeText={onChangeName}
-              placeholder={namePlaceholder}
-              placeholderTextColor={colors.gray400}
-              autoFocus={autoFocusName}
-              maxLength={nameMaxLength}
-              returnKeyType="next"
-            />
-          ) : (
-            <Text style={styles.name} numberOfLines={1}>
-              {name}
-            </Text>
-          )}
+          <Text style={styles.name} numberOfLines={1}>
+            {name}
+          </Text>
           {subtitle ? (
             <Text style={styles.subtitle} numberOfLines={1}>
               {subtitle}
@@ -101,20 +79,7 @@ export default function ProfileIdentityHeader({
         </View>
       </View>
 
-      {headlineShown ? (
-        onChangeHeadline ? (
-          <TextInput
-            style={styles.headline}
-            value={headline ?? ''}
-            onChangeText={onChangeHeadline}
-            placeholder={headlinePlaceholder}
-            placeholderTextColor={colors.gray400}
-            maxLength={headlineMaxLength}
-          />
-        ) : (
-          <Text style={styles.headline}>{headline}</Text>
-        )
-      ) : null}
+      {headline ? <Text style={styles.headline}>{headline}</Text> : null}
     </View>
   );
 }
@@ -126,8 +91,6 @@ function makeStyles(c: ColorPalette) {
   nameSection: { flex: 1, gap: 2 },
   // Bigger than FriendDetail's 16 on purpose: a contact has no
   // @username, so the name IS the identity → it's the page title.
-  // Borderless + no bg so the editable variant reads as a title,
-  // not a form box.
   name: {
     fontSize: 20,
     fontWeight: '700',

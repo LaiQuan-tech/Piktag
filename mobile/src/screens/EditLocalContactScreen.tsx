@@ -1042,13 +1042,21 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
               per founder rule: edit-form fields must look like proper
               iOS form inputs (label above + bordered input box) so
               users see they're editable; 職稱 styled as a profile
-              tagline read as display text, not a field. */}
+              tagline read as display text, not a field.
+              2026-09-01: the NAME had the same defect and is now out
+              too. It was already a TextInput here, but the header
+              deliberately renders that variant borderless and
+              background-less "so it reads as a title" — which is
+              exactly the affordance failure 職稱 was moved for. The
+              founder, who wrote this app, reported the name as
+              uneditable after a card scan misread "Racheil" as
+              "Rachei". OCR gets names wrong routinely and the name is
+              the one field the whole product exists to get right, so
+              it cannot be the field nobody can tell is editable.
+              The header now just displays it, updating live as the
+              field below is typed. */}
           <ProfileIdentityHeader
             name={name}
-            onChangeName={setName}
-            namePlaceholder={t('localContact.namePlaceholder', { defaultValue: '例：在龍洞潛水認識的阿哲' })}
-            autoFocusName={manualFocus}
-            nameMaxLength={60}
             avatarUrl={avatarUrl}
             onAvatarPress={uploadingAvatar ? undefined : pickAndUploadAvatar}
             avatarBadge="pencil"
@@ -1062,6 +1070,27 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
               "幫助對方加入後自動接上" caption is dropped — it was UI
               noise the user didn't need while editing. */}
           <View style={styles.fieldsGroup}>
+            {/* Name first — it is the field a card scan most often gets
+                wrong, and the reason the contact exists at all. Same
+                label key as the member's own edit screen, so a contact
+                and a profile are edited in one visual language. */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>
+                {t('editProfile.nameLabel', { defaultValue: '姓名' })}
+              </Text>
+              <TextInput
+                style={styles.fieldInput}
+                value={name}
+                onChangeText={setName}
+                placeholder={t('localContact.namePlaceholder', {
+                  defaultValue: '例：在龍洞潛水認識的阿哲',
+                })}
+                placeholderTextColor={colors.gray400}
+                maxLength={60}
+                autoFocus={manualFocus}
+              />
+            </View>
+
             <View style={styles.fieldGroup}>
               <Text style={styles.fieldLabel}>
                 {t('editProfile.headlineLabel', { defaultValue: '職稱' })}
