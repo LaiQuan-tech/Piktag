@@ -152,10 +152,13 @@ function MainTabs() {
   // varies. Replaces the old hardcoded paddingBottom:28 / height:80, which was
   // too short on 3-button nav bars.
   const bottomInset = Math.max(insets.bottom, 12);
-  // Single source of truth for the tab bar style — referenced both
-  // as the default screenOptions baseline AND inside per-tab options
-  // (AddTagTab below) where we conditionally hide it on inner screens
-  // that need full-bleed real estate (the QR display + group detail).
+  // The tab bar style. It used to be referenced twice — here as the
+  // screenOptions baseline and again inside AddTagTab's options, which
+  // hid the bar on the inner screens that wanted full-bleed room (the QR
+  // display, the group detail). Those screens are RootStack pushes now,
+  // so they sit above the tab navigator and get the whole viewport for
+  // free; there is no AddTagTab and no per-tab override left. One
+  // reference, no conditional.
   const baseTabBarStyle = {
     backgroundColor: isDark ? '#000000' : '#FFFFFF',
     borderTopWidth: isDark ? 0.5 : 1,
@@ -311,7 +314,13 @@ const MainNavigator = React.memo(function MainNavigator({ needsOnboarding }: { n
             whichever tab you are on, and so push deep-links keep a
             target. */}
         <RootStack.Screen name="Notifications" component={NotificationsScreen} />
-        <RootStack.Screen name="QrGroupList" component={QrGroupListScreen} />
+        {/* QrGroupList as a RootStack push is GONE (2026-09-02). It existed
+            for the Profile header's # icon, from the window when event QR
+            had no tab. Pushing it mounted a SECOND copy of the tab root on
+            top of the tab — two event-tag lists, two composers, and a back
+            arrow on a screen that is otherwise a tab root. The tab is the
+            only way in now; EventTagMain (in EventTagStackNavigator) is
+            the one registration. */}
         <RootStack.Screen name="AddTagCreate" component={AddTagScreen} />
         <RootStack.Screen
           name="QrGroupDetail"

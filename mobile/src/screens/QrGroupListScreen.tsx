@@ -51,7 +51,6 @@ import {
   Trash2,
   GripVertical,
   ScanLine,
-  ArrowLeft,
 } from 'lucide-react-native';
 import DraggableFlatList, {
   RenderItemParams,
@@ -699,22 +698,19 @@ export default function QrGroupListScreen({ navigation }: Props) {
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
 
         <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            {/* Back arrow — QrGroupList is now a full-screen RootStack push
-                (event-QR demoted from the tab 2026-06-24), so it needs a way
-                back to where it was opened from (the Home header QR icon).
-                Gated on canGoBack so it stays clean if ever shown as a root. */}
-            {navigation.canGoBack() && (
-              <TouchableOpacity
-                onPress={() => navigation.goBack()}
-                style={styles.headerBackBtn}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel={t('common.back', { defaultValue: '返回' })}
-              >
-                <ArrowLeft size={24} color={colors.gray900} />
-              </TouchableOpacity>
-            )}
+          {/* No back arrow. This screen is a TAB ROOT (event tags took the
+              bell's slot 2026-09-01) and a tab root has nowhere to go back
+              to — the tab bar is how you leave. The arrow was left over
+              from 2026-06-24, when event-QR had been demoted out of the
+              tab bar and this was a full-screen push from the Profile
+              header. It was gated on canGoBack(), which still returns true
+              here because the tab stack sits inside RootStack — a tab root
+              CAN always "go back" in that sense, so canGoBack() is the
+              wrong question to ask on one. The Profile entry that made the
+              push is gone too, so there is no longer any surface where the
+              arrow would have been correct.
+              The headerLeft row wrapper went with it: with the arrow gone
+              it held one child. */}
           <View style={styles.headerTitleWrap}>
             {/* Title renamed 記住新朋友 → 活動標籤 (founder, 2026-07-03):
                 the screen IS the event-tag list, name the artifact.
@@ -726,7 +722,6 @@ export default function QrGroupListScreen({ navigation }: Props) {
             <Text style={styles.headerTitle}>
               {t('qrGroup.headerTitle', { defaultValue: '活動標籤' })}
             </Text>
-          </View>
           </View>
           <View style={styles.headerActions}>
             {/* Scan someone else's QR — the only header action left. The
@@ -904,16 +899,6 @@ function makeStyles(c: ColorPalette) {
   // underneath in a smaller gray weight. The two-line stack lets
   // English-unaware users learn the term WITHOUT making "Vibes"
   // itself any less prominent.
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexShrink: 1,
-    gap: 8,
-  },
-  headerBackBtn: {
-    padding: 4,
-    marginLeft: -4,
-  },
   headerTitleWrap: {
     flexShrink: 1,
   },

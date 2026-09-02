@@ -15,7 +15,6 @@ import {
   Settings,
   CheckCircle2,
   MessageCircle,
-  Hash,
 } from 'lucide-react-native';
 import BiolinkSocialSection from '../components/BiolinkSocialSection';
 import CoachMark from '../components/CoachMark';
@@ -418,10 +417,13 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const handleOpenQr = useCallback(() => setQrVisible(true), []);
   const handleCloseQr = useCallback(() => setQrVisible(false), []);
   const handleNavigateSettings = useCallback(() => navigation.navigate('Settings'), [navigation]);
-  // 建立活動 QR — moved here from the Friends header (founder 2026-06-25:
-  // too heavy next to the scan CTA). Sits with the personal QR (分享檔案) —
-  // both are "a QR I generate/show". QrGroupList lives in RootStack.
-  const handleNavigateEventQr = useCallback(() => navigation.navigate('QrGroupList'), [navigation]);
+  // (建立活動 QR removed 2026-09-02. It lived here from 2026-06-25, when
+  // event QR had no tab of its own and the Profile header was the least
+  // bad home for it. Event tags took a bottom tab slot on 2026-09-01, so
+  // this had become a second door to a destination that is now one tap
+  // away — and worse, it PUSHED a separate copy of the list on top of
+  // the tab, which is where the stray back arrow on that screen was
+  // coming from. The tab is the entry now.)
   const handleNavigateEditProfile = useCallback(() => navigation.navigate('EditProfile'), [navigation]);
   // Each profile stat now drills into its OWN destination (was: the
   // whole row dumped every tap onto the Tribe graph). Tags → tag
@@ -509,9 +511,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{t('profile.pageTitle')}</Text>
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.6} onPress={handleNavigateEventQr} accessibilityLabel={t('connections.createEventQr', { defaultValue: '建立活動 QR' })} accessibilityRole="button">
-            <Hash size={24} color={colors.gray900} />
-          </TouchableOpacity>
           <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.6} onPress={handleNavigateSettings} accessibilityLabel={t('settings.headerTitle', { defaultValue: '設定' })} accessibilityRole="button">
             <Settings size={24} color={colors.gray900} />
           </TouchableOpacity>
