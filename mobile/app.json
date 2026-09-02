@@ -57,7 +57,7 @@
     "android": {
       "package": "ag.pikt.app",
       "googleServicesFile": "./google-services.json",
-      "targetSdkVersion": 35,
+      "targetSdkVersion": 36,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon-foreground.png",
         "backgroundImage": "./assets/adaptive-icon-background.png",
@@ -141,7 +141,7 @@
             ]
           },
           "android": {
-            "targetSdkVersion": 35,
+            "targetSdkVersion": 36,
             "compileSdkVersion": 36
           }
         }
