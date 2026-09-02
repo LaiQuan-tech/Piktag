@@ -50,6 +50,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthProfile } from '../context/AuthContext';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
+import { useNetInfo } from '../hooks/useNetInfo';
 import { useLoadDeadline } from '../hooks/useLoadDeadline';
 import { checkOffline } from '../lib/netStatus';
 import { useRotatingPlaceholder } from '../hooks/useRotatingPlaceholder';
@@ -490,6 +491,18 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // evidence (the offline short-circuit and the query-surface deadline);
   // cleared at the start of every search.
   const [searchUnreachable, setSearchUnreachable] = useState(false);
+  // The SAME signal that drives the red <OfflineBanner> at the top of the
+  // screen. `searchUnreachable` is written from seven places and read at
+  // render, and an empty offline result was still reaching the
+  // 「你的人脈裡還沒有 X 的人」 branch — a confident claim about the user's
+  // network made with the offline banner visible directly above it, over a
+  // 發 Ask button that cannot post without a network either.
+  //
+  // Rather than keep chasing which writer lost the race, the render asks
+  // the connection directly. Offline is a FACT at paint time; whether some
+  // flag survived the round trip is not. If the banner is up, this screen
+  // does not get to say there is nobody.
+  const { isConnected } = useNetInfo();
   // Offline AND nothing has ever been synced to this device — a different
   // situation from "offline, and your saved people don't match". Saying
   // 目前離線 for it reads as "this person isn't here", when the truth is we
@@ -3358,9 +3371,16 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         // it — the tags grid above + this make the result honest.
         // isDeadEnd carries the concept into the title + drops the
         // standalone chip / hint / clear (clean 3-element layout).
-        if (searchUnreachable) {
+        if (searchUnreachable || !isConnected) {
           // We could not ask. Say that, with a retry — never "there is
           // nobody", and never the Ask CTA, which needs the network too.
+          //
+          // `!isConnected` is the belt to searchUnreachable's braces, and
+          // it is the half that cannot lose a race: it is read at paint
+          // time from the same NetInfo subscription as the red banner
+          // above. Offline, an empty result means we could only look at
+          // what is already on the phone — that is never grounds for
+          // 「你的人脈裡還沒有 X 的人」.
           items.push({ type: 'searchError' });
         } else {
           items.push({ type: 'profilesEmpty', isDeadEnd, conceptLabel });
@@ -3395,6 +3415,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     loading,
     initialLoading,
     searchUnreachable,
+    // Recompute when the connection flips, so reconnecting turns the
+    // offline card back into a real result without a re-search.
+    isConnected,
     showRecent,
     recentSearches,
     showProfiles,
