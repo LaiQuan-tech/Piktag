@@ -1488,25 +1488,53 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         setProfiles([]);
         setTagUsers([]);
 
+        const needle = query.trim().toLowerCase();
+        const hay = (...parts: unknown[]) =>
+          parts
+            .flat()
+            .filter((v) => typeof v === 'string' && v)
+            .join(' ')
+            .toLowerCase();
+
+        // TWO caches, because "the people I know" lives in two places and
+        // searching only one of them looks broken. piktag_local_contacts
+        // is filtered by `.is('promoted_to_connection_id', null)`, so that
+        // snapshot holds ONLY saved contacts who have not joined yet —
+        // your actual friends are not in it. Searching a friend's name
+        // offline therefore found nothing, which is what was reported.
+        let offlineFriends: PiktagProfile[] = [];
         let offlineContacts: TaggedContact[] = [];
         try {
-          const cached = await getPersistentCache<any[]>(CACHE_KEYS.LOCAL_CONTACTS, user?.id);
-          const needle = query.trim().toLowerCase();
-          if (cached && needle) {
-            offlineContacts = cached
-              .filter((c) => {
-                const hay = [
+          const [cachedConns, cachedContacts] = await Promise.all([
+            getPersistentCache<any[]>(CACHE_KEYS.CONNECTIONS, user?.id),
+            getPersistentCache<any[]>(CACHE_KEYS.LOCAL_CONTACTS, user?.id),
+          ]);
+          if (needle && Array.isArray(cachedConns)) {
+            offlineFriends = cachedConns
+              .filter((c) =>
+                hay(
+                  c?.nickname,
+                  c?.note,
+                  c?.met_location,
+                  c?.connected_user?.full_name,
+                  c?.connected_user?.username,
+                  Array.isArray(c?.tags) ? c.tags : [],
+                ).includes(needle),
+              )
+              .map((c) => c?.connected_user)
+              .filter((p): p is PiktagProfile => !!p?.id);
+          }
+          if (needle && Array.isArray(cachedContacts)) {
+            offlineContacts = cachedContacts
+              .filter((c) =>
+                hay(
                   c?.name,
                   c?.headline,
                   c?.note,
                   c?.met_location,
-                  ...(Array.isArray(c?.tags) ? c.tags : []),
-                ]
-                  .filter((v) => typeof v === 'string' && v)
-                  .join(' ')
-                  .toLowerCase();
-                return hay.includes(needle);
-              })
+                  Array.isArray(c?.tags) ? c.tags : [],
+                ).includes(needle),
+              )
               .map((c) => ({
                 id: String(c.id),
                 name: c?.name || '',
@@ -1518,6 +1546,10 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           // offline state below rather than failing the search.
         }
         if (!isMountedRef.current || seq !== searchSeqRef.current) return;
+        // Friends go through searchTaggedFriends, which buckets as friends
+        // by definition and renders member rows — tapping one opens the
+        // profile, which is what a member is. Contacts keep the contact row.
+        setSearchTaggedFriends(offlineFriends);
         setSearchTaggedContacts(offlineContacts);
 
         // Only claim "we could not ask" when there is genuinely nothing
@@ -1528,7 +1560,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         // either. With matches, the results speak for themselves and the
         // app-wide <OfflineBanner> already says why the rest is missing;
         // a second per-screen badge would be a competing pattern.
-        setSearchUnreachable(offlineContacts.length === 0);
+        setSearchUnreachable(offlineFriends.length === 0 && offlineContacts.length === 0);
         setLoading(false);
         saveRecentSearch(query.trim());
         return;
