@@ -1407,9 +1407,18 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
       // Cache hit: skip the DB round-trips entirely. Move to
       // most-recently-used position by delete+set.
+      //
+      // Skipped when offline. This LRU holds what the SERVER answered for
+      // this query — tags, public profiles, tag members — and none of it
+      // includes the viewer's own saved people, which is the only thing
+      // search can answer without a network. Taking the hit here returned
+      // an online-shaped result and never ran the offline branch below, so
+      // searching a name you had already searched while connected quietly
+      // behaved differently from searching a new one.
+      const offlineNow = await checkOffline();
       const cacheKey = query.trim().toLowerCase();
       const cache = searchCacheRef.current;
-      const cached = cache.get(cacheKey);
+      const cached = offlineNow ? undefined : cache.get(cacheKey);
       if (cached) {
         cache.delete(cacheKey);
         cache.set(cacheKey, cached);
@@ -1487,7 +1496,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       // Matched on the same fields as the online private-world search
       // (name / headline / note / met_location / tags) so a query does
       // not quietly mean something different offline.
-      if (await checkOffline()) {
+      if (offlineNow) {
         if (!isMountedRef.current || seq !== searchSeqRef.current) return;
         setTags([]);
         setProfiles([]);
@@ -2837,24 +2846,38 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     const sig = trimmedQuery + '|' + tags.map((t: any) => t.id).join(',');
     if (sig === manualTagSigRef.current) return;
     manualTagSigRef.current = sig;
-    // New query/tag combo — drop the previous query's results immediately
-    // so they don't linger on screen during the re-fetch.
-    setSearchTaggedFriends([]);
-    setSearchTaggedContacts([]);
     let cancelled = false;
     (async () => {
       try {
         // Every branch below is a server query, so with no signal this
         // whole block is ~25s of auth-refresh backoff per await for a
-        // guaranteed-empty result. Bail — performSearch has already
-        // cleared the result state. Release the sig guard on the way out
-        // so the next dependency change (a keystroke, or tags landing
+        // guaranteed-empty result. Bail. Release the sig guard on the way
+        // out so the next dependency change (a keystroke, or tags landing
         // after reconnect) actually re-runs this instead of being
         // short-circuited as "already done for this query".
+        //
+        // THE OFFLINE CHECK MUST COME BEFORE THE CLEARS BELOW. This effect
+        // is keyed on `tags`, and performSearch's offline branch sets
+        // `tags` to [] right after filling searchTaggedFriends /
+        // searchTaggedContacts from the on-device snapshots. So this
+        // effect fired immediately afterwards and wiped them — offline,
+        // the only results that exist were erased microseconds after they
+        // were found, every single time. That is why searching a friend's
+        // name in airplane mode kept coming back empty even after the
+        // snapshot reads were fixed: the reads were never the problem.
+        // Offline, performSearch OWNS these two arrays; this effect must
+        // not touch them.
         if (await checkOffline()) {
           manualTagSigRef.current = '';
           return;
         }
+        // Online: drop the previous query's results so they do not linger
+        // during the re-fetch. Safe to do after the await — checkOffline
+        // answers from a cached NetInfo subscription, so there is no
+        // round-trip here to leave stale rows on screen.
+        if (cancelled) return;
+        setSearchTaggedFriends([]);
+        setSearchTaggedContacts([]);
         // 1. Resolve concept-sibling tag ids/names (only if any tag matched).
         let allTagIds: string[] = [];
         let allTagNames: string[] = [];
