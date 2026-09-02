@@ -1537,9 +1537,7 @@
     "currentVibesTitle": "Cosa stanno taggando ultimamente",
     "currentVibesHint": "Tag che questo gruppo condivide ora — tocca per vedere chi.",
     "membersFilterEmpty": "Nessuno in questo Tag ha ancora quel tag.",
-    "currentVibesCount": "{{count}} persone",
-    "quickCreatePlaceholder": "Tag di questo evento, es.: club del libro design",
-    "quickCreateCta": "Crea"
+    "currentVibesCount": "{{count}} persone"
   },
   "batchTag": {
     "title": "Conosciuti allo stesso evento?",

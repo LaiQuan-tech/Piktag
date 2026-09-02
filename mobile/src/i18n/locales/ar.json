@@ -1537,9 +1537,7 @@
     "currentVibesTitle": "ما يضعون من وسوم مؤخراً",
     "currentVibesHint": "الوسوم التي تتشاركها هذه المجموعة الآن — اضغط لرؤية من.",
     "membersFilterEmpty": "لا أحد في هذا الـ Tag يحمل هذا الوسم بعد.",
-    "currentVibesCount": "{{count}} شخص",
-    "quickCreatePlaceholder": "وسوم هذه الفعالية، مثل: نادي الكتاب تصميم",
-    "quickCreateCta": "إنشاء"
+    "currentVibesCount": "{{count}} شخص"
   },
   "batchTag": {
     "title": "تعرفت عليهم في الفعالية نفسها؟",

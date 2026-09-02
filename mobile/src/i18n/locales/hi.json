@@ -1537,9 +1537,7 @@
     "currentVibesTitle": "वे हाल ही में क्या टैग कर रहे हैं",
     "currentVibesHint": "यह समूह अभी जो टैग शेयर कर रहा है — टैप करें कौन।",
     "membersFilterEmpty": "इस Tag में अभी किसी पर वह टैग नहीं है।",
-    "currentVibesCount": "{{count}} लोग",
-    "quickCreatePlaceholder": "इस इवेंट के टैग, जैसे: बुक क्लब डिज़ाइन",
-    "quickCreateCta": "बनाएं"
+    "currentVibesCount": "{{count}} लोग"
   },
   "batchTag": {
     "title": "एक ही आयोजन में मिले?",

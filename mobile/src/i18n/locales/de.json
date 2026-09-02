@@ -1537,9 +1537,7 @@
     "currentVibesTitle": "Was sie kürzlich taggen",
     "currentVibesHint": "Tags, die diese Gruppe gerade teilt — tippe, um zu sehen wer.",
     "membersFilterEmpty": "Niemand in diesem Tag hat diesen Tag noch.",
-    "currentVibesCount": "{{count}} Personen",
-    "quickCreatePlaceholder": "Tags für dieses Event, z. B. Lesekreis Design",
-    "quickCreateCta": "Erstellen"
+    "currentVibesCount": "{{count}} Personen"
   },
   "batchTag": {
     "title": "Beim selben Event kennengelernt?",

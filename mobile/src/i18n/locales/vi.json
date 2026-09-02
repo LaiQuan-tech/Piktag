@@ -1537,9 +1537,7 @@
     "currentVibesTitle": "Họ đang gắn tag gì gần đây",
     "currentVibesHint": "Tag nhóm này đang chia sẻ — chạm để xem là ai.",
     "membersFilterEmpty": "Chưa ai trong Tag này có tag đó.",
-    "currentVibesCount": "{{count}} người",
-    "quickCreatePlaceholder": "Thẻ cho sự kiện này, vd: câu lạc bộ sách thiết kế",
-    "quickCreateCta": "Tạo"
+    "currentVibesCount": "{{count}} người"
   },
   "batchTag": {
     "title": "Quen ở cùng một sự kiện?",

@@ -1537,9 +1537,7 @@
     "currentVibesTitle": "Apa yang mereka tag belakangan",
     "currentVibesHint": "Tag yang sedang dibagi grup ini — ketuk untuk lihat siapa.",
     "membersFilterEmpty": "Belum ada yang punya tag itu di Tag ini.",
-    "currentVibesCount": "{{count}} orang",
-    "quickCreatePlaceholder": "Tag acara ini, mis.: klub buku desain",
-    "quickCreateCta": "Buat"
+    "currentVibesCount": "{{count}} orang"
   },
   "batchTag": {
     "title": "Kenalan di acara yang sama?",

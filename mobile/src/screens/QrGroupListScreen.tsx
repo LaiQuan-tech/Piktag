@@ -29,7 +29,6 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
-  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -379,24 +378,6 @@ export default function QrGroupListScreen({ navigation }: Props) {
     navigation.navigate('AddTagCreate');
   }, [navigation]);
 
-  // Create an event QR from this list: type the tags, press 建立, get the
-  // QR. No + to hunt for and no setup screen in between — putting event
-  // tags on a tab was to make this MORE reachable, so a step added back
-  // in the middle defeats it (founder, 2026-09-02).
-  //
-  // Nothing is skipped by going straight to the QR: tags are the only
-  // thing the setup step still collects — its date and location pickers
-  // were removed and are state-only now. The header + still opens that
-  // screen for presets and for adding tags to an existing draft.
-  const [quickTagInput, setQuickTagInput] = useState('');
-  const handleQuickCreate = useCallback(() => {
-    const initialTags = quickTagInput
-      .split(/[,，\s]+/)
-      .map((v) => v.trim().replace(/^#/, ''))
-      .filter(Boolean);
-    setQuickTagInput('');
-    navigation.navigate('AddTagCreate', { initialTags, autoGenerate: true });
-  }, [navigation, quickTagInput]);
 
   // Scan-someone-else's-QR entry point. Previously buried inside the
   // create-QR form's header — moved here because creating-my-own-QR
@@ -752,35 +733,6 @@ export default function QrGroupListScreen({ navigation }: Props) {
             once we have a clearer pattern for "intent-driven
             people search". For now this tab is purely about
             listing + opening Vibes. */}
-        {/* Quick create — above the list on purpose, so the common
-            path (type the tags, get the QR) needs no + and no setup
-            screen. Sits outside the DraggableFlatList so it is present
-            in the empty state too and never joins the drag surface. */}
-        <View style={styles.quickCreate}>
-          <TextInput
-            style={styles.quickCreateInput}
-            value={quickTagInput}
-            onChangeText={setQuickTagInput}
-            placeholder={t('qrGroup.quickCreatePlaceholder', {
-              defaultValue: '這場活動的標籤，例：讀書會 設計',
-            })}
-            placeholderTextColor={colors.gray400}
-            returnKeyType="go"
-            onSubmitEditing={handleQuickCreate}
-            maxLength={80}
-          />
-          <TouchableOpacity
-            style={styles.quickCreateBtn}
-            activeOpacity={0.85}
-            onPress={handleQuickCreate}
-            accessibilityRole="button"
-          >
-            <Text style={styles.quickCreateBtnText}>
-              {t('qrGroup.quickCreateCta', { defaultValue: '建立' })}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
         {loading && groups.length === 0 && attended.length === 0 ? (
           <View style={styles.loadingWrap}>
             <ActivityIndicator size="small" color={colors.piktag500} />
@@ -951,33 +903,6 @@ function makeStyles(c: ColorPalette) {
     padding: 4,
   },
   listContent: { paddingBottom: 100 },
-  quickCreate: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
-  quickCreateInput: {
-    flex: 1,
-    backgroundColor: c.gray100,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-    fontSize: 15,
-    color: c.gray900,
-  },
-  quickCreateBtn: {
-    backgroundColor: c.piktag500,
-    borderRadius: 12,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-  },
-  quickCreateBtnText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700',
-  },
   loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   groupRow: {

@@ -1537,9 +1537,7 @@
     "currentVibesTitle": "他们最近在标什幺",
     "currentVibesHint": "这群人现在共同的标签 — 点一下看是谁",
     "membersFilterEmpty": "这个 Tag 中没有贴这个标签的人",
-    "currentVibesCount": "{{count}} 人",
-    "quickCreatePlaceholder": "这场活动的标签，例：读书会 设计",
-    "quickCreateCta": "建立"
+    "currentVibesCount": "{{count}} 人"
   },
   "batchTag": {
     "title": "同一场合认识的吗？",
