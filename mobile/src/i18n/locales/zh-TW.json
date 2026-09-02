@@ -1537,7 +1537,8 @@
     "currentVibesTitle": "他們最近在標什麼",
     "currentVibesHint": "這群人現在共同的標籤 — 點一下看是誰",
     "membersFilterEmpty": "這個 Tag 中沒有貼這個標籤的人",
-    "currentVibesCount": "{{count}} 人"
+    "currentVibesCount": "{{count}} 人",
+    "pastSectionTitle": "過往活動標籤"
   },
   "batchTag": {
     "title": "同一場合認識的嗎？",

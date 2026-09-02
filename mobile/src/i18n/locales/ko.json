@@ -1537,7 +1537,8 @@
     "currentVibesTitle": "요즘 자주 다는 태그",
     "currentVibesHint": "이 그룹이 지금 공유 중인 태그 — 탭하면 누가 보이나요.",
     "membersFilterEmpty": "이 Tag에는 아직 그 태그가 붙은 사람이 없어요.",
-    "currentVibesCount": "{{count}}명"
+    "currentVibesCount": "{{count}}명",
+    "pastSectionTitle": "지난 이벤트 태그"
   },
   "batchTag": {
     "title": "같은 자리에서 만난 사람들인가요?",

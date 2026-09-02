@@ -1537,7 +1537,8 @@
     "currentVibesTitle": "Họ đang gắn tag gì gần đây",
     "currentVibesHint": "Tag nhóm này đang chia sẻ — chạm để xem là ai.",
     "membersFilterEmpty": "Chưa ai trong Tag này có tag đó.",
-    "currentVibesCount": "{{count}} người"
+    "currentVibesCount": "{{count}} người",
+    "pastSectionTitle": "Thẻ sự kiện trước đây"
   },
   "batchTag": {
     "title": "Quen ở cùng một sự kiện?",

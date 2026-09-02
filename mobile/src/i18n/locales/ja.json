@@ -1537,7 +1537,8 @@
     "currentVibesTitle": "最近よく付けているタグ",
     "currentVibesHint": "このグループが今共有しているタグ — タップして誰か見る。",
     "membersFilterEmpty": "この Tag にはまだそのタグを付けた人がいません。",
-    "currentVibesCount": "{{count}}人"
+    "currentVibesCount": "{{count}}人",
+    "pastSectionTitle": "これまでのイベントタグ"
   },
   "batchTag": {
     "title": "同じイベントで出会った人たち？",

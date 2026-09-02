@@ -1537,7 +1537,8 @@
     "currentVibesTitle": "Что они недавно тегают",
     "currentVibesHint": "Теги, которыми сейчас делится эта группа — нажмите, чтобы увидеть кто.",
     "membersFilterEmpty": "В этом Tag пока ни у кого нет этого тега.",
-    "currentVibesCount": "{{count}} чел."
+    "currentVibesCount": "{{count}} чел.",
+    "pastSectionTitle": "Прошлые теги событий"
   },
   "batchTag": {
     "title": "Познакомились на одном событии?",

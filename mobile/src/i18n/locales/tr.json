@@ -1537,7 +1537,8 @@
     "currentVibesTitle": "Son zamanlarda neyi etiketliyorlar",
     "currentVibesHint": "Bu grubun şu an paylaştığı etiketler — kim olduğunu görmek için dokun.",
     "membersFilterEmpty": "Bu Tag'de henüz bu etiketi taşıyan yok.",
-    "currentVibesCount": "{{count}} kişi"
+    "currentVibesCount": "{{count}} kişi",
+    "pastSectionTitle": "Geçmiş etkinlik etiketleri"
   },
   "batchTag": {
     "title": "Aynı etkinlikte mi tanıştınız?",

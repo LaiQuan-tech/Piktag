@@ -1,8 +1,19 @@
 // QrGroupListScreen.tsx
 //
-// Task 2 landing surface for AddTagTab. Lists the host's persistent
-// event groups (piktag_scan_sessions rows) with member count,
-// drag-to-reorder, and swipe/long-press delete.
+// Root of the 活動標籤 tab. Two things, in this order:
+//
+//   1. EventTagComposer — 活動內容 → AI 標籤 → 挑 → 建立, inline at the top.
+//   2. 過往活動標籤 — the host's persistent event groups
+//      (piktag_scan_sessions rows) with member count, drag-to-reorder
+//      and delete.
+//
+// 2026-09-02, founder: 「在活動標籤頁，最上面，直接就顯示新增活動標籤頁的
+// 填寫內容欄位。不要再顯示『新增』或『＋』，這些欄位下面，才顯示過往活動
+// 標籤清單」. So the + is gone from the header and creating happens here,
+// not behind a push. The composer is the WHOLE create unit as one
+// component — an earlier attempt put just the description box here and
+// left 建立 pressable with nothing filled in, which made QR codes that
+// described nothing (「整個流程就是錯誤的」).
 //
 // Sort precedence:
 //   1. sort_position ASC NULLS LAST  (user's manual order)
@@ -34,7 +45,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import {
-  Plus,
   QrCode,
   ChevronRight,
   Users,
@@ -50,6 +60,8 @@ import DraggableFlatList, {
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
+import EventTagComposer, { type CreatedEventTag } from '../components/EventTagComposer';
+import SectionTitle from '../components/SectionTitle';
 import { supabase } from '../lib/supabase';
 import {
   CACHE_KEYS,
@@ -374,9 +386,16 @@ export default function QrGroupListScreen({ navigation }: Props) {
   });
 
 
-  const handleCreateNew = useCallback(() => {
-    navigation.navigate('AddTagCreate');
-  }, [navigation]);
+  // The composer wrote the row (or, with no signal, produced a local QR
+  // that still scans). Reload so the new event tag is in the list behind
+  // them, then show the QR — that is the moment they made it for.
+  const handleCreated = useCallback(
+    (created: CreatedEventTag) => {
+      void loadGroups();
+      navigation.navigate('AddTagCreate', { created });
+    },
+    [navigation, loadGroups],
+  );
 
 
   // Scan-someone-else's-QR entry point. Previously buried inside the
@@ -622,26 +641,35 @@ export default function QrGroupListScreen({ navigation }: Props) {
               '辦聚會、跑活動？建一個活動標籤，現場的人掃同一個 QR，就自動互加好友、帶上這場活動的標籤。幾個月後搜這個標籤，那晚認識的人全部都在。',
           })}
         </Text>
-        <TouchableOpacity
-          style={styles.emptyCta}
-          activeOpacity={0.85}
-          onPress={handleCreateNew}
-        >
-          <Plus size={18} color="#FFFFFF" />
-          <Text style={styles.emptyCtaText}>
-            {t('qrGroup.createFirst', { defaultValue: '建立活動 QR' })}
-          </Text>
-        </TouchableOpacity>
-        {/* Secondary "scan someone else's QR" link removed from the
-            empty state for a cleaner screen — the scan action still
-            lives in the header (ScanLine icon, top-right), so no
-            navigation path is lost, just visual noise. */}
+        {/* No CTA. The create form is directly above this card — a
+            button whose only job would be to point at what the user is
+            already looking at is noise. */}
       </View>
     ),
     // styles/colors ARE deps: this JSX is memoized and both change on a
     // theme switch (repo rule — omitting them froze surfaces on
     // whichever theme rendered first).
-    [t, handleCreateNew, styles, colors],
+    [t, styles, colors],
+  );
+
+  // The create unit, then the divider that names what follows it. The
+  // divider only appears when there IS a past list — with nothing below,
+  // a "過往活動標籤" heading over an empty-state card reads as a section
+  // that failed to load.
+  const listHeader = useMemo(
+    () => (
+      <View>
+        <EventTagComposer onCreated={handleCreated} />
+        {groups.length > 0 && (
+          <View style={styles.pastHeader}>
+            <SectionTitle variant="form">
+              {t('qrGroup.pastSectionTitle', { defaultValue: '過往活動標籤' })}
+            </SectionTitle>
+          </View>
+        )}
+      </View>
+    ),
+    [handleCreated, groups.length, t, styles],
   );
 
   // Nothing cached AND the fetch never got an answer. Same distinction
@@ -701,27 +729,18 @@ export default function QrGroupListScreen({ navigation }: Props) {
           </View>
           </View>
           <View style={styles.headerActions}>
-            {/* Scan someone else's QR. Sibling action to "+ create my QR" —
-                both are equally important entry points, so they live
-                side-by-side at the tab's landing page. */}
+            {/* Scan someone else's QR — the only header action left. The
+                "+ create" twin is gone: creating is the form below, so a
+                header button pointing at it would be a second entry to
+                the same thing one scroll away. */}
             <TouchableOpacity
               style={styles.headerIconBtn}
               activeOpacity={0.7}
               onPress={handleOpenScanner}
               accessibilityRole="button"
               accessibilityLabel={t('qrGroup.scan', { defaultValue: '掃描 QR 碼加好友' })}
-
             >
               <ScanLine size={24} color={colors.gray600} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.headerIconBtn}
-              activeOpacity={0.7}
-              onPress={handleCreateNew}
-              accessibilityRole="button"
-              accessibilityLabel={t('qrGroup.create', { defaultValue: '建立新 Tag' })}
-            >
-              <Plus size={24} color={colors.gray600} />
             </TouchableOpacity>
           </View>
         </View>
@@ -733,20 +752,37 @@ export default function QrGroupListScreen({ navigation }: Props) {
             once we have a clearer pattern for "intent-driven
             people search". For now this tab is purely about
             listing + opening Vibes. */}
-        {loading && groups.length === 0 && attended.length === 0 ? (
-          <View style={styles.loadingWrap}>
-            <ActivityIndicator size="small" color={colors.piktag500} />
-          </View>
-        ) : groups.length === 0 && attended.length === 0 ? (
-          loadFailed ? listLoadFailed : listEmpty
-        ) : (
-          <DraggableFlatList
+        {/* One list, always mounted, so the composer at its head is on
+            screen in every state — loading, empty, failed or full. The
+            old three-way branch swapped the whole body out, which would
+            have taken the create form with it. */}
+        <DraggableFlatList
             data={groups}
             keyExtractor={(g) => g.id}
             renderItem={renderItem}
             onDragEnd={handleDragEnd}
             contentContainerStyle={styles.listContent}
             activationDistance={Platform.OS === 'ios' ? 10 : 5}
+            // Without this a tap on an AI chip while the keyboard is up
+            // only dismisses the keyboard — the chip needs a second tap.
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            // The create form now lives inside this list, so the list is
+            // what has to get out of the keyboard's way — otherwise the
+            // 建立 button sits under it on shorter phones.
+            automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+            ListHeaderComponent={listHeader}
+            ListEmptyComponent={
+              loading ? (
+                <View style={styles.loadingWrap}>
+                  <ActivityIndicator size="small" color={colors.piktag500} />
+                </View>
+              ) : loadFailed ? (
+                listLoadFailed
+              ) : (
+                listEmpty
+              )
+            }
             ListFooterComponent={
               attended.length > 0 ? (
                 <View style={styles.attendedSection}>
@@ -791,7 +827,6 @@ export default function QrGroupListScreen({ navigation }: Props) {
               ) : null
             }
           />
-        )}
       </SafeAreaView>
     </GestureHandlerRootView>
   );
@@ -903,7 +938,9 @@ function makeStyles(c: ColorPalette) {
     padding: 4,
   },
   listContent: { paddingBottom: 100 },
-  loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  // Sits inside the list now, under the create form — flex:1 here would
+  // collapse to nothing rather than centre in the viewport.
+  loadingWrap: { alignItems: 'center', paddingVertical: 40 },
 
   groupRow: {
     flexDirection: 'row',
@@ -941,7 +978,24 @@ function makeStyles(c: ColorPalette) {
     paddingHorizontal: 6,
   },
 
-  emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, gap: 12 },
+  // Section divider naming the past list. Sits between the composer and
+  // the first row, so it carries the composer's own horizontal padding.
+  pastHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 28,
+    paddingBottom: 8,
+  },
+
+  // No longer a full-screen centred block: the empty card now sits UNDER
+  // the create form inside the list, so flex:1 would have fought the
+  // header for the viewport and pushed the form off screen.
+  emptyWrap: {
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    paddingTop: 32,
+    paddingBottom: 8,
+    gap: 12,
+  },
   emptyIconWrap: {
     width: 72,
     height: 72,
@@ -953,18 +1007,9 @@ function makeStyles(c: ColorPalette) {
   },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: c.gray900 },
   emptyDesc: { fontSize: 13, color: c.gray500, textAlign: 'center', lineHeight: 19 },
-  emptyCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 22,
-    borderRadius: 12,
-    backgroundColor: c.piktag500,
-    marginTop: 12,
-  },
-  emptyCtaText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
-  // (emptyScanBtn / emptyScanText removed with the secondary
-  //  scan link — scan now lives only in the header.)
+  // (emptyCta / emptyCtaText removed with the empty-state button — the
+  //  create form is on screen directly above it now. emptyScanBtn /
+  //  emptyScanText went earlier with the secondary scan link; scan lives
+  //  only in the header.)
   });
 }

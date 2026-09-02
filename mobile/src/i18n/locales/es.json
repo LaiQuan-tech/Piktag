@@ -1537,7 +1537,8 @@
     "currentVibesTitle": "Qué están etiquetando últimamente",
     "currentVibesHint": "Tags que este grupo comparte ahora — toca para ver quién.",
     "membersFilterEmpty": "Nadie en este Tag tiene ese tag aún.",
-    "currentVibesCount": "{{count}} personas"
+    "currentVibesCount": "{{count}} personas",
+    "pastSectionTitle": "Etiquetas de eventos anteriores"
   },
   "batchTag": {
     "title": "¿Los conociste en el mismo evento?",
