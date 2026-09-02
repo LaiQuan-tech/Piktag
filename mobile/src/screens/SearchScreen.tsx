@@ -694,12 +694,37 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     const now = Date.now();
     if (now - lastFriendsFetchAt.current < 30_000) return;
     lastFriendsFetchAt.current = now;
-    const { data } = await supabase
+    // No signal: build the map from the CONNECTIONS snapshot instead.
+    // This map is what decides FriendDetail vs UserDetail at tap time,
+    // and offline it used to be EMPTY — so a friend you had just found in
+    // the offline results opened UserDetail, the public-profile screen,
+    // which is server-only and therefore rendered the offline error page.
+    // Found the person, then a blank wall (founder: 點進去，什麼資料都沒有).
+    // The snapshot already carries both ids, so the route can be right.
+    if (await checkOffline()) {
+      const cached = await getPersistentCache<any[]>(CACHE_KEYS.CONNECTIONS, user.id);
+      if (!Array.isArray(cached)) return;
+      const cm = new Map<string, string>();
+      for (const c of cached) {
+        const uid = c?.connected_user_id ?? c?.connected_user?.id;
+        if (uid && c?.id) cm.set(String(uid), String(c.id));
+      }
+      // Never overwrite a live map with a smaller cached one — the
+      // snapshot holds the connections the friends list displays, which
+      // is a subset of what the server query returns.
+      setMyFriendIds((prev) => (prev.size > cm.size ? prev : cm));
+      return;
+    }
+    const { data, error } = await supabase
       .from('piktag_connections')
       .select('id, connected_user_id')
       .eq('user_id', user.id);
+    // supabase-js RESOLVES with { data: null, error } on a transport
+    // failure, so `data ?? []` used to install an EMPTY map on any hiccup
+    // — every friend silently demoted to a stranger until the next mount.
+    if (error || !data) return;
     const m = new Map<string, string>();
-    for (const c of (data ?? []) as Array<{ id: string; connected_user_id: string }>) {
+    for (const c of data as Array<{ id: string; connected_user_id: string }>) {
       if (c.connected_user_id && c.id) m.set(c.connected_user_id, c.id);
     }
     setMyFriendIds(m);
@@ -2593,7 +2618,31 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         });
         return;
       }
-      navigation.navigate('UserDetail', { userId: profile.id });
+      // Offline, resolve the connection id at TAP TIME rather than
+      // trusting the map to have loaded. UserDetail is the public-profile
+      // screen and is server-only, so sending a friend there with no
+      // signal guarantees a blank error page — the exact dead end the
+      // founder hit after offline search started working. FriendDetail
+      // renders from the same CONNECTIONS snapshot the offline results
+      // came from, so if we found them, it can show them.
+      void (async () => {
+        if (await checkOffline()) {
+          const cached = await getPersistentCache<any[]>(CACHE_KEYS.CONNECTIONS, user?.id);
+          const row = Array.isArray(cached)
+            ? cached.find(
+                (c) => (c?.connected_user_id ?? c?.connected_user?.id) === profile.id,
+              )
+            : null;
+          if (row?.id) {
+            navigation.navigate('FriendDetail', {
+              connectionId: String(row.id),
+              friendId: profile.id,
+            });
+            return;
+          }
+        }
+        navigation.navigate('UserDetail', { userId: profile.id });
+      })();
     },
     [navigation, myFriendIds, user, searchQuery, llmExtractedKeywords],
   );
