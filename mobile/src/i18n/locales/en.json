@@ -415,7 +415,9 @@
     "askEmptyStateButton": "Post an Ask",
     "deadEndTitle": "No one in your network for \"{{concept}}\" yet",
     "deadEndAskHint": "Post an Ask — let friends find them for you",
-    "tabEmptyShort": "No matches in this tab yet"
+    "tabEmptyShort": "No matches in this tab yet",
+    "noSnapshotTitle": "We haven't synced your contacts yet",
+    "noSnapshotBody": "Once you're online we'll sync automatically — after that you can search your friends and contacts even offline."
   },
   "addTag": {
     "headerTitle": "Create a Tag",

@@ -490,6 +490,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // evidence (the offline short-circuit and the query-surface deadline);
   // cleared at the start of every search.
   const [searchUnreachable, setSearchUnreachable] = useState(false);
+  // Offline AND nothing has ever been synced to this device — a different
+  // situation from "offline, and your saved people don't match". Saying
+  // 目前離線 for it reads as "this person isn't here", when the truth is we
+  // have never had the chance to copy your list down.
+  const [searchNoSnapshot, setSearchNoSnapshot] = useState(false);
   // Current user id for the offline bootstrap snapshot, held in a ref so
   // the cache writers stay stable callbacks (see persistSearchBootstrap).
   const bootstrapUserIdRef = useRef<string | null>(null);
@@ -1504,11 +1509,15 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         // offline therefore found nothing, which is what was reported.
         let offlineFriends: PiktagProfile[] = [];
         let offlineContacts: TaggedContact[] = [];
+        let everSynced = false;
         try {
           const [cachedConns, cachedContacts] = await Promise.all([
             getPersistentCache<any[]>(CACHE_KEYS.CONNECTIONS, user?.id),
             getPersistentCache<any[]>(CACHE_KEYS.LOCAL_CONTACTS, user?.id),
           ]);
+          // A snapshot with zero rows still counts as synced — that is a
+          // real answer about an empty address book, not a missing copy.
+          everSynced = Array.isArray(cachedConns) || Array.isArray(cachedContacts);
           if (needle && Array.isArray(cachedConns)) {
             offlineFriends = cachedConns
               .filter((c) =>
@@ -1560,7 +1569,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         // either. With matches, the results speak for themselves and the
         // app-wide <OfflineBanner> already says why the rest is missing;
         // a second per-screen badge would be a competing pattern.
-        setSearchUnreachable(offlineFriends.length === 0 && offlineContacts.length === 0);
+        const nothingToShow = offlineFriends.length === 0 && offlineContacts.length === 0;
+        setSearchNoSnapshot(nothingToShow && !everSynced);
+        setSearchUnreachable(nothingToShow);
         setLoading(false);
         saveRecentSearch(query.trim());
         return;
@@ -3425,7 +3436,15 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         case 'searchError':
           // ErrorState reads NetInfo itself and picks the offline vs
           // load-failed wording; retry re-runs the same query.
-          return (
+          return searchNoSnapshot ? (
+            <ErrorState
+              heading={t('search.noSnapshotTitle', { defaultValue: '還沒同步過你的通訊錄' })}
+              subtitle={t('search.noSnapshotBody', {
+                defaultValue: '連上網路後會自動同步，之後即使離線也能搜尋你的好友和聯絡人。',
+              })}
+              onRetry={() => void performSearch(trimmedQuery)}
+            />
+          ) : (
             <ErrorState onRetry={() => void performSearch(trimmedQuery)} />
           );
 
@@ -3797,6 +3816,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       intersectionContacts,
       intersectionSelectedTags,
       searchTab,
+      searchNoSnapshot,
       handleSearchByTags,
       runBootstrap,
       styles,

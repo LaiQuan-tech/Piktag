@@ -415,7 +415,9 @@
     "askEmptyStateButton": "โพสต์ Ask",
     "deadEndTitle": "เครือข่ายของคุณยังไม่มีคนเรื่อง \"{{concept}}\"",
     "deadEndAskHint": "โพสต์ Ask แล้วให้เพื่อนช่วยหาให้",
-    "tabEmptyShort": "แท็บนี้ยังไม่มีคนที่ตรงกัน"
+    "tabEmptyShort": "แท็บนี้ยังไม่มีคนที่ตรงกัน",
+    "noSnapshotTitle": "ยังไม่ได้ซิงก์รายชื่อของคุณ",
+    "noSnapshotBody": "เมื่อออนไลน์เราจะซิงก์ให้อัตโนมัติ จากนั้นคุณจะค้นหาเพื่อนและรายชื่อได้แม้ออฟไลน์"
   },
   "addTag": {
     "headerTitle": "สร้าง Tag",

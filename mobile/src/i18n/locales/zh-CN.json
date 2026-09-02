@@ -415,7 +415,9 @@
     "askEmptyStateButton": "发 Ask",
     "deadEndTitle": "你的人脉里还没有「{{concept}}」的人",
     "deadEndAskHint": "发个 Ask，让朋友帮你找到他",
-    "tabEmptyShort": "这个分页还没有相符的人"
+    "tabEmptyShort": "这个分页还没有相符的人",
+    "noSnapshotTitle": "还没同步过你的通讯录",
+    "noSnapshotBody": "连上网络后会自动同步，之后即使离线也能搜索你的好友和联系人。"
   },
   "addTag": {
     "headerTitle": "创建 Tag",

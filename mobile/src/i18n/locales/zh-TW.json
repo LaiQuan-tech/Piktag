@@ -415,7 +415,9 @@
     "openMap": "地圖檢視",
     "deadEndTitle": "你的人脈裡還沒有「{{concept}}」的人",
     "deadEndAskHint": "發個 Ask，讓朋友幫你找到他",
-    "tabEmptyShort": "這個分頁還沒有相符的人"
+    "tabEmptyShort": "這個分頁還沒有相符的人",
+    "noSnapshotTitle": "還沒同步過你的通訊錄",
+    "noSnapshotBody": "連上網路後會自動同步，之後即使離線也能搜尋你的好友和聯絡人。"
   },
   "addTag": {
     "headerTitle": "建立 Tag",

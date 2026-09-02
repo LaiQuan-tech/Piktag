@@ -415,7 +415,9 @@
     "askEmptyStateButton": "Ask paylaş",
     "deadEndTitle": "Ağında henüz \"{{concept}}\" için kimse yok",
     "deadEndAskHint": "Bir Ask paylaş — arkadaşların senin için bulsun",
-    "tabEmptyShort": "Bu sekmede henüz eşleşme yok"
+    "tabEmptyShort": "Bu sekmede henüz eşleşme yok",
+    "noSnapshotTitle": "Kişilerini henüz eşitlemedik",
+    "noSnapshotBody": "Çevrimiçi olduğunda otomatik eşitlenir — sonrasında çevrimdışıyken de arkadaşlarını ve kişilerini arayabilirsin."
   },
   "addTag": {
     "headerTitle": "Tag oluştur",

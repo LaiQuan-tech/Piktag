@@ -415,7 +415,9 @@
     "askEmptyStateButton": "Publicar un Ask",
     "deadEndTitle": "Nadie para «{{concept}}» en tu red todavía",
     "deadEndAskHint": "Publica un Ask y deja que tus amigos lo encuentren",
-    "tabEmptyShort": "Aún no hay coincidencias en esta pestaña"
+    "tabEmptyShort": "Aún no hay coincidencias en esta pestaña",
+    "noSnapshotTitle": "Aún no hemos sincronizado tus contactos",
+    "noSnapshotBody": "Cuando tengas conexión se sincronizará solo; después podrás buscar amigos y contactos incluso sin internet."
   },
   "addTag": {
     "headerTitle": "Crear un Tag",

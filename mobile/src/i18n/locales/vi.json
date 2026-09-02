@@ -415,7 +415,9 @@
     "askEmptyStateButton": "Đăng Ask",
     "deadEndTitle": "Mạng lưới của bạn chưa có ai về \"{{concept}}\"",
     "deadEndAskHint": "Đăng một Ask — để bạn bè tìm giúp bạn",
-    "tabEmptyShort": "Tab này chưa có kết quả phù hợp"
+    "tabEmptyShort": "Tab này chưa có kết quả phù hợp",
+    "noSnapshotTitle": "Chúng tôi chưa đồng bộ danh bạ của bạn",
+    "noSnapshotBody": "Khi có mạng sẽ tự đồng bộ — sau đó bạn tìm được bạn bè và danh bạ ngay cả khi ngoại tuyến."
   },
   "addTag": {
     "headerTitle": "Tạo một Tag",

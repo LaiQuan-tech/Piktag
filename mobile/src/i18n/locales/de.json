@@ -415,7 +415,9 @@
     "askEmptyStateButton": "Ask posten",
     "deadEndTitle": "Noch niemand für „{{concept}}\" in deinem Netzwerk",
     "deadEndAskHint": "Stell ein Ask — Freunde finden die Person für dich",
-    "tabEmptyShort": "Noch keine Treffer in diesem Tab"
+    "tabEmptyShort": "Noch keine Treffer in diesem Tab",
+    "noSnapshotTitle": "Deine Kontakte wurden noch nicht synchronisiert",
+    "noSnapshotBody": "Sobald du online bist, synchronisieren wir automatisch — danach findest du Freunde und Kontakte auch offline."
   },
   "addTag": {
     "headerTitle": "Vibe erstellen",

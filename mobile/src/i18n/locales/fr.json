@@ -415,7 +415,9 @@
     "askEmptyStateButton": "Publier un Ask",
     "deadEndTitle": "Personne pour « {{concept}} » dans ton réseau pour l’instant",
     "deadEndAskHint": "Publie un Ask — tes amis trouveront la personne",
-    "tabEmptyShort": "Aucun résultat dans cet onglet"
+    "tabEmptyShort": "Aucun résultat dans cet onglet",
+    "noSnapshotTitle": "Vos contacts n'ont pas encore été synchronisés",
+    "noSnapshotBody": "La synchronisation se fera automatiquement une fois en ligne ; ensuite vous pourrez chercher vos amis et contacts même hors connexion."
   },
   "addTag": {
     "headerTitle": "Créer un Tag",

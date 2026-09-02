@@ -415,7 +415,9 @@
     "askEmptyStateButton": "Ask পোস্ট করুন",
     "deadEndTitle": "আপনার নেটওয়ার্কে এখনও \"{{concept}}\" এর কেউ নেই",
     "deadEndAskHint": "একটি Ask পোস্ট করুন — বন্ধুরা খুঁজে দেবে",
-    "tabEmptyShort": "এই ট্যাবে এখনও কোনো মিল নেই"
+    "tabEmptyShort": "এই ট্যাবে এখনও কোনো মিল নেই",
+    "noSnapshotTitle": "আমরা এখনো আপনার পরিচিতি সিঙ্ক করিনি",
+    "noSnapshotBody": "অনলাইনে এলে নিজে থেকেই সিঙ্ক হবে — এরপর অফলাইনেও বন্ধু ও পরিচিতি খুঁজতে পারবেন।"
   },
   "addTag": {
     "headerTitle": "Tag তৈরি করুন",

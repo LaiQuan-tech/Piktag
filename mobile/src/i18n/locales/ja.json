@@ -415,7 +415,9 @@
     "askEmptyStateButton": "Ask を投稿",
     "deadEndTitle": "人脈にはまだ「{{concept}}」の人がいません",
     "deadEndAskHint": "Ask を投稿して、友達に探してもらおう",
-    "tabEmptyShort": "このタブにはまだ該当者がいません"
+    "tabEmptyShort": "このタブにはまだ該当者がいません",
+    "noSnapshotTitle": "連絡先をまだ同期していません",
+    "noSnapshotBody": "オンラインになると自動で同期します。その後はオフラインでも友だちや連絡先を検索できます。"
   },
   "addTag": {
     "headerTitle": "Tag を作成",

@@ -415,7 +415,9 @@
     "askEmptyStateButton": "Ask पोस्ट करें",
     "deadEndTitle": "आपके नेटवर्क में अभी \"{{concept}}\" वाला कोई नहीं",
     "deadEndAskHint": "एक Ask पोस्ट करें — दोस्त उसे ढूँढ देंगे",
-    "tabEmptyShort": "इस टैब में अभी कोई मेल नहीं"
+    "tabEmptyShort": "इस टैब में अभी कोई मेल नहीं",
+    "noSnapshotTitle": "हमने अभी तक आपके संपर्क सिंक नहीं किए",
+    "noSnapshotBody": "ऑनलाइन होते ही अपने आप सिंक हो जाएगा — उसके बाद ऑफ़लाइन भी दोस्त और संपर्क खोज सकेंगे।"
   },
   "addTag": {
     "headerTitle": "Tag बनाएँ",

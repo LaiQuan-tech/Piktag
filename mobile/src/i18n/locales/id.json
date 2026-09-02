@@ -415,7 +415,9 @@
     "askEmptyStateButton": "Posting Ask",
     "deadEndTitle": "Belum ada \"{{concept}}\" di jaringanmu",
     "deadEndAskHint": "Posting Ask — biar teman yang menemukannya",
-    "tabEmptyShort": "Belum ada yang cocok di tab ini"
+    "tabEmptyShort": "Belum ada yang cocok di tab ini",
+    "noSnapshotTitle": "Kontakmu belum tersinkron",
+    "noSnapshotBody": "Begitu online kami sinkronkan otomatis — setelah itu kamu bisa mencari teman dan kontak walau offline."
   },
   "addTag": {
     "headerTitle": "Buat Tag",

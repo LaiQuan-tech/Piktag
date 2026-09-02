@@ -415,7 +415,9 @@
     "askEmptyStateButton": "انشر Ask",
     "deadEndTitle": "لا أحد في شبكتك بخصوص «{{concept}}» بعد",
     "deadEndAskHint": "انشر Ask — ودع أصدقاءك يجدونه لك",
-    "tabEmptyShort": "لا توجد نتائج في هذا التبويب بعد"
+    "tabEmptyShort": "لا توجد نتائج في هذا التبويب بعد",
+    "noSnapshotTitle": "لم نقم بمزامنة جهات اتصالك بعد",
+    "noSnapshotBody": "ستتم المزامنة تلقائيًا عند الاتصال بالإنترنت، وبعدها يمكنك البحث عن أصدقائك وجهات اتصالك حتى دون اتصال."
   },
   "addTag": {
     "headerTitle": "إنشاء Tag",

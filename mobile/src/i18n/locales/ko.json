@@ -415,7 +415,9 @@
     "askEmptyStateButton": "Ask 올리기",
     "deadEndTitle": "아직 인맥에 \"{{concept}}\" 인 사람이 없어요",
     "deadEndAskHint": "Ask를 올리면 친구들이 찾아줘요",
-    "tabEmptyShort": "이 탭에는 아직 해당하는 사람이 없어요"
+    "tabEmptyShort": "이 탭에는 아직 해당하는 사람이 없어요",
+    "noSnapshotTitle": "아직 연락처를 동기화하지 않았어요",
+    "noSnapshotBody": "온라인이 되면 자동으로 동기화됩니다. 그 후에는 오프라인에서도 친구와 연락처를 검색할 수 있어요."
   },
   "addTag": {
     "headerTitle": "Tag 만들기",
