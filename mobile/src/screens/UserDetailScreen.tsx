@@ -263,7 +263,52 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     // a header assembled from scraps would be a fabrication. An honest
     // offline surface with a retry is the correct outcome, and
     // useNetInfoReconnect below re-runs the moment signal returns.
+    //
+    // But FIRST: is this actually a stranger? Offline search can only
+    // return people already on the phone, so a tap that lands here with
+    // no signal is usually a FRIEND that some map failed to recognise —
+    // and FriendDetail renders them from the same CONNECTIONS snapshot
+    // the search read. Sending them to the retry card instead is the
+    // 「點進去，什麼資料都沒有」 dead end.
+    //
+    // The routing fix in SearchScreen stops that at the source; this
+    // stops it at the destination, so deep links, notification taps and
+    // any future caller recover too instead of each needing the same
+    // guard. `replace`, not `navigate`: this screen has nothing to show,
+    // so it should not sit in the back stack.
     if (await checkOffline()) {
+      if (signal.aborted) return;
+      const viewerId = authUser?.id;
+      if (viewerId) {
+        try {
+          const cachedConns = await getPersistentCache<any[]>(
+            CACHE_KEYS.CONNECTIONS,
+            viewerId,
+          );
+          if (signal.aborted) return;
+          const row = Array.isArray(cachedConns)
+            ? cachedConns.find((c) => {
+                const cid = c?.connected_user_id ?? c?.connected_user?.id;
+                if (resolvedUserId && cid === resolvedUserId) return true;
+                return (
+                  !!paramUsername && c?.connected_user?.username === paramUsername
+                );
+              })
+            : null;
+          if (row?.id) {
+            const friendId = String(
+              row.connected_user_id ?? row.connected_user?.id ?? resolvedUserId,
+            );
+            navigation.replace('FriendDetail', {
+              connectionId: String(row.id),
+              friendId,
+            });
+            return;
+          }
+        } catch {
+          // Unreadable snapshot — fall through to the honest error state.
+        }
+      }
       if (signal.aborted) return;
       setLoadError(true);
       setLoading(false);
@@ -448,7 +493,9 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     } finally {
       if (!signal.aborted) setLoading(false);
     }
-  }, [authUser, resolvedUserId, paramUsername]);
+  // `navigation` is stable, but the offline branch now redirects with
+  // it, so keep it declared rather than relying on that.
+  }, [authUser, resolvedUserId, paramUsername, navigation]);
 
   // Online but the request is going nowhere (captive portal, dead venue
   // wifi). Drop the full-page loader rather than hold it through the
