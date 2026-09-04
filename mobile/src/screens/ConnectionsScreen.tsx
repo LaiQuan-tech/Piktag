@@ -56,6 +56,7 @@ import ErrorState from '../components/ErrorState';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthProfile } from '../context/AuthContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
+import { warmFriendDetails } from '../lib/warmFriendDetails';
 import { useAskFeed } from '../hooks/useAskFeed';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import { useLoadDeadline } from '../hooks/useLoadDeadline';
@@ -573,6 +574,23 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       if (!myTagsRes.error) {
         void setPersistentCache(CACHE_KEYS.CONNECTIONS, user.id, merged);
       }
+      // Copy each friend's social links to disk too. The CONNECTIONS
+      // snapshot has never carried biolinks, and the per-friend snapshot
+      // that does was only ever written by actually OPENING that friend —
+      // so a friend never visited online had no link section offline
+      // (founder: 目前要曾經查看過該好友才會看到個人檔案). Warming from here
+      // means the list you can already see offline is the list you can
+      // read offline.
+      //
+      // Fire-and-forget, deliberately unawaited: it must never delay the
+      // rows appearing, and every failure inside it leaves the previous
+      // snapshots untouched. Not gated on myTagsRes — that guard exists
+      // because a failed TAG query would strip tags off the CONNECTIONS
+      // rows, which has nothing to do with links.
+      void warmFriendDetails(
+        user.id,
+        displayedConnections.map((c: any) => c?.connected_user_id).filter(Boolean),
+      );
       setConnections(merged);
       setLoadError(false);
     } catch (err) {

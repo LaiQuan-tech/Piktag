@@ -396,18 +396,25 @@ export async function dropPersistentQrGroupDetail(
 }
 
 // ── Friend detail bounds ─────────────────────────────────────────────
-// 30 = the most recently OPENED friends. A friend list runs to hundreds
-// of people and mirroring all of them to disk is a sync engine, not a
-// cache; but the ones the viewer needs offline at a venue are, almost by
-// definition, the ones they just looked at. 30 covers a full day of
-// working a room with room to spare.
+// Was 30 = "the most recently OPENED friends", on the reasoning that the
+// ones you need offline are the ones you just looked at. Founder, on a
+// device, 2026-09-03: 目前要曾經查看過該好友才會看到個人檔案，如果在有網路
+// 的時候沒有查看過，就會還是看不到內容. That reasoning was backwards for the
+// case this app exists for — you are at a venue, with no signal, trying to
+// recall someone you have NEVER opened. "Visit them first, online" is not
+// something a user can be expected to have done.
 //
-// The per-friend arrays are capped as well, because the bound has to hold
-// against the pathological account, not the average one: a friend can
-// carry up to 100 public tags (the live query's own limit) and an
-// unbounded number of links. 30 x (12 links + 40 tags) is roughly 90 KB
-// worst case, the same order as the chat and QR caches above.
-export const FRIEND_DETAIL_CACHE_MAX_FRIENDS = 30;
+// So the friends list now warms this map for everyone in it
+// (lib/warmFriendDetails.ts) and the bound has to hold the whole list
+// rather than a recent window. 200 friends x 12 links is roughly 200 KB
+// worst case — the same order as the chat cache, for the section the
+// founder has now asked for twice.
+//
+// The per-friend arrays stay capped because the bound has to hold against
+// the pathological account, not the average one: a friend can carry up to
+// 100 public tags (the live query's own limit) and an unbounded number of
+// links.
+export const FRIEND_DETAIL_CACHE_MAX_FRIENDS = 200;
 export const FRIEND_DETAIL_CACHE_MAX_LINKS = 12;
 export const FRIEND_DETAIL_CACHE_MAX_TAGS = 40;
 
@@ -479,6 +486,67 @@ export async function mergePersistentFriendDetail<T extends object>(
         snapshot: { ...(existing[friendId]?.snapshot ?? {}), ...defined } as T,
       },
     };
+    const ids = Object.keys(next);
+    if (ids.length > FRIEND_DETAIL_CACHE_MAX_FRIENDS) {
+      const keep = ids
+        .sort((a, b) => (next[b]?.updatedAt ?? 0) - (next[a]?.updatedAt ?? 0))
+        .slice(0, FRIEND_DETAIL_CACHE_MAX_FRIENDS);
+      const pruned: FriendDetailMap<T> = {};
+      for (const id of keep) pruned[id] = next[id];
+      await setPersistentCache(CACHE_KEYS.FRIEND_DETAILS, userId, pruned);
+      return;
+    }
+    await setPersistentCache(CACHE_KEYS.FRIEND_DETAILS, userId, next);
+  } catch {
+    // Best-effort, same contract as every other write here.
+  }
+}
+
+/**
+ * The same merge for MANY friends at once: one read, one write.
+ *
+ * mergePersistentFriendDetail() does a full read-modify-write of the map
+ * per call, which is right for the one friend a screen just loaded and
+ * completely wrong for warming a whole friends list — 200 friends would
+ * be 400 AsyncStorage round-trips on the JS thread every time the list
+ * refreshes.
+ *
+ * Same rules as the singular version: `undefined` fields are dropped so a
+ * caller cannot erase a field by accident, existing fields survive, and
+ * the map is pruned to FRIEND_DETAIL_CACHE_MAX_FRIENDS by recency.
+ *
+ * Entries are stamped OLDER than anything written by the singular
+ * version, deliberately. If the cap is ever reached, the friends the
+ * viewer actually opened must outlive the ones a background warm merely
+ * guessed at — otherwise a list refresh could evict the person they were
+ * reading a minute ago.
+ */
+export async function mergePersistentFriendDetails<T extends object>(
+  userId: string | null | undefined,
+  patches: Record<string, Partial<T>>,
+): Promise<void> {
+  if (!userId) return;
+  const friendIds = Object.keys(patches);
+  if (friendIds.length === 0) return;
+  try {
+    const existing =
+      (await getPersistentCache<FriendDetailMap<T>>(CACHE_KEYS.FRIEND_DETAILS, userId)) ?? {};
+    const next: FriendDetailMap<T> = { ...existing };
+    // One stamp for the whole batch, below the live clock so a visited
+    // entry (stamped `now`) always sorts above a warmed one.
+    const warmStamp = 1;
+    for (const friendId of friendIds) {
+      const defined = Object.fromEntries(
+        Object.entries(patches[friendId] ?? {}).filter(([, value]) => value !== undefined),
+      ) as Partial<T>;
+      if (Object.keys(defined).length === 0) continue;
+      const prev = next[friendId];
+      next[friendId] = {
+        // Never demote an entry a real visit wrote: keep the higher stamp.
+        updatedAt: Math.max(prev?.updatedAt ?? 0, warmStamp),
+        snapshot: { ...(prev?.snapshot ?? {}), ...defined } as T,
+      };
+    }
     const ids = Object.keys(next);
     if (ids.length > FRIEND_DETAIL_CACHE_MAX_FRIENDS) {
       const keep = ids
