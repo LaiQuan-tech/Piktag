@@ -55,6 +55,28 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 // only a visual guide; capture is the full camera image regardless.)
 const SCAN_FRAME_SIZE = SCREEN_WIDTH * 0.82;
 
+// ── The frame now follows the thing you are pointing at ────────────────
+// One square frame served both actions, and it was only ever right for one
+// of them. Founder 2026-06-25: 正方形怪怪的 — answered then by softening the
+// dim mask (see overlayDark) rather than changing the shape, which treated
+// the symptom. Founder again 2026-09-03: 對於長方形的名片，就感覺很彆扭.
+//
+// A business card is 85.6x54mm (1.586); CardCameraScreen already frames at
+// 1.6, so this matches it rather than inventing a second number for the
+// same object. Wider than the QR square (0.9 vs 0.82 of the screen) because
+// a landscape card at a natural arm's length fills more width than a QR
+// does — more card pixels reaching the OCR is the whole point.
+const CARD_FRAME_WIDTH = SCREEN_WIDTH * 0.9;
+const CARD_FRAME_HEIGHT = Math.round(CARD_FRAME_WIDTH / 1.6);
+
+// Portrait (直式) cards are common in TW/JP and get NO special frame, by
+// decision: this screen does not crop — the frame is an aiming guide and
+// capture is the full camera image — so a portrait card inside a landscape
+// guide is still photographed whole and still read whole. It just does not
+// fill the frame. Adding a 橫/直 toggle would be a second switch and a
+// second piece of state to maintain for a cosmetic gain; if real use says
+// otherwise, that is when to build it.
+
 // ── Scanner strategy (founder 2026-06-24/25) ───────────────────────────────
 // ORIGINAL plan was a shutter-less auto-detect loop: silently snap a frame
 // every ~1.3s and OCR it to decide QR-vs-card. KILLED — `takePictureAsync`
@@ -88,6 +110,18 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
 
   // 'scan' = camera (QR + card auto-detect); 'show' = display MY QR to be scanned.
   const [mode, setMode] = useState<'scan' | 'show'>('scan');
+  // Which shape the frame takes, and therefore which action the screen is
+  // presenting. Defaults to 'qr' — QR stays the zero-tap path it has always
+  // been, and 速度是戰略紅線 means the common case must not gain a step.
+  //
+  // QR detection stays ARMED IN BOTH MODES. It is silent and free, so
+  // pointing at a QR while the frame says 名片 still connects instantly;
+  // the toggle changes what the screen is SHAPED for, never what it is
+  // capable of. That makes this change purely additive to the QR path.
+  const [frameMode, setFrameMode] = useState<'qr' | 'card'>('qr');
+  const isCardFrame = frameMode === 'card';
+  const frameW = isCardFrame ? CARD_FRAME_WIDTH : SCAN_FRAME_SIZE;
+  const frameH = isCardFrame ? CARD_FRAME_HEIGHT : SCAN_FRAME_SIZE;
 
   const [scanned, setScanned] = useState(false);
   const [stingerVisible, setStingerVisible] = useState(false);
@@ -418,12 +452,13 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
           </TouchableOpacity>
         </View>
 
-        {/* Square frame — signals "this is a QR scanner" */}
+        {/* The frame is the shape of the thing you are aiming at: a square
+            for a QR, a card-proportioned landscape rectangle for a card. */}
         <View style={styles.scanOverlay}>
           <View style={styles.overlayDark} />
-          <View style={styles.middleRow}>
+          <View style={[styles.middleRow, { height: frameH }]}>
             <View style={styles.overlayDark} />
-            <View style={styles.scanFrame}>
+            <View style={[styles.scanFrame, { width: frameW, height: frameH }]}>
               <View style={[styles.corner, styles.cornerTopLeft]} />
               <View style={[styles.corner, styles.cornerTopRight]} />
               <View style={[styles.corner, styles.cornerBottomLeft]} />
@@ -438,14 +473,48 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
             The hint carries the explanation, so the shutter needs no label
             (founder 2026-06-26). */}
         <View style={styles.instructionContainer}>
-          <Text style={styles.instructionText}>
-            {t('camera.scanOrCardHint', {
-              defaultValue: '對準 QR 碼自動連結，或點下方按鈕辨識名片',
+          {/* Mode switch. Segmented pill rather than another icon button:
+              this one has to SAY which of the two the frame is currently
+              shaped for, and an icon cannot. Sits above the hint so the
+              reading order is choose -> aim -> shoot. */}
+          <View style={styles.modeSwitch}>
+            {(['qr', 'card'] as const).map((m) => {
+              const active = frameMode === m;
+              return (
+                <TouchableOpacity
+                  key={m}
+                  style={[styles.modeBtn, active && styles.modeBtnActive]}
+                  onPress={() => setFrameMode(m)}
+                  activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                >
+                  <Text style={[styles.modeBtnText, active && styles.modeBtnTextActive]}>
+                    {m === 'qr'
+                      ? t('camera.modeQr', { defaultValue: 'QR 碼' })
+                      : t('camera.modeCard', { defaultValue: '名片' })}
+                  </Text>
+                </TouchableOpacity>
+              );
             })}
+          </View>
+          <Text style={styles.instructionText}>
+            {isCardFrame
+              ? t('camera.cardFrameHint', {
+                  defaultValue: '把整張名片對齊框內、保持清晰',
+                })
+              : t('camera.instruction', {
+                  defaultValue: '將相機對準 PikTag QR 碼',
+                })}
           </Text>
           {/* Camera shutter, with a brand-gradient ring (founder 2026-06-26:
               more brand colour on the scanner). White centre keeps it reading
               as a shutter; the gradient ring is the PikTag signature. */}
+          {/* Shutter belongs to the card mode only. In QR mode there is
+              nothing to press — pointing IS the interaction, and a button
+              that does something other than what the frame is shaped for
+              is how the old single-frame screen confused people. */}
+          {isCardFrame ? (
           <TouchableOpacity
             style={capturing && styles.shutterBusy}
             onPress={handleCaptureCard}
@@ -465,6 +534,7 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
               </View>
             </LinearGradient>
           </TouchableOpacity>
+          ) : null}
         </View>
       </View>
 
@@ -622,6 +692,34 @@ function makeStyles(c: ColorPalette) {
     paddingBottom: 64,
     alignItems: 'center',
     backgroundColor: 'transparent',
+  },
+  // Dark translucent pill on the camera feed, so it reads over any scene.
+  // Fixed colours, not theme tokens: this sits on a live camera image, not
+  // on the app's background, so it must not follow light/dark.
+  modeSwitch: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    borderRadius: 22,
+    padding: 4,
+    marginBottom: 16,
+  },
+  modeBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 18,
+  },
+  modeBtnActive: {
+    backgroundColor: '#FFFFFF',
+  },
+  modeBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.75)',
+  },
+  modeBtnTextActive: {
+    // Fixed dark on the fixed white pill — never colors.gray900, which
+    // flips in dark mode and would put white text on white.
+    color: '#111827',
   },
   instructionText: {
     fontSize: 16,

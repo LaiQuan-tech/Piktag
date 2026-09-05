@@ -1242,7 +1242,9 @@
     "scanOrCardHint": "QR コードで自動連結、または下のボタンで名刺を読み取り",
     "showQrHint": "相手にこれをスキャンしてもらえば、すぐつながれます",
     "showMyQr": "自分の QR を表示",
-    "manualCardScan": "名刺を撮る"
+    "manualCardScan": "名刺を撮る",
+    "modeQr": "QR コード",
+    "modeCard": "名刺"
   },
   "privacyPolicy": {
     "headerTitle": "プライバシーポリシー",

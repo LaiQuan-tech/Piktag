@@ -1242,7 +1242,9 @@
     "scanOrCardHint": "Inquadra un QR per connetterti, o tocca il pulsante sotto per acquisire un biglietto",
     "showQrHint": "Falla scansionare per connettervi subito",
     "showMyQr": "Mostra il mio QR",
-    "manualCardScan": "Fotografa il biglietto"
+    "manualCardScan": "Fotografa il biglietto",
+    "modeQr": "Codice QR",
+    "modeCard": "Biglietto"
   },
   "privacyPolicy": {
     "headerTitle": "Informativa sulla privacy",

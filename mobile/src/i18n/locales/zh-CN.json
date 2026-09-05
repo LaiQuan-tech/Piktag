@@ -1242,7 +1242,9 @@
     "scanOrCardHint": "对准 QR 码自动连接，或点下方按钮辨识名片",
     "showQrHint": "让对方扫这个 QR，立刻互加好友",
     "showMyQr": "显示我的 QR",
-    "manualCardScan": "拍名片"
+    "manualCardScan": "拍名片",
+    "modeQr": "QR 码",
+    "modeCard": "名片"
   },
   "privacyPolicy": {
     "headerTitle": "隐私权政策",

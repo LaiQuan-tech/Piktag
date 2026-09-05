@@ -1242,7 +1242,9 @@
     "scanOrCardHint": "Apunta a un QR para conectar, o toca el botón de abajo para escanear una tarjeta",
     "showQrHint": "Que lo escaneen para conectar al instante",
     "showMyQr": "Mostrar mi QR",
-    "manualCardScan": "Fotografiar tarjeta"
+    "manualCardScan": "Fotografiar tarjeta",
+    "modeQr": "Código QR",
+    "modeCard": "Tarjeta"
   },
   "privacyPolicy": {
     "headerTitle": "Política de Privacidad",

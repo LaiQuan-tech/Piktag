@@ -1226,7 +1226,9 @@
     "scanOrCardHint": "對準 QR 碼自動連結，或點下方按鈕辨識名片",
     "showQrHint": "讓對方掃這個 QR，立刻互加好友",
     "showMyQr": "顯示我的 QR",
-    "manualCardScan": "拍名片"
+    "manualCardScan": "拍名片",
+    "modeQr": "QR 碼",
+    "modeCard": "名片"
   },
   "privacyPolicy": {
     "headerTitle": "隱私權政策",

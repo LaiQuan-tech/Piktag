@@ -1242,7 +1242,9 @@
     "scanOrCardHint": "कनेक्ट करने के लिए QR पर कैमरा रखें — या नीचे बटन दबाकर कार्ड स्कैन करें",
     "showQrHint": "सामने वाले से स्कैन कराएं, तुरंत जुड़ें",
     "showMyQr": "मेरा QR दिखाएं",
-    "manualCardScan": "कार्ड की फोटो लें"
+    "manualCardScan": "कार्ड की फोटो लें",
+    "modeQr": "QR कोड",
+    "modeCard": "विज़िटिंग कार्ड"
   },
   "privacyPolicy": {
     "headerTitle": "गोपनीयता नीति",

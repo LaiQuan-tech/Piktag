@@ -1242,7 +1242,9 @@
     "scanOrCardHint": "Point at a QR to connect — or tap the button below to scan a card",
     "showQrHint": "Let them scan this to connect instantly",
     "showMyQr": "Show my QR",
-    "manualCardScan": "Snap a card"
+    "manualCardScan": "Snap a card",
+    "modeQr": "QR code",
+    "modeCard": "Business card"
   },
   "privacyPolicy": {
     "headerTitle": "Privacy Policy",

@@ -1242,7 +1242,9 @@
     "scanOrCardHint": "Наведите на QR-код для связи — или нажмите кнопку ниже, чтобы распознать визитку",
     "showQrHint": "Дайте отсканировать — и вы на связи",
     "showMyQr": "Показать мой QR",
-    "manualCardScan": "Снять визитку"
+    "manualCardScan": "Снять визитку",
+    "modeQr": "QR-код",
+    "modeCard": "Визитка"
   },
   "privacyPolicy": {
     "headerTitle": "Политика конфиденциальности",

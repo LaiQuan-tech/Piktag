@@ -1242,7 +1242,9 @@
     "scanOrCardHint": "Auf QR-Code richten zum Verbinden — oder unten tippen, um eine Karte zu erfassen",
     "showQrHint": "Lass es scannen — sofort verbunden",
     "showMyQr": "Meinen QR zeigen",
-    "manualCardScan": "Karte fotografieren"
+    "manualCardScan": "Karte fotografieren",
+    "modeQr": "QR-Code",
+    "modeCard": "Visitenkarte"
   },
   "privacyPolicy": {
     "headerTitle": "Datenschutzrichtlinie",

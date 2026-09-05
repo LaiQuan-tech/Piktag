@@ -1242,7 +1242,9 @@
     "scanOrCardHint": "Bağlanmak için QR koda doğrult — ya da aşağıdaki düğmeye dokunup kartviziti tara",
     "showQrHint": "Taratın, anında bağlanın",
     "showMyQr": "QR’mi göster",
-    "manualCardScan": "Kartviziti çek"
+    "manualCardScan": "Kartviziti çek",
+    "modeQr": "QR kodu",
+    "modeCard": "Kartvizit"
   },
   "privacyPolicy": {
     "headerTitle": "Gizlilik Politikası",

@@ -1242,7 +1242,9 @@
     "scanOrCardHint": "Arahkan ke QR untuk terhubung, atau ketuk tombol di bawah untuk memindai kartu",
     "showQrHint": "Minta dipindai untuk langsung terhubung",
     "showMyQr": "Tampilkan QR saya",
-    "manualCardScan": "Foto kartu nama"
+    "manualCardScan": "Foto kartu nama",
+    "modeQr": "Kode QR",
+    "modeCard": "Kartu nama"
   },
   "privacyPolicy": {
     "headerTitle": "Kebijakan Privasi",

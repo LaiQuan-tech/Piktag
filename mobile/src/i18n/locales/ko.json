@@ -1242,7 +1242,9 @@
     "scanOrCardHint": "QR 코드는 자동 연결, 아래 버튼으로 명함 인식",
     "showQrHint": "상대가 스캔하면 바로 친구가 돼요",
     "showMyQr": "내 QR 보기",
-    "manualCardScan": "명함 촬영"
+    "manualCardScan": "명함 촬영",
+    "modeQr": "QR 코드",
+    "modeCard": "명함"
   },
   "privacyPolicy": {
     "headerTitle": "개인정보 처리방침",

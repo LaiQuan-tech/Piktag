@@ -1242,7 +1242,9 @@
     "scanOrCardHint": "Hướng vào mã QR để kết nối, hoặc chạm nút bên dưới để nhận diện danh thiếp",
     "showQrHint": "Để họ quét và kết nối ngay",
     "showMyQr": "Hiện QR của tôi",
-    "manualCardScan": "Chụp danh thiếp"
+    "manualCardScan": "Chụp danh thiếp",
+    "modeQr": "Mã QR",
+    "modeCard": "Danh thiếp"
   },
   "privacyPolicy": {
     "headerTitle": "Chính sách quyền riêng tư",
