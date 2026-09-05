@@ -117,6 +117,15 @@ function ChatStackNavigator() {
 // bell stays on that path (and it is where IG-shaped muscle memory
 // looks). Notifications are still reached by push, which deep-links
 // straight to the row's target.
+//
+// 2026-09-03 it moved again, into the CENTRE slot, swapping with chat
+// (founder: 標籤是我們主要的功能，聊天是匹配的功能). Order follows the loop
+// rather than the feature list: 標 comes before 連, so the tag surface
+// sits ahead of the surface you use once a match already exists. The
+// centre of a five-tab bar is also the easiest slot to reach and the one
+// convention reserves for CREATING something — which is what this tab
+// does. Chat keeps its tab and its unread badge; a badge is found by its
+// colour, not its position.
 function EventTagStackNavigator() {
   return (
     <NotificationStack.Navigator screenOptions={{ headerShown: false }}>
@@ -228,6 +237,16 @@ function MainTabs() {
         }}
       />
       <Tab.Screen
+        name="EventTagTab"
+        component={EventTagStackNavigator}
+        options={{
+          tabBarAccessibilityLabel: t('tabs.eventTags'),
+          tabBarIcon: ({ color, focused }) => (
+            <Hash size={24} color={color} strokeWidth={focused ? 2.5 : 2} />
+          ),
+        }}
+      />
+      <Tab.Screen
         name="ChatTab"
         component={ChatStackNavigator}
         options={{
@@ -247,16 +266,6 @@ function MainTabs() {
               fill={focused ? color : 'none'}
               strokeWidth={focused ? 2.5 : 2}
             />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="EventTagTab"
-        component={EventTagStackNavigator}
-        options={{
-          tabBarAccessibilityLabel: t('tabs.eventTags'),
-          tabBarIcon: ({ color, focused }) => (
-            <Hash size={24} color={color} strokeWidth={focused ? 2.5 : 2} />
           ),
         }}
       />

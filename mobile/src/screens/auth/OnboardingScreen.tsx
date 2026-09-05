@@ -1085,11 +1085,14 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       routes: [
         { name: 'HomeTab' },
         { name: 'SearchTab' },
-        { name: 'ChatTab' },
-        // Renamed with the 2026-09-01 tab swap (bell → event tags). This
-        // list must match MainTabs exactly: a name that is not a real tab
-        // strands the brand-new user at the end of the wizard.
+        // Event tags sit in the CENTRE slot as of 2026-09-03, ahead of
+        // chat. This list must match MainTabs exactly — in names AND in
+        // order: a name that is not a real tab strands the brand-new user
+        // at the end of the wizard, and an order that disagrees with the
+        // navigator hands them a tab bar that does not match the one
+        // everyone else has.
         { name: 'EventTagTab' },
+        { name: 'ChatTab' },
         { name: 'ProfileTab' },
       ],
     };
