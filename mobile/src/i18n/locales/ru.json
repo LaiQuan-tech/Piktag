@@ -81,7 +81,8 @@
     "month": "Месяц",
     "day": "День",
     "userNotFound": "Не удалось найти этого пользователя",
-    "remove": "Удалить"
+    "remove": "Удалить",
+    "editName": "Изменить имя"
   },
   "auth": {
     "login": {
@@ -713,7 +714,10 @@
     "recommendMembers": "Рекомендованные",
     "blockConfirmTitle": "Заблокировать этого человека?",
     "blockConfirmMessage": "Вы оба отпишетесь и перестанете видеть контент друг друга.",
-    "hiddenTagsDesc": "Личные теги, которые видите только вы — запишите, как познакомились или о чём говорили, чтобы помнить каждого друга."
+    "hiddenTagsDesc": "Личные теги, которые видите только вы — запишите, как познакомились или о чём говорили, чтобы помнить каждого друга.",
+    "editNickname": "Изменить отображаемое имя этого друга",
+    "nicknameHint": "Это имя видите только вы",
+    "nicknameSaveFailed": "Имя не сохранено. Попробуйте ещё раз."
   },
   "userDetail": {
     "headerNotFound": "Не найдено",
@@ -1640,7 +1644,8 @@
     "introSentAt": "Отправлено · {{date}}",
     "shareResend": "Отправить ещё раз",
     "scanBusyTitle": "AI service busy",
-    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually.",
+    "nameSaveFailed": "Имя не сохранено. Попробуйте ещё раз."
   },
   "followers": {
     "title": "Подписчики",

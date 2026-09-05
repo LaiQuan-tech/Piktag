@@ -81,7 +81,8 @@
     "clear": "清除",
     "month": "月",
     "day": "日",
-    "remove": "移除"
+    "remove": "移除",
+    "editName": "編輯名稱"
   },
   "auth": {
     "login": {
@@ -713,7 +714,10 @@
     "recommendMembers": "推薦會員",
     "blockConfirmTitle": "封鎖這個人？",
     "blockConfirmMessage": "你們會互相取消追蹤，也不再看到彼此的內容。",
-    "hiddenTagsDesc": "只有你看得到的私人標籤 —— 記下怎麼認識、聊過什麼，幫你好好記住每個朋友。"
+    "hiddenTagsDesc": "只有你看得到的私人標籤 —— 記下怎麼認識、聊過什麼，幫你好好記住每個朋友。",
+    "editNickname": "編輯這位好友的顯示名稱",
+    "nicknameHint": "只有你看得到這個名字",
+    "nicknameSaveFailed": "名稱沒有儲存成功，請稍後再試。"
   },
   "userDetail": {
     "headerNotFound": "找不到",
@@ -1640,7 +1644,8 @@
     "introSentAt": "已寄出 · {{date}}",
     "shareResend": "再寄一次",
     "scanBusyTitle": "AI 服務忙碌中",
-    "scanBusyMessage": "掃描服務暫時滿載，請一分鐘後再試，或先手動填寫。"
+    "scanBusyMessage": "掃描服務暫時滿載，請一分鐘後再試，或先手動填寫。",
+    "nameSaveFailed": "名稱沒有儲存成功，請稍後再試。"
   },
   "followers": {
     "title": "追蹤者",

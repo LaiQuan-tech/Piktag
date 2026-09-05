@@ -81,7 +81,8 @@
     "clear": "Clear",
     "month": "Month",
     "day": "Day",
-    "remove": "Remove"
+    "remove": "Remove",
+    "editName": "Edit name"
   },
   "auth": {
     "login": {
@@ -713,7 +714,10 @@
     "recommendMembers": "Recommended members",
     "blockConfirmTitle": "Block this person?",
     "blockConfirmMessage": "You'll both unfollow each other and stop seeing each other's content.",
-    "hiddenTagsDesc": "Private tags only you can see — jot down how you met or what you talked about, so you remember every friend."
+    "hiddenTagsDesc": "Private tags only you can see — jot down how you met or what you talked about, so you remember every friend.",
+    "editNickname": "Edit this friend's display name",
+    "nicknameHint": "Only you can see this name",
+    "nicknameSaveFailed": "That name wasn't saved. Please try again."
   },
   "userDetail": {
     "headerNotFound": "Not Found",
@@ -1640,7 +1644,8 @@
     "introSentAt": "Sent · {{date}}",
     "shareResend": "Send again",
     "scanBusyTitle": "AI service busy",
-    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually.",
+    "nameSaveFailed": "That name wasn't saved. Please try again."
   },
   "followers": {
     "title": "Followers",

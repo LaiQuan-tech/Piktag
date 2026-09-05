@@ -81,7 +81,8 @@
     "month": "月",
     "day": "日",
     "userNotFound": "このユーザーが見つかりません",
-    "remove": "削除"
+    "remove": "削除",
+    "editName": "名前を編集"
   },
   "auth": {
     "login": {
@@ -713,7 +714,10 @@
     "recommendMembers": "おすすめのメンバー",
     "blockConfirmTitle": "この人をブロック？",
     "blockConfirmMessage": "お互いのフォローが外れ、相手の投稿も見えなくなります。",
-    "hiddenTagsDesc": "あなただけが見える非公開タグ —— どこで出会ったか、何を話したかをメモして、一人ひとりを覚えておけます。"
+    "hiddenTagsDesc": "あなただけが見える非公開タグ —— どこで出会ったか、何を話したかをメモして、一人ひとりを覚えておけます。",
+    "editNickname": "この友達の表示名を編集",
+    "nicknameHint": "この名前はあなたにだけ表示されます",
+    "nicknameSaveFailed": "名前を保存できませんでした。もう一度お試しください。"
   },
   "userDetail": {
     "headerNotFound": "見つかりません",
@@ -1640,7 +1644,8 @@
     "introSentAt": "送信済み · {{date}}",
     "shareResend": "もう一度送る",
     "scanBusyTitle": "AIサービスが混み合っています",
-    "scanBusyMessage": "スキャンサービスが一時的に満杯です。1分後に再試行するか、手動で入力してください。"
+    "scanBusyMessage": "スキャンサービスが一時的に満杯です。1分後に再試行するか、手動で入力してください。",
+    "nameSaveFailed": "名前を保存できませんでした。もう一度お試しください。"
   },
   "followers": {
     "title": "フォロワー",

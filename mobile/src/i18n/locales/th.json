@@ -81,7 +81,8 @@
     "month": "เดือน",
     "day": "วัน",
     "userNotFound": "ไม่พบผู้ใช้นี้",
-    "remove": "ลบ"
+    "remove": "ลบ",
+    "editName": "แก้ไขชื่อ"
   },
   "auth": {
     "login": {
@@ -713,7 +714,10 @@
     "recommendMembers": "สมาชิกแนะนำ",
     "blockConfirmTitle": "บล็อกคนนี้?",
     "blockConfirmMessage": "คุณทั้งคู่จะเลิกติดตามกันและไม่เห็นเนื้อหาของกันและกัน",
-    "hiddenTagsDesc": "แท็กส่วนตัวที่มีแค่คุณเห็น —— จดว่ารู้จักกันยังไง คุยอะไรกันบ้าง เพื่อจำเพื่อนแต่ละคนได้"
+    "hiddenTagsDesc": "แท็กส่วนตัวที่มีแค่คุณเห็น —— จดว่ารู้จักกันยังไง คุยอะไรกันบ้าง เพื่อจำเพื่อนแต่ละคนได้",
+    "editNickname": "แก้ไขชื่อที่แสดงของเพื่อนคนนี้",
+    "nicknameHint": "มีเพียงคุณที่เห็นชื่อนี้",
+    "nicknameSaveFailed": "บันทึกชื่อไม่สำเร็จ กรุณาลองใหม่"
   },
   "userDetail": {
     "headerNotFound": "ไม่พบ",
@@ -1640,7 +1644,8 @@
     "introSentAt": "ส่งแล้ว · {{date}}",
     "shareResend": "ส่งอีกครั้ง",
     "scanBusyTitle": "AI service busy",
-    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually.",
+    "nameSaveFailed": "บันทึกชื่อไม่สำเร็จ กรุณาลองใหม่"
   },
   "followers": {
     "title": "ผู้ติดตาม",

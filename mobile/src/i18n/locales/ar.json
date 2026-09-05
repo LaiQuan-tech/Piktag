@@ -81,7 +81,8 @@
     "month": "الشهر",
     "day": "اليوم",
     "userNotFound": "تعذّر العثور على هذا المستخدم",
-    "remove": "إزالة"
+    "remove": "إزالة",
+    "editName": "تعديل الاسم"
   },
   "auth": {
     "login": {
@@ -713,7 +714,10 @@
     "recommendMembers": "أعضاء موصى بهم",
     "blockConfirmTitle": "حظر هذا الشخص؟",
     "blockConfirmMessage": "ستلغيان متابعة بعضكما ولن تريا محتوى الآخر.",
-    "hiddenTagsDesc": "وسوم خاصة تراها أنت فقط — دوّن كيف تعارفتما أو عمّ تحدثتما لتتذكّر كل صديق."
+    "hiddenTagsDesc": "وسوم خاصة تراها أنت فقط — دوّن كيف تعارفتما أو عمّ تحدثتما لتتذكّر كل صديق.",
+    "editNickname": "تعديل الاسم الظاهر لهذا الصديق",
+    "nicknameHint": "هذا الاسم تراه أنت فقط",
+    "nicknameSaveFailed": "لم يتم حفظ الاسم. حاول مرة أخرى."
   },
   "userDetail": {
     "headerNotFound": "غير موجود",
@@ -1640,7 +1644,8 @@
     "introSentAt": "أُرسل · {{date}}",
     "shareResend": "إرسال مرة أخرى",
     "scanBusyTitle": "AI service busy",
-    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually.",
+    "nameSaveFailed": "لم يتم حفظ الاسم. حاول مرة أخرى."
   },
   "followers": {
     "title": "المتابعون",

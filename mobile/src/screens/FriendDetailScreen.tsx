@@ -66,10 +66,12 @@ import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import { useLoadDeadline } from '../hooks/useLoadDeadline';
+import EditableName from '../components/EditableName';
 import { checkOffline } from '../lib/netStatus';
 import {
   CACHE_KEYS,
   getPersistentCache,
+  setPersistentCache,
   getPersistentFriendDetail,
   mergePersistentFriendDetail,
   FRIEND_DETAIL_CACHE_MAX_LINKS,
@@ -139,6 +141,9 @@ type FriendTag = {
 // change together.
 type CachedConnectionRow = {
   connected_user_id?: string;
+  // The viewer's private display-name override, patched in place when
+  // they rename the friend so the list does not keep showing the old one.
+  nickname?: string | null;
   birthday?: string | null;
   connected_user?: Partial<PiktagProfile> | null;
   // The viewer's OWN tags on this connection, as ConnectionsScreen
@@ -349,6 +354,94 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     // owns the opt-in → open sequence for every room entry.
     await joinEventRoom(navigation, eventSessionId);
   }, [eventSessionId, navigation]);
+
+  // ── Rename this friend ──────────────────────────────────────────────
+  // Founder 2026-09-03: 目前好友沒辦法編輯顯示名稱. `nickname` on the
+  // connection row has ALWAYS been the display-name override — the
+  // friends list, search, tag detail and this header all read
+  // `nickname || full_name || username` — and nothing in the app could
+  // write it except the contact-import screen. So the column existed, the
+  // reads existed, and the one thing a user would actually want to do
+  // with it did not.
+  //
+  // It is the VIEWER's private label, not a rename of the person: it
+  // lives on the viewer's own connection row and nobody else ever sees
+  // it. The field says so while you are typing rather than after.
+  //
+  // Empty saves NULL, which reverts the header to their real name — the
+  // way out of a nickname you no longer want, without a delete button.
+  const handleSaveNickname = useCallback(
+    async (next: string) => {
+      if (!connectionId || !user?.id) return;
+      const trimmed = next.trim();
+      const value = trimmed.length > 0 ? trimmed : null;
+      const previous = friendDataRef.current.connection?.nickname ?? null;
+      if (value === previous) return;
+
+      // Optimistic: the header is the thing being edited, so it has to
+      // change the instant the keyboard closes.
+      dispatchFriendData({
+        type: 'SET_INITIAL',
+        payload: {
+          connection: {
+            ...(friendDataRef.current.connection as any),
+            nickname: value,
+          } as Connection,
+        },
+      });
+
+      const { error } = await supabase
+        .from('piktag_connections')
+        .update({ nickname: value })
+        .eq('id', connectionId);
+
+      if (error) {
+        console.warn('[FriendDetail] nickname save failed:', error);
+        // Put the old name back rather than leaving a rename on screen
+        // that the server never accepted.
+        dispatchFriendData({
+          type: 'SET_INITIAL',
+          payload: {
+            connection: {
+              ...(friendDataRef.current.connection as any),
+              nickname: previous,
+            } as Connection,
+          },
+        });
+        Alert.alert(
+          t('common.error', { defaultValue: '發生錯誤' }),
+          t('friendDetail.nicknameSaveFailed', {
+            defaultValue: '名稱沒有儲存成功，請稍後再試。',
+          }),
+        );
+        return;
+      }
+
+      // Keep the friends-list snapshot in step. Without this the list
+      // (and every offline read of it) shows the old name until the next
+      // successful full fetch — and offline, that could be days.
+      void (async () => {
+        try {
+          const cached = await getPersistentCache<CachedConnectionRow[]>(
+            CACHE_KEYS.CONNECTIONS,
+            user.id,
+          );
+          if (!Array.isArray(cached)) return;
+          await setPersistentCache(
+            CACHE_KEYS.CONNECTIONS,
+            user.id,
+            cached.map((c) =>
+              c?.connected_user_id === friendId ? { ...c, nickname: value } : c,
+            ),
+          );
+        } catch {
+          /* best-effort, same contract as every other snapshot write */
+        }
+      })();
+    },
+    [connectionId, user?.id, friendId, t],
+  );
+
   const [moreMenuVisible, setMoreMenuVisible] = useState(false);
 
   // Mutual tags detail modal
@@ -1600,7 +1693,30 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             />
             <View style={styles.nameSection}>
               <View style={styles.nameRow}>
-                <Text style={styles.fullName}>{displayName}</Text>
+                {/* Tap to rename. The pencil is the whole point — without
+                    it this was an ordinary <Text> and the feature was
+                    invisible, which is how a column the app reads
+                    everywhere had no way to write it.
+                    `editValue` is the NICKNAME, not displayName: seeding
+                    the field with their real name would turn "give this
+                    person a nickname" into "rename them to what they are
+                    already called", and clearing it would then look like
+                    deleting their name. */}
+                <EditableName
+                  value={displayName}
+                  editValue={connection?.nickname ?? ''}
+                  onSave={handleSaveNickname}
+                  editable={!!connectionId}
+                  textStyle={styles.fullName}
+                  maxLength={40}
+                  placeholder={profile?.full_name || profile?.username || undefined}
+                  hint={t('friendDetail.nicknameHint', {
+                    defaultValue: '只有你看得到這個名字',
+                  })}
+                  accessibilityLabel={t('friendDetail.editNickname', {
+                    defaultValue: '編輯這位好友的顯示名稱',
+                  })}
+                />
                 {/* {verified && (
                   <CheckCircle2 size={16} color={colors.blue500} fill={colors.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
                 )} */}

@@ -21,6 +21,7 @@ import {
   StatusBar,
   StyleSheet,
   Linking,
+  Alert,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -158,6 +159,30 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
     if (contactId) navigation.navigate('EditLocalContact', { contactId });
   }, [navigation, contactId]);
 
+  // Rename in place. `update` is the same hook call the edit form makes,
+  // so there is one write path rather than two that can drift.
+  //
+  // An empty name is refused rather than silently dropped: a contact with
+  // no name is unfindable, and this app's whole promise is finding them
+  // again. Blocking at the input is the repo's first-choice guard
+  // (輸入防呆二選一) — the field simply keeps what was there.
+  const handleSaveName = useCallback(
+    async (next: string) => {
+      const trimmed = next.trim();
+      if (!contactId || !trimmed) return;
+      const ok = await update(contactId, { name: trimmed });
+      if (!ok) {
+        Alert.alert(
+          t('common.error', { defaultValue: '發生錯誤' }),
+          t('localContact.nameSaveFailed', {
+            defaultValue: '名稱沒有儲存成功，請稍後再試。',
+          }),
+        );
+      }
+    },
+    [contactId, update, t],
+  );
+
   const Header = (
     <View style={styles.header}>
       <TouchableOpacity
@@ -272,6 +297,14 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
             stats, similar-members section):
               avatar+name → 職稱 → 標籤 → 聯絡方式 icons.
             Identity = shared ProfileIdentityHeader in READ mode. */}
+        {/* The name is tap-to-edit here, with a pencil. It was already
+            editable — via 編輯 in the header, then a field inside the form
+            — and the founder still reported 聯絡人也沒辦法, which is what a
+            route nobody finds amounts to. A scanned card gets the name
+            wrong often enough (a dropped letter, a merged surname) that
+            fixing it has to be reachable from the place you notice it,
+            not two screens away. The 編輯 button stays for everything
+            else. */}
         <ProfileIdentityHeader
           name={existing.name}
           headline={existing.headline ?? undefined}
@@ -279,6 +312,8 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
             defaultValue: '尚未加入 PikTag',
           })}
           avatarUrl={existing.avatar_url}
+          onNameSave={handleSaveName}
+          namePlaceholder={t('editProfile.nameLabel', { defaultValue: '姓名' })}
         />
 
         {existing.tags.length > 0 && (

@@ -81,7 +81,8 @@
     "month": "Bulan",
     "day": "Hari",
     "userNotFound": "Pengguna ini tidak ditemukan",
-    "remove": "Hapus"
+    "remove": "Hapus",
+    "editName": "Ubah nama"
   },
   "auth": {
     "login": {
@@ -713,7 +714,10 @@
     "recommendMembers": "Anggota direkomendasikan",
     "blockConfirmTitle": "Blokir orang ini?",
     "blockConfirmMessage": "Kalian akan saling berhenti mengikuti dan tak lagi melihat konten satu sama lain.",
-    "hiddenTagsDesc": "Tag pribadi yang hanya kamu lihat — catat bagaimana kalian berkenalan atau apa yang dibahas, agar kamu ingat setiap teman."
+    "hiddenTagsDesc": "Tag pribadi yang hanya kamu lihat — catat bagaimana kalian berkenalan atau apa yang dibahas, agar kamu ingat setiap teman.",
+    "editNickname": "Ubah nama tampilan teman ini",
+    "nicknameHint": "Hanya kamu yang melihat nama ini",
+    "nicknameSaveFailed": "Nama belum tersimpan. Coba lagi."
   },
   "userDetail": {
     "headerNotFound": "Tidak Ditemukan",
@@ -1640,7 +1644,8 @@
     "introSentAt": "Terkirim · {{date}}",
     "shareResend": "Kirim lagi",
     "scanBusyTitle": "AI service busy",
-    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually.",
+    "nameSaveFailed": "Nama belum tersimpan. Coba lagi."
   },
   "followers": {
     "title": "Pengikut",

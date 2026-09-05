@@ -81,7 +81,8 @@
     "month": "Mois",
     "day": "Jour",
     "userNotFound": "Impossible de trouver cet utilisateur",
-    "remove": "Retirer"
+    "remove": "Retirer",
+    "editName": "Modifier le nom"
   },
   "auth": {
     "login": {
@@ -713,7 +714,10 @@
     "recommendMembers": "Membres recommandés",
     "blockConfirmTitle": "Bloquer cette personne ?",
     "blockConfirmMessage": "Vous ne vous suivrez plus et ne verrez plus le contenu de l'autre.",
-    "hiddenTagsDesc": "Des tags privés que vous seul voyez : notez comment vous vous êtes rencontrés ou de quoi vous avez parlé pour vous souvenir de chaque ami."
+    "hiddenTagsDesc": "Des tags privés que vous seul voyez : notez comment vous vous êtes rencontrés ou de quoi vous avez parlé pour vous souvenir de chaque ami.",
+    "editNickname": "Modifier le nom affiché de cet ami",
+    "nicknameHint": "Vous seul voyez ce nom",
+    "nicknameSaveFailed": "Le nom n'a pas été enregistré. Réessayez."
   },
   "userDetail": {
     "headerNotFound": "Introuvable",
@@ -1640,7 +1644,8 @@
     "introSentAt": "Envoyé · {{date}}",
     "shareResend": "Renvoyer",
     "scanBusyTitle": "AI service busy",
-    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually.",
+    "nameSaveFailed": "Le nom n'a pas été enregistré. Réessayez."
   },
   "followers": {
     "title": "Abonnés",

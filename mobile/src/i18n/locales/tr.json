@@ -81,7 +81,8 @@
     "month": "Ay",
     "day": "Gün",
     "userNotFound": "Bu kullanıcı bulunamadı",
-    "remove": "Kaldır"
+    "remove": "Kaldır",
+    "editName": "Adı düzenle"
   },
   "auth": {
     "login": {
@@ -713,7 +714,10 @@
     "recommendMembers": "Önerilen üyeler",
     "blockConfirmTitle": "Bu kişi engellensin mi?",
     "blockConfirmMessage": "Birbirinizi takipten çıkarsınız ve içeriklerinizi görmezsiniz.",
-    "hiddenTagsDesc": "Yalnızca senin görebildiğin özel etiketler — nasıl tanıştığınızı veya ne konuştuğunuzu not et, her arkadaşını hatırla."
+    "hiddenTagsDesc": "Yalnızca senin görebildiğin özel etiketler — nasıl tanıştığınızı veya ne konuştuğunuzu not et, her arkadaşını hatırla.",
+    "editNickname": "Bu arkadaşın görünen adını düzenle",
+    "nicknameHint": "Bu adı yalnızca sen görürsün",
+    "nicknameSaveFailed": "Ad kaydedilmedi. Lütfen tekrar deneyin."
   },
   "userDetail": {
     "headerNotFound": "Bulunamadı",
@@ -1640,7 +1644,8 @@
     "introSentAt": "Gönderildi · {{date}}",
     "shareResend": "Tekrar gönder",
     "scanBusyTitle": "AI service busy",
-    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually.",
+    "nameSaveFailed": "Ad kaydedilmedi. Lütfen tekrar deneyin."
   },
   "followers": {
     "title": "Takipçiler",

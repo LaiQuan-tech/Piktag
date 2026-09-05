@@ -81,7 +81,8 @@
     "clear": "صاف کریں",
     "month": "مہینہ",
     "day": "دن",
-    "remove": "ہٹائیں"
+    "remove": "ہٹائیں",
+    "editName": "نام میں ترمیم کریں"
   },
   "auth": {
     "login": {
@@ -713,7 +714,10 @@
     "recommendMembers": "تجویز کردہ ممبران",
     "blockConfirmTitle": "اس شخص کو بلاک کریں؟",
     "blockConfirmMessage": "آپ دونوں ایک دوسرے کو اَن فالو کر دیں گے اور مواد نہیں دیکھ سکیں گے۔",
-    "hiddenTagsDesc": "نجی ٹیگ جو صرف آپ دیکھ سکتے ہیں — لکھیں کہ کیسے ملے یا کس بارے میں بات ہوئی، تاکہ ہر دوست یاد رہے۔"
+    "hiddenTagsDesc": "نجی ٹیگ جو صرف آپ دیکھ سکتے ہیں — لکھیں کہ کیسے ملے یا کس بارے میں بات ہوئی، تاکہ ہر دوست یاد رہے۔",
+    "editNickname": "اس دوست کا ظاہر ہونے والا نام تبدیل کریں",
+    "nicknameHint": "یہ نام صرف آپ دیکھ سکتے ہیں",
+    "nicknameSaveFailed": "نام محفوظ نہیں ہوا۔ دوبارہ کوشش کریں۔"
   },
   "userDetail": {
     "headerNotFound": "نہیں ملا",
@@ -1640,7 +1644,8 @@
     "introSentAt": "بھیج دیا · {{date}}",
     "shareResend": "دوبارہ بھیجیں",
     "scanBusyTitle": "AI service busy",
-    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually.",
+    "nameSaveFailed": "نام محفوظ نہیں ہوا۔ دوبارہ کوشش کریں۔"
   },
   "followers": {
     "title": "فالوورز",

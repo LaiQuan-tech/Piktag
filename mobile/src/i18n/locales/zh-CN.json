@@ -81,7 +81,8 @@
     "clear": "清除",
     "month": "月",
     "day": "日",
-    "remove": "移除"
+    "remove": "移除",
+    "editName": "编辑名称"
   },
   "auth": {
     "login": {
@@ -713,7 +714,10 @@
     "recommendMembers": "推荐会员",
     "blockConfirmTitle": "屏蔽这个人？",
     "blockConfirmMessage": "你们会互相取消关注，也不再看到彼此的内容。",
-    "hiddenTagsDesc": "只有你看得到的私人标签 —— 记下怎么认识、聊过什么，帮你好好记住每个朋友。"
+    "hiddenTagsDesc": "只有你看得到的私人标签 —— 记下怎么认识、聊过什么，帮你好好记住每个朋友。",
+    "editNickname": "编辑这位好友的显示名称",
+    "nicknameHint": "只有你看得到这个名字",
+    "nicknameSaveFailed": "名称没有保存成功，请稍后再试。"
   },
   "userDetail": {
     "headerNotFound": "未找到",
@@ -1640,7 +1644,8 @@
     "introSentAt": "已寄出 · {{date}}",
     "shareResend": "再寄一次",
     "scanBusyTitle": "AI 服务忙碌中",
-    "scanBusyMessage": "扫描服务暂时满载，请一分钟后再试，或先手动填写。"
+    "scanBusyMessage": "扫描服务暂时满载，请一分钟后再试，或先手动填写。",
+    "nameSaveFailed": "名称没有保存成功，请稍后再试。"
   },
   "followers": {
     "title": "追踪者",

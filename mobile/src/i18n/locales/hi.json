@@ -81,7 +81,8 @@
     "month": "महीना",
     "day": "दिन",
     "userNotFound": "यह उपयोगकर्ता नहीं मिला",
-    "remove": "हटाएं"
+    "remove": "हटाएं",
+    "editName": "नाम संपादित करें"
   },
   "auth": {
     "login": {
@@ -713,7 +714,10 @@
     "recommendMembers": "अनुशंसित सदस्य",
     "blockConfirmTitle": "इस व्यक्ति को ब्लॉक करें?",
     "blockConfirmMessage": "आप दोनों एक-दूसरे को अनफ़ॉलो कर देंगे और सामग्री नहीं दिखेगी।",
-    "hiddenTagsDesc": "निजी टैग जो सिर्फ़ आप देख सकते हैं — लिखें कि कैसे मिले या क्या बात हुई, ताकि हर दोस्त याद रहे।"
+    "hiddenTagsDesc": "निजी टैग जो सिर्फ़ आप देख सकते हैं — लिखें कि कैसे मिले या क्या बात हुई, ताकि हर दोस्त याद रहे।",
+    "editNickname": "इस मित्र का प्रदर्शित नाम संपादित करें",
+    "nicknameHint": "यह नाम केवल आपको दिखता है",
+    "nicknameSaveFailed": "नाम सहेजा नहीं गया। कृपया फिर से प्रयास करें।"
   },
   "userDetail": {
     "headerNotFound": "नहीं मिला",
@@ -1640,7 +1644,8 @@
     "introSentAt": "भेजा गया · {{date}}",
     "shareResend": "फिर से भेजें",
     "scanBusyTitle": "AI service busy",
-    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually.",
+    "nameSaveFailed": "नाम सहेजा नहीं गया। कृपया फिर से प्रयास करें।"
   },
   "followers": {
     "title": "फ़ॉलोअर",

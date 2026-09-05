@@ -81,7 +81,8 @@
     "clear": "Xóa",
     "month": "Tháng",
     "day": "Ngày",
-    "remove": "Xóa"
+    "remove": "Xóa",
+    "editName": "Sửa tên"
   },
   "auth": {
     "login": {
@@ -713,7 +714,10 @@
     "recommendMembers": "Có thể bạn quen",
     "blockConfirmTitle": "Chặn người này?",
     "blockConfirmMessage": "Cả hai sẽ bỏ theo dõi nhau và không còn thấy nội dung của nhau.",
-    "hiddenTagsDesc": "Thẻ riêng tư chỉ bạn thấy — ghi lại cách bạn quen nhau hay đã nói chuyện gì, để nhớ từng người bạn."
+    "hiddenTagsDesc": "Thẻ riêng tư chỉ bạn thấy — ghi lại cách bạn quen nhau hay đã nói chuyện gì, để nhớ từng người bạn.",
+    "editNickname": "Sửa tên hiển thị của người bạn này",
+    "nicknameHint": "Chỉ bạn nhìn thấy tên này",
+    "nicknameSaveFailed": "Chưa lưu được tên. Vui lòng thử lại."
   },
   "userDetail": {
     "headerNotFound": "Không tìm thấy",
@@ -1640,7 +1644,8 @@
     "introSentAt": "Đã gửi · {{date}}",
     "shareResend": "Gửi lại",
     "scanBusyTitle": "AI service busy",
-    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually.",
+    "nameSaveFailed": "Chưa lưu được tên. Vui lòng thử lại."
   },
   "followers": {
     "title": "Người theo dõi",

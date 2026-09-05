@@ -81,7 +81,8 @@
     "month": "মাস",
     "day": "দিন",
     "userNotFound": "এই ব্যবহারকারীকে খুঁজে পাওয়া যায়নি",
-    "remove": "সরান"
+    "remove": "সরান",
+    "editName": "নাম সম্পাদনা করুন"
   },
   "auth": {
     "login": {
@@ -713,7 +714,10 @@
     "recommendMembers": "প্রস্তাবিত সদস্য",
     "blockConfirmTitle": "এই ব্যক্তিকে ব্লক করবেন?",
     "blockConfirmMessage": "আপনারা একে অপরকে আনফলো করবেন ও কনটেন্ট দেখতে পাবেন না।",
-    "hiddenTagsDesc": "শুধু আপনিই দেখতে পান এমন ব্যক্তিগত ট্যাগ — কীভাবে পরিচয় হলো বা কী নিয়ে কথা হলো লিখে রাখুন, যাতে প্রতিটি বন্ধুকে মনে রাখতে পারেন।"
+    "hiddenTagsDesc": "শুধু আপনিই দেখতে পান এমন ব্যক্তিগত ট্যাগ — কীভাবে পরিচয় হলো বা কী নিয়ে কথা হলো লিখে রাখুন, যাতে প্রতিটি বন্ধুকে মনে রাখতে পারেন।",
+    "editNickname": "এই বন্ধুর প্রদর্শিত নাম সম্পাদনা করুন",
+    "nicknameHint": "এই নামটি শুধু আপনি দেখতে পাবেন",
+    "nicknameSaveFailed": "নামটি সংরক্ষণ হয়নি। আবার চেষ্টা করুন।"
   },
   "userDetail": {
     "headerNotFound": "পাওয়া যায়নি",
@@ -1640,7 +1644,8 @@
     "introSentAt": "পাঠানো হয়েছে · {{date}}",
     "shareResend": "আবার পাঠান",
     "scanBusyTitle": "AI service busy",
-    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually."
+    "scanBusyMessage": "The scan service is at capacity — try again in a minute, or fill the fields in manually.",
+    "nameSaveFailed": "নামটি সংরক্ষণ হয়নি। আবার চেষ্টা করুন।"
   },
   "followers": {
     "title": "ফলোয়ার",

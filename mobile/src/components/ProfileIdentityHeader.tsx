@@ -28,6 +28,7 @@
 
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import EditableName from './EditableName';
 import RingedAvatar, { BadgeKind } from './RingedAvatar';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -44,6 +45,19 @@ type Props = {
   /** Decoration badge in the avatar's bottom-right corner. Only
    *  meaningful with onAvatarPress; 'pencil' = edit, 'plus' = add. */
   avatarBadge?: BadgeKind;
+  /**
+   * Rename in place. When given, the name becomes tap-to-edit with a
+   * pencil beside it (shared EditableName) instead of a plain <Text>.
+   *
+   * This is NOT the editable mode that was deleted from this component in
+   * September: that one made the name look like a label and behave like a
+   * field, which is the trap the founder rule 可編輯的東西必須看起來可編輯
+   * exists to stop. The pencil is the difference.
+   */
+  onNameSave?: (next: string) => void;
+  /** Placeholder + hint for the rename field, when onNameSave is set. */
+  namePlaceholder?: string;
+  nameHint?: string;
 };
 
 export default function ProfileIdentityHeader({
@@ -53,6 +67,9 @@ export default function ProfileIdentityHeader({
   avatarUrl,
   onAvatarPress,
   avatarBadge,
+  onNameSave,
+  namePlaceholder,
+  nameHint,
 }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -68,9 +85,20 @@ export default function ProfileIdentityHeader({
           badge={avatarBadge ?? null}
         />
         <View style={styles.nameSection}>
-          <Text style={styles.name} numberOfLines={1}>
-            {name}
-          </Text>
+          {onNameSave ? (
+            <EditableName
+              value={name}
+              onSave={onNameSave}
+              textStyle={styles.name}
+              placeholder={namePlaceholder}
+              hint={nameHint}
+              maxLength={60}
+            />
+          ) : (
+            <Text style={styles.name} numberOfLines={1}>
+              {name}
+            </Text>
+          )}
           {subtitle ? (
             <Text style={styles.subtitle} numberOfLines={1}>
               {subtitle}
