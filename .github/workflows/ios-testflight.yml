@@ -17,6 +17,16 @@ on:
   # the original cap problem without losing reliable delivery. The
   # daily cron stays as a pure backstop (if nothing pushed in a day,
   # still ship the latest); workflow_dispatch for on-demand.
+  #
+  # 2026-09-05: concurrency solved the Apple UPLOAD cap but not the
+  # BILLING one. Cancellation only helps when the next push lands while
+  # the previous build is still early; at 20-40 minutes apart each build
+  # ran nearly to completion first, and macos-15 bills at 10x Linux
+  # (~500 billed minutes per iOS build vs ~40 for all of Android). Seven
+  # pushes in a day exhausted the org's whole Actions budget and every
+  # workflow started dying before it reached a runner. The gate below now
+  # applies a COOLDOWN to push events — see its comment. push stays a
+  # trigger, deliberately: removing it is the thing that failed above.
   push:
     branches: [main]
     paths:
@@ -47,8 +57,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Is there anything new to ship? ONLY the daily `schedule` backstop is
-  # gated — push and workflow_dispatch always build, unconditionally.
+  # Is there anything new to ship, and is it worth a macOS runner right now?
+  #
+  # workflow_dispatch is NEVER gated — it is the on-demand escape hatch and
+  # must stay instant.
+  # schedule is gated on "has main moved since the last successful build?"
+  # push is gated on a COOLDOWN (added 2026-09-05, below).
+  #
+  # THE COOLDOWN. macos-15 bills at 10x the Linux rate, so one iOS build is
+  # ~500 billed minutes against ~40 for the whole Android build. On
+  # 2026-09-05 seven pushes to mobile/** in a day exhausted the org's entire
+  # Actions budget and every workflow — including the ten-second i18n parity
+  # check — started getting killed before it could reach a runner.
+  # concurrency/cancel-in-progress did not save us: the pushes were 20-40
+  # minutes apart, so each build ran nearly to completion before the next one
+  # cancelled it, and cancelled macOS minutes are billed like any other.
+  #
+  # Note what is NOT being done here: removing the push trigger. That exact
+  # fix was tried before and backfired — see the `on:` block. GitHub's
+  # schedule is best-effort, it silently skipped a whole day, and ~18 commits
+  # of fixes never built because nothing else could deliver them. A cooldown
+  # keeps push as the reliable delivery path and only collapses BURSTS, which
+  # is the thing that actually costs money.
+  #
+  # Nothing is lost when a push is throttled. Two independent recoveries:
+  # the next push after the window builds it, and the daily backstop's
+  # "has main moved?" check builds it if no further push arrives. Neither
+  # depends on the other.
   #
   # Why this exists: the backstop was rebuilding and re-uploading the SAME
   # commit every single day (952e41f was rebuilt 07-27 … 08-04, nine days
@@ -80,15 +115,52 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           EVENT_NAME: ${{ github.event_name }}
+          # 3 hours. Long enough that a day of active iteration is a handful
+          # of builds instead of one per push; short enough that a normal
+          # working rhythm rarely notices it. workflow_dispatch bypasses it
+          # entirely, so this throttles AUTOMATIC builds only.
+          COOLDOWN_SECONDS: '10800'
           CURRENT_SHA: ${{ github.sha }}
           BRANCH: ${{ github.ref_name }}
           REPO: ${{ github.repository }}
         run: |
-          if [ "$EVENT_NAME" != "schedule" ]; then
+          # On-demand always builds. This is what makes the cooldown safe:
+          # whenever the founder wants a build NOW, one tap and it runs.
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             echo "should_build=true" >> "$GITHUB_OUTPUT"
-            echo "event=$EVENT_NAME — always builds, no gate applied."
+            echo "event=workflow_dispatch — on demand, no gate applied."
             exit 0
           fi
+
+          if [ "$EVENT_NAME" = "push" ]; then
+            LAST_AT=$(gh api \
+              "repos/$REPO/actions/workflows/ios-testflight.yml/runs?status=success&branch=$BRANCH&per_page=1" \
+              --jq '.workflow_runs[0].created_at // empty' 2>/dev/null || true)
+            if [ -z "$LAST_AT" ]; then
+              echo "should_build=true" >> "$GITHUB_OUTPUT"
+              echo "No successful run on record (or the API was unavailable) — building. Fail open."
+              exit 0
+            fi
+            LAST_EPOCH=$(date -u -d "$LAST_AT" +%s 2>/dev/null || echo "")
+            NOW_EPOCH=$(date -u +%s)
+            if [ -z "$LAST_EPOCH" ]; then
+              echo "should_build=true" >> "$GITHUB_OUTPUT"
+              echo "Could not parse '$LAST_AT' — building. Fail open."
+              exit 0
+            fi
+            AGE=$(( NOW_EPOCH - LAST_EPOCH ))
+            if [ "$AGE" -ge "$COOLDOWN_SECONDS" ]; then
+              echo "should_build=true" >> "$GITHUB_OUTPUT"
+              echo "Last successful build was ${AGE}s ago (>= ${COOLDOWN_SECONDS}s) — building."
+            else
+              echo "should_build=false" >> "$GITHUB_OUTPUT"
+              echo "Last successful build was only ${AGE}s ago; cooldown is ${COOLDOWN_SECONDS}s."
+              echo "Collapsing this burst. These commits ship on the next push past the"
+              echo "window, or via the daily backstop, or immediately via workflow_dispatch."
+            fi
+            exit 0
+          fi
+
           LAST_SHA=$(gh api \
             "repos/$REPO/actions/workflows/ios-testflight.yml/runs?status=success&branch=$BRANCH&per_page=1" \
             --jq '.workflow_runs[0].head_sha // empty' 2>/dev/null || true)
