@@ -1709,7 +1709,15 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                   editable={!!connectionId}
                   textStyle={styles.fullName}
                   maxLength={40}
+                  // Empty is a real answer here: it drops the override and
+                  // the header goes back to their actual name. The
+                  // placeholder shows that name, so the field says what
+                  // clearing it will do.
+                  allowEmpty
                   placeholder={profile?.full_name || profile?.username || undefined}
+                  title={t('friendDetail.editNickname', {
+                    defaultValue: '編輯這位好友的顯示名稱',
+                  })}
                   hint={t('friendDetail.nicknameHint', {
                     defaultValue: '只有你看得到這個名字',
                   })}

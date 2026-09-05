@@ -1,35 +1,51 @@
 // EditableName.tsx
 //
-// Tap the name, it becomes a text field. A pencil sits next to it while
-// idle so the name LOOKS editable — founder rule, learned the hard way:
-// 可編輯的東西必須看起來可編輯. Without the glyph the affordance is
-// invisible and the feature may as well not exist, which is exactly what
-// happened here (founder 2026-09-03: 目前好友沒辦法編輯顯示名稱，聯絡人也
-// 沒辦法 — contacts DID have an edit route, a small text button in the
-// header, and it was not findable).
+// A name you can rename: the name with a pencil beside it, and a sheet to
+// do the renaming in.
 //
-// Extracted from QrGroupDetailScreen, which invented this interaction for
-// renaming an event tag. Three call sites now — friend, contact, event
-// tag — so it is one component rather than three copies (founder rule:
-// 共用 UI = 一個共用元件, the one that kills border-width drift).
+// 可編輯的東西必須看起來可編輯 — the pencil is the whole affordance. Without
+// it this is an ordinary <Text> and the feature may as well not exist,
+// which is exactly what had happened (founder 2026-09-03: 目前好友沒辦法
+// 編輯顯示名稱，聯絡人也沒辦法 — contacts DID have an edit route, a small
+// text button in the header, and it was not findable).
 //
-// The host owns the TYPE SCALE: a friend's name is a page title, an event
-// tag's is a hero line. `textStyle` is passed through to both the idle
-// text and the input so the two states are the same size and the row does
-// not jump when you tap it.
+// WHY A SHEET AND NOT AN INLINE FIELD (rewritten 2026-09-03 after
+// 但ui好醜). The first version morphed the header text into a bare
+// underlined input in place, copying QrGroupDetailScreen. In a hero that
+// sits beside a 68px avatar it produced four separate defects at once:
 //
-// Saving: on blur and on submit, and only when the value actually
-// changed. `onSave` is fire-and-forget from this component's point of
-// view — the host owns the write, the optimistic update and any failure
-// message, because what "save" means differs per surface (a friend's
-// nickname is a private override; a contact's name is the record itself).
+//   1. The row grew when you tapped it — the trigger's own padding plus a
+//      hint line appearing — so the avatar, the @username under it and
+//      everything below shifted. That jump IS the 粗糙.
+//   2. A 1px purple underline under a 16px name, floating on the page
+//      background, matches nothing else in the app. Every other input
+//      here is a filled rounded field (gray100 / gray200 / radius 16).
+//   3. selectTextOnFocus opened with the whole name highlighted, so one
+//      stray keystroke wiped it.
+//   4. Blur-saved. "Did that save?" is not a question a rename should
+//      leave you asking, and there was no way to back out.
+//
+// A sheet fixes all four by construction: nothing behind it moves, it
+// uses the app's own input and sheet chrome, and Save is a button you
+// press. Sheet language copied from PlatformSearchModal — same backdrop,
+// same 20px top corners, same card background — so it reads as part of
+// this app rather than a component that arrived from somewhere else.
+//
+// The trigger row adds NO vertical padding, deliberately: it has to
+// occupy exactly the height the plain <Text> it replaced did, or every
+// header it is dropped into shifts by a few pixels. The tap target comes
+// from hitSlop instead.
 
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
+  Pressable,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   type TextStyle,
   type StyleProp,
@@ -43,20 +59,32 @@ type Props = {
   /** What to show when idle. Never empty — hosts pass a resolved name. */
   value: string;
   /**
-   * Seed for the input when editing starts. Distinct from `value` because
-   * a friend's displayed name may be their REAL name while the editable
-   * field is the (empty) nickname override — starting that input with
-   * their real name pre-filled would turn "add a nickname" into "rename
-   * this person to what they are already called".
+   * Seed for the field. Distinct from `value` because a friend's
+   * DISPLAYED name may be their real one while the editable thing is the
+   * (empty) nickname override — seeding the field with their real name
+   * would turn "add a nickname" into "rename them to what they are
+   * already called", and clearing it would then look like deleting their
+   * name.
    */
   editValue?: string;
   onSave: (next: string) => void;
+  /** Sheet heading. Defaults to 編輯名稱. */
+  title?: string;
   placeholder?: string;
-  /** One quiet line under the field while editing. */
+  /** One quiet line under the field. */
   hint?: string;
   maxLength?: number;
-  /** Type scale, applied to BOTH states so the row cannot jump. */
+  /** Type scale for the idle name, so each host keeps its own. */
   textStyle?: StyleProp<TextStyle>;
+  /** Optical match to the name's size. 15 suits a 16px name. */
+  pencilSize?: number;
+  /**
+   * May the field be saved empty? True for a friend's nickname, where
+   * empty means "drop the override and show their real name again".
+   * False for a contact, where the name IS the record and an unnamed
+   * contact can never be found again.
+   */
+  allowEmpty?: boolean;
   editable?: boolean;
   accessibilityLabel?: string;
 };
@@ -65,120 +93,240 @@ export default function EditableName({
   value,
   editValue,
   onSave,
+  title,
   placeholder,
   hint,
   maxLength = 40,
   textStyle,
+  pencilSize = 15,
+  allowEmpty = false,
   editable = true,
   accessibilityLabel,
 }: Props) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(editValue ?? value);
-  // Blur fires after submit on some Android keyboards, so without this
-  // the save would run twice and the second one would race the first.
-  const savedRef = useRef(false);
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState('');
 
-  // Keep the draft in step while idle — the host may have refetched.
-  useEffect(() => {
-    if (!editing) setDraft(editValue ?? value);
-  }, [editValue, value, editing]);
+  const original = (editValue ?? value).trim();
 
   const begin = useCallback(() => {
     setDraft(editValue ?? value);
-    savedRef.current = false;
-    setEditing(true);
+    setOpen(true);
   }, [editValue, value]);
 
+  const close = useCallback(() => setOpen(false), []);
+
+  const trimmed = draft.trim();
+  // Nothing to do is not a save. Without this the row is bumped, and on
+  // the friend surface an identical nickname is rewritten, on every
+  // accidental open-and-confirm.
+  const canSave = trimmed !== original && (allowEmpty || trimmed.length > 0);
+
   const commit = useCallback(() => {
-    if (savedRef.current) return;
-    savedRef.current = true;
-    setEditing(false);
-    const next = draft.trim();
-    // Unchanged is not a write. Saving anyway would bump the row for
-    // nothing and, on the friend surface, overwrite a nickname with an
-    // identical string on every accidental tap.
-    if (next === (editValue ?? value).trim()) return;
-    onSave(next);
-  }, [draft, editValue, value, onSave]);
+    if (!canSave) return;
+    setOpen(false);
+    onSave(trimmed);
+  }, [canSave, trimmed, onSave]);
 
   if (!editable) {
-    return <Text style={[styles.text, textStyle]}>{value}</Text>;
-  }
-
-  if (editing) {
     return (
-      <View style={styles.editWrap}>
-        <TextInput
-          style={[styles.text, textStyle, styles.input]}
-          value={draft}
-          onChangeText={setDraft}
-          autoFocus
-          onBlur={commit}
-          onSubmitEditing={commit}
-          returnKeyType="done"
-          placeholder={placeholder}
-          placeholderTextColor={colors.gray400}
-          maxLength={maxLength}
-          selectTextOnFocus
-        />
-        {hint ? <Text style={styles.hint}>{hint}</Text> : null}
-      </View>
+      <Text style={[styles.name, textStyle]} numberOfLines={1}>
+        {value}
+      </Text>
     );
   }
 
   return (
-    <TouchableOpacity
-      style={styles.row}
-      activeOpacity={0.6}
-      onPress={begin}
-      accessibilityRole="button"
-      accessibilityLabel={
-        accessibilityLabel ?? t('common.editName', { defaultValue: '編輯名稱' })
-      }
-    >
-      <Text style={[styles.text, textStyle]} numberOfLines={1}>
-        {value}
-      </Text>
-      {/* Small and gray on purpose: it has to be visible enough to teach
-          the tap, quiet enough not to compete with the name itself. */}
-      <Edit3 size={14} color={colors.gray400} />
-    </TouchableOpacity>
+    <>
+      <TouchableOpacity
+        style={styles.trigger}
+        activeOpacity={0.6}
+        onPress={begin}
+        hitSlop={{ top: 10, bottom: 10, left: 6, right: 12 }}
+        accessibilityRole="button"
+        accessibilityLabel={
+          accessibilityLabel ?? t('common.editName', { defaultValue: '編輯名稱' })
+        }
+      >
+        <Text style={[styles.name, textStyle]} numberOfLines={1}>
+          {value}
+        </Text>
+        {/* Quiet enough not to compete with the name, present enough to
+            teach the tap. */}
+        <Edit3 size={pencilSize} color={colors.gray400} />
+      </TouchableOpacity>
+
+      <Modal
+        visible={open}
+        transparent
+        animationType="fade"
+        onRequestClose={close}
+        statusBarTranslucent
+      >
+        {/* Tapping outside cancels — the same escape every other sheet in
+            the app offers. */}
+        <Pressable style={styles.backdrop} onPress={close} />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.sheetWrap}
+          pointerEvents="box-none"
+        >
+          <View style={styles.sheet}>
+            <Text style={styles.title}>
+              {title ?? t('common.editName', { defaultValue: '編輯名稱' })}
+            </Text>
+
+            <View style={styles.inputRow}>
+              <TextInput
+                style={styles.input}
+                value={draft}
+                onChangeText={setDraft}
+                autoFocus
+                placeholder={placeholder}
+                placeholderTextColor={colors.gray400}
+                maxLength={maxLength}
+                returnKeyType="done"
+                onSubmitEditing={commit}
+              />
+            </View>
+
+            {hint ? <Text style={styles.hint}>{hint}</Text> : null}
+
+            <View style={styles.actions}>
+              {/* Tier 3 outline / tier 2 solid. Renaming is a mundane
+                  commit, not this page's signature action, so the
+                  gradient stays where it belongs. */}
+              <TouchableOpacity
+                style={[styles.btn, styles.btnGhost]}
+                activeOpacity={0.7}
+                onPress={close}
+                accessibilityRole="button"
+              >
+                <Text style={styles.btnGhostText}>
+                  {t('common.cancel', { defaultValue: '取消' })}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.btn, styles.btnSave, !canSave && styles.btnDisabled]}
+                activeOpacity={0.85}
+                onPress={commit}
+                disabled={!canSave}
+                accessibilityRole="button"
+              >
+                <Text style={styles.btnSaveText}>
+                  {t('common.save', { defaultValue: '儲存' })}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+    </>
   );
 }
 
 function makeStyles(c: ColorPalette) {
   return StyleSheet.create({
-    row: {
+    // NO vertical padding: this replaces a plain <Text> inside other
+    // people's headers and must not change their height by a pixel.
+    trigger: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
-      // Keeps the tap target comfortable without changing the row's
-      // visual height (the name's own line height dominates).
-      paddingVertical: 2,
     },
-    text: {
+    name: {
       color: c.gray900,
+      flexShrink: 1,
     },
-    editWrap: {
-      alignSelf: 'stretch',
+
+    backdrop: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.4)',
+    },
+    sheetWrap: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
+    },
+    sheet: {
+      backgroundColor: c.card,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      paddingHorizontal: 20,
+      paddingTop: 20,
+      // Room for the home indicator without a safe-area subscription in
+      // a component that may be mounted inside another modal.
+      paddingBottom: 28,
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: c.gray900,
+      marginBottom: 14,
+    },
+    // The app's standard field. Same tokens as EditProfile / the event
+    // tag composer, so a rename looks like every other thing you type.
+    inputRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: c.gray100,
+      borderWidth: 1,
+      borderColor: c.gray200,
+      borderRadius: 16,
+      paddingHorizontal: 16,
+      height: 48,
     },
     input: {
-      // A field the user is typing in has to read as a field. Underline
-      // rather than a full box: the name sits in a hero, and a boxed
-      // input there reads as a form that swallowed the header.
-      borderBottomWidth: 1,
-      borderBottomColor: c.piktag500,
-      paddingVertical: 2,
-      paddingHorizontal: 0,
-      minWidth: 120,
+      flex: 1,
+      fontSize: 16,
+      color: c.gray900,
+      padding: 0,
     },
     hint: {
-      fontSize: 11,
+      fontSize: 12,
       color: c.gray400,
-      marginTop: 4,
+      marginTop: 8,
+    },
+    actions: {
+      flexDirection: 'row',
+      gap: 10,
+      marginTop: 20,
+    },
+    btn: {
+      flex: 1,
+      height: 48,
+      borderRadius: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    btnGhost: {
+      borderWidth: 1,
+      borderColor: c.piktag500,
+    },
+    btnGhostText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: c.piktag500,
+    },
+    btnSave: {
+      backgroundColor: c.piktag500,
+    },
+    btnDisabled: {
+      opacity: 0.4,
+    },
+    btnSaveText: {
+      fontSize: 16,
+      fontWeight: '700',
+      // Fixed white on a fixed purple fill — never colors.white, which
+      // flips in dark mode and would put white text on white.
+      color: '#FFFFFF',
     },
   });
 }

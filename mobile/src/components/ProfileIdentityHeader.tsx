@@ -58,6 +58,8 @@ type Props = {
   /** Placeholder + hint for the rename field, when onNameSave is set. */
   namePlaceholder?: string;
   nameHint?: string;
+  /** Heading for the rename sheet. */
+  nameTitle?: string;
 };
 
 export default function ProfileIdentityHeader({
@@ -70,6 +72,7 @@ export default function ProfileIdentityHeader({
   onNameSave,
   namePlaceholder,
   nameHint,
+  nameTitle,
 }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -89,10 +92,14 @@ export default function ProfileIdentityHeader({
             <EditableName
               value={name}
               onSave={onNameSave}
+              title={nameTitle}
               textStyle={styles.name}
               placeholder={namePlaceholder}
               hint={nameHint}
               maxLength={60}
+              // The name here is 20px (a contact has no @username, so the
+              // name IS the page title) — 15 would read as a speck.
+              pencilSize={16}
             />
           ) : (
             <Text style={styles.name} numberOfLines={1}>

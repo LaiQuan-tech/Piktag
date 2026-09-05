@@ -313,6 +313,7 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
           })}
           avatarUrl={existing.avatar_url}
           onNameSave={handleSaveName}
+          nameTitle={t('common.editName', { defaultValue: '編輯名稱' })}
           namePlaceholder={t('editProfile.nameLabel', { defaultValue: '姓名' })}
         />
 
