@@ -480,6 +480,11 @@ serve(async (req) => {
 
     // ── Phase 2: Build hierarchy (parent-child relationships) ──
     let hierarchyUpdated = 0;
+    // Counted separately from hierarchyUpdated: the two used to move
+    // together by construction, and the whole point of this change is
+    // that they no longer do. Reported so a run makes the difference
+    // visible instead of hiding it in one number.
+    let semanticTypeUpdated = 0;
 
     // Find tags without parent_tag_id
     const { data: orphanTags } = await supabase
@@ -494,10 +499,41 @@ serve(async (req) => {
       const hierarchyResults = await inferHierarchy(tagNames, geminiApiKey);
 
       for (const result of hierarchyResults) {
-        if (!result.parent) continue;
-
         const tag = orphanTags.find(t => t.name === result.tag);
         if (!tag) continue;
+
+        // Semantic type is written FIRST, and independently of the parent.
+        //
+        // It used to live at the bottom of this loop, inside `if
+        // (parentTag)`, behind a `if (!result.parent) continue` — so the
+        // model could answer "this is a personality tag" and we threw the
+        // answer away whenever it could not also name a parent concept.
+        // Plenty of tags have no sensible parent precisely because they
+        // ARE top-level: #創業, #INFJ, a city. Those can never be
+        // classified under the old shape, which is why a live count on
+        // 2026-09-08 found 317 of 373 tags with semantic_type NULL while
+        // every classified one had a hierarchy.
+        //
+        // This is not only an SEO concern. semantic_type is the dimension
+        // the tag algorithm reads; without it a tag is just a string with
+        // an embedding.
+        //
+        // Still only fills a GAP — an existing type is never overwritten,
+        // because a human or an earlier pass may have set it deliberately.
+        if (!tag.semantic_type && result.semantic_type) {
+          const { error: stErr } = await supabase
+            .from('piktag_tags')
+            .update({ semantic_type: result.semantic_type })
+            .eq('id', tag.id);
+          if (stErr) {
+            console.warn(`semantic_type update failed for "${tag.name}":`, stErr.message);
+          } else {
+            semanticTypeUpdated++;
+            console.log(`Semantic: "${tag.name}" → ${result.semantic_type}`);
+          }
+        }
+
+        if (!result.parent) continue;
 
         // Find or create parent tag. Case-insensitive lookup (ilike +
         // escaped wildcards): a case-sensitive .eq misses a case-variant
@@ -530,13 +566,8 @@ serve(async (req) => {
             .update({ parent_tag_id: parentTag.id })
             .eq('id', tag.id);
 
-          // Also update semantic_type if missing
-          if (!tag.semantic_type && result.semantic_type) {
-            await supabase
-              .from('piktag_tags')
-              .update({ semantic_type: result.semantic_type })
-              .eq('id', tag.id);
-          }
+          // (semantic_type is handled at the top of this loop now, so a
+          // tag with no parent still gets classified.)
 
           hierarchyUpdated++;
           console.log(`Hierarchy: "${tag.name}" → parent "${result.parent}"`);
@@ -551,6 +582,7 @@ serve(async (req) => {
         linked,
         created,
         hierarchyUpdated,
+        semanticTypeUpdated,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

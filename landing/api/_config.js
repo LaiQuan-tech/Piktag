@@ -163,6 +163,7 @@ const TRANSLATIONS = {
   en: {
     htmlLang: 'en',
     shareAria: 'Share',
+    tagsAria: 'Tags',
     follow: 'Follow',
     bannerText: 'Download #PikTag App',
     toastCopied: 'Link copied',
@@ -227,6 +228,7 @@ const TRANSLATIONS = {
   'zh-TW': {
     htmlLang: 'zh-TW',
     shareAria: '分享',
+    tagsAria: '標籤',
     follow: '追蹤',
     bannerText: '下載 #PikTag App',
     toastCopied: '已複製連結',
@@ -291,6 +293,7 @@ const TRANSLATIONS = {
   'zh-CN': {
     htmlLang: 'zh-CN',
     shareAria: '分享',
+    tagsAria: '标签',
     follow: '关注',
     bannerText: '下载 #PikTag App',
     toastCopied: '已复制链接',
@@ -355,6 +358,7 @@ const TRANSLATIONS = {
   ja: {
     htmlLang: 'ja',
     shareAria: '共有',
+    tagsAria: 'タグ',
     follow: 'フォロー',
     bannerText: '#PikTag アプリをダウンロード',
     toastCopied: 'リンクをコピーしました',
@@ -419,6 +423,7 @@ const TRANSLATIONS = {
   ko: {
     htmlLang: 'ko',
     shareAria: '공유',
+    tagsAria: '태그',
     follow: '팔로우',
     bannerText: '#PikTag 앱 다운로드',
     toastCopied: '링크가 복사되었습니다',
@@ -483,6 +488,7 @@ const TRANSLATIONS = {
   es: {
     htmlLang: 'es',
     shareAria: 'Compartir',
+    tagsAria: 'Etiquetas',
     follow: 'Seguir',
     bannerText: 'Descargar #PikTag App',
     toastCopied: 'Enlace copiado',
@@ -547,6 +553,7 @@ const TRANSLATIONS = {
   fr: {
     htmlLang: 'fr',
     shareAria: 'Partager',
+    tagsAria: 'Tags',
     follow: 'Suivre',
     bannerText: "Télécharger l'app #PikTag",
     toastCopied: 'Lien copié',
@@ -611,6 +618,7 @@ const TRANSLATIONS = {
   pt: {
     htmlLang: 'pt',
     shareAria: 'Compartilhar',
+    tagsAria: 'Etiquetas',
     follow: 'Seguir',
     bannerText: 'Baixar #PikTag App',
     toastCopied: 'Link copiado',
@@ -675,6 +683,7 @@ const TRANSLATIONS = {
   ru: {
     htmlLang: 'ru',
     shareAria: 'Поделиться',
+    tagsAria: 'Теги',
     follow: 'Подписаться',
     bannerText: 'Скачать приложение #PikTag',
     toastCopied: 'Ссылка скопирована',
@@ -740,6 +749,7 @@ const TRANSLATIONS = {
     htmlLang: 'ar',
     dir: 'rtl',
     shareAria: 'مشاركة',
+    tagsAria: 'الوسوم',
     follow: 'متابعة',
     bannerText: 'تنزيل تطبيق #PikTag',
     toastCopied: 'تم نسخ الرابط',
@@ -804,6 +814,7 @@ const TRANSLATIONS = {
   hi: {
     htmlLang: 'hi',
     shareAria: 'साझा करें',
+    tagsAria: 'टैग',
     follow: 'फ़ॉलो करें',
     bannerText: '#PikTag ऐप डाउनलोड करें',
     toastCopied: 'लिंक कॉपी किया गया',
@@ -868,6 +879,7 @@ const TRANSLATIONS = {
   id: {
     htmlLang: 'id',
     shareAria: 'Bagikan',
+    tagsAria: 'Tag',
     follow: 'Ikuti',
     bannerText: 'Unduh aplikasi #PikTag',
     toastCopied: 'Tautan disalin',
@@ -932,6 +944,7 @@ const TRANSLATIONS = {
   th: {
     htmlLang: 'th',
     shareAria: 'แชร์',
+    tagsAria: 'แท็ก',
     follow: 'ติดตาม',
     bannerText: 'ดาวน์โหลดแอป #PikTag',
     toastCopied: 'คัดลอกลิงก์แล้ว',
@@ -996,6 +1009,7 @@ const TRANSLATIONS = {
   tr: {
     htmlLang: 'tr',
     shareAria: 'Paylaş',
+    tagsAria: 'Etiketler',
     follow: 'Takip et',
     bannerText: '#PikTag uygulamasını indir',
     toastCopied: 'Bağlantı kopyalandı',
@@ -1060,6 +1074,7 @@ const TRANSLATIONS = {
   bn: {
     htmlLang: 'bn',
     shareAria: 'শেয়ার',
+    tagsAria: 'ট্যাগ',
     follow: 'ফলো',
     bannerText: '#PikTag অ্যাপ ডাউনলোড',
     toastCopied: 'লিঙ্ক কপি হয়েছে',
@@ -1124,6 +1139,7 @@ const TRANSLATIONS = {
   de: {
     htmlLang: 'de',
     shareAria: 'Teilen',
+    tagsAria: 'Tags',
     follow: 'Folgen',
     bannerText: '#PikTag App herunterladen',
     toastCopied: 'Link kopiert',
@@ -1188,6 +1204,7 @@ const TRANSLATIONS = {
   it: {
     htmlLang: 'it',
     shareAria: 'Condividi',
+    tagsAria: 'Tag',
     follow: 'Segui',
     bannerText: 'Scarica #PikTag App',
     toastCopied: 'Link copiato',
@@ -1252,6 +1269,7 @@ const TRANSLATIONS = {
   vi: {
     htmlLang: 'vi',
     shareAria: 'Chia sẻ',
+    tagsAria: 'Thẻ',
     follow: 'Theo dõi',
     bannerText: 'Tải ứng dụng #PikTag',
     toastCopied: 'Đã sao chép liên kết',
@@ -1317,6 +1335,7 @@ const TRANSLATIONS = {
     htmlLang: 'ur',
     dir: 'rtl',
     shareAria: 'شیئر کریں',
+    tagsAria: 'ٹیگز',
     follow: 'فالو کریں',
     bannerText: '#PikTag ایپ ڈاؤن لوڈ کریں',
     toastCopied: 'لنک کاپی ہو گیا',

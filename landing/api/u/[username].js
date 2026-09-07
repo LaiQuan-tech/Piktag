@@ -402,8 +402,20 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
   // actually has, not on a column that was never backfilled.
   const isUnfinished = tags.length === 0 && biolinks.length === 0;
 
+  // A LIST, not a box of links. These are N items of one kind — the whole
+  // claim this page makes about a person — and <ul>/<li> is what says so
+  // to a parser. A <div> of anchors says "some links happen to be here".
+  //
+  // The '#' moved out of the anchor text into a CSS ::before. It is
+  // decoration: the tag is 創業, not #創業. With it inside, the extracted
+  // anchor text — which is what a crawler and an answer engine actually
+  // read, and what /tag/創業 is titled — carried a stray character on
+  // every single tag on the site. Visually identical.
+  //
+  // aria-label names the list so a screen reader announces what the group
+  // IS before reading nine pills.
   const tagsHtml = mergedTags.length > 0
-    ? `<div class="tags">${mergedTags.map((t) => `<a href="/tag/${encodeURIComponent(t)}" class="tag">#${escapeHtml(getDisplayTagName(t))}</a>`).join('')}</div>`
+    ? `<ul class="tags" aria-label="${escapeHtml(locale.tagsAria || 'Tags')}">${mergedTags.map((t) => `<li><a href="/tag/${encodeURIComponent(t)}" class="tag" rel="tag">${escapeHtml(getDisplayTagName(t))}</a></li>`).join('')}</ul>`
     : '';
 
   const biolinksHtml = biolinks.length > 0
@@ -504,7 +516,11 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
     .follow-btn:active{transform:translateY(0);opacity:0.9}
 
     /* Tags */
-    .tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:24px;opacity:0;animation:fadeUp .5s ease .4s forwards}
+    .tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:24px;opacity:0;animation:fadeUp .5s ease .4s forwards;list-style:none;padding:0;margin-left:0;margin-right:0}
+    .tags li{display:flex}
+    /* The '#' is decoration, so it lives in CSS and stays out of the
+       anchor text a crawler reads. */
+    .tag::before{content:'#'}
     .tag{background:rgba(255,255,255,.8);backdrop-filter:blur(8px);border:1.5px solid ${BRAND_COLOR};color:${BRAND_DARK};font-size:13px;font-weight:600;padding:6px 14px;border-radius:20px;transition:all .15s;text-decoration:none;cursor:pointer}
     .tag:hover{background:${BRAND_COLOR};color:#fff;transform:translateY(-1px)}
 
