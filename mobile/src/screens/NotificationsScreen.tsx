@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { MessageCircle, Trash2 } from 'lucide-react-native';
+import { ArrowLeft, MessageCircle, Trash2 } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { COLORS, SPACING, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -1011,9 +1011,31 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
 
       {/* Header */}
       <View style={styles.header}>
-        {/* Chat moved to its own bottom tab (2026-06-24) — the redundant
-            bell-header chat shortcut was removed. */}
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('notifications.headerTitle')}</Text>
+        {/* Back arrow. This screen used to be a TAB ROOT — the bell had its
+            own slot in the bottom bar — and a tab root has nowhere to go
+            back to, so it correctly had none. On 2026-09-01 event tags took
+            that slot and this became a RootStack push from the Chat header's
+            bell, which means it now needs a way out (founder: 缺少了 back 的
+            按鈕). Nothing replaced the tab bar as the exit.
+            The mirror of the QrGroupList fix two days ago, which had the
+            opposite problem: a tab root still SHOWING an arrow left over
+            from when it was a push. That sweep checked tab roots for stray
+            arrows and missed the screen that had gone the other way. */}
+        <View style={styles.headerLeft}>
+          {navigation.canGoBack() && (
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.headerBackBtn}
+              activeOpacity={0.7}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.back', { defaultValue: '返回' })}
+            >
+              <ArrowLeft size={24} color={colors.gray900} strokeWidth={2.2} />
+            </TouchableOpacity>
+          )}
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('notifications.headerTitle')}</Text>
+        </View>
       </View>
 
       {/* Tab Switcher */}
@@ -1081,6 +1103,18 @@ function makeStyles(c: ColorPalette) {
     paddingVertical: SPACING.md,
     borderBottomWidth: 1,
     borderBottomColor: c.gray100,
+  },
+  // Groups the arrow with the title so the header's space-between still
+  // pushes anything on the right to the right.
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexShrink: 1,
+  },
+  headerBackBtn: {
+    padding: 4,
+    marginLeft: -4,
   },
   headerTitle: {
     fontSize: 24,
