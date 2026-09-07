@@ -38,6 +38,54 @@ module.exports = async function handler(req, res) {
     );
     const data = await rpcRes.json();
 
+    // Cross-language aliases for this tag's concept.
+    //
+    // This is the ONE thing about PikTag that no other contact app does —
+    // 媽祖 ≈ 天上聖母 ≈ Mazu resolve to one concept, which is why searching
+    // #Pickleball reaches someone who tagged themselves #匹克球. It was
+    // invisible to every crawler and every answer engine: the page said
+    // "#Pickleball" and nothing more, so nothing outside the app could
+    // learn that the two names are the same thing.
+    //
+    // schema.org has exactly the right field for it — DefinedTerm's
+    // alternateName — so the aliases go in the structured data below.
+    //
+    // Best-effort: two small reads, both anon-readable (tag_concepts /
+    // tag_aliases carry `FOR SELECT USING (true)`), and any failure just
+    // means the graph omits alternateName. A tag page must never fail to
+    // render because a nice-to-have query did.
+    let aliases = [];
+    try {
+      const tagRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/piktag_tags?name=eq.${encodeURIComponent(data.tag_name)}&select=concept_id&limit=1`,
+        { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
+      );
+      const tagRows = await tagRes.json();
+      const conceptId = Array.isArray(tagRows) && tagRows[0] ? tagRows[0].concept_id : null;
+      if (conceptId) {
+        const aliasRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/tag_aliases?concept_id=eq.${encodeURIComponent(conceptId)}&select=alias&limit=40`,
+          { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
+        );
+        const aliasRows = await aliasRes.json();
+        if (Array.isArray(aliasRows)) {
+          // Drop the tag's own name — alternateName means "also called",
+          // and listing the primary name as its own alternate is noise.
+          const own = String(data.tag_name).toLowerCase();
+          aliases = [
+            ...new Set(
+              aliasRows
+                .map((r) => r && r.alias)
+                .filter((a) => typeof a === 'string' && a.trim() && a.trim().toLowerCase() !== own)
+                .map((a) => a.trim())
+            ),
+          ];
+        }
+      }
+    } catch {
+      /* aliases are additive — the page renders identically without them */
+    }
+
     // Tag doesn't exist at all → 404 (same as the old empty-tags branch)
     if (!data || !data.tag_name) {
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -66,6 +114,7 @@ module.exports = async function handler(req, res) {
       members,
       buildAnalyticsSnippet('tag', cleanTag),
       locale,
+      aliases,
     );
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
@@ -84,7 +133,7 @@ module.exports = async function handler(req, res) {
   }
 };
 
-function renderPage(tagName, usageCount, members, analyticsSnippet, locale) {
+function renderPage(tagName, usageCount, members, analyticsSnippet, locale, aliases = []) {
   // Tag name + counts are USER DATA — never translated. Only the fixed
   // label fragments come from the locale (interpolated via {count}/{tag}).
   const title = `#${escapeHtml(tagName)} — ${locale.tagPageTitleSuffix}`;
@@ -140,7 +189,7 @@ function renderPage(tagName, usageCount, members, analyticsSnippet, locale) {
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${escapeHtml(description)}">
-  <script type="application/ld+json">${tagGraph({ tagName, members, pageUrl: url, description, locale })}</script>
+  <script type="application/ld+json">${tagGraph({ tagName, members, pageUrl: url, description, locale, aliases })}</script>
   <link rel="icon" href="/favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">

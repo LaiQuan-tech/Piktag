@@ -313,7 +313,7 @@ function profileSeo({ profile, tags, biolinks, locale, avatarUrl, rawName, lates
 // `numberOfItems` is members.length and NOT the tag's usage_count, because
 // the page shows at most 60 cards and claiming more than it displays is
 // the classic structured-data violation.
-function tagGraph({ tagName, members, pageUrl, description, locale }) {
+function tagGraph({ tagName, members, pageUrl, description, locale, aliases }) {
   const list = (Array.isArray(members) ? members : []).map((m, i) => ({
     '@type': 'ListItem',
     position: i + 1,
@@ -340,11 +340,38 @@ function tagGraph({ tagName, members, pageUrl, description, locale }) {
     mainEntity: { '@id': `${pageUrl}#list` },
   };
 
+  // The primary name is never its own alternate. Filtered HERE as well as
+  // in the route, so the guarantee holds for any caller rather than
+  // depending on one of them remembering.
+  const ownName = String(tagName || '').trim().toLowerCase();
+  const cleanAliases = Array.isArray(aliases)
+    ? [
+        ...new Set(
+          aliases
+            .filter((a) => typeof a === 'string' && a.trim())
+            .map((a) => a.trim())
+            .filter((a) => a.toLowerCase() !== ownName),
+        ),
+      ]
+    : [];
+
   const term = {
     '@type': 'DefinedTerm',
     '@id': `${pageUrl}#term`,
     name: tagName,
     url: pageUrl,
+    // The tag's OTHER names, across languages. This is the one thing
+    // PikTag does that a contact app does not — 媽祖 ≈ 天上聖母 ≈ Mazu are
+    // one concept, which is why searching #Pickleball reaches someone who
+    // tagged themselves #匹克球 — and until now it existed only inside the
+    // product. Nothing crawling the page could learn that the names are
+    // the same thing. alternateName on a DefinedTerm is precisely the
+    // field for it, and it is what lets an answer engine resolve a query
+    // in one language to a page written in another.
+    ...(cleanAliases.length ? { alternateName: cleanAliases } : {}),
+    // A DefinedTerm without a definition is a label. This is the same
+    // sentence the page and the meta description show.
+    ...(description ? { description } : {}),
     inDefinedTermSet: {
       '@type': 'DefinedTermSet',
       '@id': TAGSET_ID,
