@@ -497,13 +497,44 @@ serve(async (req) => {
     // visible instead of hiding it in one number.
     let semanticTypeUpdated = 0;
 
-    // Find tags without parent_tag_id
-    const { data: orphanTags } = await supabase
-      .from('piktag_tags')
-      .select('id, name, semantic_type')
-      .is('parent_tag_id', null)
-      .order('usage_count', { ascending: false })
-      .limit(HIERARCHY_BATCH);
+    // Two candidate sets, merged — because the two jobs in this phase have
+    // DIFFERENT definitions of "still needs work".
+    //
+    // This used to be one query on `parent_tag_id IS NULL` ordered by
+    // usage_count. That set is largely PERMANENT: a tag with no sensible
+    // parent (#創業, #INFJ, a city) never gets one, so the same top-20 by
+    // usage were re-sent to Gemini every run forever. Once those few were
+    // classified, every later run spent twenty model calls to change
+    // nothing, while the ~275 lower-usage tags with semantic_type NULL
+    // never got a turn. Observed live: one run reported
+    // semanticTypeUpdated 2 out of a batch of 20.
+    //
+    // So ask for both, separately and each bounded:
+    //   * hierarchy candidates — parent_tag_id IS NULL (as before)
+    //   * classification candidates — semantic_type IS NULL
+    // and infer over the union. Classification now drains instead of
+    // stalling, and hierarchy keeps its old behaviour.
+    const [{ data: noParent }, { data: noType }] = await Promise.all([
+      supabase
+        .from('piktag_tags')
+        .select('id, name, semantic_type')
+        .is('parent_tag_id', null)
+        .order('usage_count', { ascending: false })
+        .limit(HIERARCHY_BATCH),
+      supabase
+        .from('piktag_tags')
+        .select('id, name, semantic_type')
+        .is('semantic_type', null)
+        .order('usage_count', { ascending: false })
+        .limit(HIERARCHY_BATCH),
+    ]);
+
+    // Dedupe by id — a tag with neither a parent nor a type is in both.
+    const orphanTags = Array.from(
+      new Map(
+        [...(noParent || []), ...(noType || [])].map((t) => [t.id, t]),
+      ).values(),
+    );
 
     if (orphanTags && orphanTags.length > 0) {
       const tagNames = orphanTags.map(t => t.name);
