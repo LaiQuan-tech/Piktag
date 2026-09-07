@@ -1513,6 +1513,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       setActiveCategory(null);
       // Fresh attempt: nothing is known to be unreachable yet.
       setSearchUnreachable(false);
+      // Also clear the "never synced" flag. It was only ever WRITTEN in the
+      // offline branch and never reset, so once it had been true it changed
+      // the wording of every later error: a user who had since come online
+      // and synced still got 還沒同步過你的通訊錄 / 連上網路後會自動同步 on an
+      // ordinary query failure — untrue on both counts, and it hides the
+      // honest "load failed, retry" card.
+      setSearchNoSnapshot(false);
       // Clear any stale AI-extracted-keywords chip from the previous
       // search; recovery will repopulate this only if it actually fires.
       setLlmExtractedKeywords([]);

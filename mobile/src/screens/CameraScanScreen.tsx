@@ -485,6 +485,13 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
                   key={m}
                   style={[styles.modeBtn, active && styles.modeBtnActive]}
                   onPress={() => setFrameMode(m)}
+                  // A capture is already in flight and will navigate to the
+                  // card form when it resolves. Letting the mode change
+                  // underneath it means the user switches back to QR, the
+                  // shutter vanishes, and then the screen jumps to
+                  // EditLocalContact anyway — the frame saying one thing
+                  // while the app does another.
+                  disabled={capturing}
                   activeOpacity={0.8}
                   accessibilityRole="button"
                   accessibilityState={{ selected: active }}
@@ -534,7 +541,18 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
               </View>
             </LinearGradient>
           </TouchableOpacity>
-          ) : null}
+          ) : (
+            /* QR mode keeps the shutter's FOOTPRINT. instructionContainer is
+               bottom-anchored with no height, so its content stacks upward
+               from a fixed edge — unmounting the shutter shortened the
+               column and threw the toggle and the hint 102px up, out from
+               under the finger that had just tapped them. Switching back
+               dropped them again. Exactly the defect the rename sheet was
+               rebuilt to remove; reserving the box is the fix.
+               A plain spacer rather than an invisible button: nothing for a
+               screen reader to find, and nothing to tap by accident. */
+            <View style={styles.shutterSpacer} pointerEvents="none" />
+          )}
         </View>
       </View>
 
@@ -735,6 +753,13 @@ function makeStyles(c: ColorPalette) {
   // a dark gap, so it reads as "take a photo".
   // Brand-gradient ring (fills the round); the white inner circle sits on top,
   // leaving a gradient ring — a PikTag-signature take on the camera shutter.
+  // Same box as shutterRing below, so the column is the same height in
+  // both modes. If that ring's size changes, this must change with it.
+  shutterSpacer: {
+    width: 78,
+    height: 78,
+    marginTop: 24,
+  },
   shutterRing: {
     width: 78,
     height: 78,

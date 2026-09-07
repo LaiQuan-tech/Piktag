@@ -390,13 +390,27 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         },
       });
 
-      const { error } = await supabase
+      // `.select()` so a zero-row update is visible. PostgREST answers a
+      // filter that matches nothing with 204 and error === null, so without
+      // it a rename that stored NOTHING reported success: the header kept
+      // the new name and the CONNECTIONS snapshot was patched with a
+      // nickname the server does not have. That happens for real — the row
+      // can be gone (unfriended on another device) while a stale
+      // connectionId still rides along from the cached list. The contact
+      // path already does this correctly via useLocalContacts.update, so
+      // the two write paths were disagreeing.
+      const { data: updated, error } = await supabase
         .from('piktag_connections')
         .update({ nickname: value })
-        .eq('id', connectionId);
+        .eq('id', connectionId)
+        .select('id')
+        .maybeSingle();
 
-      if (error) {
-        console.warn('[FriendDetail] nickname save failed:', error);
+      if (error || !updated) {
+        console.warn(
+          '[FriendDetail] nickname save failed:',
+          error ?? 'no row updated (connection gone, or RLS denied)',
+        );
         // Put the old name back rather than leaving a rename on screen
         // that the server never accepted.
         dispatchFriendData({

@@ -46,6 +46,7 @@ import TagChip from './TagChip';
 import BrandSpinner from './loaders/BrandSpinner';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { useAuthProfile } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useRotatingPlaceholder } from '../hooks/useRotatingPlaceholder';
 import {
@@ -55,6 +56,7 @@ import {
 } from '../lib/aiTagLogger';
 import { logApiUsage } from '../lib/apiUsage';
 import { normalizeTagName } from '../lib/normalizeTag';
+import { checkOffline } from '../lib/netStatus';
 import { appendLang } from '../lib/shareProfile';
 import type { ColorPalette } from '../constants/theme';
 import type { PiktagProfile } from '../types';
@@ -87,6 +89,10 @@ export default function EventTagComposer({
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
+  // Disk-cached profile. AuthContext keeps it precisely so an offline
+  // session still has a usable handle; the QR's username comes from here
+  // when the live fetch cannot answer.
+  const { profile: cachedProfile } = useAuthProfile();
 
   // Rotating "what's this QR for?" placeholder — same hook as the search
   // box, so intent inputs feel the same across the app. Teaches by
@@ -113,6 +119,14 @@ export default function EventTagComposer({
   const [aiSuggestionIds, setAiSuggestionIds] = useState<Record<string, string>>({});
   const [aiLoading, setAiLoading] = useState(false);
   const [aiContext, setAiContext] = useState('');
+  // Bumped whenever the composer is reset (i.e. after a successful create).
+  // An AI request in flight at that moment used to land afterwards and
+  // repaint the emptied form with the PREVIOUS event's chips — the render
+  // gate is `hasDescription || aiSuggestions.length > 0`, so the strip
+  // reappeared over a blank description, and tapping a chip seeded the
+  // NEXT event tag with a tag chosen for the last one. Exactly the ghost
+  // tags this component was written to eliminate.
+  const aiRunRef = useRef(0);
   const [viewerBio, setViewerBio] = useState('');
   const [viewerTagNames, setViewerTagNames] = useState<string[]>([]);
 
@@ -253,6 +267,8 @@ export default function EventTagComposer({
       // `force` = an explicit 重新推薦 tap. Without the bypass the button
       // is a visible no-op on unchanged context, which reads as broken.
       if (!force && contextKey === aiContext && aiSuggestions.length > 0) return;
+      const run = ++aiRunRef.current;
+      const stale = () => run !== aiRunRef.current;
       setAiContext(contextKey);
       setAiLoading(true);
       try {
@@ -282,9 +298,14 @@ export default function EventTagComposer({
             },
           },
         );
+        if (stale()) return;
         if (error) {
           console.warn('[EventTagComposer] AI suggest-tags error:', error.message);
-          setAiSuggestions([]);
+          // Offline is not "the AI had no ideas". Saying so at a venue with
+          // no signal tells the host their event is unremarkable when the
+          // truth is the request never left the phone. Leave the strip as
+          // it was rather than replacing it with a wrong explanation.
+          if (!(await checkOffline())) setAiSuggestions([]);
           return;
         }
         const raw = Array.isArray(data?.suggestions) ? data!.suggestions : [];
@@ -311,7 +332,13 @@ export default function EventTagComposer({
         const merged = Array.from(new Set([...guaranteed, ...cleaned]))
           .filter((n) => !eventTags.includes(n))
           .slice(0, 10);
+        if (stale()) return;
         setAiSuggestions(merged);
+        // A fresh batch owns the id map outright. Keeping the old entries
+        // meant a chip name appearing in two batches logged the EARLIER
+        // batch's suggestion id — a wrong position written into the
+        // calibration log the tag algorithm learns from.
+        setAiSuggestionIds({});
         // Confidence calibration log — fire-and-forget, never blocks the
         // UI. Array index is the position, so the first chip is position 0.
         void (async () => {
@@ -319,7 +346,7 @@ export default function EventTagComposer({
             context_description: contextKey.slice(0, 200),
             location: aiLocation || null,
           });
-          if (ids.length === merged.length) {
+          if (ids.length === merged.length && !stale()) {
             const map: Record<string, string> = {};
             merged.forEach((name, i) => {
               map[name] = ids[i];
@@ -329,9 +356,9 @@ export default function EventTagComposer({
         })();
       } catch (err) {
         console.warn('[EventTagComposer] AI suggest-tags exception:', err);
-        setAiSuggestions([]);
+        if (!stale()) setAiSuggestions([]);
       } finally {
-        setAiLoading(false);
+        if (!stale()) setAiLoading(false);
       }
     },
     [
@@ -393,11 +420,35 @@ export default function EventTagComposer({
     if (!name) return;
     setGenerating(true);
     try {
-      const { data: profileData } = await supabase
+      // The username is what the QR POINTS AT, so it is the one field here
+      // that must never be guessed. This used to be an unchecked .single()
+      // whose result fell back to `user.id` — so a failed profile fetch
+      // (offline at a venue, i.e. exactly when this screen is used) baked
+      // the raw auth UUID into the link AND persisted it to qr_code_data.
+      // Guests scanning it landed on "user not found", and nothing ever
+      // repaired the row: a permanently dead QR, created silently.
+      //
+      // AuthContext already keeps a disk-cached profile for this precise
+      // reason, so prefer it and only ask the server to refine it.
+      const { data: profileData, error: profileErr } = await supabase
         .from('piktag_profiles')
         .select('full_name, username')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
+      const username =
+        (!profileErr ? (profileData as PiktagProfile | null)?.username : null) ||
+        cachedProfile?.username ||
+        '';
+      if (!username) {
+        // No verified handle from either source. A QR built on a UUID is
+        // worse than no QR: it looks like it worked and is dead forever.
+        console.warn('[EventTagComposer] no username available:', profileErr);
+        Alert.alert(
+          t('common.error', { defaultValue: '發生錯誤' }),
+          t('addTag.alertQrError'),
+        );
+        return;
+      }
 
       // Written only when the insert fails, so the host can still show a
       // working QR at a venue with no signal.
@@ -452,20 +503,34 @@ export default function EventTagComposer({
       // short and free of %-encoded CJK, which reads as phishing. The
       // params ride along ONLY in the failed-insert case, where the
       // `local_` id resolves to nothing and the tags would be lost.
-      const username = (profileData as PiktagProfile | null)?.username || user.id;
       const params = new URLSearchParams();
       params.set('sid', sessionId);
       if (!persisted && eventTags.length > 0) params.set('tags', eventTags.join(','));
       const qrUrl = appendLang(`https://pikt.ag/${username}?${params.toString()}`);
 
       if (persisted) {
-        try {
-          await supabase
-            .from('piktag_scan_sessions')
-            .update({ qr_code_data: qrUrl })
-            .eq('id', sessionId);
-        } catch {
-          /* the QR still works — the landing resolves it from the sid */
+        // The result was previously ignored, and the try/catch could not
+        // have caught the realistic failure anyway: a PostgREST builder
+        // RESOLVES with { error }, it does not reject. So a dropped
+        // connection between the insert and this update left the row
+        // holding the '' placeholder — and nothing ever rewrites it. The
+        // host sees a working QR (this screen holds the URL in memory) and
+        // only discovers later that the saved group renders no QR at all,
+        // with 複製連結 and 分享檔案 silently doing nothing.
+        const { error: qrErr } = await supabase
+          .from('piktag_scan_sessions')
+          .update({ qr_code_data: qrUrl })
+          .eq('id', sessionId);
+        if (qrErr) {
+          console.warn('[EventTagComposer] qr_code_data write-back failed:', qrErr);
+          Alert.alert(
+            t('addTag.saveWarnTitle', { defaultValue: 'QR 已產生，但無法儲存到 Tag' }),
+            t('addTag.saveWarnMsg', {
+              code: (qrErr as any).code || '?',
+              message: qrErr.message,
+              defaultValue: `這個 QR 可以馬上分享，但清單裡的這一筆需要重新產生。`,
+            }),
+          );
         }
       }
 
@@ -484,6 +549,9 @@ export default function EventTagComposer({
 
       // Leave the unit empty and ready. Keeping the text would invite a
       // second identical event tag on the next tap.
+      // Invalidate anything the AI still owes us, so it cannot repaint
+      // this now-empty form with the event we just created.
+      aiRunRef.current++;
       setContextDescription('');
       setEventTags([]);
       setTagInput('');

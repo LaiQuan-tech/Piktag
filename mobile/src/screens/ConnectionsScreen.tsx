@@ -394,6 +394,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           .select(`
             id, user_id, connected_user_id, nickname, created_at,
             met_at, birthday, is_reviewed,
+            note, met_location,
             connected_user:piktag_profiles!connected_user_id(
               id, full_name, username, avatar_url, is_verified, latitude, longitude, location_updated_at, birthday
             )

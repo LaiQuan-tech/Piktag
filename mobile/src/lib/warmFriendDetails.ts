@@ -52,6 +52,16 @@ import type { Biolink } from '../types';
 // from something in the middle with no useful error.
 const ID_BATCH = 100;
 
+// PostgREST caps a response at the project's max-rows (Supabase default
+// 1000) and TRUNCATES SILENTLY — no error, no flag. A truncated page would
+// look like "these friends have no links" for everyone past the cut, and
+// this function would then write [] over their good snapshots: the exact
+// degradation every other guard here exists to prevent. So we ask for one
+// row more than we are willing to trust, and if we get it we know the page
+// may be short and skip the batch rather than write a lie. 100 friends x 12
+// cached links is 1200, so this is comfortably above any honest answer.
+const ROW_TRUST_LIMIT = 1500;
+
 type WarmPatch = { biolinks: Biolink[] };
 
 /**
@@ -90,7 +100,8 @@ export async function warmFriendDetails(
       .select('*')
       .in('user_id', batch)
       .eq('is_active', true)
-      .order('position', { ascending: true });
+      .order('position', { ascending: true })
+      .limit(ROW_TRUST_LIMIT);
 
     // supabase-js RESOLVES with { data: null, error } on a transport
     // failure. Writing `[]` for this batch would erase the links of
@@ -98,6 +109,13 @@ export async function warmFriendDetails(
     // snapshot" bug this repo has now been bitten by several times. Skip
     // the batch; the next refresh tries again.
     if (error || !data) continue;
+    // At the limit the page may have been cut short, and we cannot tell
+    // which friends lost rows. Skipping costs one refresh; writing would
+    // erase real links.
+    if (data.length >= ROW_TRUST_LIMIT) {
+      console.warn('[warmFriendDetails] batch hit the row limit — skipping to avoid a truncated write');
+      continue;
+    }
 
     const byUser = new Map<string, Biolink[]>();
     for (const row of data as Biolink[]) {

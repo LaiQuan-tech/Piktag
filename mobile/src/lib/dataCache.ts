@@ -532,15 +532,26 @@ export async function mergePersistentFriendDetails<T extends object>(
     const existing =
       (await getPersistentCache<FriendDetailMap<T>>(CACHE_KEYS.FRIEND_DETAILS, userId)) ?? {};
     const next: FriendDetailMap<T> = { ...existing };
-    // One stamp for the whole batch, below the live clock so a visited
-    // entry (stamped `now`) always sorts above a warmed one.
-    const warmStamp = 1;
+    // Warmed entries sort BELOW anything a real visit wrote, but they must
+    // still be ordered among THEMSELVES. They used to share one constant,
+    // and the prune sorts by updatedAt and slices — with every warmed entry
+    // tied, the tie broke on insertion order, which puts the just-warmed
+    // friends last and therefore first to be evicted. On an account past
+    // the cap that meant the 20 people you met this week were dropped on
+    // every list refresh while 20 stale entries kept their slots: the exact
+    // opposite of what this feature is for.
+    //
+    // Counting upward within the batch keeps later friends above earlier
+    // ones, and the whole band stays under the live clock (milliseconds
+    // since epoch), so a visit always outranks a warm.
+    let warmStamp = 0;
     for (const friendId of friendIds) {
       const defined = Object.fromEntries(
         Object.entries(patches[friendId] ?? {}).filter(([, value]) => value !== undefined),
       ) as Partial<T>;
       if (Object.keys(defined).length === 0) continue;
       const prev = next[friendId];
+      warmStamp += 1;
       next[friendId] = {
         // Never demote an entry a real visit wrote: keep the higher stamp.
         updatedAt: Math.max(prev?.updatedAt ?? 0, warmStamp),
