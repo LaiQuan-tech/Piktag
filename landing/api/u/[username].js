@@ -1,5 +1,5 @@
 const { SUPABASE_URL, SUPABASE_ANON_KEY, SITE_ORIGIN, VALID_USERNAME, STATIC_ASSET_LIKE, BRAND_COLOR, BRAND_ACCENT, BRAND_DARK, BRAND_BG, BRAND_GRADIENT, escapeHtml, resolveLocale, trackShareLinkViewed, buildAnalyticsSnippet } = require('../_config');
-const { profileSeo, hreflangLinks } = require('../_seo');
+const { profileSeo, hreflangLinks, profileSummary } = require('../_seo');
 
 const PLATFORM_ICONS = {
   instagram: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>',
@@ -414,6 +414,30 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
   //
   // aria-label names the list so a screen reader announces what the group
   // IS before reading nine pills.
+  // One plain sentence, shown ONLY when the member has not written a bio.
+  //
+  // A bio is their own words and beats any template, so it always wins.
+  // With no bio the page had no prose at all — a name, a handle and a row
+  // of pills — and an answer engine asked "who is this" had nothing to
+  // quote. Indexed but never cited.
+  //
+  // It is redundant with the chips directly below, and that is accepted
+  // deliberately: the two do different jobs. This is readable prose that
+  // can be extracted and repeated; the chips are navigation. Every word in
+  // it is a fact already on the page.
+  // Through getDisplayTagName, the same mapping the chips below use. The
+  // official account's tags render per-viewer-language (#攝影 for a zh-TW
+  // visitor, #Photography for an en one), so taking the raw names here
+  // would have the sentence and the pills under it disagree on the same
+  // screen.
+  const summaryLine = bio
+    ? ''
+    : profileSummary({
+        name: rawName,
+        tags: mergedTags.map((t) => getDisplayTagName(t)),
+        locale,
+      });
+
   const tagsHtml = mergedTags.length > 0
     ? `<ul class="tags" aria-label="${escapeHtml(locale.tagsAria || 'Tags')}">${mergedTags.map((t) => `<li><a href="/tag/${encodeURIComponent(t)}" class="tag" rel="tag">${escapeHtml(getDisplayTagName(t))}</a></li>`).join('')}</ul>`
     : '';
@@ -498,6 +522,10 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
        icon's reward symbology with a public, glanceable count. */
     .tribe-stat{display:inline-block;font-size:12px;font-weight:700;color:${BRAND_ACCENT};background:rgba(140,82,255,.08);padding:3px 10px;border-radius:12px;margin-bottom:10px;opacity:0;animation:fadeUp .5s ease .27s forwards;letter-spacing:.2px}
     .headline{font-size:14px;font-weight:600;color:${BRAND_ACCENT};text-align:center;margin-bottom:10px;opacity:0;animation:fadeUp .5s ease .28s forwards}
+    /* The generated summary reuses .bio's type so the page reads the
+       same whether the sentence is the member's or ours, one notch
+       quieter because it is not their writing. */
+    .bio.summary{color:#6b7280}
     .bio{font-size:15px;color:#555;text-align:center;line-height:1.7;margin-bottom:18px;max-width:360px;opacity:0;animation:fadeUp .5s ease .3s forwards}
     /* event-card styles removed — see comment in renderProfilePage */
 
@@ -572,7 +600,11 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
     <div class="username">@${username}</div>
     ${tribeSize > 0 ? `<div class="tribe-stat" title="Tribe size">Tribe ${tribeSize}</div>` : ''}
     ${headline ? `<div class="headline">${headline}</div>` : ''}
-    ${bio ? `<div class="bio">${bio}</div>` : ''}
+    ${bio
+      ? `<div class="bio">${bio}</div>`
+      : summaryLine
+        ? `<p class="bio summary">${escapeHtml(summaryLine)}</p>`
+        : ''}
     ${isUnfinished
       ? `<div class="setup-pending">
       <div class="setup-pending-heading">${locale.setupPendingHeading}</div>

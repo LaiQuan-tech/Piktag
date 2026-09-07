@@ -226,6 +226,44 @@ function profileGraph({ profile, tags, biolinks, pageUrl, name, description, ava
   return jsonLd({ '@context': 'https://schema.org', '@graph': [page, entity] });
 }
 
+// ─── The one quotable sentence ───────────────────────────────────────
+// An answer engine asked "who is @armand" needs a SENTENCE. A page with a
+// name, a handle and a row of pills can be indexed but will not be
+// QUOTED, and being quoted is the whole value of AI retrieval.
+//
+// buildProfileDescription already composes something for the meta tag,
+// but that is a fragment list joined with "·" and it lives in <head>;
+// extraction reads the BODY. So this builds a real sentence, from the
+// locale's own template, and the page renders it.
+//
+// EVERY WORD IS A FACT THE PAGE ALREADY SHOWS — the person's name and the
+// tags printed right below it. Nothing is inferred, nothing is generated
+// about them. That is the rule at the top of this file, and it matters
+// more here than anywhere else on the site, because this is the sentence
+// an assistant will repeat about a real person.
+//
+// The templates use a POSSESSIVE construction in every language ("X's
+// tags are Y") rather than a verb phrase. That dodges two traps at once:
+// pronouns, which we have no business guessing, and gendered adjectives —
+// Spanish "etiquetado" would assume one.
+//
+// Capped at five tags: the sentence has to stay readable, and the chips
+// below carry the full set.
+const SUMMARY_TAG_MAX = 5;
+
+function profileSummary({ name, tags, locale }) {
+  const names = tagNames(tags).slice(0, SUMMARY_TAG_MAX);
+  // No tags means no sentence. That is also exactly when the page is
+  // noindex (profileRobots), so the two agree by construction rather than
+  // by coincidence.
+  if (!names.length || !name) return '';
+  const template = (locale && locale.summarySentence) || '';
+  if (!template) return '';
+  const join = (locale && locale.tagJoin) || ', ';
+  const list = names.map((n) => `#${n}`).join(join);
+  return template.replace('{{name}}', name).replace('{{tags}}', list);
+}
+
 // ─── hreflang ────────────────────────────────────────────────────────
 // Every public page renders in 19 languages behind `?lang=`, and until
 // now nothing told a crawler so. robots.txt deliberately leaves ?lang=
@@ -462,6 +500,7 @@ function siteGraph() {
 
 module.exports = {
   hreflangLinks,
+  profileSummary,
   SITE_ID,
   ORG_ID,
   APP_STORE_URL,
