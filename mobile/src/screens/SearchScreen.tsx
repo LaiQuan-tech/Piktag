@@ -1414,6 +1414,18 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   const performSearch = useCallback(
     async (query: string) => {
+      // Claim the sequence FIRST, before any early return.
+      //
+      // It used to be claimed further down, after the empty-keyword restore
+      // and the LRU cache-hit branch — so those two paths painted their
+      // result without invalidating an older pass still in flight. Every
+      // late writer in the online path is guarded only by
+      // `seq !== searchSeqRef.current`, so that older pass sailed through
+      // and repainted over them. Concretely: on weak venue wifi (alive
+      // enough that checkOffline() says false, so the slow online path
+      // runs) the user gives up and taps X, the browse wall comes back —
+      // and then the abandoned query's tags and profiles land on top of it.
+      const seq = ++searchSeqRef.current;
       // Strip natural-language scaffolding ("找在扶輪社的朋友" →
       // "扶輪社") so the substring search has a chance. Idempotent +
       // falls back to the literal phrase if over-strips. Then split
@@ -1508,7 +1520,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       // the protective pattern at line ~2294 (`qSafe.replace(...)`).
       const orSafe = mainKeyword.replace(/[,()%]/g, '');
 
-      const seq = ++searchSeqRef.current;
       setLoading(true);
       setActiveCategory(null);
       // Fresh attempt: nothing is known to be unreachable yet.
@@ -2713,10 +2724,15 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     // with 「找不到相關標籤」 and nothing in the session could bring it
     // back.
     void restoreDefaultTags();
+    // Invalidate whatever is still in flight. Without this the abandoned
+    // query's results land on the restored browse wall a few seconds after
+    // the user pressed X to get rid of them.
+    searchSeqRef.current++;
     // The searchUnreachable flag belongs to the query we just abandoned.
     // Leaving it set would make the next empty result claim we could not
     // reach the server when we never asked.
     setSearchUnreachable(false);
+    setSearchNoSnapshot(false);
     searchInputRef.current?.blur();
   }, [restoreDefaultTags]);
 

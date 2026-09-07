@@ -134,6 +134,11 @@ export default function EventTagComposer({
   // Everything ambient (identity, GPS, nearby tags) is gathered ONCE, the
   // first time the user shows intent by typing. A prefilled description
   // (編輯QRcode) counts as intent — they already made this QR.
+  // TYPING is the signal, not focusing. onFocus used to set this too,
+  // which fired the OS location prompt the moment someone tapped the box
+  // to read the rotating placeholder — contradicting this file's own
+  // stated contract ("nothing happens until the user types"), which is the
+  // whole justification for putting this unit on a tab root.
   const [engaged, setEngaged] = useState(initialDescription.trim().length > 0);
   useEffect(() => {
     if (hasDescription) setEngaged(true);
@@ -263,7 +268,15 @@ export default function EventTagComposer({
       const mm = String(now.getMonth() + 1).padStart(2, '0');
       const dd = String(now.getDate()).padStart(2, '0');
       const dateOnly = `${yyyy}-${mm}-${dd}`;
-      const contextKey = `${identity}|${desc}|${aiLocationDetail || aiLocation}|${eventTags.join(',')}|${popularNearby.join(',')}|${dateOnly}`;
+      // eventTags is deliberately NOT part of this key. It still rides in
+      // the request body so the model does not repeat what you already
+      // picked — but including it here made every chip tap invalidate the
+      // cache and fire a fresh Gemini call: the strip you were picking
+      // from was replaced under your finger ~1s later, so the second tap
+      // landed on whatever had moved into that slot, and five picks cost
+      // five invocations of a quota this project has already exhausted
+      // once. Re-rolling on demand is what 重新推薦 is for.
+      const contextKey = `${identity}|${desc}|${aiLocationDetail || aiLocation}|${popularNearby.join(',')}|${dateOnly}`;
       // `force` = an explicit 重新推薦 tap. Without the bypass the button
       // is a visible no-op on unchanged context, which reads as broken.
       if (!force && contextKey === aiContext && aiSuggestions.length > 0) return;
@@ -584,7 +597,6 @@ export default function EventTagComposer({
             style={styles.textInput}
             value={contextDescription}
             onChangeText={setContextDescription}
-            onFocus={() => setEngaged(true)}
             placeholder={contextPlaceholder}
             placeholderTextColor={colors.gray400}
             returnKeyType="done"

@@ -5,27 +5,26 @@
 //
 // 2026-09-02 — the create form no longer lives here. Founder: 「在活動標籤
 // 頁，最上面，直接就顯示新增活動標籤頁的填寫內容欄位。不要再顯示『新增』
-// 或『＋』」. Creating an event tag is now done inline at the top of
-// QrGroupListScreen, so this screen is reached two ways:
+// 或『＋』」. Creating an event tag happens inline at the top of
+// QrGroupListScreen, so this screen has exactly ONE entry:
 //
-//   * navigate('AddTagCreate', { created })  — straight to the QR, right
-//     after the composer on the list page made it.
-//   * 編輯QRcode from that QR — drops back to the composer, prefilled.
+//   navigate('AddTagCreate', { created })  — straight to the QR, right
+//   after the composer on the list page made it.
 //
-// The composer itself is EventTagComposer, the same component the list
-// page mounts. It is one unit (活動內容 → AI 標籤 → 挑 → 建立) and both
-// surfaces mount the whole of it; the previous attempt to lift only part
-// of it onto the list page is what produced QR codes describing nothing.
+// It used to have a second mode: 編輯QRcode dropped back into the composer.
+// That was removed on 2026-09-07 because the composer's only write path is
+// .insert(), so "editing" silently created a SECOND scan_session row and
+// split the event's attendees across two groups. 編輯 now opens
+// QrGroupDetailScreen, which updates in place. With nothing left that can
+// reach it, the setup mode and its styles are gone too — a mode with no
+// entry point is not a feature, it is a trap for the next person reading
+// this header.
 //
-// Presets are gone. They were already dead code — task 2 made every QR a
-// persistent group, which is what a preset was for — and the setup mode
-// that referenced them no longer exists here.
+// Presets are gone for the same reason, one round earlier.
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import {
   View,
-  Text,
-  ScrollView,
   TouchableOpacity,
   StyleSheet,
   StatusBar,
@@ -34,12 +33,12 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Share2, ScanLine, Copy, Pencil, ArrowLeft } from 'lucide-react-native';
+import { X, Share2, ScanLine, Copy, Pencil } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { setStringAsync as setClipboardStringAsync } from 'expo-clipboard';
 import QrShareBody from '../components/QrShareBody';
-import EventTagComposer, { type CreatedEventTag } from '../components/EventTagComposer';
+import { type CreatedEventTag } from '../components/EventTagComposer';
 import { useTheme } from '../context/ThemeContext';
 import type { ColorPalette } from '../constants/theme';
 
@@ -54,17 +53,8 @@ export default function AddTagScreen({ navigation, route }: AddTagScreenProps) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
 
-  // Arriving with a `created` payload means the composer on the list page
-  // just made this QR — go straight to it. Arriving without one means the
-  // screen was opened to create something, so start on the form.
-  const initialCreated = route?.params?.created ?? null;
-  const [created, setCreated] = useState<CreatedEventTag | null>(initialCreated);
-  const [mode, setMode] = useState<'setup' | 'qr'>(initialCreated ? 'qr' : 'setup');
-
-  const handleCreated = useCallback((result: CreatedEventTag) => {
-    setCreated(result);
-    setMode('qr');
-  }, []);
+  // The only caller always passes `created`; there is nothing else to be.
+  const created = route?.params?.created ?? null;
 
   const handleShare = useCallback(async () => {
     if (!created) return;
@@ -92,47 +82,6 @@ export default function AddTagScreen({ navigation, route }: AddTagScreenProps) {
       /* no-op */
     }
   }, [created, t]);
-
-  // ─── Setup (the shared composer) ────────────────────────
-  const renderSetupMode = () => (
-    <>
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <View style={styles.headerLeftGroup}>
-          <TouchableOpacity
-            onPress={() => (created ? setMode('qr') : navigation.goBack())}
-            activeOpacity={0.6}
-            style={styles.headerSideBtn}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.back', { defaultValue: '返回' })}
-          >
-            <ArrowLeft size={24} color={colors.gray900} strokeWidth={2.2} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>
-            {t('addTag.headerTitle', { defaultValue: '建立 Tag' })}
-          </Text>
-        </View>
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
-        automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
-      >
-        <EventTagComposer
-          // Remounted per edited QR so the prefill actually takes — the
-          // composer seeds its state from these props on mount.
-          key={created?.sessionId ?? 'new'}
-          onCreated={handleCreated}
-          initialDescription={created?.name}
-          initialTags={created?.tags}
-        />
-      </ScrollView>
-    </>
-  );
 
   // ─── QR (IG-style gradient + white card + bottom pill row) ───
   const renderQrMode = () => (
@@ -185,11 +134,28 @@ export default function AddTagScreen({ navigation, route }: AddTagScreenProps) {
             label: t('addTag.shareFile', { defaultValue: '分享檔案' }),
             onPress: handleShare,
           },
-          {
-            icon: <Pencil size={22} color="#111827" />,
-            label: t('addTag.editQr', { defaultValue: '編輯QRcode' }),
-            onPress: () => setMode('setup'),
-          },
+          // 編輯 now opens the REAL edit surface. It used to drop back into
+          // the composer, whose only write path is .insert() — so "editing"
+          // a QR silently created a SECOND scan_session row with a new sid
+          // and a new QR image. The original stayed in 過往活動標籤 with the
+          // old text, and the event's attendees ended up split across two
+          // groups: whoever had already scanned in group one, everyone
+          // after in group two. QrGroupDetailScreen updates in place
+          // (handleSaveName / writeTags), which is what editing means.
+          //
+          // Only offered when the row actually exists. A failed insert
+          // leaves a `local_` id with nothing to open, and a button that
+          // dead-ends is worse than no button.
+          ...(created?.persisted
+            ? [
+                {
+                  icon: <Pencil size={22} color="#111827" />,
+                  label: t('addTag.editQr', { defaultValue: '編輯QRcode' }),
+                  onPress: () =>
+                    navigation.replace('QrGroupDetail', { groupId: created.sessionId }),
+                },
+              ]
+            : []),
         ]}
         bottomInset={insets.bottom}
       />
@@ -199,7 +165,7 @@ export default function AddTagScreen({ navigation, route }: AddTagScreenProps) {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
-      {mode === 'setup' ? renderSetupMode() : renderQrMode()}
+      {renderQrMode()}
     </View>
   );
 }
@@ -209,36 +175,6 @@ function makeStyles(c: ColorPalette) {
     container: {
       flex: 1,
       backgroundColor: c.white,
-    },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: 20,
-      paddingBottom: 16,
-      backgroundColor: c.white,
-      borderBottomWidth: 1,
-      borderBottomColor: c.gray100,
-    },
-    headerLeftGroup: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-    },
-    headerSideBtn: {
-      padding: 4,
-    },
-    headerTitle: {
-      fontSize: 24,
-      fontWeight: '700',
-      color: c.gray900,
-      lineHeight: 32,
-    },
-    scrollView: {
-      flex: 1,
-    },
-    scrollContent: {
-      paddingBottom: 100,
     },
     qrGradient: {
       flex: 1,

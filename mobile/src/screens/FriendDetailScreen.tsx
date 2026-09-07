@@ -72,6 +72,7 @@ import {
   CACHE_KEYS,
   getPersistentCache,
   setPersistentCache,
+  invalidateCache,
   getPersistentFriendDetail,
   mergePersistentFriendDetail,
   FRIEND_DETAIL_CACHE_MAX_LINKS,
@@ -283,6 +284,30 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   // the fresh id into pickTag / hidden-tag flows that key off it. The
   // route param is just the initial seed.
   const [connectionId, setConnectionId] = useState<string | undefined>(routeConnectionId);
+  // Some callers navigate with only a friendId — NetworkGraphScreen is the
+  // one today. Without the connection id this screen cannot read the
+  // viewer's nickname for that person (so it shows their real name) and
+  // the rename pencil is disabled, so the SAME friend looked different
+  // depending on which surface you opened them from. Resolving it here
+  // fixes every caller, present and future, rather than patching each
+  // navigate() call as it turns up.
+  useEffect(() => {
+    if (connectionId || !user?.id || !friendId) return;
+    let cancelled = false;
+    void (async () => {
+      const { data, error } = await supabase
+        .from('piktag_connections')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('connected_user_id', friendId)
+        .maybeSingle();
+      if (cancelled || error || !data?.id) return;
+      setConnectionId(String(data.id));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [connectionId, user?.id, friendId]);
   useEffect(() => {
     if (routeConnectionId && routeConnectionId !== connectionId) {
       setConnectionId(routeConnectionId);
@@ -370,9 +395,17 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   //
   // Empty saves NULL, which reverts the header to their real name — the
   // way out of a nickname you no longer want, without a delete button.
+  // Monotonic token. `EditableName` closes its sheet before awaiting the
+  // save, so a second rename can start while the first is still in flight.
+  // Each save used to restore its OWN captured `previous` on failure: with
+  // (none)->"A" failing and "A"->"B" succeeding, A's handler reverted the
+  // header to the real name and alerted "沒有儲存成功" while the server and
+  // the disk snapshot both held "B". Only the latest save may touch the UI.
+  const nicknameSaveRef = useRef(0);
   const handleSaveNickname = useCallback(
     async (next: string) => {
       if (!connectionId || !user?.id) return;
+      const token = ++nicknameSaveRef.current;
       const trimmed = next.trim();
       const value = trimmed.length > 0 ? trimmed : null;
       const previous = friendDataRef.current.connection?.nickname ?? null;
@@ -406,6 +439,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         .select('id')
         .maybeSingle();
 
+      if (token !== nicknameSaveRef.current) return;
       if (error || !updated) {
         console.warn(
           '[FriendDetail] nickname save failed:',
@@ -431,6 +465,13 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         return;
       }
 
+      // The friends list reads the IN-MEMORY layer first and only falls
+      // back to disk when that is missing (ConnectionsScreen's 5-minute
+      // TTL entry). Patching only the disk copy meant the rename was
+      // invisible on the list until that entry expired, which the comment
+      // below used to claim it fixed. Drop the memory entry so the list
+      // re-reads, then patch the disk copy for offline.
+      invalidateCache(CACHE_KEYS.CONNECTIONS);
       // Keep the friends-list snapshot in step. Without this the list
       // (and every offline read of it) shows the old name until the next
       // successful full fetch — and offline, that could be days.
