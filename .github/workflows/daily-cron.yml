@@ -49,11 +49,28 @@ jobs:
     if: github.event.schedule == '0 19 * * *' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Trigger auto-link-concepts
+        # The response is PRINTED, not swallowed. `--silent` with
+        # `--fail-with-body` shows the body only on an HTTP error, so a run
+        # that succeeded while doing nothing looked identical to one that
+        # classified twenty tags — both a green tick and eight seconds.
+        # That is exactly how the Phase 2 gating survived unnoticed: the
+        # function answered "No unlinked tags found" every night and no
+        # human ever saw it. The counters this prints (linked, created,
+        # hierarchyUpdated, semanticTypeUpdated) are the whole point of
+        # running it, so they go in the log AND the run summary.
         run: |
-          curl --fail-with-body --silent --show-error -X POST \
+          RESPONSE=$(curl --fail-with-body --silent --show-error -X POST \
             "https://kbwfdskulxnhjckdvghj.supabase.co/functions/v1/auto-link-concepts" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            -H "Content-Type: application/json"
+            -H "Content-Type: application/json")
+          echo "$RESPONSE"
+          {
+            echo "### auto-link-concepts"
+            echo ''
+            echo '```json'
+            echo "$RESPONSE"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # Badge-fatigue relief: users away 3+ days get their app-icon badge cleared
   # via a silent push (badge:0); notifications stay in the feed. The edge fn

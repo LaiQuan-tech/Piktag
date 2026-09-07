@@ -298,12 +298,23 @@ serve(async (req) => {
       );
     }
 
-    if (!unlinkedTags || unlinkedTags.length === 0) {
-      return new Response(
-        JSON.stringify({ message: 'No unlinked tags found', processed: 0 }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    // NO EARLY RETURN HERE. This used to be
+    //
+    //   if (!unlinkedTags || unlinkedTags.length === 0) return ...
+    //
+    // which made Phase 2 — hierarchy AND semantic classification — a
+    // passenger on Phase 1. Concept linking finished catching up long ago,
+    // so every invocation since has claimed the lock, found nothing to
+    // link, and returned in about eight seconds without ever reaching the
+    // classifier. That is why 317 of 373 tags still had semantic_type
+    // NULL after the funnel fix on 2026-09-08: the fix was correct and the
+    // code was unreachable.
+    //
+    // The two phases answer different questions ("is this tag attached to
+    // a concept?" and "what KIND of thing is this tag?") and one being
+    // finished says nothing about the other. Phase 1 is skipped when it
+    // has no work; Phase 2 runs either way.
+    const hasUnlinked = Boolean(unlinkedTags && unlinkedTags.length > 0);
 
     // 2. Also generate embeddings for concepts that don't have one yet
     const { data: conceptsWithoutEmbedding } = await supabase
@@ -327,7 +338,7 @@ serve(async (req) => {
     let linked = 0;
     let created = 0;
 
-    for (const tag of unlinkedTags) {
+    for (const tag of hasUnlinked ? unlinkedTags : []) {
       // 3a. Alias-first resolution (deterministic, exact, free).
       //
       // The seed migrations (20260328_seed_multilingual_aliases +
@@ -578,7 +589,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         message: 'Auto-link + hierarchy completed',
-        processed: unlinkedTags.length,
+        processed: hasUnlinked ? unlinkedTags.length : 0,
         linked,
         created,
         hierarchyUpdated,
