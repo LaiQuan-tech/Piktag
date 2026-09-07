@@ -1553,7 +1553,16 @@ fbq('trackCustom','share_link_viewed',{share_type:'${safeType}',share_identifier
   return ph + ga + meta;
 }
 
+// The 19 public locale codes, in TRANSLATIONS order, as the `?lang=`
+// values the routes accept. Exported so the hreflang builder does not
+// keep a second copy that can drift from the table above — a stale
+// alternate list is worse than none, because it tells Google a language
+// exists at a URL that renders a different one.
+const LOCALE_CODES = Object.keys(TRANSLATIONS);
+
 module.exports = {
+  LOCALE_CODES,
+  TRANSLATIONS,
   SUPABASE_URL,
   SUPABASE_ANON_KEY,
   SITE_ORIGIN,

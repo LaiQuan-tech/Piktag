@@ -3,6 +3,7 @@ const {
   escapeHtml,
   jsonLd,
   isIndexableProfile,
+  LOCALE_CODES,
 } = require('./_config');
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -137,7 +138,7 @@ function profileRobots(profile, tags) {
 // "this person exists somewhere"; ProfilePage + mainEntity says "this page
 // IS that person's profile", which is the relationship Google documents
 // for profile pages and the one an assistant needs to attribute a quote.
-function profileGraph({ profile, tags, biolinks, pageUrl, name, description, avatarUrl, locale }) {
+function profileGraph({ profile, tags, biolinks, pageUrl, name, description, avatarUrl, locale, headline, latestTagAt }) {
   const handle = profile.username || '';
   const links = Array.isArray(biolinks) ? biolinks : [];
 
@@ -179,6 +180,12 @@ function profileGraph({ profile, tags, biolinks, pageUrl, name, description, ava
     if (isOrg) entity.image = { '@type': 'ImageObject', url: avatarUrl };
   }
   if (description) entity.description = description;
+  // The headline is the one line a member writes to say what they DO, and
+  // it was reaching the title and the meta description while never
+  // entering the graph. jobTitle is the field an answer engine reads to
+  // answer "who is this person", so it was the one place it was missing.
+  // Person only: an Organization's headline is a tagline, not a job.
+  if (!isOrg && headline) entity.jobTitle = headline;
   if (uniqueSameAs.length) entity.sameAs = uniqueSameAs;
   if (isOrg) {
     // The official account is the SAME entity the homepage graph
@@ -202,18 +209,66 @@ function profileGraph({ profile, tags, biolinks, pageUrl, name, description, ava
     mainEntity: { '@id': isOrg ? ORG_ID : entityId },
     inLanguage: (locale && locale.htmlLang) || 'en',
   };
-  // Lower bound on the true modification date — adding a tag writes to
-  // piktag_user_tags, not to the profile row. Emitted only when real.
-  if (profile.updated_at) {
-    const d = new Date(profile.updated_at);
-    if (!Number.isNaN(d.getTime())) page.dateModified = d.toISOString();
+  // The later of "the profile row changed" and "a tag was added". The
+  // second used to be missing, and on this site it is usually the one
+  // that moved: tags are the page's living content, while the profile row
+  // only changes when someone edits their bio. Emitted only from real
+  // timestamps — never Date.now(), which would claim freshness the page
+  // has not earned.
+  const stamps = [profile.updated_at, latestTagAt]
+    .filter(Boolean)
+    .map((v) => new Date(v))
+    .filter((d) => !Number.isNaN(d.getTime()));
+  if (stamps.length) {
+    page.dateModified = new Date(Math.max(...stamps.map((d) => d.getTime()))).toISOString();
   }
 
   return jsonLd({ '@context': 'https://schema.org', '@graph': [page, entity] });
 }
 
+// ─── hreflang ────────────────────────────────────────────────────────
+// Every public page renders in 19 languages behind `?lang=`, and until
+// now nothing told a crawler so. robots.txt deliberately leaves ?lang=
+// crawlable and its own comment says why: "Blocking it would close the
+// door on hreflang later". This is later.
+//
+// Without these links Google sees 19 near-identical URLs, picks one, and
+// drops the rest as duplicates — so a Japanese search for a member's name
+// cannot surface the Japanese rendering of their page. For a product whose
+// entire pitch is finding people ACROSS languages, that is the wrong
+// default. It matters for answer engines too: they resolve a page's
+// language cluster before deciding which version to quote.
+//
+// Reciprocity is the rule Google actually enforces: every alternate must
+// point back at every other, and each must be self-referential. Building
+// the whole set from one canonical URL guarantees that by construction.
+//
+// x-default goes to the bare URL, which content-negotiates from
+// Accept-Language — the correct target for "we do not know your language
+// yet" rather than pinning it to English.
+function hreflangLinks(canonicalUrl) {
+  if (!canonicalUrl) return '';
+  let base;
+  try {
+    base = new URL(canonicalUrl);
+  } catch {
+    return '';
+  }
+  // Strip any lang already on the canonical so alternates cannot stack
+  // (?lang=ja&lang=ko) and so x-default is genuinely bare.
+  base.searchParams.delete('lang');
+  const bare = base.toString().replace(/\?$/, '');
+  const links = LOCALE_CODES.map((code) => {
+    const u = new URL(bare);
+    u.searchParams.set('lang', code);
+    return `<link rel="alternate" hreflang="${escapeHtml(code)}" href="${escapeHtml(u.toString())}">`;
+  });
+  links.push(`<link rel="alternate" hreflang="x-default" href="${escapeHtml(bare)}">`);
+  return links.join('\n  ');
+}
+
 // One call, everything the profile route's <head> needs.
-function profileSeo({ profile, tags, biolinks, locale, avatarUrl, rawName }) {
+function profileSeo({ profile, tags, biolinks, locale, avatarUrl, rawName, latestTagAt }) {
   const names = tagNames(tags);
   const handle = profile.username || '';
   const pageUrl = `${SITE_ORIGIN}/${encodeURIComponent(handle)}`;
@@ -232,6 +287,8 @@ function profileSeo({ profile, tags, biolinks, locale, avatarUrl, rawName }) {
     descriptionHtml: escapeHtml(description),
     robots: profileRobots(profile, names),
     jsonLdScript: profileGraph({
+      headline,
+      latestTagAt,
       profile,
       tags: names,
       biolinks,
@@ -377,6 +434,7 @@ function siteGraph() {
 }
 
 module.exports = {
+  hreflangLinks,
   SITE_ID,
   ORG_ID,
   APP_STORE_URL,

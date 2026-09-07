@@ -1,5 +1,5 @@
 const { SUPABASE_URL, SUPABASE_ANON_KEY, SITE_ORIGIN, BRAND_COLOR, BRAND_ACCENT, BRAND_BG, BRAND_GRADIENT, escapeHtml, resolveLocale, trackShareLinkViewed, buildAnalyticsSnippet } = require('../_config');
-const { tagGraph, tagRobots } = require('../_seo');
+const { tagGraph, tagRobots, hreflangLinks } = require('../_seo');
 
 module.exports = async function handler(req, res) {
   const { tagname } = req.query;
@@ -131,6 +131,7 @@ function renderPage(tagName, usageCount, members, analyticsSnippet, locale) {
   <meta name="description" content="${escapeHtml(description)}">
   <meta name="robots" content="${tagRobots(members)}">
   <link rel="canonical" href="${url}">
+  ${hreflangLinks(url)}
   <meta property="og:type" content="website">
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${escapeHtml(description)}">

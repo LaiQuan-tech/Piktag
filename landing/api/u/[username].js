@@ -1,5 +1,5 @@
 const { SUPABASE_URL, SUPABASE_ANON_KEY, SITE_ORIGIN, VALID_USERNAME, STATIC_ASSET_LIKE, BRAND_COLOR, BRAND_ACCENT, BRAND_DARK, BRAND_BG, BRAND_GRADIENT, escapeHtml, resolveLocale, trackShareLinkViewed, buildAnalyticsSnippet } = require('../_config');
-const { profileSeo } = require('../_seo');
+const { profileSeo, hreflangLinks } = require('../_seo');
 
 const PLATFORM_ICONS = {
   instagram: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>',
@@ -119,7 +119,7 @@ module.exports = async function handler(req, res) {
         }
       ),
       fetch(
-        `${SUPABASE_URL}/rest/v1/piktag_user_tags?user_id=eq.${profile.id}&select=tag_id,piktag_tags(name)`,
+        `${SUPABASE_URL}/rest/v1/piktag_user_tags?user_id=eq.${profile.id}&select=tag_id,created_at,piktag_tags(name)`,
         {
           headers: {
             apikey: SUPABASE_ANON_KEY,
@@ -183,6 +183,25 @@ module.exports = async function handler(req, res) {
     const tags = (userTags || [])
       .map((ut) => ut.piktag_tags?.name)
       .filter(Boolean);
+
+    // Freshness. dateModified used to be profile.updated_at alone, and
+    // _seo.js says so in its own comment: "Lower bound on the true
+    // modification date — adding a tag writes to piktag_user_tags, not to
+    // the profile row." For a PikTag profile that is the wrong lower
+    // bound, because the tags ARE the page — someone who adds three tags
+    // a week has a page that changes weekly while its declared date sits
+    // frozen at whenever they last edited their bio. Search and answer
+    // engines both weight recency, so the page was under-reporting the
+    // one thing about it that actually moves.
+    //
+    // Nothing is invented: this is the newest timestamp among facts the
+    // page already displays.
+    const tagStamps = (userTags || [])
+      .map((ut) => ut.created_at)
+      .filter(Boolean);
+    const latestTagAt = tagStamps.length
+      ? tagStamps.reduce((a, b) => (a > b ? a : b))
+      : null;
 
     // Record pending connection if sid is present (non-member scanned QR).
     //
@@ -254,7 +273,7 @@ module.exports = async function handler(req, res) {
     }
 
     const analyticsSnippet = buildAnalyticsSnippet('user', usernameStr);
-    const html = renderProfilePage(profile, biolinks || [], tags, sidStr, locale, { tags: liveTagsStr, date: liveDateStr, location: liveLocStr }, analyticsSnippet, hasActiveAsk, tribeSize);
+    const html = renderProfilePage(profile, biolinks || [], tags, sidStr, locale, { tags: liveTagsStr, date: liveDateStr, location: liveLocStr }, analyticsSnippet, hasActiveAsk, tribeSize, latestTagAt);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
@@ -274,7 +293,7 @@ module.exports = async function handler(req, res) {
   }
 };
 
-function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, analyticsSnippet, hasActiveAsk, tribeSize = 0) {
+function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, analyticsSnippet, hasActiveAsk, tribeSize = 0, latestTagAt = null) {
   const rawName = profile.full_name || profile.username || '#PikTag User';
   const name = escapeHtml(rawName);
   const username = escapeHtml(profile.username || '');
@@ -306,7 +325,7 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
   // meta tag can never disagree (isIndexableProfile is the shared gate).
   // profileSeo returns BOTH raw and pre-escaped forms; use the *Html ones
   // at every HTML insertion point and the raw ones inside JS/JSON.
-  const seo = profileSeo({ profile, tags, biolinks, locale, avatarUrl, rawName });
+  const seo = profileSeo({ profile, tags, biolinks, locale, avatarUrl, rawName, latestTagAt });
   const ogDescription = seo.description;
   const pageTitle = seo.titleHtml;
   const pageUrl = seo.pageUrl;
@@ -415,6 +434,7 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
   <meta name="author" content="${escapeHtml(rawName)}">
   <meta name="robots" content="${seo.robots}">
   <link rel="canonical" href="${pageUrl}">
+  ${hreflangLinks(pageUrl)}
   <meta property="og:type" content="profile">
   <meta property="og:title" content="${pageTitle}">
   <meta property="og:description" content="${escapeHtml(ogDescription)}">
