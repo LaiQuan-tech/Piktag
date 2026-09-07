@@ -115,11 +115,20 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           EVENT_NAME: ${{ github.event_name }}
-          # 3 hours. Long enough that a day of active iteration is a handful
-          # of builds instead of one per push; short enough that a normal
-          # working rhythm rarely notices it. workflow_dispatch bypasses it
-          # entirely, so this throttles AUTOMATIC builds only.
-          COOLDOWN_SECONDS: '10800'
+          # 24 hours (founder call 2026-09-08: "一天 build 一次, 手動時可以
+          # 補build"). Was 3h, which still allowed ~3-4 automatic macOS builds
+          # on an active day; the September bill proved that is more than the
+          # budget carries. The free allowance is 2,000 minutes and macOS
+          # counts 10x, so it buys only ~12 iOS builds a MONTH — a 3h cooldown
+          # can spend that in four days. At 24h a push-driven month is ~30
+          # builds, which is what a $20 budget actually covers.
+          #
+          # Testers lose nothing they were really getting: nine builds in one
+          # day (2026-09-02) is far past what anyone installs, and Apple's own
+          # per-app daily upload cap sits at roughly ten.
+          # workflow_dispatch bypasses this entirely, so a build is always one
+          # tap away when it is actually wanted.
+          COOLDOWN_SECONDS: '86400'
           CURRENT_SHA: ${{ github.sha }}
           BRANCH: ${{ github.ref_name }}
           REPO: ${{ github.repository }}

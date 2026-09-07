@@ -43,10 +43,14 @@ concurrency:
 
 jobs:
   # Mirror of the iOS gate — see ios-testflight.yml for the full rationale.
-  # Only the `schedule` backstop is gated; push and workflow_dispatch always
-  # build. Without this, the cron added above would re-upload an unchanged
-  # commit to the Play internal track every single night. Fails OPEN: any
-  # API error builds anyway.
+  #   workflow_dispatch — never gated, the on-demand escape hatch.
+  #   push            — throttled to one build per COOLDOWN_SECONDS (24h).
+  #   schedule        — builds only when main has moved since the last
+  #                     successful build, so the nightly backstop never
+  #                     re-uploads an unchanged commit to the internal track.
+  # Fails OPEN throughout: any API error builds anyway. A silent skip is the
+  # disease this gate exists to cure, so it must never be the cure's failure
+  # mode.
   gate:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -60,15 +64,59 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           EVENT_NAME: ${{ github.event_name }}
+          # Same 24h cooldown as iOS (founder call 2026-09-08). Android runs
+          # on Linux, so per build it is ~10x cheaper than iOS — but it was
+          # the only workflow with NO push throttle at all, and volume made
+          # up the difference: 33 runs over 2026-09-01..07 at ~29 min each
+          # extrapolates to ~4,000 minutes a month, which is twice the entire
+          # 2,000-minute free allowance on its own. Throttling iOS while
+          # leaving this open would just move the overspend.
+          COOLDOWN_SECONDS: '86400'
           CURRENT_SHA: ${{ github.sha }}
           BRANCH: ${{ github.ref_name }}
           REPO: ${{ github.repository }}
         run: |
-          if [ "$EVENT_NAME" != "schedule" ]; then
+          # On-demand always builds — the escape hatch that makes the
+          # cooldown safe.
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             echo "should_build=true" >> "$GITHUB_OUTPUT"
-            echo "event=$EVENT_NAME — always builds, no gate applied."
+            echo "event=workflow_dispatch — on demand, no gate applied."
             exit 0
           fi
+
+          # push: throttle to at most one automatic build per cooldown window.
+          # Nothing is lost — the next push past the window builds it, and the
+          # daily backstop's "has main moved?" check below rescues it even if
+          # no further push arrives.
+          if [ "$EVENT_NAME" = "push" ]; then
+            LAST_AT=$(gh api \
+              "repos/$REPO/actions/workflows/android-google-play.yml/runs?status=success&branch=$BRANCH&per_page=1" \
+              --jq '.workflow_runs[0].created_at // empty' 2>/dev/null || true)
+            if [ -z "$LAST_AT" ]; then
+              echo "should_build=true" >> "$GITHUB_OUTPUT"
+              echo "No successful run on record (or the API was unavailable) — building. Fail open."
+              exit 0
+            fi
+            LAST_EPOCH=$(date -u -d "$LAST_AT" +%s 2>/dev/null || echo "")
+            NOW_EPOCH=$(date -u +%s)
+            if [ -z "$LAST_EPOCH" ]; then
+              echo "should_build=true" >> "$GITHUB_OUTPUT"
+              echo "Could not parse '$LAST_AT' — building. Fail open."
+              exit 0
+            fi
+            AGE=$(( NOW_EPOCH - LAST_EPOCH ))
+            if [ "$AGE" -ge "$COOLDOWN_SECONDS" ]; then
+              echo "should_build=true" >> "$GITHUB_OUTPUT"
+              echo "Last successful build was ${AGE}s ago (>= ${COOLDOWN_SECONDS}s) — building."
+            else
+              echo "should_build=false" >> "$GITHUB_OUTPUT"
+              echo "Last successful build was only ${AGE}s ago; cooldown is ${COOLDOWN_SECONDS}s."
+              echo "These commits ship on the next push past the window, via the daily"
+              echo "backstop, or immediately via workflow_dispatch."
+            fi
+            exit 0
+          fi
+
           LAST_SHA=$(gh api \
             "repos/$REPO/actions/workflows/android-google-play.yml/runs?status=success&branch=$BRANCH&per_page=1" \
             --jq '.workflow_runs[0].head_sha // empty' 2>/dev/null || true)
