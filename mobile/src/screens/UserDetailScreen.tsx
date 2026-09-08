@@ -40,6 +40,8 @@ import OverlappingAvatars from '../components/OverlappingAvatars';
 import RingedAvatar from '../components/RingedAvatar';
 import HiddenTagEditor from '../components/HiddenTagEditor';
 import ErrorState from '../components/ErrorState';
+import EditableName from '../components/EditableName';
+import { saveFriendNickname, readCachedNickname } from '../lib/friendNickname';
 import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import { supabase } from '../lib/supabase';
@@ -202,6 +204,19 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const [friendPublicTags, setFriendPublicTags] = useState<{ id: string; name: string }[]>([]);
   const [pickedTagIds, setPickedTagIds] = useState<Set<string>>(new Set());
   const [connectionId, setConnectionId] = useState<string | null>(null);
+  // The viewer's private display-name override for this person.
+  //
+  // This screen is reached for a FRIEND more often than it looks: the
+  // search router picks FriendDetail only when the person is in a
+  // session-cached friend map that is fetched once with a 30s cooldown, so
+  // someone you just added lands HERE. Founder, right after adding one:
+  // 新增好友後，沒辦法改名字. The rename existed on FriendDetail and on the
+  // contact page, and this was the third door nobody had opened.
+  //
+  // get_user_detail does not return the nickname, so it comes from the
+  // connections snapshot — no network, works offline, and it is the same
+  // value the friends list is showing.
+  const [nickname, setNickname] = useState<string | null>(null);
 
   // Event info for QR-scan flow (shown above the "追蹤" button before adding friend).
 
@@ -438,6 +453,11 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
       setFollowerCount(Number(d.follower_count || 0));
       setIsFollowing(!!d.is_following);
       setConnectionId(d.connection_id ?? null);
+      if (d.connection_id && authUser?.id && resolvedUserId) {
+        void readCachedNickname(authUser.id, resolvedUserId).then((n) => {
+          if (!signal.aborted) setNickname(n);
+        });
+      }
       setIsCloseFriend(!!d.is_close_friend);
       setMutualFriends(Number(d.mutual_friends || 0));
 
@@ -1521,7 +1541,47 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     );
   }
 
-  const displayName = profile.full_name || profile.username || 'Unknown';
+  // Same precedence as the friends list, search, tag detail and
+  // FriendDetail: `nickname || full_name || username`. Without the first
+  // term this screen showed the real name for someone the viewer had
+  // already renamed elsewhere — the same person looking different
+  // depending on which door you came through.
+  // Sequenced like FriendDetail's: a second rename can start while the
+  // first is in flight, and only the latest may touch the UI.
+  const nicknameSaveRef = useRef(0);
+  const handleSaveNickname = useCallback(
+    async (next: string) => {
+      if (!connectionId || !authUser?.id || !resolvedUserId) return;
+      const token = ++nicknameSaveRef.current;
+      const previous = nickname;
+      const trimmed = next.trim();
+      const optimistic = trimmed.length > 0 ? trimmed : null;
+      if (optimistic === previous) return;
+
+      setNickname(optimistic);
+      const result = await saveFriendNickname({
+        userId: authUser.id,
+        connectionId,
+        friendId: resolvedUserId,
+        next,
+        previous,
+      });
+      if (token !== nicknameSaveRef.current) return;
+      if (!result.ok) {
+        if (result.reason === 'noop') return;
+        setNickname(previous);
+        Alert.alert(
+          t('common.error', { defaultValue: '發生錯誤' }),
+          t('friendDetail.nicknameSaveFailed', {
+            defaultValue: '名稱沒有儲存成功，請稍後再試。',
+          }),
+        );
+      }
+    },
+    [connectionId, authUser?.id, resolvedUserId, nickname, t],
+  );
+
+  const displayName = nickname || profile.full_name || profile.username || 'Unknown';
   const username = profile.username || '';
   const verified = profile.is_verified || false;
   const headline = profile.headline || '';
@@ -1575,7 +1635,28 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             />
             <View style={styles.nameSection}>
               <View style={styles.nameRow}>
-                <Text style={styles.name}>{displayName}</Text>
+                {/* Editable only when a connection actually exists —
+                    there is no nickname to write for a stranger, and a
+                    pencil that leads nowhere is worse than none. */}
+                <EditableName
+                  value={displayName}
+                  editValue={nickname ?? ''}
+                  onSave={handleSaveNickname}
+                  editable={!!connectionId}
+                  textStyle={styles.name}
+                  maxLength={40}
+                  allowEmpty
+                  placeholder={profile.full_name || profile.username || undefined}
+                  title={t('friendDetail.editNickname', {
+                    defaultValue: '編輯這位好友的顯示名稱',
+                  })}
+                  hint={t('friendDetail.nicknameHint', {
+                    defaultValue: '只有你看得到這個名字',
+                  })}
+                  accessibilityLabel={t('friendDetail.editNickname', {
+                    defaultValue: '編輯這位好友的顯示名稱',
+                  })}
+                />
                 {/* {verified && (
                   <CheckCircle2
                     size={16}

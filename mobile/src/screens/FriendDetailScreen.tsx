@@ -67,6 +67,7 @@ import BrandSpinner from '../components/loaders/BrandSpinner';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import { useLoadDeadline } from '../hooks/useLoadDeadline';
 import EditableName from '../components/EditableName';
+import { saveFriendNickname } from '../lib/friendNickname';
 import { checkOffline } from '../lib/netStatus';
 import {
   CACHE_KEYS,
@@ -406,93 +407,49 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     async (next: string) => {
       if (!connectionId || !user?.id) return;
       const token = ++nicknameSaveRef.current;
-      const trimmed = next.trim();
-      const value = trimmed.length > 0 ? trimmed : null;
       const previous = friendDataRef.current.connection?.nickname ?? null;
-      if (value === previous) return;
+      const trimmed = next.trim();
+      const optimistic = trimmed.length > 0 ? trimmed : null;
+      if (optimistic === previous) return;
 
-      // Optimistic: the header is the thing being edited, so it has to
-      // change the instant the keyboard closes.
-      dispatchFriendData({
-        type: 'SET_INITIAL',
-        payload: {
-          connection: {
-            ...(friendDataRef.current.connection as any),
-            nickname: value,
-          } as Connection,
-        },
-      });
-
-      // `.select()` so a zero-row update is visible. PostgREST answers a
-      // filter that matches nothing with 204 and error === null, so without
-      // it a rename that stored NOTHING reported success: the header kept
-      // the new name and the CONNECTIONS snapshot was patched with a
-      // nickname the server does not have. That happens for real — the row
-      // can be gone (unfriended on another device) while a stale
-      // connectionId still rides along from the cached list. The contact
-      // path already does this correctly via useLocalContacts.update, so
-      // the two write paths were disagreeing.
-      const { data: updated, error } = await supabase
-        .from('piktag_connections')
-        .update({ nickname: value })
-        .eq('id', connectionId)
-        .select('id')
-        .maybeSingle();
-
-      if (token !== nicknameSaveRef.current) return;
-      if (error || !updated) {
-        console.warn(
-          '[FriendDetail] nickname save failed:',
-          error ?? 'no row updated (connection gone, or RLS denied)',
-        );
-        // Put the old name back rather than leaving a rename on screen
-        // that the server never accepted.
+      const paint = (nickname: string | null) =>
         dispatchFriendData({
           type: 'SET_INITIAL',
           payload: {
             connection: {
               ...(friendDataRef.current.connection as any),
-              nickname: previous,
+              nickname,
             } as Connection,
           },
         });
+
+      // The header is the thing being edited, so it changes the instant
+      // the sheet closes; the write below either confirms it or puts the
+      // old name back.
+      paint(optimistic);
+
+      const result = await saveFriendNickname({
+        userId: user.id,
+        connectionId,
+        friendId,
+        next,
+        previous,
+      });
+
+      // A newer rename has started; its result is the one that counts.
+      // Without this, an older FAILED save would revert a newer successful
+      // one and alert about a rename that actually landed.
+      if (token !== nicknameSaveRef.current) return;
+      if (!result.ok) {
+        if (result.reason === 'noop') return;
+        paint(previous);
         Alert.alert(
           t('common.error', { defaultValue: '發生錯誤' }),
           t('friendDetail.nicknameSaveFailed', {
             defaultValue: '名稱沒有儲存成功，請稍後再試。',
           }),
         );
-        return;
       }
-
-      // The friends list reads the IN-MEMORY layer first and only falls
-      // back to disk when that is missing (ConnectionsScreen's 5-minute
-      // TTL entry). Patching only the disk copy meant the rename was
-      // invisible on the list until that entry expired, which the comment
-      // below used to claim it fixed. Drop the memory entry so the list
-      // re-reads, then patch the disk copy for offline.
-      invalidateCache(CACHE_KEYS.CONNECTIONS);
-      // Keep the friends-list snapshot in step. Without this the list
-      // (and every offline read of it) shows the old name until the next
-      // successful full fetch — and offline, that could be days.
-      void (async () => {
-        try {
-          const cached = await getPersistentCache<CachedConnectionRow[]>(
-            CACHE_KEYS.CONNECTIONS,
-            user.id,
-          );
-          if (!Array.isArray(cached)) return;
-          await setPersistentCache(
-            CACHE_KEYS.CONNECTIONS,
-            user.id,
-            cached.map((c) =>
-              c?.connected_user_id === friendId ? { ...c, nickname: value } : c,
-            ),
-          );
-        } catch {
-          /* best-effort, same contract as every other snapshot write */
-        }
-      })();
     },
     [connectionId, user?.id, friendId, t],
   );
