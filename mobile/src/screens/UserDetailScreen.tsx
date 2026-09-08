@@ -1177,7 +1177,40 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   // Toggle a public tag pick. Live-writes to DB — see FriendDetailScreen for
   // rationale (removes the "新增 vs 儲存" double-button confusion).
   const togglePickTag = async (tagId: string) => {
-    if (!connectionId) return;
+    // No connection meant a SILENT RETURN: the modal opened, the pills did
+    // not even highlight when tapped (setPickedTagIds is below this line),
+    // and 儲存 — which is only a close button — dismissed it as if the tags
+    // had been saved. Founder hit it from a profile showing 追蹤中. That is
+    // 靜默丟棄, the one failure mode this repo does not allow.
+    //
+    // The repair, not a new gate: followUser() already creates the follow
+    // row AND the connection row atomically, so in this app following IS
+    // connecting. A profile that is followed with no connection is a state
+    // that should not exist — a legacy row, or a path that missed one half
+    // — so the honest response to a tap is to heal it and carry on, not to
+    // ask the user to fix our data by pressing something else first.
+    //
+    // Nothing about the relationship changes that the user has not already
+    // chosen: they are following this person; the connection is the other
+    // half of that same act.
+    let cid = connectionId;
+    if (!cid) {
+      if (!authUser?.id || !resolvedUserId) return;
+      const { connectionId: repaired, error } = await followUser(authUser.id, resolvedUserId);
+      if (error || !repaired) {
+        console.warn('[UserDetail] could not attach a connection for tagging:', error);
+        Alert.alert(
+          t('common.error', { defaultValue: '發生錯誤' }),
+          t('userDetail.tagNeedsConnection', {
+            defaultValue: '目前無法標記這個人，請稍後再試。',
+          }),
+        );
+        return;
+      }
+      cid = repaired;
+      setConnectionId(repaired);
+      setIsFollowing(true);
+    }
     const wasPicked = pickedTagIds.has(tagId);
     setPickedTagIds(prev => {
       const next = new Set(prev);
@@ -1190,13 +1223,13 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         await supabase
           .from('piktag_connection_tags')
           .delete()
-          .eq('connection_id', connectionId)
+          .eq('connection_id', cid)
           .eq('tag_id', tagId)
           .eq('is_private', false);
       } else {
         await supabase
           .from('piktag_connection_tags')
-          .insert({ connection_id: connectionId, tag_id: tagId, is_private: false });
+          .insert({ connection_id: cid, tag_id: tagId, is_private: false });
       }
     } catch (err) {
       console.warn('togglePickTag failed:', err);

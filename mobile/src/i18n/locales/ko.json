@@ -767,7 +767,8 @@
     "vibeContextTagsTitle": "이 Tag의 태그",
     "blockConfirmTitle": "이 사람을 차단할까요?",
     "blockConfirmMessage": "서로 팔로우가 해제되고 상대 콘텐츠도 안 보여요.",
-    "vibeContextTagsHint": "탭하여 상대 프로필에 태그 추가 (나만 볼 수 있음)."
+    "vibeContextTagsHint": "탭하여 상대 프로필에 태그 추가 (나만 볼 수 있음).",
+    "tagNeedsConnection": "지금은 이 사람에게 태그를 추가할 수 없습니다. 다시 시도해 주세요."
   },
   "settings": {
     "headerTitle": "설정",

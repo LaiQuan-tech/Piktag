@@ -767,7 +767,8 @@
     "vibeContextTagsTitle": "Tag từ Tag này",
     "blockConfirmTitle": "Chặn người này?",
     "blockConfirmMessage": "Cả hai sẽ bỏ theo dõi nhau và không còn thấy nội dung của nhau.",
-    "vibeContextTagsHint": "Chạm để gắn tag vào hồ sơ họ (chỉ bạn thấy)."
+    "vibeContextTagsHint": "Chạm để gắn tag vào hồ sơ họ (chỉ bạn thấy).",
+    "tagNeedsConnection": "Hiện chưa thể gắn thẻ người này. Vui lòng thử lại."
   },
   "settings": {
     "headerTitle": "Cài đặt",

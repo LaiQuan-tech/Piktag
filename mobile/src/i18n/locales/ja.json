@@ -767,7 +767,8 @@
     "vibeContextTagsTitle": "この Tag のタグ",
     "blockConfirmTitle": "この人をブロック？",
     "blockConfirmMessage": "お互いのフォローが外れ、相手の投稿も見えなくなります。",
-    "vibeContextTagsHint": "タップして相手のプロフィールにタグを追加(自分だけに表示)。"
+    "vibeContextTagsHint": "タップして相手のプロフィールにタグを追加(自分だけに表示)。",
+    "tagNeedsConnection": "今このユーザーにタグを付けられませんでした。もう一度お試しください。"
   },
   "settings": {
     "headerTitle": "設定",

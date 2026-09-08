@@ -767,7 +767,8 @@
     "vibeContextTagsTitle": "وسوم هذا الـ Tag",
     "blockConfirmTitle": "حظر هذا الشخص؟",
     "blockConfirmMessage": "ستلغيان متابعة بعضكما ولن تريا محتوى الآخر.",
-    "vibeContextTagsHint": "اضغط لإضافة وسم إلى ملفه الشخصي (يظهر لك فقط)."
+    "vibeContextTagsHint": "اضغط لإضافة وسم إلى ملفه الشخصي (يظهر لك فقط).",
+    "tagNeedsConnection": "تعذّر وسم هذا الشخص الآن. حاول مرة أخرى."
   },
   "settings": {
     "headerTitle": "الإعدادات",

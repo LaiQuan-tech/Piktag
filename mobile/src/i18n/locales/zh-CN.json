@@ -767,7 +767,8 @@
     "vibeContextTagsTitle": "这次 Tag 带的标签",
     "blockConfirmTitle": "屏蔽这个人？",
     "blockConfirmMessage": "你们会互相取消关注，也不再看到彼此的内容。",
-    "vibeContextTagsHint": "想贴到他个人页的点一下（只有你看得到）"
+    "vibeContextTagsHint": "想贴到他个人页的点一下（只有你看得到）",
+    "tagNeedsConnection": "目前无法标记这个人，请稍后再试。"
   },
   "settings": {
     "headerTitle": "设置",

@@ -767,7 +767,8 @@
     "vibeContextTagsTitle": "Tag dari Tag ini",
     "blockConfirmTitle": "Blokir orang ini?",
     "blockConfirmMessage": "Kalian akan saling berhenti mengikuti dan tak lagi melihat konten satu sama lain.",
-    "vibeContextTagsHint": "Ketuk untuk menambah tag ke profil mereka (hanya kamu yang lihat)."
+    "vibeContextTagsHint": "Ketuk untuk menambah tag ke profil mereka (hanya kamu yang lihat).",
+    "tagNeedsConnection": "Belum bisa menandai orang ini. Coba lagi."
   },
   "settings": {
     "headerTitle": "Pengaturan",

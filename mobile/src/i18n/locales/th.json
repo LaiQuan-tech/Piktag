@@ -767,7 +767,8 @@
     "vibeContextTagsTitle": "แท็กของ Tag นี้",
     "blockConfirmTitle": "บล็อกคนนี้?",
     "blockConfirmMessage": "คุณทั้งคู่จะเลิกติดตามกันและไม่เห็นเนื้อหาของกันและกัน",
-    "vibeContextTagsHint": "แตะเพื่อแปะแท็กไปที่โปรไฟล์เขา (เห็นเฉพาะคุณ)"
+    "vibeContextTagsHint": "แตะเพื่อแปะแท็กไปที่โปรไฟล์เขา (เห็นเฉพาะคุณ)",
+    "tagNeedsConnection": "ยังแท็กบุคคลนี้ไม่ได้ กรุณาลองใหม่"
   },
   "settings": {
     "headerTitle": "ตั้งค่า",

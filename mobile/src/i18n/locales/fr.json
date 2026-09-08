@@ -767,7 +767,8 @@
     "vibeContextTagsTitle": "Tags de ce Tag",
     "blockConfirmTitle": "Bloquer cette personne ?",
     "blockConfirmMessage": "Vous ne vous suivrez plus et ne verrez plus le contenu de l'autre.",
-    "vibeContextTagsHint": "Appuie pour ajouter un tag à son profil (visible par toi seul)."
+    "vibeContextTagsHint": "Appuie pour ajouter un tag à son profil (visible par toi seul).",
+    "tagNeedsConnection": "Impossible d'ajouter un tag à cette personne pour l'instant. Réessayez."
   },
   "settings": {
     "headerTitle": "Réglages",

@@ -767,7 +767,8 @@
     "vibeContextTagsTitle": "這次 Tag 帶的標籤",
     "blockConfirmTitle": "封鎖這個人？",
     "blockConfirmMessage": "你們會互相取消追蹤，也不再看到彼此的內容。",
-    "vibeContextTagsHint": "想貼到他個人頁的點一下（只有你看得到）"
+    "vibeContextTagsHint": "想貼到他個人頁的點一下（只有你看得到）",
+    "tagNeedsConnection": "目前無法標記這個人，請稍後再試。"
   },
   "settings": {
     "headerTitle": "設定",

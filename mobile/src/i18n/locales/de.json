@@ -767,7 +767,8 @@
     "vibeContextTagsTitle": "Tags dieses Vibes",
     "blockConfirmTitle": "Diese Person blockieren?",
     "blockConfirmMessage": "Ihr folgt euch nicht mehr und seht eure Inhalte nicht mehr.",
-    "vibeContextTagsHint": "Tippe, um einen Tag an ihr Profil anzuhängen (nur für dich sichtbar)."
+    "vibeContextTagsHint": "Tippe, um einen Tag an ihr Profil anzuhängen (nur für dich sichtbar).",
+    "tagNeedsConnection": "Diese Person konnte gerade nicht getaggt werden. Bitte erneut versuchen."
   },
   "settings": {
     "headerTitle": "Einstellungen",

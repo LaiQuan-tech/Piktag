@@ -767,7 +767,8 @@
     "vibeContextTagsTitle": "Bu Tag’in etiketleri",
     "blockConfirmTitle": "Bu kişi engellensin mi?",
     "blockConfirmMessage": "Birbirinizi takipten çıkarsınız ve içeriklerinizi görmezsiniz.",
-    "vibeContextTagsHint": "Profillerine etiket eklemek için dokun (yalnız sen görürsün)."
+    "vibeContextTagsHint": "Profillerine etiket eklemek için dokun (yalnız sen görürsün).",
+    "tagNeedsConnection": "Bu kişi şu anda etiketlenemedi. Lütfen tekrar deneyin."
   },
   "settings": {
     "headerTitle": "Ayarlar",

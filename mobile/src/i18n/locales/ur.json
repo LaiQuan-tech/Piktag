@@ -767,7 +767,8 @@
     "vibeContextTagsTitle": "اس ٹیگ کے ٹیگز",
     "blockConfirmTitle": "اس شخص کو بلاک کریں؟",
     "blockConfirmMessage": "آپ دونوں ایک دوسرے کو اَن فالو کر دیں گے اور مواد نہیں دیکھ سکیں گے۔",
-    "vibeContextTagsHint": "ان کے پروفائل پر ٹیگ شامل کرنے کے لیے ٹیپ کریں (صرف آپ کو نظر آئے گا)۔"
+    "vibeContextTagsHint": "ان کے پروفائل پر ٹیگ شامل کرنے کے لیے ٹیپ کریں (صرف آپ کو نظر آئے گا)۔",
+    "tagNeedsConnection": "اس شخص کو ابھی ٹیگ نہیں کیا جا سکا۔ دوبارہ کوشش کریں۔"
   },
   "settings": {
     "headerTitle": "ترتیبات",
