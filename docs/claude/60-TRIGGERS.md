@@ -43,8 +43,26 @@
 | 28 | 批次**移除**標籤 | 上線後有真實使用者用過批次加標籤(最可能的觸發:有人手滑全選、加錯一批來反映) | 在 **BatchTagScreen 加一個移除模式**,不另開畫面(CLAUDE.md:批次 UI 只有一個)。現況是完全沒有批次移除:會員要一個個進 HiddenTagEditor 刪(`piktag_connection_tags` delete),聯絡人要一個個開 EditLocalContact 改 tags 陣列 —— 分散在兩個畫面。**這個不對稱是 2026-09-09 自己造出來的**:同一天把「幫 30 人加標籤」變成一鍵,卻沒動移除。照片 app 的同一條工具列裡就有「從相簿移除」,借的時候漏掉這一半 | 本 session 查證(HiddenTagEditor.tsx:265、EditLocalContactScreen.tsx:181) | 上線後 |
 | 29 | @piktag 可被單獨點選進批次 | 下次動到 ConnectionsScreen 選取模式時順手做,不專程(同 #16 規矩) | 全選已排除 is_official,但手動點該列仍選得進去 —— 同一條規則兩個地方不一致。讓官方帳號那一列在選取模式中不可選即可。後果不嚴重(把官方帳號標成「客戶」),但那是我們自己留的髒資料 | 本 session 查證(ConnectionsScreen selectableIds 過濾 OFFICIAL_USER_ID,handleConnectionPress 沒有) | 未達 |
 | 30 | 觸覺回饋鋪全 app | 上線後,且要**一次鋪完**不挑單頁 | `expo-haptics` 已在依賴(~15.0.8)但**全 app 零使用**。選取、加好友成功、儲存等離散動作加輕震,是「原生感」的一大半。**只加在某一頁 = 不一致**,比不加更糟。(2026-09-09 從照片 app 借使用者習慣時提出並延後;創辦人未明示要,若判定不做就刪掉本條) | 本 session 查證(package.json:33;grep Haptics 全無) | 上線後 |
+| 31 | SECURITY DEFINER RPC 權限收尾(7 支) | **上線後**,或 Supabase advisor 的 anon-executable 清單要清乾淨時。創辦人 2026-09-09 裁決:只修真的有洞的三條,其餘不動 | **先讀本列再重查,這輪稽核花了 130k token。** ①**機制**:Supabase 上 `REVOKE ... FROM PUBLIC` **無效** —— default privileges 會另給每支函式一份指名 anon/authenticated 的 grant,REVOKE PUBLIC 動不到。repo 裡有 8 支 REVOKE FROM PUBLIC 過的函式至今仍 anon 可執行。**一律用三角色具名撤銷**(`FROM PUBLIC, anon, authenticated` 再 GRANT 回去),照 20260626000000 與 20260909230000 的寫法。②**還沒修的 7 支**(依風險):`trigger_tag_suggest_nudge`(20260702170000:252,匿名可無限觸發整輪 Gemini + 推播,**帳單風險,這支是 7 支裡唯一會花錢的**)、`bump_tag_search_count`(20260526010000:53,裸 +1 零去重,且 popularity_score 給 search_count **兩倍** usage_count 權重 → 可灌搜尋排序;撤 anon 只止血,登入者仍可灌,要另加節流)、`is_admin`(20260429180000:33,可枚舉管理員)、`popular_tags_near_location`(20260508150001:27)、`qr_group_member_count`(20260513070000:59;**20260626000000:30 說它是「pre-auth 公開流程」是錯的**,唯一 caller 是已登入的 QrGroupListScreen.tsx:210)、`is_test_account_user`(20260705030000:47)、`is_notification_category_enabled`(20260706030000:161)。另 `notify_admin_on_signup` 是 `RETURNS trigger`,PostgREST 不暴露,**純 lint 潔癖不必修**。③**絕不可撤 anon 的 6 支**(landing/api 用 anon key,撤了就是把公開頁弄壞,`get_tribe_size` 已經犯過一次):`tag_page_members`、`get_tribe_size`、`record_pending_connection`、`get_scan_session_public`、`get_ask_public`、`submit_ask_web_reply`。④**兩支查不到定義、不要猜**:`increment_scan_count`(migrations 裡零 CREATE,是在 dashboard 直接建的,**要 live 探 prosrc** —— 若是裸 +1 就是第四支可灌水計數器)、`increment_tag_usage`/`decrement_tag_usage` 的 `tag_id` overload(repo 最新版參數名是 `p_tag_id` 且為重算式不可灌水,但所有 client 傳 `tag_id`,PostgREST 照參數名解析 → 線上必有一份原始碼不在 repo 的舊 overload)。⑤順手:`get_scan_session_public` 缺 `SET search_path`(20260521000000:22) | 2026-09-09 subagent 稽核 + 本 session 逐條驗證 | 上線後 |
 
 ## 已結案(留檔防重做)
+- **SECURITY DEFINER 稽核的三條真洞 — 2026-09-09 修掉並上線(20260909230000,deploy ab2e0a3f success)。**
+  ①`resolve_pending_connections` 原本**零 auth 檢查**卻是 SECURITY DEFINER,
+  且 `p_new_user_id` 由呼叫端傳 —— 匿名者拿著印在公開分享連結上的 sid 就能
+  替任意使用者建立雙向好友關係、寫私人 connection_tags、灌 scan_count。
+  **撤 anon 不夠**(登入者仍可冒充),已在函式內加 `auth.uid() = p_new_user_id`
+  守衛。唯一呼叫點 AppNavigator.tsx:893 傳的是 `session.user.id`,守衛對它透明。
+  ②`select_tag_nudge_due_users` 回傳 push_token/bio/full_name 且筆數由呼叫端控制,
+  已具名撤除 anon/authenticated(唯一 caller 走 service role,行為不變)。
+  ③`get_tribe_size` **刻意重新開放給 anon** —— 20260626000000 當它「已退役」撤掉,
+  但公開個人頁還在用 anon key 呼叫(landing/api/u/[username].js:151),且該呼叫把
+  tribe size 當裝飾性、吞掉錯誤,所以**從 6/25 起靜默壞了兩個半月沒人發現**。
+  創辦人裁決保留功能、還原 grant。**教訓:撤 grant 前先 grep landing/api,
+  mobile 沒 caller 不代表沒 caller。**
+- **`public.bookings` 孤兒表 — 2026-09-09 已 DROP(20260909220000)。**
+  Supabase 範本殘留,`WITH CHECK true` 讓匿名可無限寫入。全 repo 零命中
+  (大小寫不敏感、不限副檔名,涵蓋 234 個 migration 與所有前端目錄)。
+  advisor 上那條 WARN 隨表消失。**不要再建回來。**
 - **`piktag_connection_tags` 的 is_private 稽核 — 2026-09-09 結案,無需修補。**
   疑慮:被刪掉的 ConnectionsScreen 批次 modal 沒寫 is_private,若欄位預設是
   false,那些私人標籤會被當成公開背書,還會灌 search 的 endorser_count。
