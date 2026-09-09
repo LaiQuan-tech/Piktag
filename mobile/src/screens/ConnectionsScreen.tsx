@@ -138,12 +138,29 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk,
   if (notJoined) {
     return (
       <TouchableOpacity
-        style={[styles.connectionItem, styles.connectionItemLocal]}
+        style={[styles.connectionItem, styles.connectionItemLocal, isSelected && styles.connectionItemSelected]}
         activeOpacity={0.7}
         onPress={() => onPress(item)}
+        onLongPress={() => onLongPress(item)}
         accessibilityLabel={displayName}
         accessibilityRole="button"
       >
+        {/* Contacts are batch-taggable too (founder 2026-09-09). They
+            used to be the one row type with no checkbox, which read as
+            "these are not part of this action" — while they are in fact
+            the people tags matter MOST for: a non-member you tagged is
+            a match waiting for the day they join. The tag lands on
+            piktag_local_contacts.tags, and promote_local_contacts
+            copies it into real connection tags when they register. */}
+        {selectMode && (
+          <View style={styles.checkboxContainer}>
+            {isSelected ? (
+              <CheckSquare size={22} color={colors.piktag600} />
+            ) : (
+              <Square size={22} color={colors.gray400} />
+            )}
+          </View>
+        )}
         <RingedAvatar size={59} ringStyle="subtle" name={displayName} avatarUrl={notJoined.avatar_url ?? null} />
         <View style={styles.textSection}>
           <View style={styles.nameRow}>
@@ -270,7 +287,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // in the SAME list, dimmed + a "尚未加入" badge; when they later
   // register, the server trigger promotes them into real
   // connections and they drop out of this (un-promoted) query.
-  const { contacts: localContacts, refresh: refreshLocalContacts } = useLocalContacts();
+  const { contacts: localContacts_, refresh: refreshLocalContacts } = useLocalContacts();
   const { asks: askFeedItems, myAsk: myActiveAsk, refresh: refreshAsks } = useAskFeed();
 
   // Ask create modal visibility — opened from the cold-start
@@ -795,7 +812,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     // against "#name", actually includes matching local contacts
     // (it silently didn't before).
     const hashTag = (n: string) => '#' + String(n).replace(/^#+/, '');
-    const mapped = (localContacts || [])
+    const mapped = (localContacts_ || [])
       .filter(
         (lc) => !filterTag || (lc.tags ?? []).some((n) => hashTag(n) === filterTag),
       )
@@ -822,7 +839,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     return mapped.length
       ? [...sortedConnections, ...mapped]
       : sortedConnections;
-  }, [sortedConnections, localContacts, filterTag, notJoinedLabel]);
+  }, [sortedConnections, localContacts_, filterTag, notJoinedLabel]);
 
   // All unique semantic types from connections (for filter)
   const allConnectionTags = useMemo(() => {
@@ -839,15 +856,10 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // --- Optimized: useCallback for handlers ---
   const handleConnectionPress = useCallback((item: ConnectionWithTags) => {
     const lc = (item as any).__localContact;
-    if (lc) {
+    if (lc && !selectMode) {
       // Not-yet-on-PikTag manual contact → its profile VIEW (the
       // contact analog of FriendDetail; 編輯 there opens the form).
-      // Select-mode is N/A for these: they have no connection row to
-      // tag. In select mode the tap is INERT rather than navigating —
-      // being thrown onto another screen mid-selection reads as the
-      // app losing the selection, and the row shows no checkbox to
-      // explain why it could not be picked.
-      if (!selectMode) navigation.navigate('LocalContactDetail', { contactId: lc.id });
+      navigation.navigate('LocalContactDetail', { contactId: lc.id });
       return;
     }
     if (selectMode) {
@@ -869,9 +881,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   }, [selectMode, navigation, t]);
 
   const handleConnectionLongPress = useCallback((item: ConnectionWithTags) => {
-    // Local contacts aren't bulk-selectable (batch ops act on real
-    // connections only).
-    if ((item as any).__localContact) return;
     if (!selectMode) {
       setSelectMode(true);
       setSelectedIds(new Set([item.id]));
@@ -901,14 +910,17 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     // account, so 全選 would silently file the app's own account under
     // the user's tag. Long-pressing it specifically still works —
     // this only stops it riding along in a bulk action.
+    // listData, not sortedConnections: contacts are batch-taggable now,
+    // and 全選 that silently skipped every 尚未加入 row would be a second
+    // way of saying they are not part of this.
     setSelectedIds(
       new Set(
-        sortedConnections
+        listData
           .filter((c) => c.connected_user_id !== OFFICIAL_USER_ID)
           .map((c) => c.id),
       ),
     );
-  }, [sortedConnections]);
+  }, [listData]);
 
   // Batch tagging now hands the selection to the SHARED BatchTagScreen
   // instead of a text-input modal that lived only here.
@@ -926,18 +938,36 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // refetch on the way back; the new tags must be on the rows the moment
   // the user lands here again. (Same trick as the ActivityReview link.)
   const handleBatchTagPress = useCallback(() => {
-    const chosen = sortedConnections.filter((c) => selectedIds.has(c.id));
-    if (chosen.length === 0) return;
-    const people = chosen.map((c) => ({
-      connectionId: c.id,
-      userId: c.connected_user_id,
-      name: c.nickname || c.connected_user?.full_name || c.connected_user?.username || '',
-      avatarUrl: c.connected_user?.avatar_url ?? null,
-    }));
+    // The selection can hold both kinds of row and they are written to
+    // different tables — members to piktag_connection_tags, contacts to
+    // piktag_local_contacts.tags — so they travel as two lists. The
+    // 'lc:' prefix comes from listData, which is where the two streams
+    // were merged in the first place.
+    const people = sortedConnections
+      .filter((c) => selectedIds.has(c.id))
+      .map((c) => ({
+        connectionId: c.id,
+        userId: c.connected_user_id,
+        name: c.nickname || c.connected_user?.full_name || c.connected_user?.username || '',
+        avatarUrl: c.connected_user?.avatar_url ?? null,
+      }));
+    const localContacts = (localContacts_ ?? [])
+      .filter((lc) => selectedIds.has('lc:' + lc.id))
+      .map((lc) => ({
+        key: 'lc:' + lc.id,
+        name: lc.name,
+        // The stored columns are the normalized ones; there is no bare
+        // phone/email on piktag_local_contacts.
+        phone: lc.mobile_normalized ?? lc.phone_normalized ?? null,
+        email: lc.email_lower ?? null,
+        existingId: lc.id,
+        existingTags: lc.tags ?? [],
+      }));
+    if (people.length === 0 && localContacts.length === 0) return;
     exitSelectMode();
     lastFetchRef.current = 0;
-    navigation.navigate('BatchTag', { people, origin: 'manual' });
-  }, [sortedConnections, selectedIds, exitSelectMode, navigation]);
+    navigation.navigate('BatchTag', { people, localContacts, origin: 'manual' });
+  }, [sortedConnections, localContacts_, selectedIds, exitSelectMode, navigation]);
 
   // Per-author lookup table for active Asks. Stores both the
   // existence flag (drives the avatar gradient ring) and a

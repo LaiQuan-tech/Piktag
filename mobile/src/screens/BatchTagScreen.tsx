@@ -14,10 +14,15 @@
 //      rows for contacts that had none) — the same array the promote
 //      trigger copies into real connection tags when that person joins.
 //
-//   3. Manual mode (`people` + origin 'manual', 2026-09-09): cohort = the
-//      friends the user picked themselves in ConnectionsScreen's select
-//      mode. Same write as burst (private connection tags), different
-//      copy and a separate analytics event.
+//   3. Manual mode (`people` and/or `localContacts`, origin 'manual',
+//      2026-09-09): cohort = whoever the user picked themselves in
+//      ConnectionsScreen's select mode. This is the only mode that can
+//      hold BOTH kinds of person at once, so it writes to both tables in
+//      one save: members to piktag_connection_tags (private, like burst),
+//      non-members to piktag_local_contacts.tags (like import). Founder:
+//      「批次加標籤應該要包含聯絡人」 — and they are the ones it matters
+//      most for, since a tagged non-member is a match waiting for the day
+//      they join (promote_local_contacts copies the array across).
 //
 // Mode 3 used to be a SECOND batch UI: a bare text-input modal inside
 // ConnectionsScreen with its own find-or-create-tag logic, which (a) broke
@@ -84,6 +89,10 @@ type Props = {
     params?: {
       people?: BurstPerson[];
       deviceContacts?: ImportContact[];
+      // Manual mode's non-member half. Same shape as deviceContacts, but
+      // these rows already EXIST (existingId is always set), so they are
+      // updated, never created.
+      localContacts?: ImportContact[];
       // Who chose the cohort. Defaults to 'burst' so the two older
       // callers (ScanResult, UserDetail) keep their copy and their
       // metric without passing anything.
@@ -112,6 +121,7 @@ export default function BatchTagScreen({ navigation, route }: Props) {
   const next = route.params?.next;
   const isImport = deviceContacts.length > 0;
   const isManual = !isImport && route.params?.origin === 'manual';
+  const localContacts: ImportContact[] = route.params?.localContacts ?? [];
 
   const { add: addLocalContact, update: updateLocalContact } = useLocalContacts();
 
@@ -124,18 +134,38 @@ export default function BatchTagScreen({ navigation, route }: Props) {
             avatarUrl: null,
             subtitle: c.phone || c.email || undefined,
           }))
-        : people.map((p) => ({
-            key: p.connectionId,
-            name: p.name,
-            avatarUrl: p.avatarUrl,
-          })),
-    [isImport, deviceContacts, people],
+        : [
+            ...people.map((p) => ({
+              key: p.connectionId,
+              name: p.name,
+              avatarUrl: p.avatarUrl,
+            })),
+            // Contacts sort after members and carry their existing tags as
+            // the subtitle, so a second pass does not silently re-add one.
+            // Their keys are 'lc:'-prefixed by the caller, which is what
+            // keeps the two halves separable at save time.
+            ...localContacts.map((c) => ({
+              key: c.key,
+              name: c.name,
+              avatarUrl: null,
+              subtitle:
+                c.existingTags.length > 0
+                  ? bidiMark() + c.existingTags.map((tg) => `#${tg}`).join(' ')
+                  : c.phone || c.email || undefined,
+            })),
+          ],
+    [isImport, deviceContacts, people, localContacts],
   );
 
   // Burst: everyone pre-selected (one event, opt-out). Import: empty —
   // a bucket is a SUBSET by definition, the user picks the circle.
   const [selected, setSelected] = useState<Set<string>>(
-    () => new Set(isImport ? [] : people.map((p) => p.connectionId)),
+    () =>
+      new Set(
+        isImport
+          ? []
+          : [...people.map((p) => p.connectionId), ...localContacts.map((c) => c.key)],
+      ),
   );
   const [tagName, setTagName] = useState('');
   const [saving, setSaving] = useState(false);
@@ -193,10 +223,38 @@ export default function BatchTagScreen({ navigation, route }: Props) {
   const saveConnections = async (name: string) => {
     const tagId = await findOrCreateTag(name);
     if (!tagId) return;
-    const ids = [...selected];
-    await attachPrivateTagsToConnections(ids, [tagId]);
-    if (isManual) trackManualBatchTagged(ids.length);
-    else trackBurstTagApplied(people.length, ids.length);
+    // Split by the 'lc:' prefix. Burst mode has no contacts, so this is a
+    // no-op there and the two paths stay one function.
+    const connectionIds = [...selected].filter((k) => !k.startsWith('lc:'));
+    const contactKeys = [...selected].filter((k) => k.startsWith('lc:'));
+
+    if (connectionIds.length > 0) {
+      await attachPrivateTagsToConnections(connectionIds, [tagId]);
+    }
+
+    // Contacts get the tag NAME appended to their text[] array — there is
+    // no join table for a person who has not registered. Idempotent: a
+    // contact that already carries this tag is skipped rather than
+    // growing a duplicate, which matters because this screen is reachable
+    // twice for the same person.
+    let contactsTagged = 0;
+    const byKey = new Map(localContacts.map((c) => [c.key, c]));
+    for (const key of contactKeys) {
+      const contact = byKey.get(key);
+      if (!contact?.existingId) continue;
+      if (contact.existingTags.includes(name)) {
+        contactsTagged += 1;
+        continue;
+      }
+      const ok = await updateLocalContact(contact.existingId, {
+        tags: [...contact.existingTags, name],
+      });
+      if (ok) contactsTagged += 1;
+    }
+
+    const total = connectionIds.length + contactsTagged;
+    if (isManual) trackManualBatchTagged(total);
+    else trackBurstTagApplied(people.length, total);
   };
 
   // ── Save: import mode → piktag_local_contacts.tags (creating rows) ──
@@ -320,7 +378,7 @@ export default function BatchTagScreen({ navigation, route }: Props) {
             })
           : isManual
             ? t('batchTag.manualSubtitle', {
-                count: people.length,
+                count: people.length + localContacts.length,
                 defaultValue: '你選了 {{count}} 位 — 加上共同的標籤，之後搜這個標籤就能一次找回他們。',
               })
             : t('batchTag.subtitle', {
