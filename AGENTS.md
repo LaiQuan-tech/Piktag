@@ -1,9 +1,10 @@
 # PikTag — Codex working memory(路由版,2026-07-06 重構)
 
 > 每個 session 自動載入。本檔只放**每次都要遵守的硬規則**與**路由表**。
-> 詳細脈絡、verbatim 引言、歷史決策都在 `docs/Codex/ref-*.md` —— 路由表
-> 寫明什麼情境要先讀哪份。舊版全文:`docs/Codex/archive/Codex-2026-07-06-full.md`。
-> 制度怎麼維護:`docs/Codex/40-MAINTENANCE.md`(改本檔前必讀)。
+> 詳細脈絡、verbatim 引言、歷史決策都在 `docs/claude/ref-*.md` —— 路由表
+> 寫明什麼情境要先讀哪份。舊版全文:`docs/claude/archive/CLAUDE-2026-07-06-full.md`
+> (**歷史快照,不可依循** —— 裡面有已撤銷的規則,只供追溯)。
+> 制度怎麼維護:`docs/claude/40-MAINTENANCE.md`(改本檔前必讀)。
 
 ## North Star(創辦人指定,所有取捨的判準)
 
@@ -15,7 +16,7 @@
 **怎麼用**:任何 trade-off,選(a)保護 AI 標籤品質與跨語言匹配、
 (b)提高真實加好友/非會員轉化、(c)降低 `掃→標→連` 與 `搜標籤→激活`
 兩條迴圈摩擦的那個選項。與 North Star 相悖的要求,**中肯地說出來**,
-不要照單全收。反例教訓與 Meta 反模式全文 → `docs/Codex/ref-tag-algorithm.md`。
+不要照單全收。反例教訓與 Meta 反模式全文 → `docs/claude/ref-tag-algorithm.md`。
 
 ## 硬規則(NEVER / MUST 級,違反即缺陷)
 
@@ -43,7 +44,8 @@
   (AddTag)= 灰色 opt-in。這是設計,不是不一致,不要「統一」。
 - **免費/付費批次標籤界線(2026-09-09 創辦人改切)**:界線在「**怎麼選人**」,
   不在「能不能選」。**免費 = 使用者手選**(好友列表選取模式);付費 = 使用者
-  自訂條件選人(依標籤/地點/時間/未標籤者)、一次套多標籤、整批 AI 建議、
+  自訂條件選人(依標籤/地點/時間/未標籤者)、一次套多標籤(免費的手選
+  現況就是一次一個標籤,付費不是收回而是加倍)、整批 AI 建議、
   匯出選取批次。**系統自動提出的批次(爆發偵測、匯入分類)一律免費**,那從來
   不是界線爭點,不必逐條列 —— 系統的時間 cohort 不因為付費層有「依時間選人」
   就變付費,差別在**誰發起**。**絕不把已免費的手選批次收回付費**(roadmap
@@ -106,10 +108,10 @@
   push 到 main 自動套用,不要叫創辦人手跑 SQL。Supabase ref
   `kbwfdskulxnhjckdvghj`。
 - **寫 SQL 前先 live 探測 schema**(文件會過期,DB 不會):探測食譜與
-  pgvector search_path、CLI 陷阱 → `docs/Codex/ref-infra-ops.md`。
+  pgvector search_path、CLI 陷阱 → `docs/claude/ref-infra-ops.md`。
 - **i18n ×19**(`mobile/src/i18n/locales/*.json`):批次改動一律 Python
   round-trip + assert 19/19 + `git diff --stat` 核對;店面文案 ×17 改完量
-  字數 ≤4000。模板 → `docs/Codex/30-TEMPLATES.md`。
+  字數 ≤4000。模板 → `docs/claude/30-TEMPLATES.md`。
 - **Gemini 只用 2.5 家族**(`gemini-2.5-flash` / `-lite`;embedding
   `gemini-embedding-001`)。非 2.5 的 id 已全數 404,絕不放進 fallback 鏈;
   延遲敏感呼叫設 thinkingBudget 0。新一代出來先探測再換。
@@ -121,27 +123,27 @@
   親自完成收到的任務,禁止再往下派 subagent** —— 遞迴派工 = 無限循環,
   2026-07-06 實測發生過(三層 agent 互相等待、零產出)。
 - **指揮官不下場**:大量讀檔、掃 repo、查網頁、批次改檔 → 派 subagent,
-  主對話只收結論 + 檔案:行號。門檻與派工規則 → `docs/Codex/10-DISPATCH.md`。
+  主對話只收結論 + 檔案:行號。門檻與派工規則 → `docs/claude/10-DISPATCH.md`。
 - **講定即落檔**:session 中途成立的決策當下寫進檔案(壓縮會吃掉對話)。
-- **完成的定義、何時問人、何時換路** → `docs/Codex/20-JUDGMENT.md`。
-- 創辦人問「接下來做什麼」→ 先讀 `docs/Codex/60-TRIGGERS.md`(延後觸發清單)。
+- **完成的定義、何時問人、何時換路** → `docs/claude/20-JUDGMENT.md`。
+- 創辦人問「接下來做什麼」→ 先讀 `docs/claude/60-TRIGGERS.md`(延後觸發清單)。
 
 ## 路由表(動手前先讀對的檔)
 
 | 情境 | 先讀 |
 |---|---|
-| 動標籤/搜尋/推薦/媒合演算法;新增或改排序面;調權重 | `docs/Codex/ref-tag-algorithm.md` |
-| 不確定創辦人會怎麼判;要推回需求;動 CTA/表單/分數呈現 | `docs/Codex/ref-founder-style.md` |
-| 動 migration/CI/Auth 信件/DNS/Gemini/admin 後台 | `docs/Codex/ref-infra-ops.md` |
-| 動既有功能(官方帳號、掃描器、活動標籤、人脈圖、nav、聊天、批次標籤) | `docs/Codex/ref-product-history.md` |
-| 被問 v2 小號、變現、拍賣、付費功能 | `docs/MONETIZATION_ROADMAP.md`(藍圖)+ `docs/Codex/ref-future-plans.md`(決策脈絡) |
-| 要派 subagent、選 model/effort、驗收別人的產出 | `docs/Codex/10-DISPATCH.md` |
-| 拿不準:升級模型?算完成?問使用者?放棄重來? | `docs/Codex/20-JUDGMENT.md` |
-| 要寫派工 prompt(搜尋/實作/重構/研究/審查) | `docs/Codex/30-TEMPLATES.md` |
-| 要更新 docs/Codex 任何檔案(含本檔) | `docs/Codex/40-MAINTENANCE.md` |
-| 新 session 開場想了解環境(選讀) | `docs/Codex/50-LETTER.md` |
-| 創辦人問 roadmap/接下來 | `docs/Codex/60-TRIGGERS.md` |
-| harness 病灶與為什麼有這套制度 | `docs/Codex/00-DIAGNOSIS.md` |
+| 動標籤/搜尋/推薦/媒合演算法;新增或改排序面;調權重 | `docs/claude/ref-tag-algorithm.md` |
+| 不確定創辦人會怎麼判;要推回需求;動 CTA/表單/分數呈現 | `docs/claude/ref-founder-style.md` |
+| 動 migration/CI/Auth 信件/DNS/Gemini/admin 後台 | `docs/claude/ref-infra-ops.md` |
+| 動既有功能(官方帳號、掃描器、活動標籤、人脈圖、nav、聊天、批次標籤) | `docs/claude/ref-product-history.md` |
+| 被問 v2 小號、變現、拍賣、付費功能 | `docs/MONETIZATION_ROADMAP.md`(藍圖)+ `docs/claude/ref-future-plans.md`(決策脈絡) |
+| 要派 subagent、選 model/effort、驗收別人的產出 | `docs/claude/10-DISPATCH.md` |
+| 拿不準:升級模型?算完成?問使用者?放棄重來? | `docs/claude/20-JUDGMENT.md` |
+| 要寫派工 prompt(搜尋/實作/重構/研究/審查) | `docs/claude/30-TEMPLATES.md` |
+| 要更新 docs/Codex 任何檔案(含本檔) | `docs/claude/40-MAINTENANCE.md` |
+| 新 session 開場想了解環境(選讀) | `docs/claude/50-LETTER.md` |
+| 創辦人問 roadmap/接下來 | `docs/claude/60-TRIGGERS.md` |
+| harness 病灶與為什麼有這套制度 | `docs/claude/00-DIAGNOSIS.md` |
 
 _(North Star 由創辦人明示要求記住 —— 2026-05。本檔 2026-07-06 由 Fable 5
 重構為路由版;內容有疑義時以 ref 檔全文為準,ref 檔與 live 系統衝突時以

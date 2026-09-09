@@ -1,5 +1,12 @@
 # PikTag — Claude working memory
 
+> **歷史快照,不可依循(2026-09-09 加註)。** 本檔是 2026-07-06 重構前的
+> CLAUDE.md 全文,保留供追溯,**不是現行規則**。現行規則在 root 的
+> `CLAUDE.md` 與 `docs/claude/*`;兩者衝突一律以現行檔為準。已知本檔至少
+> 一條規則已被撤銷:批次標籤的免費/付費界線(本檔仍寫「Never add a free
+> "pick any friends" batch entry」)於 2026-09-09 由創辦人改切,見現行
+> CLAUDE.md 硬規則與 `docs/claude/ref-product-history.md`。
+
 > Auto-loaded every session. Read this first. The North Star below is the
 > lens for **every** product/UX/scope decision — when in doubt, optimize for it.
 

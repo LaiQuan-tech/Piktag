@@ -24,14 +24,14 @@
 | 9 | 活動標籤改版成效 | 看三個數:新連結帶活動情境標籤比例、搜尋命中活動標籤次數、friend_added source='event_room' 量 | 數字冷 → 考慮把房間 opt-in 翻成 opt-out(要創辦人點頭) | ref-product-history 活動標籤 | 觀察中 |
 | 10 | Concept GC 合併 | 有「高相似 且 兩邊都有真實標籤」的合併候選(admin Tags 頁) | 才做合併;0-tag 單例不動 | ref-tag-algorithm GC 節 | 未達 |
 | 11 | vision-camera 即時 OCR | 1.0.8 出貨後,分支 spike | 驗收 = QR+名片雙路徑真機穩定,對比 card_scan_latency p50/p95 | ref-product-history 掃描速度 (d) | 未達 |
-| 12 | 付費批次標籤 | (併入 #19 PikTag Pro) | **界線 2026-09-09 改切**:免費 = 使用者手選(已出貨);付費 = 使用者自訂條件選人/多標籤/整批 AI/匯出選取批次。系統自動提出的 cohort 一律免費。照 CLAUDE.md 硬規則;BatchTagScreen 是唯一共用 UI(好友列表那套自建 modal 已於 abe542a5 併入)。需求證據看 PostHog `manual_batch_tagged` —— 沒人手選就沒東西可賣 | ref-future-plans 收費節 #3 | 併入 #19 |
+| 12 | 付費批次標籤 | (併入 #19 PikTag Pro) | **界線 2026-09-09 改切**(原記載:付費 = 使用者任選好友):免費 = 使用者手選(已出貨);付費 = 使用者自訂條件選人/多標籤/整批 AI/匯出選取批次。系統自動提出的 cohort 一律免費。照 CLAUDE.md 硬規則;BatchTagScreen 是唯一共用 UI(好友列表那套自建 modal 已於 abe542a5 併入)。需求證據看 PostHog `manual_batch_tagged` —— 沒人手選就沒東西可賣 | ref-future-plans 收費節 #3 | 併入 #19 |
 | 13 | 跨語言媒合率首報 | 上線後數週,`admin_cross_language_match_rate()` 有量 | 主動報給創辦人(募資可用的數字);覆蓋率掉 = linker 出事 | ref-tag-algorithm 七條 #3 | 觀察中 |
 | 14 | RTL 版面 | ar 市場有真實 traction 才做 | I18nManager 全套;目前 ar 是 LTR 排版屬刻意 | ref-founder-style | 未達 |
 | 15 | 大字體破版 | 用戶回報 Dynamic Type 破版 | 逐元件 maxFontSizeMultiplier(全域法在 RN 0.81+React19 不可靠) | ref-founder-style 字級節 | 未達 |
 | 16 | 程式一致性合併 | 下次動到對應畫面時順手做,不專程 | connectUsers 統一 ×4 處、UserDetail inline tag helper 換 lib 版 | ref-product-history 一致性 | 未達 |
 | 17 | v2 小號上線時 | v2 開工 | 排序面檢查表加第 5 點 `is_alt=false`;掃 23 支函式加謂詞 | ref-future-plans | 等 v2 |
 | 18 | 店面文案**精簡版**貼上 | Play 隨時可貼;ASC 的 Promotional Text 也是隨時生效,只有 **Description 要等下次版本送審**(**等創辦人開口才動**) | 照 `store-assets/STORE_PASTE_CHECKLIST.md` 逐步做(可交給 agent 執行)。ASC 17 語系、Play 19 語系(多 ur/bn);**SUBTITLE 與 KEYWORDS 不動**;fr 必重貼(長版曾超 4000 被截斷) | **store-assets/STORE_LISTING_SHORT_ALL.md**(2026-08-10 精簡版,~1695→~600 字。**取代** STORE_LISTING_FINAL.md 的長版 Rev 3 —— 長版只留歷史,不要貼) | 材料已備,未貼 |
-| 19 | **PikTag Pro 啟動**(貴人王+批次標籤+標籤置頂+CRM 進階,$5-8/mo 單一訂閱) | 門檻(暫定值,創辦人可調):WAU ≥500 且 週真實加好友 ≥200 且 推薦→加好友轉化 ≥10%(查法:PostHog WAU;friend_added 週計數;recommendation 通知→friend_added 歸因) | 啟動 Pro 設計 + IAP;批次界線見 #12(2026-09-09 改切,手選維持免費);置頂=補 pin UI(is_pinned 機制已在 FriendDetail 排序鏈最高位);冷啟動期不開賣 | ref-future-plans 收費節 | 未達 |
+| 19 | **PikTag Pro 啟動**(貴人王+批次標籤+標籤置頂+CRM 進階,$5-8/mo 單一訂閱) | 門檻(暫定值,創辦人可調):WAU ≥500 且 週真實加好友 ≥200 且 推薦→加好友轉化 ≥10%(查法:PostHog WAU;friend_added 週計數;recommendation 通知→friend_added 歸因) | 啟動 Pro 設計 + IAP;批次界線見 #12(2026-09-09 改切,原記載「付費 = 任選好友」,現手選維持免費);置頂=補 pin UI(is_pinned 機制已在 FriendDetail 排序鏈最高位);冷啟動期不開賣 | ref-future-plans 收費節 | 未達 |
 | 20 | 真人認證徽章 | Pro 上線後,或 Ask/活動房間出現信任摩擦回報 | 低價($2-3/mo 或一次性);is_verified 只表真人,絕不與廣告主資格共用 flag | ref-future-plans 收費節 | 未達 |
 | 21 | 主辦方方案(B2B) | 同一 host 辦 ≥3 場活動,或主辦方主動詢價 | 大房間/名單匯出/品牌 QR/會後分析;向企業收費補貼用戶成長 | ref-future-plans 收費節 | 未達 |
 | 22 | 人氣王 → 標示贊助軌道 | **絕不以保證前三混排形式做**;僅當 v3 原語齊備(品質分 view、search_users 讀 dismissals)且 Pro 已驗證付費意願 | 獨立贊助區塊、明確標示、每查詢限 1-2 席、品質分把關 | ref-future-plans 收費節 + v3 節 | 未達 |
@@ -40,6 +40,7 @@
 | 25 | 推薦 affinity tiebreaker 成效檢查 | 上線 2-4 週後跑 `admin_recommendation_funnel(30)`:affinity>0 與 =0 兩群 read/轉化**無差異** | 提「mutual_score 改 ROUND(,1) 分桶」升級案給創辦人;**不得逕行改主排序** | ref-tag-algorithm Biolink 興趣訊號節 | 觀察中 |
 | 26 | 微信個人 QR 圖片上傳(取代目前的「點擊複製微信號」) | 創辦人示意做微信第一版加好友體驗(2026-07-18 選「先上線,QR 排後續」) | EditProfile 加 QR 圖片上傳欄→存 Supabase storage→名片頁 BiolinkSocialSection 顯示可長按辨識的圖片。**技術硬事實:個人微信號無法生成可點加好友連結**(`weixin://dl/chat` 已停用;`weixin.qq.com/r/` 後綴是每張 QR 的加密 token 非帳號;自生成純文字 QR 微信掃不觸發加好友)——唯一可靠是使用者上傳自己微信「我的二維碼」圖片(帶微信 token)。**絕不走自生成 QR 或第三方中轉頁** | platforms.ts:100-113 idMode 註記 + 本 session 查證 | 未達 |
 | 27 | UTM 活動追蹤(產連結 UI + admin 分管道報表) | **有第二個外部管道要分辨**才做:第一筆付費廣告、電子報、或合作夥伴連結上線;或創辦人要比較兩個外部來源的成效 | 才做產連結 UI 與 admin 分管道報表。**現在明確不做**:管道只有 QR、個人檔案連結、口耳,三者已由 `signup_source`(qr / web_profile / app_store / play_store)分開,加 utm 等於手工維護一組沒人看的參數 | 2026-09-09 裁決。防禦已先做:robots.txt 擋 `/*?utm_`、`/*&utm_`(跟 `?sid=` 同一種爬蟲陷阱,且每次爬會觸發 server-side share_link_viewed,等於把機器人算成活動流量);acquisition.ts 的 utm_campaign 跟著 utm_source 一起轉小寫(EP01 / ep01 不會裂成兩個活動) | 未達 |
+| 28 | `piktag_connection_tags` 舊公開列的修補 | 讀 20260909120000 這筆 migration 在 Supabase Deploy log 印的三行 `[connection_tags audit]`:**當時 default 是 false 且 batch-write signature 列數 > 0** | 才需要修補 —— 那些是使用者以為私人的標籤被當成公開背書,還在灌 endorser_count(search_users/explore_users 排序)。修補要另開 migration 並先給創辦人看數字;**不得盲修**:ScanResultScreen 合法寫入「非對方自標」的公開 connection tag,所以無法用「標籤不在對方檔案上」辨識壞列。default 為 true 則本條直接結案 | 20260909120000 migration 檔頭 + 本 session 查證(is_private 語意見該檔) | 等 deploy log |
 
 ## 已結案(留檔防重做)
 - Admin 儀表板接 moat 指標 RPC — 2026-07-06 完成(be3c17e)。

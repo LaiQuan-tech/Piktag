@@ -32,7 +32,7 @@
 // selection was ALREADY free and shipped, and the same roadmap locks
 // "免費層永遠完整可用,付費是升級不是解鎖基本功能" — so it stays free and
 // the Pro line moves to HOW you select (conditions, multi-tag, AI batch
-// suggestions, export). See 60-TRIGGERS #19.
+// suggestions, export of the selected batch). See 60-TRIGGERS #19.
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {

@@ -136,8 +136,11 @@ and only organizers ever would). The rework, shipped pre-launch:
   id in AsyncStorage). PostHog: `burst_tag_prompt_shown` / `burst_tag_applied`
   — THE success metric for the rework. BatchTagScreen is deliberately the
   SEED of the future full batch-tag feature (widen cohort to "pick any
-  friends" later; don't build a second batch UI). The widening happened
-  2026-09-09 in abe542a5 — manual mode, origin: 'manual'.
+  friends" later; don't build a second batch UI). The widening had in fact
+  already shipped on 2026-07-26 (33577eb3) as ConnectionsScreen's own
+  select mode + modal — i.e. as the second batch UI this line warned
+  against; abe542a5 (2026-09-09) folded that back in here as manual
+  mode, origin: 'manual'.
 - **QrGroupList empty-state copy repositioned to the ORGANIZER** ("one QR
   for the whole room, everyone auto-tagged, searchable months later") —
   the old name-blanking copy described the PERSONAL QR (wrong feature on
