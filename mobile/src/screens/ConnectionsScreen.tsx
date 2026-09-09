@@ -840,6 +840,30 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   }, [sortedConnections, localContacts_, filterTag, notJoinedLabel]);
 
   // All unique semantic types from connections (for filter)
+  // The viewer's own most-used tags, for the batch screen's quick-pick.
+  // Borrowed from Photos' 加入相簿 sheet, which lists YOUR albums rather
+  // than a fixed set: the tag someone reaches for next is nearly always
+  // one they already use. Counted across members AND contacts, since a
+  // batch can now hold both.
+  //
+  // Raw names, no leading '#': the list carries display strings ('#設計'),
+  // while findOrCreateTag and piktag_local_contacts.tags both store the
+  // bare name. Passing the display form would create a second tag called
+  // '#設計' next to the real one.
+  const suggestedTagNames = useMemo(() => {
+    const count = new Map<string, number>();
+    const bump = (raw: string) => {
+      const name = String(raw).replace(/^#+/, '').trim();
+      if (name) count.set(name, (count.get(name) || 0) + 1);
+    };
+    connections.forEach((c) => c.tags.forEach(bump));
+    (localContacts_ || []).forEach((lc) => (lc.tags ?? []).forEach(bump));
+    return [...count.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([name]) => name);
+  }, [connections, localContacts_]);
+
   const allConnectionTags = useMemo(() => {
     const tagCount = new Map<string, number>();
     connections.forEach((c) => c.tags.forEach((t) => {
@@ -983,8 +1007,13 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     if (people.length === 0 && localContacts.length === 0) return;
     exitSelectMode();
     lastFetchRef.current = 0;
-    navigation.navigate('BatchTag', { people, localContacts, origin: 'manual' });
-  }, [sortedConnections, localContacts_, selectedIds, exitSelectMode, navigation]);
+    navigation.navigate('BatchTag', {
+      people,
+      localContacts,
+      suggestedTags: suggestedTagNames,
+      origin: 'manual',
+    });
+  }, [sortedConnections, localContacts_, selectedIds, suggestedTagNames, exitSelectMode, navigation]);
 
   // Per-author lookup table for active Asks. Stores both the
   // existence flag (drives the avatar gradient ring) and a

@@ -93,6 +93,11 @@ type Props = {
       // these rows already EXIST (existingId is always set), so they are
       // updated, never created.
       localContacts?: ImportContact[];
+      // The viewer's own most-used tag names, newest-first by usage.
+      // Replaces the fixed presets when present — Photos' 加入相簿 sheet
+      // lists YOUR albums, and the tag someone reaches for next is
+      // nearly always one they already use.
+      suggestedTags?: string[];
       // Who chose the cohort. Defaults to 'burst' so the two older
       // callers (ScanResult, UserDetail) keep their copy and their
       // metric without passing anything.
@@ -122,6 +127,7 @@ export default function BatchTagScreen({ navigation, route }: Props) {
   const isImport = deviceContacts.length > 0;
   const isManual = !isImport && route.params?.origin === 'manual';
   const localContacts: ImportContact[] = route.params?.localContacts ?? [];
+  const suggestedTags: string[] = route.params?.suggestedTags ?? [];
 
   const { add: addLocalContact, update: updateLocalContact } = useLocalContacts();
 
@@ -174,6 +180,17 @@ export default function BatchTagScreen({ navigation, route }: Props) {
   // Import quick-sort loop bookkeeping: created row ids + accumulated
   // tags per contact, so the SECOND bucket updates the row created by
   // the first instead of inserting a duplicate.
+  // Cleared on unmount: leaving early (back gesture) while the
+  // confirmation is on screen would otherwise fire navigation from a
+  // dead component.
+  const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
+    },
+    [],
+  );
+
   const createdIdsRef = useRef<Map<string, string>>(new Map());
   const tagsByKeyRef = useRef<Map<string, string[]>>(new Map());
   useEffect(() => {
@@ -215,7 +232,16 @@ export default function BatchTagScreen({ navigation, route }: Props) {
     setSelected(allSelected ? new Set() : new Set(rows.map((r) => r.key)));
   };
 
-  const canSave = !saving && selected.size > 0 && normalizeTagName(tagName).length > 0;
+  // `isManual && lastSaved` = the confirmation is on screen and the exit
+  // is already scheduled, so a second tap must not write again. NOT a
+  // bare `!lastSaved`: import mode keeps lastSaved as its running receipt
+  // while the user sorts the next circle, and that would disable the
+  // button for the rest of the session.
+  const canSave =
+    !saving &&
+    !(isManual && lastSaved) &&
+    selected.size > 0 &&
+    normalizeTagName(tagName).length > 0;
 
   // ── Save: burst mode → private connection tags (event-QR shape) ──
   // Shared idempotent writer (lib/userTags) — the UNIQUE constraint +
@@ -255,6 +281,7 @@ export default function BatchTagScreen({ navigation, route }: Props) {
     const total = connectionIds.length + contactsTagged;
     if (isManual) trackManualBatchTagged(total);
     else trackBurstTagApplied(people.length, total);
+    return total;
   };
 
   // ── Save: import mode → piktag_local_contacts.tags (creating rows) ──
@@ -314,6 +341,15 @@ export default function BatchTagScreen({ navigation, route }: Props) {
         setLastSaved({ tag: name, count: tagged });
         setSelected(new Set());
         setTagName('');
+      } else if (isManual) {
+        // Confirm before dismissing. Photos flashes a confirmation after
+        // 加入相簿; this used to go straight back to the list saying
+        // nothing, so a batch of five was indistinguishable from a batch
+        // that silently wrote nothing. Import mode already had this and
+        // hand-selection did not.
+        const tagged = await saveConnections(name);
+        setLastSaved({ tag: name, count: tagged ?? 0 });
+        leaveTimerRef.current = setTimeout(leave, 900);
       } else {
         await saveConnections(name);
         leave();
@@ -401,8 +437,18 @@ export default function BatchTagScreen({ navigation, route }: Props) {
   const footer = (
     <View style={styles.footerWrap}>
       <View style={styles.presetRow}>
-        {PRESET_KEYS.map(({ key, fallback }) => {
-          const label = t(`batchTag.${key}`, { defaultValue: fallback });
+        {/* The viewer's own tags when they have any, the four starter
+            circles when they do not. A brand-new account has nothing to
+            suggest, and an empty row would be worse than a generic one —
+            same reason Photos still offers 新增相簿 to someone with no
+            albums. Capped by the caller at 8 so the row stays a row. */}
+        {(suggestedTags.length > 0
+          ? suggestedTags.map((name) => ({ key: `own:${name}`, label: name }))
+          : PRESET_KEYS.map(({ key, fallback }) => ({
+              key,
+              label: t(`batchTag.${key}`, { defaultValue: fallback }),
+            }))
+        ).map(({ key, label }) => {
           const active = normalizeTagName(tagName) === normalizeTagName(label);
           return (
             <TouchableOpacity
