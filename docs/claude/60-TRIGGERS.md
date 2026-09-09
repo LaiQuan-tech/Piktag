@@ -24,7 +24,7 @@
 | 9 | 活動標籤改版成效 | 看三個數:新連結帶活動情境標籤比例、搜尋命中活動標籤次數、friend_added source='event_room' 量 | 數字冷 → 考慮把房間 opt-in 翻成 opt-out(要創辦人點頭) | ref-product-history 活動標籤 | 觀察中 |
 | 10 | Concept GC 合併 | 有「高相似 且 兩邊都有真實標籤」的合併候選(admin Tags 頁) | 才做合併;0-tag 單例不動 | ref-tag-algorithm GC 節 | 未達 |
 | 11 | vision-camera 即時 OCR | 1.0.8 出貨後,分支 spike | 驗收 = QR+名片雙路徑真機穩定,對比 card_scan_latency p50/p95 | ref-product-history 掃描速度 (d) | 未達 |
-| 12 | 付費批次標籤 | (併入 #19 PikTag Pro) | **界線 2026-09-09 改切**:免費 = 系統 cohort + 手選(已出貨);付費 = 條件選人/多標籤/整批 AI/匯出。照 CLAUDE.md 硬規則;BatchTagScreen 是唯一共用 UI(好友列表那套自建 modal 已於 abe542a5 併入)。需求證據看 PostHog `manual_batch_tagged` —— 沒人手選就沒東西可賣 | ref-future-plans 收費節 #3 | 併入 #19 |
+| 12 | 付費批次標籤 | (併入 #19 PikTag Pro) | **界線 2026-09-09 改切**:免費 = 使用者手選(已出貨);付費 = 使用者自訂條件選人/多標籤/整批 AI/匯出選取批次。系統自動提出的 cohort 一律免費。照 CLAUDE.md 硬規則;BatchTagScreen 是唯一共用 UI(好友列表那套自建 modal 已於 abe542a5 併入)。需求證據看 PostHog `manual_batch_tagged` —— 沒人手選就沒東西可賣 | ref-future-plans 收費節 #3 | 併入 #19 |
 | 13 | 跨語言媒合率首報 | 上線後數週,`admin_cross_language_match_rate()` 有量 | 主動報給創辦人(募資可用的數字);覆蓋率掉 = linker 出事 | ref-tag-algorithm 七條 #3 | 觀察中 |
 | 14 | RTL 版面 | ar 市場有真實 traction 才做 | I18nManager 全套;目前 ar 是 LTR 排版屬刻意 | ref-founder-style | 未達 |
 | 15 | 大字體破版 | 用戶回報 Dynamic Type 破版 | 逐元件 maxFontSizeMultiplier(全域法在 RN 0.81+React19 不可靠) | ref-founder-style 字級節 | 未達 |

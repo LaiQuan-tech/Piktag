@@ -136,7 +136,8 @@ and only organizers ever would). The rework, shipped pre-launch:
   id in AsyncStorage). PostHog: `burst_tag_prompt_shown` / `burst_tag_applied`
   — THE success metric for the rework. BatchTagScreen is deliberately the
   SEED of the future full batch-tag feature (widen cohort to "pick any
-  friends" later; don't build a second batch UI).
+  friends" later; don't build a second batch UI). The widening happened
+  2026-09-09 in abe542a5 — manual mode, origin: 'manual'.
 - **QrGroupList empty-state copy repositioned to the ORGANIZER** ("one QR
   for the whole room, everyone auto-tagged, searchable months later") —
   the old name-blanking copy described the PERSONAL QR (wrong feature on
@@ -207,8 +208,10 @@ Founder approved ALL FIVE below as worth doing (2026-07-04):
    the 2nd bucket UPDATES instead of duplicating). Those tags are exactly
    what promote_local_contacts copies into REAL connection tags when the
    person joins — bucketing now IS future serendipity fuel. PostHog:
-   `import_batch_tagged`. **FREE tier by design — the paid boundary below
-   stands: no free "pick any friends" entry was added.**
+   `import_batch_tagged`. **FREE tier by design.** (This used to add "the paid
+   boundary below stands: no free 'pick any friends' entry was added" — the
+   boundary was re-cut 2026-09-09 and hand-selection is now free by
+   decision, not by omission. Import stays free either way.)
 2. **"Your saved contact joined" notification — SHIPPED 2026-07-05.**
    New type `contact_joined` (category notif_social), inserted by
    promote_local_contacts_for_profile (migration 20260705000000) with a
@@ -238,15 +241,27 @@ Founder approved ALL FIVE below as worth doing (2026-07-04):
    keep their position. A true coefficient boost still waits for
    piktag_search_impressions volume.
 
-**Paid batch-tagging boundary (founder plan, next version):** friend-facing
-batch tagging will be a PAID feature. Decision to prevent cannibalization
-AND protect the tag engine: **free = system-initiated cohorts** (the burst
-prompt's auto-cohort at events; the import batch at ContactSync — moments
-that BUILD tag data; paywalling data creation would starve the North-Star
-engine at cold start), **paid = user-initiated arbitrary selection**
-(anytime multi-select of ANY friends, multi-tag apply/remove, bulk manage).
-Never add a free "pick any friends" batch entry — that IS the paid line.
-BatchTagScreen stays the single shared UI for all tiers.
+**Paid batch-tagging boundary — REVISED 2026-09-09 (founder).** The line is
+**HOW you select**, not whether you may. **Free = the user picking friends by
+hand** (ConnectionsScreen select mode, shipped 2026-07-26, made discoverable
+in abe542a5). System-proposed cohorts (the burst prompt, the ContactSync
+import batch) are free too and were never the contested part. **Paid = the
+advanced ways to select**: user-defined conditions (by tag / place / time /
+who has no tags yet), applying several tags in one pass, whole-batch AI
+suggestions, exporting the selected batch. A system time-cohort does not
+become paid because the paid tier sells "select by time" — the axis is WHO
+INITIATES. **Never move the free hand-selection behind the paywall.**
+BatchTagScreen stays the single shared UI for all tiers; a new batch surface
+is a new mode on it, never a second screen.
+
+> Superseded text (kept per 40-MAINTENANCE §1, do not act on it): *"free =
+> system-initiated cohorts ... paid = user-initiated arbitrary selection
+> (anytime multi-select of ANY friends, multi-tag apply/remove, bulk
+> manage). Never add a free 'pick any friends' batch entry — that IS the
+> paid line."* Revoked 2026-09-09: arbitrary selection had been free and
+> shipped for six weeks, so the rule described a present that did not
+> exist, and MONETIZATION_ROADMAP principle 3 (免費層永遠完整可用) forbids
+> taking it back to sell it.
 
 **Card-scan speed levers (2026-07-04): (a)(b)(c) SHIPPED, (d) post-launch.**
 - (a) **Prewarm**: `prewarmScanBusinessCard()` (scanCard.ts, 60s throttle,
