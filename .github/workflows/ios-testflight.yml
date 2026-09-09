@@ -141,13 +141,55 @@ jobs:
             exit 0
           fi
 
+          # ── The last run that ACTUALLY SHIPPED ────────────────────────
+          # (2026-09-09) This lookup used to be
+          # `runs?status=success&per_page=1`, which is wrong in a way that
+          # locked the pipeline shut. A run that hits the cooldown and skips
+          # the build STILL CONCLUDES SUCCESS: the gate job succeeds and
+          # build-and-upload comes back `skipped`. So every throttled
+          # seven-second run reset the 24h clock, and with at least one push
+          # a day the window never reopened — nothing built between
+          # 2026-09-07 22:54 and this commit despite pushes every day.
+          #
+          # The backstop could not rescue it either: it compared the last
+          # successful run's head_sha against main, and a throttled run
+          # carries main's own sha, so it concluded the store already had a
+          # commit the store had never seen. Both "independent recoveries"
+          # rested on one false premise — that a successful RUN means a
+          # shipped BUILD. This is exactly the silent-skip disease the gate
+          # exists to cure, reintroduced by the cure.
+          #
+          # So: walk recent successful runs newest-first and take the first
+          # whose build-and-upload job actually succeeded. Bounded at 30 and
+          # breaks on the first hit. Still fails OPEN — an API error or no
+          # shipped run on record leaves both values empty, and every caller
+          # below treats empty as "build".
+          RUNS_TSV=$(gh api \
+            "repos/$REPO/actions/workflows/ios-testflight.yml/runs?status=success&branch=$BRANCH&per_page=30" \
+            --jq '.workflow_runs[] | "\(.id) \(.created_at) \(.head_sha)"' 2>/dev/null || true)
+          SHIPPED_AT=""
+          SHIPPED_SHA=""
+          while IFS=' ' read -r RID RAT RSHA; do
+            [ -n "$RID" ] || continue
+            CONC=$(gh api "repos/$REPO/actions/runs/$RID/jobs" \
+              --jq '.jobs[] | select(.name == "build-and-upload") | .conclusion' 2>/dev/null || true)
+            if [ "$CONC" = "success" ]; then
+              SHIPPED_AT="$RAT"
+              SHIPPED_SHA="$RSHA"
+              echo "Last real build: run $RID at $RAT ($RSHA)."
+              break
+            fi
+          done <<< "$RUNS_TSV"
+          if [ -z "$SHIPPED_AT" ]; then
+            echo "No run with a successful build-and-upload in the last 30 successful runs (or the API was unavailable)."
+          fi
+
+
           if [ "$EVENT_NAME" = "push" ]; then
-            LAST_AT=$(gh api \
-              "repos/$REPO/actions/workflows/ios-testflight.yml/runs?status=success&branch=$BRANCH&per_page=1" \
-              --jq '.workflow_runs[0].created_at // empty' 2>/dev/null || true)
+            LAST_AT="$SHIPPED_AT"
             if [ -z "$LAST_AT" ]; then
               echo "should_build=true" >> "$GITHUB_OUTPUT"
-              echo "No successful run on record (or the API was unavailable) — building. Fail open."
+              echo "No run with a successful build on record (or the API was unavailable) — building. Fail open."
               exit 0
             fi
             LAST_EPOCH=$(date -u -d "$LAST_AT" +%s 2>/dev/null || echo "")
@@ -170,12 +212,10 @@ jobs:
             exit 0
           fi
 
-          LAST_SHA=$(gh api \
-            "repos/$REPO/actions/workflows/ios-testflight.yml/runs?status=success&branch=$BRANCH&per_page=1" \
-            --jq '.workflow_runs[0].head_sha // empty' 2>/dev/null || true)
+          LAST_SHA="$SHIPPED_SHA"
           if [ -z "$LAST_SHA" ]; then
             echo "should_build=true" >> "$GITHUB_OUTPUT"
-            echo "No successful run on record (or the API was unavailable) — building. Fail open."
+            echo "No run with a successful build on record (or the API was unavailable) — building. Fail open."
           elif [ "$LAST_SHA" = "$CURRENT_SHA" ]; then
             echo "should_build=false" >> "$GITHUB_OUTPUT"
             echo "$BRANCH is still at $CURRENT_SHA, which TestFlight already has."
