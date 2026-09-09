@@ -296,8 +296,6 @@
     "headerDate": "{{day}}/{{month}}/{{year}}",
     "headerSubtitle": "#দাআন জেলা, তাইপে",
     "batchTagButton": "ব্যাচ ট্যাগ ({{count}})",
-    "batchTagModalTitle": "{{count}} জন বন্ধুর জন্য ট্যাগ যোগ করুন",
-    "batchTagPlaceholder": "ট্যাগের নাম লিখুন (যেমন, পার্টি)",
     "batchTagProcessing": "প্রসেস হচ্ছে...",
     "batchTagConfirm": "নিশ্চিত করুন",
     "emptyGuideTitle": "এখনও কোনো কানেকশন নেই",
@@ -358,7 +356,9 @@
     "coldStartActionSearch": "ট্যাগ দিয়ে মানুষ খুঁজুন",
     "coldStartActionSearchDesc": "#মার্কেটিং বা #ডিজাইনার লিখে দেখুন — কে আসে",
     "firstFriendHint": "আশেপাশের মানুষের সাথে QR স্ক্যান করুন, বা কন্টাক্ট থেকে বন্ধু যোগ করুন",
-    "createEventQr": "ইভেন্ট QR তৈরি করুন"
+    "createEventQr": "ইভেন্ট QR তৈরি করুন",
+    "batchTagEntry": "ব্যাচ ট্যাগ",
+    "batchTagHint": "একসাথে ট্যাগ করার জন্য লোক বেছে নিন"
   },
   "search": {
     "clearAll": "সব সাফ করুন",
@@ -1562,7 +1562,9 @@
     "selectAll": "সব নির্বাচন",
     "clearAll": "নির্বাচন বাতিল",
     "done": "সম্পন্ন",
-    "savedToast": "{{count}} জনকে #{{tag}} ট্যাগ দেওয়া হয়েছে"
+    "savedToast": "{{count}} জনকে #{{tag}} ট্যাগ দেওয়া হয়েছে",
+    "manualTitle": "এই সবাইকে একসাথে ট্যাগ করুন",
+    "manualSubtitle": "আপনি {{count}} জনকে বেছে নিয়েছেন — একটি সাধারণ ট্যাগ দিন, পরে সেই ট্যাগ খুঁজে সবাইকে একসাথে পাবেন।"
   },
   "qrContext": {
     "add": "ইভেন্ট প্রসঙ্গ যোগ করুন",

@@ -296,8 +296,6 @@
     "headerDate": "{{day}}.{{month}}.{{year}}",
     "headerSubtitle": "#Район Даань, Тайбэй",
     "batchTagButton": "Отметить группу ({{count}})",
-    "batchTagModalTitle": "Добавить тег для {{count}} друзей",
-    "batchTagPlaceholder": "Введи название тега (например, Вечеринка)",
     "batchTagProcessing": "Обрабатываем...",
     "batchTagConfirm": "Подтвердить",
     "emptyGuideTitle": "Пока нет связей",
@@ -358,7 +356,9 @@
     "coldStartActionSearch": "Искать людей по тегам",
     "coldStartActionSearchDesc": "Попробуйте #маркетинг или #дизайнер — посмотрите, кто найдётся",
     "firstFriendHint": "Отсканируйте QR с теми, кто рядом, или добавьте друзей из контактов",
-    "createEventQr": "Создать QR мероприятия"
+    "createEventQr": "Создать QR мероприятия",
+    "batchTagEntry": "Отметить группу",
+    "batchTagHint": "Выберите людей, которых отметите вместе"
   },
   "search": {
     "clearAll": "Очистить всё",
@@ -1562,7 +1562,9 @@
     "selectAll": "Выбрать все",
     "clearAll": "Снять выбор",
     "done": "Готово",
-    "savedToast": "Отмечено {{count}} тегом #{{tag}}"
+    "savedToast": "Отмечено {{count}} тегом #{{tag}}",
+    "manualTitle": "Отметьте этих людей разом",
+    "manualSubtitle": "Вы выбрали {{count}} человек — дайте им общий тег, а потом найдите всех по нему."
   },
   "qrContext": {
     "add": "Добавить контекст события",

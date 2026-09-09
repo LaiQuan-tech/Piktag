@@ -297,8 +297,6 @@
     "headerDate": "{{month}}/{{day}}/{{year}}",
     "headerSubtitle": "#Da'an District, Taipei",
     "batchTagButton": "Batch tag ({{count}})",
-    "batchTagModalTitle": "Add tag for {{count}} friends",
-    "batchTagPlaceholder": "Enter tag name (e.g., Party)",
     "batchTagProcessing": "Processing...",
     "batchTagConfirm": "Confirm",
     "emptyGuideTitle": "No connections yet",
@@ -358,7 +356,9 @@
     "coldStartActionSearch": "Search people by tag",
     "coldStartActionSearchDesc": "Try #marketing or #designer — see who shows up",
     "firstFriendHint": "Scan QR with people around you, or add friends from your contacts",
-    "createEventQr": "Create event QR"
+    "createEventQr": "Create event QR",
+    "batchTagEntry": "Batch tag",
+    "batchTagHint": "Pick the people to tag together"
   },
   "search": {
     "clearAll": "Clear all",
@@ -1562,7 +1562,9 @@
     "selectAll": "Select all",
     "clearAll": "Clear all",
     "done": "Done",
-    "savedToast": "Tagged {{count}} with #{{tag}}"
+    "savedToast": "Tagged {{count}} with #{{tag}}",
+    "manualTitle": "Tag these people in one go",
+    "manualSubtitle": "You picked {{count}} people — give them a shared tag, then search it to find them all again."
   },
   "qrContext": {
     "add": "Add event context",

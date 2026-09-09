@@ -142,6 +142,17 @@ export const trackImportBatchTagged = (taggedCount: number) =>
   capture('import_batch_tagged', { tagged_count: taggedCount });
 
 /**
+ * Manual batch tag (2026-09-09): the user picked the people themselves from
+ * the friends list, rather than the app proposing a cohort. Kept SEPARATE
+ * from burst_tag_applied on purpose — mixing them would make the burst
+ * prompt look like it is working when the number is really hand-selection.
+ * This is also the demand signal for the Pro batch tier (60-TRIGGERS #19):
+ * if nobody hand-selects, there is nothing to sell there.
+ */
+export const trackManualBatchTagged = (taggedCount: number) =>
+  capture('manual_batch_tagged', { tagged_count: taggedCount });
+
+/**
  * Card-scan perceived latency: shutter tap → form fields visible
  * (founder speed red line — competitors anchored users to "instant").
  * Watch p50/p95 in PostHog; p95 is the "mistaken for a broken app" tail.

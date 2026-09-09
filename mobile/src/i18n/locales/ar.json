@@ -296,8 +296,6 @@
     "headerDate": "{{month}}/{{day}}/{{year}}",
     "headerSubtitle": "#حي داآن، تايبيه",
     "batchTagButton": "وسم جماعي ({{count}})",
-    "batchTagModalTitle": "إضافة وسم لـ {{count}} من الأصدقاء",
-    "batchTagPlaceholder": "أدخل اسم الوسم (مثلاً: حفلة)",
     "batchTagProcessing": "جارٍ المعالجة...",
     "batchTagConfirm": "تأكيد",
     "emptyGuideTitle": "لا توجد علاقات بعد",
@@ -358,7 +356,9 @@
     "coldStartActionSearch": "ابحث عن الأشخاص بالوسوم",
     "coldStartActionSearchDesc": "جرّب #تسويق أو #مصمم — وانظر من يظهر",
     "firstFriendHint": "امسح رمز QR مع من حولك، أو أضف أصدقاء من جهات الاتصال",
-    "createEventQr": "إنشاء QR للفعالية"
+    "createEventQr": "إنشاء QR للفعالية",
+    "batchTagEntry": "وسم جماعي",
+    "batchTagHint": "اختر الأشخاص الذين تريد وسمهم معًا"
   },
   "search": {
     "clearAll": "مسح الكل",
@@ -1562,7 +1562,9 @@
     "selectAll": "تحديد الكل",
     "clearAll": "إلغاء التحديد",
     "done": "تم",
-    "savedToast": "تم وسم {{count}} بـ #{{tag}}"
+    "savedToast": "تم وسم {{count}} بـ #{{tag}}",
+    "manualTitle": "ضع وسمًا لهؤلاء دفعة واحدة",
+    "manualSubtitle": "اخترت {{count}} أشخاص — امنحهم وسمًا مشتركًا، ثم ابحث عنه لتجدهم جميعًا مرة أخرى."
   },
   "qrContext": {
     "add": "إضافة سياق الفعالية",

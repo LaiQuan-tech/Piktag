@@ -9,9 +9,7 @@ import {
   StyleSheet,
   StatusBar,
   Modal,
-  TextInput,
   Dimensions,
-  KeyboardAvoidingView,
   Platform,
   Pressable,
 } from 'react-native';
@@ -43,7 +41,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import RingedAvatar from '../components/RingedAvatar';
 import CoachMark from '../components/CoachMark';
 import { supabase } from '../lib/supabase';
-import { ilikeEscape, hashDisplay } from '../lib/normalizeTag';
+import { hashDisplay } from '../lib/normalizeTag';
 import {
   getCache,
   setCache,
@@ -318,9 +316,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // Batch selection state
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [batchTagModalVisible, setBatchTagModalVisible] = useState(false);
-  const [batchTagInput, setBatchTagInput] = useState('');
-  const [batchTagLoading, setBatchTagLoading] = useState(false);
 
   // Sort options. 'recent' = newest connection first (default), 'alphabet'
   // = nickname/full_name A→Z, 'interaction' = piktag_connections.updated_at
@@ -847,8 +842,12 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     if (lc) {
       // Not-yet-on-PikTag manual contact → its profile VIEW (the
       // contact analog of FriendDetail; 編輯 there opens the form).
-      // Select-mode is N/A for these.
-      navigation.navigate('LocalContactDetail', { contactId: lc.id });
+      // Select-mode is N/A for these: they have no connection row to
+      // tag. In select mode the tap is INERT rather than navigating —
+      // being thrown onto another screen mid-selection reads as the
+      // app losing the selection, and the row shows no checkbox to
+      // explain why it could not be picked.
+      if (!selectMode) navigation.navigate('LocalContactDetail', { contactId: lc.id });
       return;
     }
     if (selectMode) {
@@ -879,6 +878,14 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     }
   }, [selectMode]);
 
+  // The DISCOVERABLE way in. Long-press still works and is the faster
+  // path once you know it, but the founder found batch tagging by
+  // accident — a feature nobody can find is a feature we did not ship.
+  const enterSelectMode = useCallback(() => {
+    setSelectMode(true);
+    setSelectedIds(new Set());
+  }, []);
+
   const exitSelectMode = useCallback(() => {
     setSelectMode(false);
     setSelectedIds(new Set());
@@ -889,85 +896,48 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     // active filterTag applied (and excludes the merged non-member
     // local contacts). Selecting the raw unfiltered `connections`
     // meant "全選" picked 200 rows when the user saw 5 filtered.
-    setSelectedIds(new Set(sortedConnections.map((c) => c.id)));
+    //
+    // @piktag is excluded: everyone is auto-friended to the official
+    // account, so 全選 would silently file the app's own account under
+    // the user's tag. Long-pressing it specifically still works —
+    // this only stops it riding along in a bulk action.
+    setSelectedIds(
+      new Set(
+        sortedConnections
+          .filter((c) => c.connected_user_id !== OFFICIAL_USER_ID)
+          .map((c) => c.id),
+      ),
+    );
   }, [sortedConnections]);
 
-  const handleBatchTagSubmit = async () => {
-    const tagName = batchTagInput.trim().replace(/^#/, '');
-    if (!tagName || selectedIds.size === 0) return;
-
-    setBatchTagLoading(true);
-    try {
-      let tagId: string;
-      // Case-insensitive (ilike + escape wildcards) — a tagName typed here
-      // can differ in case from the stored piktag_tags row; a case-sensitive
-      // .eq would MISS it, fall into the INSERT branch, then violate the
-      // UNIQUE(lower(name)) index → 23505 → "標籤加不了". See normalizeTag.ts.
-      // `.limit(1)` (not maybeSingle) tolerates legacy mixed-case dupe rows.
-      const { data: lookup } = await supabase
-        .from('piktag_tags')
-        .select('id')
-        .ilike('name', ilikeEscape(tagName))
-        .limit(1);
-      const existingTag = lookup && lookup[0];
-
-      if (existingTag) {
-        tagId = existingTag.id;
-      } else {
-        const { data: newTag, error: createErr } = await supabase
-          .from('piktag_tags')
-          .insert({ name: tagName, created_by: user!.id })
-          .select('id')
-          .single();
-        if (createErr || !newTag) {
-          // A dupe race (another insert of the same lower(name) landed
-          // first) surfaces as 23505 on the UNIQUE(lower(name)) index.
-          // Re-select case-insensitively and use that row rather than
-          // dead-ending the batch-tag with an error.
-          if (createErr?.code === '23505') {
-            const { data: raced } = await supabase
-              .from('piktag_tags')
-              .select('id')
-              .ilike('name', ilikeEscape(tagName))
-              .limit(1);
-            if (raced && raced[0]) {
-              tagId = raced[0].id;
-            } else {
-              console.error('Error creating tag:', createErr);
-              return;
-            }
-          } else {
-            console.error('Error creating tag:', createErr);
-            return;
-          }
-        } else {
-          tagId = newTag.id;
-        }
-      }
-
-      const rows = Array.from(selectedIds).map((connectionId) => ({
-        connection_id: connectionId,
-        tag_id: tagId,
-      }));
-
-      const { error: insertErr } = await supabase
-        .from('piktag_connection_tags')
-        .upsert(rows, { onConflict: 'connection_id,tag_id', ignoreDuplicates: true });
-
-      if (insertErr) {
-        console.error('Error batch tagging:', insertErr);
-      }
-
-      setBatchTagModalVisible(false);
-      setBatchTagInput('');
-      exitSelectMode();
-      fetchConnections();
-    } catch (err) {
-      console.error('Batch tag error:', err);
-    } finally {
-      setBatchTagLoading(false);
-    }
-  };
+  // Batch tagging now hands the selection to the SHARED BatchTagScreen
+  // instead of a text-input modal that lived only here.
+  //
+  // Three things that modal got wrong and this does not: it duplicated
+  // find-or-create-tag logic that lib/userTags already owns (two copies
+  // that had already drifted on case handling), it offered no presets so
+  // every batch started from a blank field, and it wrote
+  // piktag_connection_tags WITHOUT is_private — while the burst prompt
+  // writes is_private: true — so the same tag could end up with different
+  // visibility depending on which door the user came through, with
+  // nothing on screen to say so.
+  //
+  // lastFetchRef is reset so the 30s focus cooldown cannot swallow the
+  // refetch on the way back; the new tags must be on the rows the moment
+  // the user lands here again. (Same trick as the ActivityReview link.)
+  const handleBatchTagPress = useCallback(() => {
+    const chosen = sortedConnections.filter((c) => selectedIds.has(c.id));
+    if (chosen.length === 0) return;
+    const people = chosen.map((c) => ({
+      connectionId: c.id,
+      userId: c.connected_user_id,
+      name: c.nickname || c.connected_user?.full_name || c.connected_user?.username || '',
+      avatarUrl: c.connected_user?.avatar_url ?? null,
+    }));
+    exitSelectMode();
+    lastFetchRef.current = 0;
+    navigation.navigate('BatchTag', { people, origin: 'manual' });
+  }, [sortedConnections, selectedIds, exitSelectMode, navigation]);
 
   // Per-author lookup table for active Asks. Stores both the
   // existence flag (drives the avatar gradient ring) and a
@@ -1248,6 +1218,33 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                 </Text>
                 <ChevronRight size={14} color={colors.piktag600} />
               </TouchableOpacity>
+              {/* Batch tagging's only entry used to be a long-press on a
+                  row — the founder found it by accident, which means
+                  nobody else was going to. It sits in this utility-link
+                  row rather than as a third header icon: the header is
+                  deliberately just 掃描 + 排序 (a "+" action sheet was
+                  removed once for making this page busy), and a text link
+                  here cannot compete with the "+" for CTA weight.
+                  Hidden below two friends, where there is no batch. */}
+              {sortedConnections.length >= 2 && (
+                <>
+                  {/* Separator outside the touchable — a tap on the dot
+                      should not open batch mode. */}
+                  <Text style={styles.networkLinkText}>{'  ·  '}</Text>
+                  <TouchableOpacity
+                    style={styles.networkLink}
+                    activeOpacity={0.6}
+                    onPress={enterSelectMode}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('connections.batchTagEntry', { defaultValue: '批次加標籤' })}
+                  >
+                    <Tag size={13} color={colors.piktag600} />
+                    <Text style={styles.networkLinkText}>
+                      {' '}{t('connections.batchTagEntry', { defaultValue: '批次加標籤' })}
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
               {unreviewedCount > 0 && (
                 <TouchableOpacity
                   activeOpacity={0.6}
@@ -1379,19 +1376,31 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         />
       )}
 
-      {/* Batch action bar */}
-      {selectMode && selectedIds.size > 0 && (
+      {/* Batch action bar. Rendered for the WHOLE of select mode, not only
+          once something is picked: entering from the header link with an
+          empty selection used to show nothing at all, so the screen looked
+          like it had merely put checkboxes on the rows for no reason. The
+          bar now says what to do next. */}
+      {selectMode && (
         <View style={styles.batchBar}>
-          <TouchableOpacity
-            style={styles.batchBtn}
-            activeOpacity={0.7}
-            onPress={() => setBatchTagModalVisible(true)}
-          >
-            <Tag size={20} color={'#FFFFFF'} />
-            <Text style={styles.batchBtnText}>
-              {t('connections.batchTagButton', { count: selectedIds.size })}
+          {selectedIds.size > 0 ? (
+            <TouchableOpacity
+              style={styles.batchBtn}
+              activeOpacity={0.7}
+              onPress={handleBatchTagPress}
+            >
+              <Tag size={20} color={'#FFFFFF'} />
+              <Text style={styles.batchBtnText}>
+                {t('connections.batchTagButton', { count: selectedIds.size })}
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <Text style={styles.batchHint}>
+              {t('connections.batchTagHint', {
+                defaultValue: '選擇要一起加標籤的人',
+              })}
             </Text>
-          </TouchableOpacity>
+          )}
         </View>
       )}
 
@@ -1500,55 +1509,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             ))}
           </View>
         </View>
-      </Modal>
-
-      {/* Batch Tag Modal */}
-      <Modal
-        visible={batchTagModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setBatchTagModalVisible(false)}
-      >
-        {/* KAV wrapping the bottom-sheet overlay so the sheet floats above
-            the soft keyboard instead of being buried under it when the
-            autoFocus'd TextInput brings the keyboard up. */}
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-          <TouchableOpacity
-            style={styles.modalOverlay}
-            activeOpacity={1}
-            onPress={() => setBatchTagModalVisible(false)}
-          >
-            <View style={styles.batchTagModal}>
-              <Text style={styles.sortModalTitle}>
-                {t('connections.batchTagModalTitle', { count: selectedIds.size })}
-              </Text>
-              <TextInput
-                style={styles.batchTagInput}
-                placeholder={t('connections.batchTagPlaceholder')}
-                placeholderTextColor={colors.gray400}
-                value={batchTagInput}
-                onChangeText={setBatchTagInput}
-                autoFocus
-              />
-              <TouchableOpacity
-                style={[
-                  styles.batchTagSubmitBtn,
-                  (!batchTagInput.trim() || batchTagLoading) && styles.batchTagSubmitBtnDisabled,
-                ]}
-                activeOpacity={0.7}
-                onPress={handleBatchTagSubmit}
-                disabled={!batchTagInput.trim() || batchTagLoading}
-              >
-                <Text style={styles.batchTagSubmitText}>
-                  {batchTagLoading ? t('common.processing') : t('common.confirm')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        </KeyboardAvoidingView>
       </Modal>
 
       {/* (Cold-start Ask modal removed 2026-06-04 — the ask card was
@@ -2035,6 +1995,15 @@ function makeStyles(c: ColorPalette) {
     fontWeight: '700',
     color: '#FFFFFF',
   },
+  // Shown in the same bar before anything is picked, so select mode is
+  // never a screen full of empty checkboxes with no explanation.
+  batchHint: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: c.gray500,
+    textAlign: 'center',
+    paddingVertical: 14,
+  },
   // Shared modal overlay (used by batch-tag modal)
   modalOverlay: {
     flex: 1,
@@ -2046,39 +2015,6 @@ function makeStyles(c: ColorPalette) {
     fontWeight: '700',
     color: c.gray900,
     marginBottom: 16,
-  },
-  // Batch Tag Modal
-  batchTagModal: {
-    backgroundColor: c.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 40,
-  },
-  batchTagInput: {
-    borderWidth: 2,
-    borderColor: c.gray200,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: c.gray900,
-    marginBottom: 16,
-  },
-  batchTagSubmitBtn: {
-    backgroundColor: c.piktag500,
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  batchTagSubmitBtnDisabled: {
-    opacity: 0.5,
-  },
-  batchTagSubmitText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: c.gray900,
   },
   // Friend statuses row
   statusSection: {

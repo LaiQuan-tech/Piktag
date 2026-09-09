@@ -1,5 +1,5 @@
 // BatchTagScreen — the ONE shared batch-tagging UI (CLAUDE.md contract).
-// Two FREE, system-initiated modes live here today:
+// Three FREE modes live here today:
 //
 //   1. Burst mode (`people`, event-tag rework 方向一): auto-cohort = the
 //      last hour's connection adds. All pre-selected, one tag, save/skip
@@ -14,9 +14,25 @@
 //      rows for contacts that had none) — the same array the promote
 //      trigger copies into real connection tags when that person joins.
 //
-// The future PAID tier (user-initiated arbitrary friend selection) will
-// extend THIS screen — never build a second batch UI. Free/paid boundary
-// is recorded in CLAUDE.md (free = system-initiated cohorts only).
+//   3. Manual mode (`people` + origin 'manual', 2026-09-09): cohort = the
+//      friends the user picked themselves in ConnectionsScreen's select
+//      mode. Same write as burst (private connection tags), different
+//      copy and a separate analytics event.
+//
+// Mode 3 used to be a SECOND batch UI: a bare text-input modal inside
+// ConnectionsScreen with its own find-or-create-tag logic, which (a) broke
+// the one-shared-component rule, (b) had no presets, and (c) wrote
+// piktag_connection_tags WITHOUT is_private, so a tag added from the
+// friends list and the same tag added from the burst prompt could differ
+// in visibility with nothing on screen saying so. Folding it in here
+// deletes all three problems.
+//
+// Free/paid boundary: the founder's line (MONETIZATION_ROADMAP) was
+// "free = system-initiated cohorts, paid = arbitrary selection". Arbitrary
+// selection was ALREADY free and shipped, and the same roadmap locks
+// "免費層永遠完整可用,付費是升級不是解鎖基本功能" — so it stays free and
+// the Pro line moves to HOW you select (conditions, multi-tag, AI batch
+// suggestions, export). See 60-TRIGGERS #19.
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -38,6 +54,7 @@ import {
   trackBurstTagPromptShown,
   trackBurstTagApplied,
   trackImportBatchTagged,
+  trackManualBatchTagged,
 } from '../lib/analytics';
 import { useLocalContacts } from '../hooks/useLocalContacts';
 import InitialsAvatar from '../components/InitialsAvatar';
@@ -67,6 +84,10 @@ type Props = {
     params?: {
       people?: BurstPerson[];
       deviceContacts?: ImportContact[];
+      // Who chose the cohort. Defaults to 'burst' so the two older
+      // callers (ScanResult, UserDetail) keep their copy and their
+      // metric without passing anything.
+      origin?: 'burst' | 'manual';
       // Where to land afterwards — ScanResult/UserDetail pass the
       // just-added friend so burst save/skip stays a linear flow.
       next?: { friendId: string; connectionId: string };
@@ -90,6 +111,7 @@ export default function BatchTagScreen({ navigation, route }: Props) {
   const deviceContacts: ImportContact[] = route.params?.deviceContacts ?? [];
   const next = route.params?.next;
   const isImport = deviceContacts.length > 0;
+  const isManual = !isImport && route.params?.origin === 'manual';
 
   const { add: addLocalContact, update: updateLocalContact } = useLocalContacts();
 
@@ -133,7 +155,9 @@ export default function BatchTagScreen({ navigation, route }: Props) {
   }, []);
 
   useEffect(() => {
-    if (!isImport) trackBurstTagPromptShown(people.length);
+    // Burst only. A hand-picked cohort is not a prompt the app showed, so
+    // counting it here would inflate the burst prompt's own success metric.
+    if (!isImport && !isManual) trackBurstTagPromptShown(people.length);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -171,7 +195,8 @@ export default function BatchTagScreen({ navigation, route }: Props) {
     if (!tagId) return;
     const ids = [...selected];
     await attachPrivateTagsToConnections(ids, [tagId]);
-    trackBurstTagApplied(people.length, ids.length);
+    if (isManual) trackManualBatchTagged(ids.length);
+    else trackBurstTagApplied(people.length, ids.length);
   };
 
   // ── Save: import mode → piktag_local_contacts.tags (creating rows) ──
@@ -284,17 +309,24 @@ export default function BatchTagScreen({ navigation, route }: Props) {
       <Text style={styles.title}>
         {isImport
           ? t('batchTag.importTitle', { defaultValue: '幫聯絡人快速分類' })
-          : t('batchTag.title', { defaultValue: '同一場合認識的嗎？' })}
+          : isManual
+            ? t('batchTag.manualTitle', { defaultValue: '一次幫這些人加標籤' })
+            : t('batchTag.title', { defaultValue: '同一場合認識的嗎？' })}
       </Text>
       <Text style={styles.subtitle}>
         {isImport
           ? t('batchTag.importSubtitle', {
               defaultValue: '挑出同一類的人，一次加上標籤 — 之後搜這個標籤，他們全都找得到。',
             })
-          : t('batchTag.subtitle', {
-              count: people.length,
-              defaultValue: '過去一小時你加了 {{count}} 位朋友 — 一次幫他們加上這場活動的標籤。',
-            })}
+          : isManual
+            ? t('batchTag.manualSubtitle', {
+                count: people.length,
+                defaultValue: '你選了 {{count}} 位 — 加上共同的標籤，之後搜這個標籤就能一次找回他們。',
+              })
+            : t('batchTag.subtitle', {
+                count: people.length,
+                defaultValue: '過去一小時你加了 {{count}} 位朋友 — 一次幫他們加上這場活動的標籤。',
+              })}
       </Text>
       {rows.length > 1 ? (
         <TouchableOpacity style={styles.selectAllBtn} activeOpacity={0.7} onPress={toggleAll}>
@@ -361,7 +393,11 @@ export default function BatchTagScreen({ navigation, route }: Props) {
         <Text style={styles.skipText}>
           {isImport
             ? t('batchTag.done', { defaultValue: '完成' })
-            : t('batchTag.skip', { defaultValue: '先不用' })}
+            : isManual
+              // The user walked in here on purpose — "先不用" is the answer
+              // to a question nobody asked them.
+              ? t('common.cancel', { defaultValue: '取消' })
+              : t('batchTag.skip', { defaultValue: '先不用' })}
         </Text>
       </TouchableOpacity>
     </View>

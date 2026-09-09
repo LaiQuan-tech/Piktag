@@ -297,8 +297,6 @@
     "headerDate": "{{month}}/{{day}}/{{year}}",
     "headerSubtitle": "#گلبرگ، لاہور",
     "batchTagButton": "اکٹھے ٹیگ کریں ({{count}})",
-    "batchTagModalTitle": "{{count}} دوستوں کو ٹیگ کریں",
-    "batchTagPlaceholder": "ٹیگ کا نام لکھیں (مثلاً، پارٹی)",
     "batchTagProcessing": "ہو رہا ہے...",
     "batchTagConfirm": "ٹھیک ہے",
     "emptyGuideTitle": "ابھی کوئی رابطہ نہیں",
@@ -358,7 +356,9 @@
     "coldStartActionSearch": "ٹیگ سے لوگ تلاش کریں",
     "coldStartActionSearchDesc": "#مارکیٹنگ یا #ڈیزائنر آزمائیں — دیکھیں کون آتا ہے",
     "firstFriendHint": "آس پاس کے لوگوں کے ساتھ QR اسکین کریں، یا رابطوں سے دوست شامل کریں",
-    "createEventQr": "ایونٹ QR بنائیں"
+    "createEventQr": "ایونٹ QR بنائیں",
+    "batchTagEntry": "اکٹھے ٹیگ کریں",
+    "batchTagHint": "ایک ساتھ ٹیگ کرنے کے لیے لوگ منتخب کریں"
   },
   "search": {
     "clearAll": "سب صاف کریں",
@@ -1562,7 +1562,9 @@
     "selectAll": "سب منتخب کریں",
     "clearAll": "انتخاب ہٹائیں",
     "done": "مکمل",
-    "savedToast": "{{count}} کو #{{tag}} کا ٹیگ لگا دیا"
+    "savedToast": "{{count}} کو #{{tag}} کا ٹیگ لگا دیا",
+    "manualTitle": "ان لوگوں کو ایک ساتھ ٹیگ کریں",
+    "manualSubtitle": "آپ نے {{count}} لوگ منتخب کیے — انہیں ایک مشترکہ ٹیگ دیں، پھر وہی ٹیگ تلاش کر کے سب کو ایک ساتھ پائیں۔"
   },
   "qrContext": {
     "add": "ایونٹ سیاق شامل کریں",

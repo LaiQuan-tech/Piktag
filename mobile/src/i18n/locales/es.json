@@ -296,8 +296,6 @@
     "headerDate": "{{day}}/{{month}}/{{year}}",
     "headerSubtitle": "#Distrito Da'an, Taipéi",
     "batchTagButton": "Etiqueta masiva ({{count}})",
-    "batchTagModalTitle": "Añadir etiqueta a {{count}} amigos",
-    "batchTagPlaceholder": "Introduce el nombre (ej., Fiesta)",
     "batchTagProcessing": "Procesando...",
     "batchTagConfirm": "Confirmar",
     "emptyGuideTitle": "Aún no hay conexiones",
@@ -358,7 +356,9 @@
     "coldStartActionSearch": "Buscar gente por tag",
     "coldStartActionSearchDesc": "Prueba #marketing o #diseñador: mira quién aparece",
     "firstFriendHint": "Escanea el QR con la gente a tu alrededor o añade amigos desde tus contactos",
-    "createEventQr": "Crear QR de evento"
+    "createEventQr": "Crear QR de evento",
+    "batchTagEntry": "Etiqueta masiva",
+    "batchTagHint": "Elige a quiénes etiquetar juntos"
   },
   "search": {
     "clearAll": "Limpiar todo",
@@ -1562,7 +1562,9 @@
     "selectAll": "Seleccionar todo",
     "clearAll": "Quitar selección",
     "done": "Listo",
-    "savedToast": "{{count}} etiquetados con #{{tag}}"
+    "savedToast": "{{count}} etiquetados con #{{tag}}",
+    "manualTitle": "Etiqueta a estas personas de una vez",
+    "manualSubtitle": "Elegiste a {{count}} personas: ponles una etiqueta común y luego búscala para encontrarlas a todas."
   },
   "qrContext": {
     "add": "Añadir contexto de evento",

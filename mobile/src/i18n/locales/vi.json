@@ -297,8 +297,6 @@
     "headerDate": "{{day}}/{{month}}/{{year}}",
     "headerSubtitle": "#Quận Đại An, Đài Bắc",
     "batchTagButton": "Gắn tag hàng loạt ({{count}})",
-    "batchTagModalTitle": "Thêm tag cho {{count}} người bạn",
-    "batchTagPlaceholder": "Nhập tên tag (ví dụ: Tiệc)",
     "batchTagProcessing": "Đang xử lý...",
     "batchTagConfirm": "Xác nhận",
     "emptyGuideTitle": "Chưa có kết nối nào",
@@ -358,7 +356,9 @@
     "coldStartActionSearch": "Tìm người theo thẻ tag",
     "coldStartActionSearchDesc": "Thử #marketing hoặc #thietke — xem ai xuất hiện",
     "firstFriendHint": "Quét QR với người xung quanh, hoặc thêm bạn bè từ danh bạ",
-    "createEventQr": "Tạo QR sự kiện"
+    "createEventQr": "Tạo QR sự kiện",
+    "batchTagEntry": "Gắn tag hàng loạt",
+    "batchTagHint": "Chọn những người muốn gắn thẻ cùng lúc"
   },
   "search": {
     "clearAll": "Xoá hết",
@@ -1562,7 +1562,9 @@
     "selectAll": "Chọn tất cả",
     "clearAll": "Bỏ chọn tất cả",
     "done": "Xong",
-    "savedToast": "Đã gắn #{{tag}} cho {{count}} người"
+    "savedToast": "Đã gắn #{{tag}} cho {{count}} người",
+    "manualTitle": "Gắn thẻ cho những người này cùng lúc",
+    "manualSubtitle": "Bạn đã chọn {{count}} người — gắn cho họ một thẻ chung, sau này tìm thẻ đó là thấy lại tất cả."
   },
   "qrContext": {
     "add": "Thêm ngữ cảnh sự kiện",

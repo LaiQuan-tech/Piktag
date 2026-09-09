@@ -296,8 +296,6 @@
     "headerDate": "{{day}}/{{month}}/{{year}}",
     "headerSubtitle": "#เขตต้าอัน ไทเป",
     "batchTagButton": "แท็กทีเดียว ({{count}})",
-    "batchTagModalTitle": "เพิ่มแท็กให้เพื่อน {{count}} คน",
-    "batchTagPlaceholder": "กรอกชื่อแท็ก (เช่น ปาร์ตี้)",
     "batchTagProcessing": "กำลังดำเนินการ...",
     "batchTagConfirm": "ยืนยัน",
     "emptyGuideTitle": "ยังไม่มีคนรู้จัก",
@@ -358,7 +356,9 @@
     "coldStartActionSearch": "ค้นหาคนด้วยแท็ก",
     "coldStartActionSearchDesc": "ลอง #การตลาด หรือ #นักออกแบบ ดูว่าใครโผล่มา",
     "firstFriendHint": "สแกน QR กับคนรอบตัว หรือเพิ่มเพื่อนจากรายชื่อผู้ติดต่อ",
-    "createEventQr": "สร้าง QR กิจกรรม"
+    "createEventQr": "สร้าง QR กิจกรรม",
+    "batchTagEntry": "แท็กทีเดียว",
+    "batchTagHint": "เลือกคนที่จะติดแท็กพร้อมกัน"
   },
   "search": {
     "clearAll": "ล้างทั้งหมด",
@@ -1562,7 +1562,9 @@
     "selectAll": "เลือกทั้งหมด",
     "clearAll": "ยกเลิกทั้งหมด",
     "done": "เสร็จสิ้น",
-    "savedToast": "ติดแท็ก #{{tag}} ให้ {{count}} คนแล้ว"
+    "savedToast": "ติดแท็ก #{{tag}} ให้ {{count}} คนแล้ว",
+    "manualTitle": "ติดแท็กให้คนเหล่านี้ในครั้งเดียว",
+    "manualSubtitle": "คุณเลือกไว้ {{count}} คน — ติดแท็กร่วมกัน แล้วค้นแท็กนี้เพื่อหาทุกคนได้ในครั้งเดียว"
   },
   "qrContext": {
     "add": "เพิ่มบริบทอีเวนต์",

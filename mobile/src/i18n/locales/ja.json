@@ -296,8 +296,6 @@
     "headerDate": "{{year}}/{{month}}/{{day}}",
     "headerSubtitle": "#台北市大安区",
     "batchTagButton": "一括タグ ({{count}})",
-    "batchTagModalTitle": "{{count}}人の友達にタグを追加",
-    "batchTagPlaceholder": "タグ名を入力 (例：パーティー)",
     "batchTagProcessing": "処理中...",
     "batchTagConfirm": "確認",
     "emptyGuideTitle": "まだつながりがありません",
@@ -358,7 +356,9 @@
     "coldStartActionSearch": "タグで人を探す",
     "coldStartActionSearchDesc": "例：#マーケ #デザイナー — 誰が出てくるか試してみて",
     "firstFriendHint": "まわりの人と QR を見せ合うか、連絡先から友達を追加しましょう",
-    "createEventQr": "イベント QR を作成"
+    "createEventQr": "イベント QR を作成",
+    "batchTagEntry": "一括タグ",
+    "batchTagHint": "まとめてタグを付ける人を選んでください"
   },
   "search": {
     "clearAll": "すべてクリア",
@@ -1562,7 +1562,9 @@
     "selectAll": "すべて選択",
     "clearAll": "選択を解除",
     "done": "完了",
-    "savedToast": "{{count}}人に #{{tag}} を付けました"
+    "savedToast": "{{count}}人に #{{tag}} を付けました",
+    "manualTitle": "この人たちにまとめてタグを付ける",
+    "manualSubtitle": "{{count}}人を選びました — 共通のタグを付ければ、あとでそのタグで一度に探せます。"
   },
   "qrContext": {
     "add": "イベント情報を付ける",

@@ -297,8 +297,6 @@
     "headerDate": "{{year}}年{{month}}月{{day}}日",
     "headerSubtitle": "#台北市大安区",
     "batchTagButton": "批量加标签 ({{count}})",
-    "batchTagModalTitle": "为 {{count}} 位好友加标签",
-    "batchTagPlaceholder": "输入标签名称（例如：尾牙）",
     "batchTagProcessing": "处理中...",
     "batchTagConfirm": "确认",
     "emptyGuideTitle": "还没有人脉",
@@ -358,7 +356,9 @@
     "coldStartActionSearch": "用标签搜一个人",
     "coldStartActionSearchDesc": "例如 #营销 #设计师，看看谁会出现",
     "firstFriendHint": "和身边的人互扫 QR，或从通讯录把朋友加进来",
-    "createEventQr": "创建活动 QR"
+    "createEventQr": "创建活动 QR",
+    "batchTagEntry": "批量加标签",
+    "batchTagHint": "选择要一起加标签的人"
   },
   "search": {
     "clearAll": "清除全部",
@@ -1562,7 +1562,9 @@
     "selectAll": "全选",
     "clearAll": "取消全选",
     "done": "完成",
-    "savedToast": "已为 {{count}} 位加上 #{{tag}}"
+    "savedToast": "已为 {{count}} 位加上 #{{tag}}",
+    "manualTitle": "一次帮这些人加标签",
+    "manualSubtitle": "你选了 {{count}} 位 — 加上共同的标签，之后搜这个标签就能一次找回他们。"
   },
   "qrContext": {
     "add": "加上活动情境",

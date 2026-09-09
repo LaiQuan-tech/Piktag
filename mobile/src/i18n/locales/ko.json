@@ -296,8 +296,6 @@
     "headerDate": "{{year}}/{{month}}/{{day}}",
     "headerSubtitle": "#타이베이 다안구",
     "batchTagButton": "일괄 태그 ({{count}})",
-    "batchTagModalTitle": "{{count}}명의 친구에게 태그 추가",
-    "batchTagPlaceholder": "태그 이름 입력 (예: 파티)",
     "batchTagProcessing": "처리 중...",
     "batchTagConfirm": "확인",
     "emptyGuideTitle": "아직 인맥이 없어요",
@@ -358,7 +356,9 @@
     "coldStartActionSearch": "태그로 사람 찾기",
     "coldStartActionSearchDesc": "예: #마케팅 #디자이너 — 누가 나오는지 보세요",
     "firstFriendHint": "주변 사람과 QR을 스캔하거나 연락처에서 친구를 추가하세요",
-    "createEventQr": "이벤트 QR 만들기"
+    "createEventQr": "이벤트 QR 만들기",
+    "batchTagEntry": "일괄 태그",
+    "batchTagHint": "함께 태그할 사람을 선택하세요"
   },
   "search": {
     "clearAll": "모두 지우기",
@@ -1562,7 +1562,9 @@
     "selectAll": "전체 선택",
     "clearAll": "전체 해제",
     "done": "완료",
-    "savedToast": "{{count}}명에게 #{{tag}} 태그 완료"
+    "savedToast": "{{count}}명에게 #{{tag}} 태그 완료",
+    "manualTitle": "이 사람들에게 한 번에 태그 붙이기",
+    "manualSubtitle": "{{count}}명을 선택했어요 — 공통 태그를 붙이면 나중에 그 태그로 한 번에 찾을 수 있어요."
   },
   "qrContext": {
     "add": "이벤트 컨텍스트 추가",

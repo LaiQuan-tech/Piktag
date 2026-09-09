@@ -296,8 +296,6 @@
     "headerDate": "{{day}}/{{month}}/{{year}}",
     "headerSubtitle": "#डाअन ज़िला, ताइपे",
     "batchTagButton": "बैच टैग ({{count}})",
-    "batchTagModalTitle": "{{count}} दोस्तों के लिए टैग जोड़ें",
-    "batchTagPlaceholder": "टैग का नाम डालें (जैसे, पार्टी)",
     "batchTagProcessing": "प्रोसेस हो रहा है...",
     "batchTagConfirm": "पुष्टि करें",
     "emptyGuideTitle": "अभी कोई कनेक्शन नहीं",
@@ -358,7 +356,9 @@
     "coldStartActionSearch": "टैग से लोग खोजें",
     "coldStartActionSearchDesc": "#मार्केटिंग या #डिज़ाइनर आज़माएँ — देखें कौन मिलता है",
     "firstFriendHint": "आसपास के लोगों के साथ QR स्कैन करें, या कॉन्टैक्ट्स से दोस्त जोड़ें",
-    "createEventQr": "इवेंट QR बनाएं"
+    "createEventQr": "इवेंट QR बनाएं",
+    "batchTagEntry": "बैच टैग",
+    "batchTagHint": "एक साथ टैग करने के लिए लोग चुनें"
   },
   "search": {
     "clearAll": "सब साफ़ करें",
@@ -1562,7 +1562,9 @@
     "selectAll": "सभी चुनें",
     "clearAll": "चयन हटाएं",
     "done": "हो गया",
-    "savedToast": "{{count}} को #{{tag}} से टैग किया"
+    "savedToast": "{{count}} को #{{tag}} से टैग किया",
+    "manualTitle": "इन लोगों को एक साथ टैग करें",
+    "manualSubtitle": "आपने {{count}} लोग चुने — इन्हें एक साझा टैग दें, फिर वही टैग खोजकर सबको एक साथ पाएं।"
   },
   "qrContext": {
     "add": "इवेंट संदर्भ जोड़ें",
