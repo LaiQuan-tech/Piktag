@@ -40,9 +40,16 @@
 | 25 | 推薦 affinity tiebreaker 成效檢查 | 上線 2-4 週後跑 `admin_recommendation_funnel(30)`:affinity>0 與 =0 兩群 read/轉化**無差異** | 提「mutual_score 改 ROUND(,1) 分桶」升級案給創辦人;**不得逕行改主排序** | ref-tag-algorithm Biolink 興趣訊號節 | 觀察中 |
 | 26 | 微信個人 QR 圖片上傳(取代目前的「點擊複製微信號」) | 創辦人示意做微信第一版加好友體驗(2026-07-18 選「先上線,QR 排後續」) | EditProfile 加 QR 圖片上傳欄→存 Supabase storage→名片頁 BiolinkSocialSection 顯示可長按辨識的圖片。**技術硬事實:個人微信號無法生成可點加好友連結**(`weixin://dl/chat` 已停用;`weixin.qq.com/r/` 後綴是每張 QR 的加密 token 非帳號;自生成純文字 QR 微信掃不觸發加好友)——唯一可靠是使用者上傳自己微信「我的二維碼」圖片(帶微信 token)。**絕不走自生成 QR 或第三方中轉頁** | platforms.ts:100-113 idMode 註記 + 本 session 查證 | 未達 |
 | 27 | UTM 活動追蹤(產連結 UI + admin 分管道報表) | **有第二個外部管道要分辨**才做:第一筆付費廣告、電子報、或合作夥伴連結上線;或創辦人要比較兩個外部來源的成效 | 才做產連結 UI 與 admin 分管道報表。**現在明確不做**:管道只有 QR、個人檔案連結、口耳,三者已由 `signup_source`(qr / web_profile / app_store / play_store)分開,加 utm 等於手工維護一組沒人看的參數 | 2026-09-09 裁決。防禦已先做:robots.txt 擋 `/*?utm_`、`/*&utm_`(跟 `?sid=` 同一種爬蟲陷阱,且每次爬會觸發 server-side share_link_viewed,等於把機器人算成活動流量);acquisition.ts 的 utm_campaign 跟著 utm_source 一起轉小寫(EP01 / ep01 不會裂成兩個活動) | 未達 |
-| 28 | `piktag_connection_tags` 舊公開列的修補 | 讀 20260909120000 這筆 migration 在 Supabase Deploy log 印的三行 `[connection_tags audit]`:**當時 default 是 false 且 batch-write signature 列數 > 0** | 才需要修補 —— 那些是使用者以為私人的標籤被當成公開背書,還在灌 endorser_count(search_users/explore_users 排序)。修補要另開 migration 並先給創辦人看數字;**不得盲修**:ScanResultScreen 合法寫入「非對方自標」的公開 connection tag,所以無法用「標籤不在對方檔案上」辨識壞列。default 為 true 則本條直接結案 | 20260909120000 migration 檔頭 + 本 session 查證(is_private 語意見該檔) | 等 deploy log |
 
 ## 已結案(留檔防重做)
+- **`piktag_connection_tags` 的 is_private 稽核 — 2026-09-09 結案,無需修補。**
+  疑慮:被刪掉的 ConnectionsScreen 批次 modal 沒寫 is_private,若欄位預設是
+  false,那些私人標籤會被當成公開背書,還會灌 search 的 endorser_count。
+  20260909120000 的稽核在 Supabase Deploy log 印出答案:**預設本來就是 true**;
+  全表 public(false)=13 / private(true)=12 / null=0;符合批次寫入特徵的公開列
+  **0 筆**。等於舊路徑漏寫欄位剛好落在安全的那一邊,沒有任何資料要救。
+  該 migration 把預設明文釘成 true 的部分**仍然有效且該留**——攔的是下一個
+  忘記寫的人,不是已發生的事。**不要再開這個調查。**
 - Admin 儀表板接 moat 指標 RPC — 2026-07-06 完成(be3c17e)。
 - 官方帳號標籤 v2 + 教學 bio — 2026-07-06 完成(20260706010000)。
 - 人脈圖聯絡人層 — 2026-07-06 完成(6506b05)。
