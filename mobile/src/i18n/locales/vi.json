@@ -357,8 +357,10 @@
     "coldStartActionSearchDesc": "Thử #marketing hoặc #thietke — xem ai xuất hiện",
     "firstFriendHint": "Quét QR với người xung quanh, hoặc thêm bạn bè từ danh bạ",
     "createEventQr": "Tạo QR sự kiện",
-    "batchTagEntry": "Gắn tag hàng loạt",
-    "batchTagHint": "Chọn những người muốn gắn thẻ cùng lúc"
+    "batchTagHint": "Chọn những người muốn gắn thẻ cùng lúc",
+    "select": "Chọn",
+    "selectAll": "Chọn tất cả",
+    "deselectAll": "Bỏ chọn tất cả"
   },
   "search": {
     "clearAll": "Xoá hết",

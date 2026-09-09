@@ -357,8 +357,10 @@
     "coldStartActionSearchDesc": "#مارکیٹنگ یا #ڈیزائنر آزمائیں — دیکھیں کون آتا ہے",
     "firstFriendHint": "آس پاس کے لوگوں کے ساتھ QR اسکین کریں، یا رابطوں سے دوست شامل کریں",
     "createEventQr": "ایونٹ QR بنائیں",
-    "batchTagEntry": "اکٹھے ٹیگ کریں",
-    "batchTagHint": "ایک ساتھ ٹیگ کرنے کے لیے لوگ منتخب کریں"
+    "batchTagHint": "ایک ساتھ ٹیگ کرنے کے لیے لوگ منتخب کریں",
+    "select": "منتخب کریں",
+    "selectAll": "سب منتخب کریں",
+    "deselectAll": "انتخاب ہٹائیں"
   },
   "search": {
     "clearAll": "سب صاف کریں",

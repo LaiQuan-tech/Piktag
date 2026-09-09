@@ -357,8 +357,10 @@
     "coldStartActionSearchDesc": "例如 #行銷 #設計師，看看誰會出現",
     "firstFriendHint": "跟身邊的人互掃 QR，或從通訊錄把朋友加進來",
     "createEventQr": "建立活動 QR",
-    "batchTagEntry": "批次加標籤",
-    "batchTagHint": "選擇要一起加標籤的人"
+    "batchTagHint": "選擇要一起加標籤的人",
+    "select": "選取",
+    "selectAll": "全選",
+    "deselectAll": "取消全選"
   },
   "search": {
     "clearAll": "清除全部",

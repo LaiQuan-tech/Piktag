@@ -357,8 +357,10 @@
     "coldStartActionSearchDesc": "جرّب #تسويق أو #مصمم — وانظر من يظهر",
     "firstFriendHint": "امسح رمز QR مع من حولك، أو أضف أصدقاء من جهات الاتصال",
     "createEventQr": "إنشاء QR للفعالية",
-    "batchTagEntry": "وسم جماعي",
-    "batchTagHint": "اختر الأشخاص الذين تريد وسمهم معًا"
+    "batchTagHint": "اختر الأشخاص الذين تريد وسمهم معًا",
+    "select": "تحديد",
+    "selectAll": "تحديد الكل",
+    "deselectAll": "إلغاء تحديد الكل"
   },
   "search": {
     "clearAll": "مسح الكل",

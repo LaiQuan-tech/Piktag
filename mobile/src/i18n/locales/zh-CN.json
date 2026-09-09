@@ -357,8 +357,10 @@
     "coldStartActionSearchDesc": "例如 #营销 #设计师，看看谁会出现",
     "firstFriendHint": "和身边的人互扫 QR，或从通讯录把朋友加进来",
     "createEventQr": "创建活动 QR",
-    "batchTagEntry": "批量加标签",
-    "batchTagHint": "选择要一起加标签的人"
+    "batchTagHint": "选择要一起加标签的人",
+    "select": "选择",
+    "selectAll": "全选",
+    "deselectAll": "取消全选"
   },
   "search": {
     "clearAll": "清除全部",

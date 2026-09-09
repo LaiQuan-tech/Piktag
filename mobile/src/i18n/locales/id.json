@@ -357,8 +357,10 @@
     "coldStartActionSearchDesc": "Coba #marketing atau #desainer — lihat siapa yang muncul",
     "firstFriendHint": "Pindai QR dengan orang di sekitarmu, atau tambah teman dari kontak",
     "createEventQr": "Buat QR acara",
-    "batchTagEntry": "Tag massal",
-    "batchTagHint": "Pilih orang yang ingin ditandai bersama"
+    "batchTagHint": "Pilih orang yang ingin ditandai bersama",
+    "select": "Pilih",
+    "selectAll": "Pilih Semua",
+    "deselectAll": "Batal Pilih Semua"
   },
   "search": {
     "clearAll": "Hapus semua",

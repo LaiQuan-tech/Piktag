@@ -357,8 +357,10 @@
     "coldStartActionSearchDesc": "Essaie #marketing ou #designer — vois qui apparaît",
     "firstFriendHint": "Scannez-vous en QR avec les gens autour de vous, ou ajoutez des amis depuis vos contacts",
     "createEventQr": "Créer un QR d’événement",
-    "batchTagEntry": "Tag en masse",
-    "batchTagHint": "Choisissez les personnes à taguer ensemble"
+    "batchTagHint": "Choisissez les personnes à taguer ensemble",
+    "select": "Sélectionner",
+    "selectAll": "Tout sélectionner",
+    "deselectAll": "Tout désélectionner"
   },
   "search": {
     "clearAll": "Tout effacer",

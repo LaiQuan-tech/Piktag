@@ -357,8 +357,10 @@
     "coldStartActionSearchDesc": "例：#マーケ #デザイナー — 誰が出てくるか試してみて",
     "firstFriendHint": "まわりの人と QR を見せ合うか、連絡先から友達を追加しましょう",
     "createEventQr": "イベント QR を作成",
-    "batchTagEntry": "一括タグ",
-    "batchTagHint": "まとめてタグを付ける人を選んでください"
+    "batchTagHint": "まとめてタグを付ける人を選んでください",
+    "select": "選択",
+    "selectAll": "すべて選択",
+    "deselectAll": "すべて選択解除"
   },
   "search": {
     "clearAll": "すべてクリア",

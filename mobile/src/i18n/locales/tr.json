@@ -357,8 +357,10 @@
     "coldStartActionSearchDesc": "#pazarlama ya da #tasarımcı dene — kim çıkacak bak",
     "firstFriendHint": "Yanındakilerle QR taratın ya da rehberinden arkadaş ekle",
     "createEventQr": "Etkinlik QR’si oluştur",
-    "batchTagEntry": "Toplu etiketle",
-    "batchTagHint": "Birlikte etiketlemek istediğin kişileri seç"
+    "batchTagHint": "Birlikte etiketlemek istediğin kişileri seç",
+    "select": "Seç",
+    "selectAll": "Tümünü Seç",
+    "deselectAll": "Seçimi Kaldır"
   },
   "search": {
     "clearAll": "Hepsini temizle",

@@ -357,8 +357,10 @@
     "coldStartActionSearchDesc": "#मार्केटिंग या #डिज़ाइनर आज़माएँ — देखें कौन मिलता है",
     "firstFriendHint": "आसपास के लोगों के साथ QR स्कैन करें, या कॉन्टैक्ट्स से दोस्त जोड़ें",
     "createEventQr": "इवेंट QR बनाएं",
-    "batchTagEntry": "बैच टैग",
-    "batchTagHint": "एक साथ टैग करने के लिए लोग चुनें"
+    "batchTagHint": "एक साथ टैग करने के लिए लोग चुनें",
+    "select": "चुनें",
+    "selectAll": "सभी चुनें",
+    "deselectAll": "चयन हटाएं"
   },
   "search": {
     "clearAll": "सब साफ़ करें",

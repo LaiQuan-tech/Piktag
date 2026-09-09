@@ -20,8 +20,6 @@ import {
   CheckCircle2,
   X,
   Tag,
-  CheckSquare,
-  Square,
   CalendarHeart,
   Gift,
   Heart,
@@ -155,9 +153,9 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk,
         {selectMode && (
           <View style={styles.checkboxContainer}>
             {isSelected ? (
-              <CheckSquare size={22} color={colors.piktag600} />
+              <CheckCircle2 size={22} color={'#FFFFFF'} fill={colors.piktag600} />
             ) : (
-              <Square size={22} color={colors.gray400} />
+              <Circle size={22} color={colors.gray400} />
             )}
           </View>
         )}
@@ -212,9 +210,9 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk,
       {selectMode && (
         <View style={styles.checkboxContainer}>
           {isSelected ? (
-            <CheckSquare size={22} color={colors.piktag600} />
+            <CheckCircle2 size={22} color={'#FFFFFF'} fill={colors.piktag600} />
           ) : (
-            <Square size={22} color={colors.gray400} />
+            <Circle size={22} color={colors.gray400} />
           )}
         </View>
       )}
@@ -895,6 +893,31 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     setSelectedIds(new Set());
   }, []);
 
+  // Everything currently on screen that a batch can act on. Declared
+  // ABOVE selectAll on purpose: a `const` in a useCallback dep array is
+  // evaluated eagerly at render, so declaring it later would read it in
+  // its temporal dead zone and throw on every render — the same trap
+  // UserDetailScreen documents around fetchHiddenTags.
+  //
+  // @piktag is excluded: everyone is auto-friended to the official
+  // account, so 全選 would otherwise file the app's own account under
+  // the user's tag.
+  const selectableIds = useMemo(
+    () =>
+      listData
+        .filter((c) => c.connected_user_id !== OFFICIAL_USER_ID)
+        .map((c) => c.id),
+    [listData],
+  );
+  const allVisibleSelected =
+    selectableIds.length > 0 && selectableIds.every((id) => selectedIds.has(id));
+
+  // 取消全選 empties the selection WITHOUT leaving select mode — the
+  // right-hand 取消 is the way out. Same split as Photos.
+  const clearSelection = useCallback(() => {
+    setSelectedIds(new Set());
+  }, []);
+
   const exitSelectMode = useCallback(() => {
     setSelectMode(false);
     setSelectedIds(new Set());
@@ -913,14 +936,8 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     // listData, not sortedConnections: contacts are batch-taggable now,
     // and 全選 that silently skipped every 尚未加入 row would be a second
     // way of saying they are not part of this.
-    setSelectedIds(
-      new Set(
-        listData
-          .filter((c) => c.connected_user_id !== OFFICIAL_USER_ID)
-          .map((c) => c.id),
-      ),
-    );
-  }, [listData]);
+    setSelectedIds(new Set(selectableIds));
+  }, [selectableIds]);
 
   // Batch tagging now hands the selection to the SHARED BatchTagScreen
   // instead of a text-input modal that lived only here.
@@ -1206,28 +1223,38 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
 
       {/* Header: normal or select mode */}
       {selectMode ? (
+        // Photos' selection chrome (founder 2026-09-09: 「原生的照片 app
+        // 右上角,『選取』的功能」): 全選 left, count in the middle, 取消
+        // right, all as TEXT. Icons were doing the same jobs before, and a
+        // an icon meaning "select all" sitting next to row checkboxes
+        // meaning "this row is selected" is one glyph saying two things.
+        // Rows use a filled circle, which is the Photos selection mark.
         <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Text style={[styles.headerTitle, { color: colors.text }]}>
-              {t('connections.selectedCount', { count: selectedIds.size })}
+          <TouchableOpacity
+            style={styles.headerTextBtn}
+            activeOpacity={0.6}
+            onPress={allVisibleSelected ? clearSelection : selectAll}
+            accessibilityRole="button"
+          >
+            <Text style={styles.headerTextBtnLabel}>
+              {allVisibleSelected
+                ? t('connections.deselectAll', { defaultValue: '取消全選' })
+                : t('connections.selectAll', { defaultValue: '全選' })}
             </Text>
-          </View>
-          <View style={styles.headerRight}>
-            <TouchableOpacity
-              style={styles.headerIconBtn}
-              activeOpacity={0.6}
-              onPress={selectAll}
-            >
-              <CheckSquare size={24} color={colors.gray600} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.headerIconBtn}
-              activeOpacity={0.6}
-              onPress={exitSelectMode}
-            >
-              <X size={24} color={colors.gray600} />
-            </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>
+            {t('connections.selectedCount', { count: selectedIds.size })}
+          </Text>
+          <TouchableOpacity
+            style={styles.headerTextBtn}
+            activeOpacity={0.6}
+            onPress={exitSelectMode}
+            accessibilityRole="button"
+          >
+            <Text style={styles.headerTextBtnLabel}>
+              {t('common.cancel', { defaultValue: '取消' })}
+            </Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <View style={styles.header}>
@@ -1248,33 +1275,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                 </Text>
                 <ChevronRight size={14} color={colors.piktag600} />
               </TouchableOpacity>
-              {/* Batch tagging's only entry used to be a long-press on a
-                  row — the founder found it by accident, which means
-                  nobody else was going to. It sits in this utility-link
-                  row rather than as a third header icon: the header is
-                  deliberately just 掃描 + 排序 (a "+" action sheet was
-                  removed once for making this page busy), and a text link
-                  here cannot compete with the "+" for CTA weight.
-                  Hidden below two friends, where there is no batch. */}
-              {sortedConnections.length >= 2 && (
-                <>
-                  {/* Separator outside the touchable — a tap on the dot
-                      should not open batch mode. */}
-                  <Text style={styles.networkLinkText}>{'  ·  '}</Text>
-                  <TouchableOpacity
-                    style={styles.networkLink}
-                    activeOpacity={0.6}
-                    onPress={enterSelectMode}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('connections.batchTagEntry', { defaultValue: '批次加標籤' })}
-                  >
-                    <Tag size={13} color={colors.piktag600} />
-                    <Text style={styles.networkLinkText}>
-                      {' '}{t('connections.batchTagEntry', { defaultValue: '批次加標籤' })}
-                    </Text>
-                  </TouchableOpacity>
-                </>
-              )}
               {unreviewedCount > 0 && (
                 <TouchableOpacity
                   activeOpacity={0.6}
@@ -1300,6 +1300,28 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             </View>
           </View>
           <View style={styles.headerRight}>
+            {/* 選取 — the Photos pattern, founder 2026-09-09: 「原生的照片
+                app 右上角,『選取』的功能」. It replaces a 批次加標籤 text
+                link that sat in the utility row under the wordmark; this
+                is both more familiar and one item lighter in that row.
+                The word is deliberately the generic 選取 rather than the
+                action: what the selection is FOR is stated by the button
+                that appears at the bottom once something is picked, which
+                is exactly how Photos sequences it.
+                Plain text so it cannot compete with the "+" — that is the
+                North-Star friend-add CTA and this page's real action. */}
+            {selectableIds.length >= 2 && (
+              <TouchableOpacity
+                style={styles.headerTextBtn}
+                activeOpacity={0.6}
+                onPress={enterSelectMode}
+                accessibilityRole="button"
+              >
+                <Text style={styles.headerTextBtnLabel}>
+                  {t('connections.select', { defaultValue: '選取' })}
+                </Text>
+              </TouchableOpacity>
+            )}
             {/* "+" add-contact action sheet was removed after user
                 feedback that the Connections page was too busy at
                 first glance. The same three entry points (search /
@@ -1913,6 +1935,17 @@ function makeStyles(c: ColorPalette) {
     alignItems: 'center',
     flexWrap: 'wrap',
     marginTop: 2,
+  },
+  // Photos-style plain text control in the nav bar. No fill, no border —
+  // it must read as chrome, not as an action competing with the "+".
+  headerTextBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  headerTextBtnLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: c.piktag600,
   },
   networkLink: {
     flexDirection: 'row',

@@ -357,8 +357,10 @@
     "coldStartActionSearchDesc": "#মার্কেটিং বা #ডিজাইনার লিখে দেখুন — কে আসে",
     "firstFriendHint": "আশেপাশের মানুষের সাথে QR স্ক্যান করুন, বা কন্টাক্ট থেকে বন্ধু যোগ করুন",
     "createEventQr": "ইভেন্ট QR তৈরি করুন",
-    "batchTagEntry": "ব্যাচ ট্যাগ",
-    "batchTagHint": "একসাথে ট্যাগ করার জন্য লোক বেছে নিন"
+    "batchTagHint": "একসাথে ট্যাগ করার জন্য লোক বেছে নিন",
+    "select": "নির্বাচন",
+    "selectAll": "সব নির্বাচন",
+    "deselectAll": "সব বাতিল"
   },
   "search": {
     "clearAll": "সব সাফ করুন",

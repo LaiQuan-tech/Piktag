@@ -357,8 +357,10 @@
     "coldStartActionSearchDesc": "ลอง #การตลาด หรือ #นักออกแบบ ดูว่าใครโผล่มา",
     "firstFriendHint": "สแกน QR กับคนรอบตัว หรือเพิ่มเพื่อนจากรายชื่อผู้ติดต่อ",
     "createEventQr": "สร้าง QR กิจกรรม",
-    "batchTagEntry": "แท็กทีเดียว",
-    "batchTagHint": "เลือกคนที่จะติดแท็กพร้อมกัน"
+    "batchTagHint": "เลือกคนที่จะติดแท็กพร้อมกัน",
+    "select": "เลือก",
+    "selectAll": "เลือกทั้งหมด",
+    "deselectAll": "ยกเลิกเลือกทั้งหมด"
   },
   "search": {
     "clearAll": "ล้างทั้งหมด",
