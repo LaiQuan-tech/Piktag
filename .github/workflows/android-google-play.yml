@@ -102,13 +102,23 @@ jobs:
           # shipped BUILD. This is exactly the silent-skip disease the gate
           # exists to cure, reintroduced by the cure.
           #
-          # So: walk recent successful runs newest-first and take the first
-          # whose build-and-upload job actually succeeded. Bounded at 30 and
-          # breaks on the first hit. Still fails OPEN — an API error or no
-          # shipped run on record leaves both values empty, and every caller
-          # below treats empty as "build".
+          # So: walk recent runs newest-first and take the first whose
+          # build-and-upload job actually succeeded. Bounded at 30 and breaks
+          # on the first hit. Still fails OPEN — an API error or no shipped
+          # run on record leaves both values empty, and every caller below
+          # treats empty as "build".
+          #
+          # Note there is NO status=success filter on the listing, and that
+          # is deliberate. Run 1171 (2026-09-09) finished every step of
+          # build-and-upload — archive, Export and Upload to TestFlight,
+          # sourcemaps — and the job concluded SUCCESS, but a concurrency
+          # cancellation landed after the work was done and stamped the RUN
+          # cancelled. That build is in TestFlight. Filtering on the run's
+          # conclusion would hide it and rebuild the same commit. The job is
+          # the truth here; the run is a label that can lie in both
+          # directions.
           RUNS_TSV=$(gh api \
-            "repos/$REPO/actions/workflows/android-google-play.yml/runs?status=success&branch=$BRANCH&per_page=30" \
+            "repos/$REPO/actions/workflows/android-google-play.yml/runs?branch=$BRANCH&per_page=30" \
             --jq '.workflow_runs[] | "\(.id) \(.created_at) \(.head_sha)"' 2>/dev/null || true)
           SHIPPED_AT=""
           SHIPPED_SHA=""
