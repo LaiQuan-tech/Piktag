@@ -13,7 +13,7 @@
 //     'utm:<source>' — launch URL had a `utm_source` query param (lowercased)
 //     'app_store'    — none of the above AND iOS
 //     'play_store'   — none of the above AND Android
-//   signup_campaign: utm_campaign (only when a utm_source was present)
+//   signup_campaign: utm_campaign, lowercased (only when utm_source was present)
 //
 // FIRST-TOUCH: the two AsyncStorage keys are written exactly once (never
 // overwritten), so a later launch with a different URL can't rewrite the
@@ -48,10 +48,17 @@ function deriveFromUrl(url: string | null): { source: string; campaign: string |
       const utmSource = parsed.searchParams.get('utm_source');
       if (utmSource && utmSource.trim()) {
         // utm attribution wins — value lowercased into 'utm:<source>'.
+        //
+        // The campaign is lowercased for the SAME reason the source is:
+        // utm values are typed by hand (the admin funnel page tells the
+        // founder to append them himself), and `EP01` vs `ep01` would
+        // become two campaigns in every count. Nothing consumes this yet,
+        // which is exactly when it is cheap to fix — once real signups
+        // carry mixed-case values the split is already in the data.
         const campaign = parsed.searchParams.get('utm_campaign');
         return {
           source: `utm:${utmSource.trim().toLowerCase()}`,
-          campaign: campaign && campaign.trim() ? campaign.trim() : null,
+          campaign: campaign && campaign.trim() ? campaign.trim().toLowerCase() : null,
         };
       }
       const sid = parsed.searchParams.get('sid');

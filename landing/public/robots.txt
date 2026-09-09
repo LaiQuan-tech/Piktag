@@ -121,6 +121,24 @@ Disallow: /*?tags=
 Disallow: /*?date=
 Disallow: /*?loc=
 
+# Campaign parameters, for the same reason and one more.
+#
+# The app READS utm_source / utm_campaign at launch (see
+# mobile/src/lib/acquisition.ts) and the admin funnel page tells the
+# founder to append them by hand, so tagged pikt.ag links exist in the
+# wild whether or not we generate any. Each combination resolves to the
+# same page, so they are the same unbounded space as ?sid= above.
+#
+# The extra reason: every crawl of one of these fires the server-side
+# share_link_viewed event, which would credit a campaign with traffic a
+# robot produced. Attribution that counts crawlers is worse than none.
+#
+# Prefix match — one line covers utm_source, utm_medium, utm_campaign,
+# utm_term and utm_content. Landing FIRST, before campaign links are in
+# circulation, is the point: this is cheap now and a cleanup later.
+Disallow: /*?utm_
+Disallow: /*&utm_
+
 # NOT blocked: ?lang=<code>. It renders the same page in one of 19
 # languages and is the only per-language URL the site has. Blocking it
 # would close the door on hreflang later; rel=canonical already
