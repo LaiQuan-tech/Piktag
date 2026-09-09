@@ -110,3 +110,31 @@ jobs:
           curl -sf -X PATCH -H "$AUTH" -H "Content-Type: application/json" \
             -d "$payload" "$API" > /dev/null
           echo "Auth config synced: site_url + uri_allow_list (merged) + branded recovery email."
+
+          # 7. Verify what actually landed, do not assume the PATCH took.
+          #
+          # 2026-09-09: password_hibp_enabled has been in the payload above
+          # since 2026-07-26, and the Security Advisor still reported
+          # "Leaked Password Protection Disabled" on 2026-09-09. The reason
+          # was simply that this workflow had not run since 2026-06-08 — the
+          # field was added and never applied. But "the PATCH was sent" is
+          # not the same claim as "the setting is on": the Management API
+          # accepts a partial body and a field it does not honour (wrong
+          # name, or gated behind a plan) is dropped without complaint.
+          #
+          # This repo has already paid for that exact blindness once, in the
+          # nightly linker: `curl --fail-with-body` printed the response
+          # only on HTTP errors, so a run that did nothing was
+          # indistinguishable from a run that worked, for months. So read
+          # the value back and print it.
+          applied="$(curl -sf -H "$AUTH" "$API" | jq -r '.password_hibp_enabled')"
+          echo "password_hibp_enabled is now: ${applied}"
+          {
+            echo "### Supabase Auth config"
+            echo ""
+            echo "- \`password_hibp_enabled\`: **${applied}**"
+            echo "- site_url: https://pikt.ag"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$applied" != "true" ]; then
+            echo "::warning::password_hibp_enabled did not stick (value: ${applied}). Leaked-password protection may require a paid plan, or the field name changed. The rest of the config applied."
+          fi

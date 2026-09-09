@@ -1,0 +1,23 @@
+-- Drop public.bookings — a table this project does not own.
+--
+-- Supabase Security Advisor flagged it: an RLS policy named
+-- "Anyone can insert bookings" with WITH CHECK (true), i.e. any anonymous
+-- caller can insert unlimited rows through the REST API. Nothing reads
+-- them, so it is a write-only hole into the database — free storage for
+-- whoever finds it, and nothing on our side would ever notice.
+--
+-- It is not ours:
+--   * no migration in this folder creates it
+--   * zero references anywhere in the repo — checked across mobile/src,
+--     landing/, src/, app/ and every .ts/.tsx/.js/.jsx/.sql/.html/.json
+--     outside node_modules, on 2026-09-09
+--   * founder checked the contents the same day: 0 rows
+--
+-- So it is a leftover from an early experiment or a starter template.
+-- Dropping the whole table rather than just the policy: an empty table
+-- nobody references is pure liability, and leaving it would keep the
+-- advisor warning alive for something that has never had a purpose here.
+--
+-- Irreversible, and deliberately so — it was measured empty first.
+-- IF EXISTS keeps it idempotent, and CASCADE takes the policy with it.
+DROP TABLE IF EXISTS public.bookings CASCADE;
