@@ -62,7 +62,9 @@
   *「我們的語意標籤最基礎還是要包含翻譯」*)。`search_users` 從 query 走到
   concept **只有字面兩條路**(tag name / alias),**搜尋路徑上沒有向量** ——
   所以沒有中文別名的概念,對中文搜尋而言就是不存在,向量再好也一樣。
-  推論:**鑄概念時必須同時產生 19 語系別名**;護城河的健康指標是**別名**
+  推論:**鑄概念時必須同時「嘗試」19 語系別名** —— 模型對沒把握的語言
+  **省略是正確行為**(實測平均每顆 7.9 個而非 19 個;泛稱比翻錯更糟),
+  數量偏少不是缺陷、不要因此鬆綁省略規則。護城河的健康指標是**別名**
   覆蓋率(`admin_alias_provenance`),不是概念覆蓋率。全文與踩坑 →
   ref-tag-algorithm「語意標籤的基礎是翻譯」節。
 - **排序/媒合面四點檢查**:(1) Connected 與 Recommended 分管線不混算
@@ -100,9 +102,12 @@
 
 ## 工程機制(每次改動的操作規則)
 
-- **Repo**:root = piktag-admin(Next.js,live);`mobile/` = RN app;
-  `landing/` = Vite;只有頂層 `/src` 是舊物。`event-photobooth/` 等髒檔
-  是**別的 session 的 WIP —— 絕不 stage**。
+- **Repo**:root = piktag-admin(Next.js,live —— 服務 `admin.pikt.ag`,
+  **不是死掉的 boilerplate**,它的依賴警告都算數);`mobile/` = RN app;
+  `landing/` = Vite。**規則不變:別的 session 的 WIP 髒檔絕不 stage。**
+  (原記載的兩個例子已不存在,2026-09-10 探測:頂層 `/src` 已刪;
+  `event-photobooth/` 已於 commit `3f912479` 搬到獨立 repo。規則保留是
+  因為下一個髒檔還是會出現,只是別再照這兩個名字找。)
 - **Git**:只 stage 明確路徑,禁 `git add -A`/`git add .`。push 被拒 →
   `git pull --rebase --autostash origin main`,rebase 後確認自己的 migration
   時間戳仍是尾巴。每次改動完成即 commit(先 tsc 0 錯);mobile 的 **push**

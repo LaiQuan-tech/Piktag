@@ -324,7 +324,12 @@ Cross-language 媒合 only works if a surface expands query/tags through
 `notify_tag_convergence` (the real-time "N friends also tagged #X" moment),
 `find_reconnect_suggestions`, `find_tag_combinations` — all now key by
 `COALESCE(concept_id::text,'tag:'||id)` with `concept_id IS NOT NULL`
-gating (unlinked tags still exact-match → no regression). Already
+gating (unlinked tags still exact-match → no regression).
+**⚠ 2026-09-10 限定:「concept-aware」只涵蓋「命中之後的 sibling 展開」,
+不涵蓋「query 字串怎麼找到那顆概念」。** 後者純字面(tag name / alias),
+所以一顆沒有該語言別名的概念,concept-aware 再完整也搜不到。查
+「跨語言搜不到」的回報時**不要讀到下面這行就結案** —— 先查別名,
+詳見本檔「語意標籤的基礎是翻譯」節。Already
 concept-aware: `search_users`, `match_ask_to_friends`,
 `explore_users_for_tag`, the recommendation cron, `notify_ask_bridges`,
 `fetch_ask_feed`. **Left literal on purpose:** `find_tag_similar_strangers`
@@ -359,16 +364,29 @@ SearchScreen wiring, EXCEPT where noted replay-gated:
    **Search-side IDF is deliberately NOT shipped** — replay-gated: it must
    win an admin_search_funnel/NDCG replay before touching search ranking
    (deferred-tuning doctrine).
-2. **Vector recall fallback (SHIPPED)**: zero-result recovery now tries
+2. **Vector recall fallback (SHIPPED — 但 2026-09-10 證實救不了跨語言,
+   見下方限定)**: zero-result recovery now tries
    `semanticTagSearch` (embedding → match_concepts_by_embedding pgvector
    kNN over tag_concepts.embedding, service-role RPC) FIRST; Gemini
    extract-search-intent is layer 2. Same {keywords} contract both layers.
    NOTE: kNN RPC is LANGUAGE sql with `<=>` → search_path MUST include
    `extensions` (the 2026-06-06 CI gotcha).
+   **⚠ 2026-09-10 限定:出貨 ≠ 有效。** 這條路要三個結果集**全空**才啟動
+   (SearchScreen:1982-1988),`p_limit: 5` 只取最近 5 顆,呼叫端還有
+   `similarity < 0.5` 過濾(semantic-tag-search:97)。跨語言同義詞 cosine
+   約 0.71 過得了門檻,但概念表一大就擠不進前 5。**不要把它當成跨語言的
+   保險** —— 別名才是。
 3. **Moat metrics (SHIPPED, admin-only RPCs)**: admin_concept_coverage
    (tag + instance linkage %, THE health number for cross-language
    matching) and admin_cross_language_match_rate (clicks where query
    script ≠ clicked-tag script — the unique-to-PikTag value, measured).
+   **⚠ 2026-09-10 限定:「THE health number」這句話已不成立。**
+   admin_concept_coverage 只量「標籤有沒有掛到概念」,**滿分也可能整批是
+   單語概念**(當天探測:~595 顆概念裡 470 顆只有 1 個別名),而單語概念
+   對其他語言的搜尋等同不存在。跨語言的健康指標請看
+   `admin_alias_provenance()` / `admin_alias_backfill_remaining()`。
+   原句保留是因為它對「標籤→概念」那一段仍然正確 → 見本檔
+   「語意標籤的基礎是翻譯」節。
    Wire into the admin dashboard when convenient; callable today.
 4. **Label chain (SHIPPED)**: query_id uuid on piktag_search_impressions +
    piktag_search_learnings; SearchScreen mints one per rendered result set
@@ -439,7 +457,7 @@ SearchScreen wiring, EXCEPT where noted replay-gated:
 
 當時所有「看起來像根因」的猜測**全錯**:標籤有 `concept_id`、概念有
 embedding、linker 前一天還在鑄新概念(2026-06 的 Gemini 故障早就結束,
-只是沒人回寫文件 —— 見 ref-infra-ops 開頭那條 2026-09-10 更正)。
+只是沒人回寫文件 —— 見 ref-infra-ops.md:102「踩坑補遺」節那條 2026-09-10 更正)。
 
 **真正的原因**:`search_users` 從 query 字串走到 concept **只有兩條路**
 (20260705020000:455-470):
@@ -449,16 +467,22 @@ embedding、linker 前一天還在鑄新概念(2026-06 的 Gemini 故障早就�
 
 **沒有第三條。搜尋路徑上完全沒有 embedding。** 向量只出現在 client 的
 zero-result 補救(SearchScreen:1982-1988),而那條路要求三個結果集**全空**
-才啟動,又串在同一把 Gemini key 上,還只取最近 5 顆(無相似度下限但有
-數量上限),概念表一大就擠不進去。
+才啟動,又串在同一把 Gemini key 上。
+
+補救那條路的召回瓶頸是**數量**不是相似度:`match_concepts_by_embedding`
+本身沒有下限但 `p_limit: 5` **只取最近 5 顆**;呼叫端
+`semantic-tag-search/index.ts:97` 另有 `similarity < 0.5 → continue`
+(註解「Loose floor at 0.5」)。跨語言同義詞 cosine 約 0.71,**過得了 0.5
+這道門**,所以擋住它的是「擠不進前 5 名」,而且概念表愈大愈擠不進去。
+(原記載「無相似度下限」,2026-09-10 驗收證偽 —— 下限存在,只是不是主因。)
 
 所以:**一顆沒有中文別名的概念,對中文搜尋而言不存在,無論它的向量多好。**
 
 ### 這條原則的三個推論
 
 1. **鑄概念時必須同時產生翻譯。** linker 原本鑄出來的概念是**單語的** ——
-   只有一個別名,就是造出它的那個標籤字串。2026-09-10 探測:~595 顆概念
-   裡 470 顆只有 1 個別名。已修(auto-link-concepts Phase 1 鑄造路徑 +
+   只有一個別名,就是造出它的那個標籤字串。2026-09-10 **live DB 探測**(repo 內無法複驗):~595 顆概念
+   裡 470 顆只有 1 個別名,其中真的有標籤、值得回填的是 ~285 顆。已修(auto-link-concepts Phase 1 鑄造路徑 +
    Phase 3 回填,19 語系)。
 2. **跨語言匹配有一個隱藏前提,現在被消除了。** 舊行為能運作只有兩種情況:
    兩種語言的標籤**碰巧都已經有人建過**(embedding 才有機會橋接),或
@@ -470,7 +494,7 @@ zero-result 補救(SearchScreen:1982-1988),而那條路要求三個結果集**�
 
 ### 生成品質:具體名詞完美,抽象名詞會漂移
 
-2026-09-10 抽查 151 筆機器生成別名(ar/bn/hi/ur 四個無人可驗的語言):
+2026-09-10 **live DB 抽查** 151 筆機器生成別名(ar/bn/hi/ur 四個無人可驗的語言):
 
 - **乾淨**:排球→volleyball、法國→France、software、Business、DigitalNomad、
   美學→aesthetics、台北/台南(專有名詞音譯,有效)。模型**有在省略**
@@ -501,14 +525,25 @@ DELETE FROM tag_aliases WHERE source = 'llm' AND language = 'bn';
 `llm`(模型生成)/ `NULL`(linker 寫的標籤本名 —— 刻意不標,因為那三處是
 upsert,標了會把既有列的 source 覆寫掉,每跑一輪磨掉一點 seed 標記)。
 
-### 已知陷阱(踩過,不要再踩)
+### 踩坑補遺(演算法/標籤/排序)
 
-- **`tag_aliases.language` 對 legacy 列是假的。** schema 是
-  `DEFAULT 'zh-TW'`,而 linker 的三個標籤本名 upsert **都沒指定 language**,
-  所以 ~85%(2018/2377)的既有列自稱中文,不管實際是什麼。**目前沒有任何
-  地方讀這欄**(grep 過 migrations/mobile/src/functions),所以不是線上 bug,
-  但**絕不可用它判斷「這顆概念缺哪些語言」**。別名 COUNT 可信,別名
-  LANGUAGE 不可信。修正 2000+ 列是獨立工作,尚未做。
+> 40-MAINTENANCE §3 指定的去處。新的演算法類教訓一律加在這裡,不要另開新節。
+
+- **`tag_aliases.language` 的可信度**按 `source` 分,不是一律不可信:
+  - **`llm` 可信** —— 生成器明確寫入 language(auto-link-concepts:711/952),
+    所以 `delete ... where source='llm' and language='bn'` 這種單一語言回收
+    是可靠的。**`seed`** 由 migration 逐列指定,也可信。
+  - **`legacy` / NULL 不可信** —— schema 是 `DEFAULT 'zh-TW'`,而 linker 的
+    三個標籤本名 upsert(index.ts:576/642/678)**都沒指定 language**,所以
+    ~85%(2018/2377,2026-09-10 探測)的既有列自稱中文,不管實際是什麼。
+  - **可執行的一句**:別名 COUNT 一律可信;別名 LANGUAGE **只在
+    `source IN ('llm','seed')` 時可信**。**絕不可用它判斷「這顆概念缺哪些
+    語言」**(那要看 legacy 列)。修正 2000+ 列是獨立工作,尚未做,見
+    60-TRIGGERS #33。
+  - 注意 `admin_alias_provenance()` 有 `GROUP BY a.language`
+    (20260910020000:86)—— 它**確實在讀這一欄**,所以那張報表的 legacy
+    列的 language 軸是失真的,看 `llm` 那幾列才準。(原記載「目前沒有任何
+    地方讀這欄」,2026-09-10 驗收證偽 —— 同一批改動自己加了讀取者。)
 - **「幽靈概念」不值得補。** 470 顆單語概念裡只有 ~285 顆真的有標籤,
   其餘 ~185 顆沒有任何人標過,補了也橋不到任何人。回填選擇器
   (`select_concepts_needing_aliases`)因此 inner join 標籤 rollup。
