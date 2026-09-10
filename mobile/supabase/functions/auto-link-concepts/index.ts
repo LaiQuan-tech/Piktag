@@ -301,6 +301,19 @@ Rules:
   concept has no established term there, or when the only rendering would be
   a transliteration nobody writes.
 - Never return a generic everyday word that means many other things.
+- ABSTRACT CONCEPTS ARE WHERE THIS GOES WRONG. Concrete things translate
+  cleanly; qualities, sensibilities and activities do not. If the concept
+  names a quality or an activity rather than a thing, and the closest
+  rendering in a language is an ordinary everyday word, OMIT that language.
+  Two real failures this rule exists to prevent:
+    * 品味 (taste, discernment) was rendered as रुचि in Hindi and ذوق in
+      Arabic. Both are common words for "interest" or "liking", so every
+      person searching those words would have surfaced everyone tagged 品味.
+    * 募資 (fundraising in general, including VC and angel rounds) was
+      rendered as "crowdfunding" in every language. Crowdfunding is 群眾募資,
+      a narrower thing.
+  Omitting a language costs one missing bridge. A generic or narrowed word
+  poisons a search index that every concept shares.
 - For the language "${tagName}" is already in, give the most common written
   form (it may differ in case or spacing from the tag itself).
 - Use each language's own script.
