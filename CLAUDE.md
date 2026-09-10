@@ -58,6 +58,13 @@
   (1) is_notification_category_enabled 映射 (2) filterNotifications 分頁
   (3) KNOWN_NOTIFICATION_TYPES (4) i18n key ×19。且 **SQL body 絕不寫空字串**
   (英文 fallback 必填,i18n 是加強不是承重)。
+- **語意標籤的基礎是翻譯,不是 embedding**(創辦人 2026-09-10 定調:
+  *「我們的語意標籤最基礎還是要包含翻譯」*)。`search_users` 從 query 走到
+  concept **只有字面兩條路**(tag name / alias),**搜尋路徑上沒有向量** ——
+  所以沒有中文別名的概念,對中文搜尋而言就是不存在,向量再好也一樣。
+  推論:**鑄概念時必須同時產生 19 語系別名**;護城河的健康指標是**別名**
+  覆蓋率(`admin_alias_provenance`),不是概念覆蓋率。全文與踩坑 →
+  ref-tag-algorithm「語意標籤的基礎是翻譯」節。
 - **排序/媒合面四點檢查**:(1) Connected 與 Recommended 分管線不混算
   (2) 搜尋不分區、瀏覽可分區 (3) 讀 piktag_match_dismissals(surface 有
   CHECK 約束,新面要先 ALTER)(4) **必排除 is_official**(人人自動好友

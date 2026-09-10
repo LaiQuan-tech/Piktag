@@ -425,3 +425,104 @@ SearchScreen wiring, EXCEPT where noted replay-gated:
   admin_search_funnel 沒贏不准動)。biolink 訊號進搜尋排序 = 搜尋權重
   改動,同樣受該門檻管轄。
 
+
+
+## 語意標籤的基礎是翻譯,不是 embedding(2026-09-10,創辦人定調)
+
+> 創辦人原話:**「我們的語意標籤最基礎還是要包含翻譯」**。這條寫在這裡
+> 是因為 2026-09-10 用一個真實 bug 證明了它:**embedding 完全健康,概念
+> 存在且有向量,跨語言匹配還是失敗。**
+
+### 觸發事件
+
+創辦人搜「水晶」找不到好友,那位好友的自訂標籤是 `crystal`。
+
+當時所有「看起來像根因」的猜測**全錯**:標籤有 `concept_id`、概念有
+embedding、linker 前一天還在鑄新概念(2026-06 的 Gemini 故障早就結束,
+只是沒人回寫文件 —— 見 ref-infra-ops 開頭那條 2026-09-10 更正)。
+
+**真正的原因**:`search_users` 從 query 字串走到 concept **只有兩條路**
+(20260705020000:455-470):
+
+1. 某個 `piktag_tags.name` 含這個字串 → 取它的 `concept_id`
+2. 某個 `tag_aliases.alias` 含這個字串 → 取它的 `concept_id`
+
+**沒有第三條。搜尋路徑上完全沒有 embedding。** 向量只出現在 client 的
+zero-result 補救(SearchScreen:1982-1988),而那條路要求三個結果集**全空**
+才啟動,又串在同一把 Gemini key 上,還只取最近 5 顆(無相似度下限但有
+數量上限),概念表一大就擠不進去。
+
+所以:**一顆沒有中文別名的概念,對中文搜尋而言不存在,無論它的向量多好。**
+
+### 這條原則的三個推論
+
+1. **鑄概念時必須同時產生翻譯。** linker 原本鑄出來的概念是**單語的** ——
+   只有一個別名,就是造出它的那個標籤字串。2026-09-10 探測:~595 顆概念
+   裡 470 顆只有 1 個別名。已修(auto-link-concepts Phase 1 鑄造路徑 +
+   Phase 3 回填,19 語系)。
+2. **跨語言匹配有一個隱藏前提,現在被消除了。** 舊行為能運作只有兩種情況:
+   兩種語言的標籤**碰巧都已經有人建過**(embedding 才有機會橋接),或
+   **有人手工策劃過**(古著/咖啡/匹克球/水晶都是這樣來的)。沒人用某語言
+   標過的概念,用該語言搜尋結構上就是找不到。
+3. **別名覆蓋率才是護城河的健康指標,不是概念覆蓋率。** `admin_concept_coverage`
+   量的是「標籤有沒有掛到概念」,那個滿分也可能全是單語概念。要看
+   `admin_alias_provenance()` 和 `admin_alias_backfill_remaining()`。
+
+### 生成品質:具體名詞完美,抽象名詞會漂移
+
+2026-09-10 抽查 151 筆機器生成別名(ar/bn/hi/ur 四個無人可驗的語言):
+
+- **乾淨**:排球→volleyball、法國→France、software、Business、DigitalNomad、
+  美學→aesthetics、台北/台南(專有名詞音譯,有效)。模型**有在省略**
+  (品味無 ur、募資無 bn),不是硬湊滿 19 個 —— 平均每顆 7.9 個。
+- **兩類會出錯,都出在抽象概念**:
+  - **語意窄化**:`募資` → 四語全變成「群眾募資」。但募資泛指籌資
+    (VC/天使/私募都算),群眾募資是 `群眾募資`。
+  - **泛稱汙染(更嚴重)**:`品味` → 印地語 `रुचि`(興趣/喜好,極常用日常字)、
+    阿拉伯語 `ذوق`。任何人搜「興趣」都會撈到標 `品味` 的人。**泛稱比翻錯更糟**
+    —— 翻錯只是沒用,泛稱是主動製造雜訊。
+
+**規則**:抽象特質/活動類概念,若目標語言只有泛用日常詞可對應,**寧可省略**。
+
+### 為什麼 `tag_aliases.source` 必須存在
+
+`alias` 欄位是**全域 UNIQUE**,所以一個錯的別名會永久佔住那個字串、且錯誤
+是靜默的(該語言的搜尋撈出錯的人,而最該發現的人最不會回報)。19 語系裡
+有 4 個(ar/bn/hi/ur)我們無人能抽查。
+
+沒有來源欄位,機器寫的和手工策劃的**永遠分不出來**,發現某語言品質不行時
+只能全留或人工翻查。有了它,回收是外科手術:
+
+```sql
+DELETE FROM tag_aliases WHERE source = 'llm' AND language = 'bn';
+```
+
+值:`legacy`(此欄位之前就存在,來源不明)/ `seed`(seed 或策劃 migration)/
+`llm`(模型生成)/ `NULL`(linker 寫的標籤本名 —— 刻意不標,因為那三處是
+upsert,標了會把既有列的 source 覆寫掉,每跑一輪磨掉一點 seed 標記)。
+
+### 已知陷阱(踩過,不要再踩)
+
+- **`tag_aliases.language` 對 legacy 列是假的。** schema 是
+  `DEFAULT 'zh-TW'`,而 linker 的三個標籤本名 upsert **都沒指定 language**,
+  所以 ~85%(2018/2377)的既有列自稱中文,不管實際是什麼。**目前沒有任何
+  地方讀這欄**(grep 過 migrations/mobile/src/functions),所以不是線上 bug,
+  但**絕不可用它判斷「這顆概念缺哪些語言」**。別名 COUNT 可信,別名
+  LANGUAGE 不可信。修正 2000+ 列是獨立工作,尚未做。
+- **「幽靈概念」不值得補。** 470 顆單語概念裡只有 ~285 顆真的有標籤,
+  其餘 ~185 顆沒有任何人標過,補了也橋不到任何人。回填選擇器
+  (`select_concepts_needing_aliases`)因此 inner join 標籤 rollup。
+- **「問過了」和「問到了」必須分開記。** `tag_concepts.aliases_generated_at`
+  在**每次嘗試後都蓋章,即使模型零回應** —— 否則一顆答不出來的概念
+  (自創詞、內部梗)會每 5 分鐘被重挑,永遠燒配額。
+- **回填必須有整輪時間上限。** 12 次別名呼叫 × 15s timeout 疊在 Phase 1 的
+  50 次 embedding 上,足以撞到 Deno wall-clock 上限 —— 那正是 2026-07 讓
+  `linker_run_lock` 卡死數週的成因(worker 被殺,`finally` 的解鎖跑不到)。
+  `RUN_SOFT_DEADLINE_MS = 120s`。實測每輪處理 ~5.5 顆,**瓶頸是這個時間閘
+  而非 12 次配額上限** —— 這是刻意的,不要為了快兩小時去鬆綁它。
+- **部署成功 ≠ 程式跑得到。** 2026-09-08 有人修好語意分類器,但當時
+  Phase 1 沒事做就整個 return,那段程式碼**根本執行不到**,373 個標籤裡
+  317 個的 `semantic_type` 還是 NULL(「the fix was correct and the code was
+  unreachable」)。驗收一律看**資料有沒有動**(`attempted` 之類的計數器),
+  不是看 workflow 綠勾。同理:`cron.job_run_details` 的 `succeeded` 只代表
+  觸發函式送出了 HTTP 請求,不代表 edge function 做完了工作。

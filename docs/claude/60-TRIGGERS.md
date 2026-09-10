@@ -44,8 +44,20 @@
 | 29 | @piktag 可被單獨點選進批次 | 下次動到 ConnectionsScreen 選取模式時順手做,不專程(同 #16 規矩) | 全選已排除 is_official,但手動點該列仍選得進去 —— 同一條規則兩個地方不一致。讓官方帳號那一列在選取模式中不可選即可。後果不嚴重(把官方帳號標成「客戶」),但那是我們自己留的髒資料 | 本 session 查證(ConnectionsScreen selectableIds 過濾 OFFICIAL_USER_ID,handleConnectionPress 沒有) | 未達 |
 | 30 | 觸覺回饋鋪全 app | 上線後,且要**一次鋪完**不挑單頁 | `expo-haptics` 已在依賴(~15.0.8)但**全 app 零使用**。選取、加好友成功、儲存等離散動作加輕震,是「原生感」的一大半。**只加在某一頁 = 不一致**,比不加更糟。(2026-09-09 從照片 app 借使用者習慣時提出並延後;創辦人未明示要,若判定不做就刪掉本條) | 本 session 查證(package.json:33;grep Haptics 全無) | 上線後 |
 | 31 | SECURITY DEFINER RPC 權限收尾(7 支) | **上線後**,或 Supabase advisor 的 anon-executable 清單要清乾淨時。創辦人 2026-09-09 裁決:只修真的有洞的三條,其餘不動 | **先讀本列再重查,這輪稽核花了 130k token。** ①**機制**:Supabase 上 `REVOKE ... FROM PUBLIC` **無效** —— default privileges 會另給每支函式一份指名 anon/authenticated 的 grant,REVOKE PUBLIC 動不到。repo 裡有 8 支 REVOKE FROM PUBLIC 過的函式至今仍 anon 可執行。**一律用三角色具名撤銷**(`FROM PUBLIC, anon, authenticated` 再 GRANT 回去),照 20260626000000 與 20260909230000 的寫法。②**還沒修的 7 支**(依風險):`trigger_tag_suggest_nudge`(20260702170000:252,匿名可無限觸發整輪 Gemini + 推播,**帳單風險,這支是 7 支裡唯一會花錢的**)、`bump_tag_search_count`(20260526010000:53,裸 +1 零去重,且 popularity_score 給 search_count **兩倍** usage_count 權重 → 可灌搜尋排序;撤 anon 只止血,登入者仍可灌,要另加節流)、`is_admin`(20260429180000:33,可枚舉管理員)、`popular_tags_near_location`(20260508150001:27)、`qr_group_member_count`(20260513070000:59;**20260626000000:30 說它是「pre-auth 公開流程」是錯的**,唯一 caller 是已登入的 QrGroupListScreen.tsx:210)、`is_test_account_user`(20260705030000:47)、`is_notification_category_enabled`(20260706030000:161)。另 `notify_admin_on_signup` 是 `RETURNS trigger`,PostgREST 不暴露,**純 lint 潔癖不必修**。③**絕不可撤 anon 的 6 支**(landing/api 用 anon key,撤了就是把公開頁弄壞,`get_tribe_size` 已經犯過一次):`tag_page_members`、`get_tribe_size`、`record_pending_connection`、`get_scan_session_public`、`get_ask_public`、`submit_ask_web_reply`。④**兩支查不到定義、不要猜**:`increment_scan_count`(migrations 裡零 CREATE,是在 dashboard 直接建的,**要 live 探 prosrc** —— 若是裸 +1 就是第四支可灌水計數器)、`increment_tag_usage`/`decrement_tag_usage` 的 `tag_id` overload(repo 最新版參數名是 `p_tag_id` 且為重算式不可灌水,但所有 client 傳 `tag_id`,PostgREST 照參數名解析 → 線上必有一份原始碼不在 repo 的舊 overload)。⑤順手:`get_scan_session_public` 缺 `SET search_path`(20260521000000:22) | 2026-09-09 subagent 稽核 + 本 session 逐條驗證 | 上線後 |
+| 32 | 機器生成別名的品質收尾(4 項) | **回填跑完後**(2026-09-10 啟動,~285 顆有標籤的單語概念,實測每輪 ~5.5 顆、每 5 分鐘一輪 → 約 4 小時)。進度查 `select * from admin_alias_backfill_remaining();` | ①**抽象概念的兩類錯已確認,待創辦人決定是否刪**:`募資` 四語全被窄化成「群眾募資」(募資泛指籌資,群募是 `群眾募資`)、`品味` → 印地語 `रुचि`/阿語 `ذوق` 都是泛用日常字(**泛稱比翻錯更糟,是主動製造雜訊**)。外科手術刪法:`delete from tag_aliases where source='llm' and concept_id in (select id from tag_concepts where canonical_name in ('品味','募資'));` —— 戳記留著所以不會重生成,那兩顆退回單語、不比回填前差。②**提示詞對抽象概念收緊**(只影響之後生成的):抽象特質/活動類概念,目標語言只有泛用日常詞可對應時**寧可省略**。③**抽查 en/ja/ko/es/fr**:若泛稱漂移在可驗語言也一樣發生,代表是抽象概念通病而非「無人可驗語言」的問題,②的優先度就要提高。④品質模式已確認:**具體名詞完美**(排球/法國/software/台北音譯)、**抽象名詞漂移**;模型平均每顆給 7.9 個而非硬湊 19 個,省略行為正常 | 2026-09-10 抽查 151 筆(ar/bn/hi/ur) | 回填中 |
+| 33 | `tag_aliases.language` 2000+ 列修正 | 不急,**沒有任何地方讀這欄**(已 grep migrations / mobile/src / edge functions)。等有功能真要用語言分流時再做 | schema 是 `DEFAULT 'zh-TW'` 而 linker 的三個標籤本名 upsert **都沒指定 language** → ~85%(2018/2377)既有列自稱中文,不管實際是什麼。修法:從別名**實際文字**判斷字集(CJK/拉丁/阿拉伯/天城文/諺文…)回寫。**與回填刻意分開做**(動 2000+ 列,要獨立驗證)。**在此之前:別名 COUNT 可信,別名 LANGUAGE 不可信 —— 絕不可用它判斷「這顆概念缺哪些語言」** | 2026-09-10 探測 | 未達 |
 
 ## 已結案(留檔防重做)
+- **「搜水晶找不到 crystal」— 2026-09-10 修復並上線。** 真因不是任何人會先猜
+  的那個:標籤有 concept_id、概念有 embedding、linker 前一天還在鑄新概念
+  (2026-06 的 Gemini 故障早就結束,只是沒人回寫文件)。真因是
+  **`search_users` 的搜尋路徑上完全沒有向量**,只能字面比對 tag name /
+  alias,而那顆概念是 linker 鑄的**單語**概念 —— 沒有中文別名 = 對中文搜尋
+  不存在。三步修復:`20260910010000`(手工補靈性/礦石/手作象限)、
+  `20260910020000`(19 語系生成 + `source` 來源欄位)、`20260910030000`
+  (回填既有單語概念)。**原則已升級為 CLAUDE.md 硬規則**,全文在
+  ref-tag-algorithm「語意標籤的基礎是翻譯」節。**不要再從 embedding
+  或 Gemini key 方向調查這類「跨語言搜不到」的回報 —— 先查別名。**
 - **SECURITY DEFINER 稽核的三條真洞 — 2026-09-09 修掉並上線(20260909230000,deploy ab2e0a3f success)。**
   ①`resolve_pending_connections` 原本**零 auth 檢查**卻是 SECURITY DEFINER,
   且 `p_new_user_id` 由呼叫端傳 —— 匿名者拿著印在公開分享連結上的 sid 就能
