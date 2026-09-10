@@ -28,6 +28,48 @@ const GRAY_ZONE_FLOOR = 0.70;
 const BATCH_SIZE = 50;
 const HIERARCHY_BATCH = 20;
 
+// Cross-language aliases for freshly minted concepts.
+//
+// WHY (2026-09-10): a concept minted here used to be MONOLINGUAL. It got
+// exactly one alias — the tag string that created it. search_users reaches
+// a concept only by matching the query TEXT against piktag_tags.name or
+// tag_aliases.alias, so a concept minted from `crystal` was unreachable by
+// 水晶 no matter how good its embedding was. Cross-language matching only
+// worked when BOTH language forms happened to exist as tags (so embeddings
+// could bridge them) or when someone curated the pair by hand. The founder
+// found this the obvious way: a friend tagged `crystal`, searching 水晶
+// returned nothing.
+//
+// So at mint time we ask for the concept's name in the major locales and
+// write those as aliases. Every new concept is multilingual from birth
+// instead of waiting for someone to hit the gap and a human to patch it.
+//
+// Kept deliberately cheap and fail-open: one extra Gemini call per NEW
+// concept only (never on the link path), capped per run, and any failure
+// leaves the concept exactly as it would have been before this existed.
+const ALIAS_LOCALES: { code: string; name: string }[] = [
+  { code: 'en', name: 'English' },
+  { code: 'zh-TW', name: 'Traditional Chinese (Taiwan)' },
+  { code: 'zh-CN', name: 'Simplified Chinese' },
+  { code: 'ja', name: 'Japanese' },
+  { code: 'ko', name: 'Korean' },
+  { code: 'es', name: 'Spanish' },
+  { code: 'fr', name: 'French' },
+  { code: 'de', name: 'German' },
+  { code: 'pt', name: 'Portuguese' },
+  { code: 'id', name: 'Indonesian' },
+  { code: 'th', name: 'Thai' },
+  { code: 'vi', name: 'Vietnamese' },
+];
+
+// Per-run ceiling on alias-generation calls. The nine edge functions share
+// one GEMINI_API_KEY and that key has run out of quota before (see
+// ref-infra-ops "踩坑補遺"), so a 50-tag batch of all-new concepts must not
+// be able to add 50 more calls on top of its 50 embeddings. Concepts past
+// the cap simply get their aliases on a later run — the linker sweeps every
+// five minutes and picks tags up by usage_count, so nothing is lost.
+const ALIAS_GEN_PER_RUN = 12;
+
 // ROOT-CAUSE FIX (2026-07-07 hang): the three Gemini fetches below had
 // no timeout. When an upstream call hangs, its `await` never returns, so
 // the Deno worker is killed by the platform wall-clock limit BEFORE the
@@ -204,6 +246,133 @@ Reply with ONLY the number of the matching concept, or 0 if none is a true synon
   }
 }
 
+/**
+ * Ask Gemini for a concept's name in the major locales, so a newly minted
+ * concept is reachable from every language rather than only the one it was
+ * coined in. Returns [] on any failure — the caller must treat aliases as a
+ * bonus, never a precondition for minting.
+ *
+ * The prompt is deliberately strict about what counts. A broader or related
+ * term here is worse than a missing one: aliases are how search resolves a
+ * query to a concept, so "healing" attached to `crystal` would make every
+ * search for healing surface crystal users. Narrow, same-meaning terms only.
+ */
+async function generateCrossLanguageAliases(
+  tagName: string,
+  semanticType: string | null,
+  apiKey: string,
+): Promise<{ alias: string; language: string }[]> {
+  try {
+    const localeList = ALIAS_LOCALES
+      .map((l) => `  "${l.code}": "<${l.name}>"`)
+      .join(',\n');
+
+    const prompt = `A user of a social-networking app coined the tag "${tagName}"${
+      semanticType ? ` (category: ${semanticType})` : ''
+    }.
+
+Give the term people ACTUALLY use for this exact concept in each language below.
+
+Rules:
+- Same concept only. A broader category, a narrower speciality, or a merely
+  related term is WRONG. For "水晶" give the language's word for crystal, not
+  "healing", "spirituality" or "amethyst".
+- Use what native speakers really write, not a literal word-by-word rendering.
+- If a language has no natural single term, or the English word is what
+  people actually use in that language, omit that language entirely.
+- Never return a generic everyday word that means many other things.
+- For the language "${tagName}" is already in, give the most common written
+  form (it may differ in case or spacing from the tag itself).
+
+Reply with ONLY a JSON object, no markdown fence, no commentary:
+{
+${localeList}
+}
+Omit any key you cannot answer well.`;
+
+    const response = await fetchWithTimeout(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          // Same thinking-model budget note as judgeConceptMatch: the
+          // visible answer is a small JSON object, but 2.5-flash spends
+          // output budget on internal reasoning first, so leave room for
+          // both or the response returns empty with finishReason
+          // MAX_TOKENS.
+          generationConfig: { temperature: 0, maxOutputTokens: 2048 },
+        }),
+      },
+      15000,
+    );
+
+    if (!response.ok) {
+      const bodyText = await response.text().catch(() => '');
+      console.error(
+        'generateCrossLanguageAliases upstream error: HTTP',
+        response.status,
+        bodyText.slice(0, 300),
+      );
+      return [];
+    }
+
+    const result = await response.json();
+    const text = (result.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+    // Tolerate a stray ```json fence even though the prompt forbids one.
+    const jsonText = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+
+    let parsed: Record<string, unknown>;
+    try {
+      parsed = JSON.parse(jsonText);
+    } catch {
+      console.warn(`generateCrossLanguageAliases: unparseable reply for "${tagName}"`);
+      return [];
+    }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return [];
+
+    const allowed = new Set(ALIAS_LOCALES.map((l) => l.code));
+    const seen = new Set<string>([tagName.trim().toLowerCase()]);
+    const out: { alias: string; language: string }[] = [];
+
+    // The prompt says to omit a language it cannot answer for, but models
+    // answer "N/A" instead often enough that a fixture run caught it
+    // landing in the output. tag_aliases.alias is globally UNIQUE, so a
+    // junk alias is not merely noise — it permanently occupies that string
+    // for every concept, and searching it would surface this concept's
+    // users. Cheaper to reject the handful of ways a model says "nothing".
+    const NON_ANSWERS = new Set([
+      'n/a', 'na', 'none', 'null', 'nil', 'no', '-', '--', '—', 'x',
+      'unknown', 'not applicable', 'no equivalent', 'same', 'same as english',
+      '無', '无', '沒有', '没有', 'なし', '無し', '없음', 'ไม่มี', 'không có',
+    ]);
+
+    for (const [code, raw] of Object.entries(parsed)) {
+      if (!allowed.has(code)) continue;
+      if (typeof raw !== 'string') continue;
+      const alias = raw.trim();
+      // Length bounds keep out both junk ("-", "N/A") and the model
+      // answering with a sentence instead of a term.
+      if (alias.length < 2 || alias.length > 40) continue;
+      // A reply that still contains the prompt's own placeholder syntax
+      // means the model echoed the template rather than answering.
+      if (alias.includes('<') || alias.includes('>')) continue;
+      const key = alias.toLowerCase();
+      if (NON_ANSWERS.has(key)) continue;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ alias, language: code });
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -337,6 +506,8 @@ serve(async (req) => {
 
     let linked = 0;
     let created = 0;
+    let aliasCalls = 0;   // Gemini calls spent on cross-language aliases
+    let aliasesAdded = 0; // rows actually written (conflicts don't count)
 
     for (const tag of hasUnlinked ? unlinkedTags : []) {
       // 3a. Alias-first resolution (deterministic, exact, free).
@@ -482,6 +653,55 @@ serve(async (req) => {
 
           created++;
           console.log(`Created new concept for "${tag.name}"`);
+
+          // Make the new concept reachable from other languages. Bonus
+          // work only: every failure path below leaves the concept exactly
+          // as it was a moment ago, already linked and already aliased
+          // under its own name.
+          if (aliasCalls < ALIAS_GEN_PER_RUN) {
+            aliasCalls++;
+            const crossAliases = await generateCrossLanguageAliases(
+              tag.name,
+              tag.semantic_type,
+              geminiApiKey,
+            );
+            if (crossAliases.length > 0) {
+              // ignoreDuplicates, NOT the upsert used above for the tag's
+              // own name. An upsert on `alias` REWRITES the concept_id of a
+              // row that already exists, which for generated aliases would
+              // quietly steal a well-established word from another concept
+              // on the strength of one LLM reply. Adding bridges is safe;
+              // moving them is not.
+              const { data: aliasRows, error: aliasErr } = await supabase
+                .from('tag_aliases')
+                .upsert(
+                  crossAliases.map((a) => ({
+                    alias: a.alias,
+                    concept_id: newConcept.id,
+                    language: a.language,
+                  })),
+                  { onConflict: 'alias', ignoreDuplicates: true },
+                )
+                .select('id');
+
+              if (aliasErr) {
+                console.warn(`cross-language aliases failed for "${tag.name}":`, aliasErr.message);
+              } else {
+                // Count rows that actually landed, not rows we offered:
+                // ignoreDuplicates silently drops any alias another concept
+                // already owns, and reporting the attempt as a success
+                // would overstate coverage in exactly the cases where the
+                // bridge was NOT built.
+                const added = aliasRows?.length ?? 0;
+                aliasesAdded += added;
+                console.log(
+                  `  + ${added}/${crossAliases.length} cross-language aliases for "${tag.name}": ${
+                    crossAliases.map((a) => a.alias).join(', ')
+                  }`,
+                );
+              }
+            }
+          }
         }
       }
 
@@ -623,6 +843,10 @@ serve(async (req) => {
         processed: hasUnlinked ? unlinkedTags.length : 0,
         linked,
         created,
+        aliasesAdded,
+        // Surfaced so a run that hit the per-run alias ceiling is visible
+        // in the cron log rather than looking like the generator failed.
+        aliasGenCapped: aliasCalls >= ALIAS_GEN_PER_RUN,
         hierarchyUpdated,
         semanticTypeUpdated,
       }),
