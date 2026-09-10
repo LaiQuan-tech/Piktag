@@ -533,6 +533,7 @@ serve(async (req) => {
       }
     }
 
+    const runStartedAt = Date.now();
     let linked = 0;
     let created = 0;
     let aliasCalls = 0;   // Gemini calls spent on cross-language aliases
@@ -739,6 +740,16 @@ serve(async (req) => {
                 );
               }
             }
+
+            // Mark the attempt whether or not anything came back, so the
+            // backfill pass below never re-picks this concept. "We asked"
+            // and "we got something" are separate facts; conflating them
+            // would make a concept the model has nothing to say about cost
+            // a call every five minutes forever.
+            await supabase
+              .from('tag_concepts')
+              .update({ aliases_generated_at: new Date().toISOString() })
+              .eq('id', newConcept.id);
           }
         }
       }
@@ -875,6 +886,115 @@ serve(async (req) => {
       }
     }
 
+    // ── Phase 3: Backfill aliases onto concepts that predate this ──────
+    //
+    // Phase 1 only gives cross-language aliases to concepts it MINTS, which
+    // leaves every concept created before 20260910020000 monolingual for
+    // good. A probe on 2026-09-10 put that at 470 of ~595 concepts holding
+    // exactly one alias — each one in the state `crystal` was in when
+    // searching 水晶 could not find the person who had tagged it.
+    //
+    // Runs on whatever is left of the per-run budget after Phase 1, never
+    // its own allowance. New tags are what users are waiting on right now;
+    // the backfill is catching up on history and can take as many runs as
+    // it takes. At twelve per run every five minutes the queue drains in a
+    // few hours even if Phase 1 never yields a single call.
+    // Phase 3 is the last thing to run and the easiest to cut short, so it
+    // also carries the run's time budget. Twelve alias calls at a 15s
+    // timeout each is up to three minutes stacked on top of Phase 1's fifty
+    // embeddings and Phase 2's hierarchy calls — enough to reach the Deno
+    // worker's wall-clock limit on a slow upstream. That exact failure is
+    // what stuck linker_run_lock for weeks in 2026-07: the worker was killed
+    // before `finally` could release the lock, so every later run skipped.
+    // AbortController fixed the per-call hang; this caps the total. Concepts
+    // we do not reach stay queued and are picked up in five minutes, so
+    // stopping early costs nothing but a little latency.
+    const RUN_SOFT_DEADLINE_MS = 120_000;
+    let backfilled = 0;          // alias rows written by Phase 3
+    let backfilledConcepts = 0;  // concepts Phase 3 actually reached
+    let backfillStoppedEarly = false;
+    const backfillBudget = ALIAS_GEN_PER_RUN - aliasCalls;
+
+    if (backfillBudget > 0 && Date.now() - runStartedAt < RUN_SOFT_DEADLINE_MS) {
+      const { data: needy, error: needyErr } = await supabase
+        .rpc('select_concepts_needing_aliases', { p_limit: backfillBudget });
+
+      if (needyErr) {
+        console.warn('select_concepts_needing_aliases failed:', needyErr.message);
+      } else if (needy && needy.length > 0) {
+        console.log(`Phase 3: backfilling aliases for ${needy.length} concept(s)`);
+
+        for (const concept of needy) {
+          if (Date.now() - runStartedAt >= RUN_SOFT_DEADLINE_MS) {
+            backfillStoppedEarly = true;
+            console.log(
+              `Phase 3: soft deadline reached, stopping with ${
+                needy.length - backfilledConcepts
+              } concept(s) left for the next run`,
+            );
+            break;
+          }
+          backfilledConcepts++;
+
+          const crossAliases = await generateCrossLanguageAliases(
+            concept.canonical_name,
+            concept.semantic_type,
+            geminiApiKey,
+          );
+
+          if (crossAliases.length > 0) {
+            const { data: aliasRows, error: aliasErr } = await supabase
+              .from('tag_aliases')
+              .upsert(
+                crossAliases.map((a) => ({
+                  alias: a.alias,
+                  concept_id: concept.concept_id,
+                  language: a.language,
+                  source: 'llm',
+                })),
+                { onConflict: 'alias', ignoreDuplicates: true },
+              )
+              .select('id');
+
+            if (aliasErr) {
+              console.warn(
+                `backfill aliases failed for "${concept.canonical_name}":`,
+                aliasErr.message,
+              );
+            } else {
+              const added = aliasRows?.length ?? 0;
+              aliasesAdded += added;
+              backfilled += added;
+              console.log(
+                `  ~ ${added}/${crossAliases.length} aliases for "${concept.canonical_name}" (tag usage ${concept.tag_usage})`,
+              );
+            }
+          }
+
+          // Stamped even on an empty result, for the same reason as the
+          // mint path: an unanswerable concept must leave the queue rather
+          // than be asked about again on every run forever.
+          await supabase
+            .from('tag_concepts')
+            .update({ aliases_generated_at: new Date().toISOString() })
+            .eq('id', concept.concept_id);
+
+          // Same courtesy spacing as Phase 1.
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+      }
+    }
+
+    // How much of the backbook is left, so the cron log shows progress
+    // rather than leaving the operator to guess whether it is moving.
+    let backfillRemaining: number | null = null;
+    try {
+      const { data: rem } = await supabase.rpc('admin_alias_backfill_remaining');
+      backfillRemaining = rem?.[0]?.monolingual_with_tags ?? null;
+    } catch {
+      // Reporting only — never fail a run over it.
+    }
+
     return new Response(
       JSON.stringify({
         message: 'Auto-link + hierarchy completed',
@@ -882,6 +1002,11 @@ serve(async (req) => {
         linked,
         created,
         aliasesAdded,
+        backfilled,
+        backfilledConcepts,
+        backfillStoppedEarly,
+        backfillRemaining,
+        runMs: Date.now() - runStartedAt,
         // Surfaced so a run that hit the per-run alias ceiling is visible
         // in the cron log rather than looking like the generator failed.
         aliasGenCapped: aliasCalls >= ALIAS_GEN_PER_RUN,
