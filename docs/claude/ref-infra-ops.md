@@ -99,6 +99,13 @@ curl -s "https://kbwfdskulxnhjckdvghj.supabase.co/rest/v1/<table>?select=<col>&l
 
 ## 踩坑補遺
 
+- **[2026-09-10 探測:下面這條 Gemini 故障已經結束,不要再據以判斷]** live DB
+  查證:`max(tag_concepts.created_at)` = **2026-09-09 23:25**(前一天仍在鑄新
+  concept),且 `count(*) filter (where embedding is null)` = **0** —— 連
+  20260711020000 那批刻意不帶 embedding 建的 concept 都已回填。**key 早已修復、
+  embedding 管線健康**,repo 裡只是沒人回寫。下面那條保留作為「這種故障長什麼
+  樣、怎麼診斷」的紀錄,**但它描述的不是現況**。canary 查法仍然有效:
+  `last_concept_minted` 停滯 + `no_embedding` 上升 = embedding 又掛了。
 - [2026-07-11] 觸發:概念覆蓋率掉破 60%、官方新標籤全是 concept 孤兒 → 根因:
   concept linker 的 embedding 呼叫**自 2026-06-22 起全數失敗**(tag_concepts 最後
   一筆 mint 停在 06-22;之後只有不需 Gemini 的 alias 連結還活)。表層症狀是
