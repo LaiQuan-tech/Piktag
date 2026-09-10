@@ -47,6 +47,13 @@ const HIERARCHY_BATCH = 20;
 // Kept deliberately cheap and fail-open: one extra Gemini call per NEW
 // concept only (never on the link path), capped per run, and any failure
 // leaves the concept exactly as it would have been before this existed.
+// All 19 app locales, matching SUPPORTED_LANGS in mobile/src/i18n/index.ts.
+// Someone whose app is in Turkish will search in Turkish, so a concept that
+// exists in only twelve languages is unreachable for the other seven.
+//
+// The whole set goes in one request -- adding languages costs response
+// tokens, not extra calls, so the cap below is about how many CONCEPTS a
+// run may process, never how many languages each one gets.
 const ALIAS_LOCALES: { code: string; name: string }[] = [
   { code: 'en', name: 'English' },
   { code: 'zh-TW', name: 'Traditional Chinese (Taiwan)' },
@@ -56,10 +63,17 @@ const ALIAS_LOCALES: { code: string; name: string }[] = [
   { code: 'es', name: 'Spanish' },
   { code: 'fr', name: 'French' },
   { code: 'de', name: 'German' },
+  { code: 'it', name: 'Italian' },
   { code: 'pt', name: 'Portuguese' },
+  { code: 'ru', name: 'Russian' },
+  { code: 'tr', name: 'Turkish' },
   { code: 'id', name: 'Indonesian' },
   { code: 'th', name: 'Thai' },
   { code: 'vi', name: 'Vietnamese' },
+  { code: 'ar', name: 'Arabic' },
+  { code: 'hi', name: 'Hindi' },
+  { code: 'bn', name: 'Bengali' },
+  { code: 'ur', name: 'Urdu' },
 ];
 
 // Per-run ceiling on alias-generation calls. The nine edge functions share
@@ -278,11 +292,18 @@ Rules:
   related term is WRONG. For "水晶" give the language's word for crystal, not
   "healing", "spirituality" or "amethyst".
 - Use what native speakers really write, not a literal word-by-word rendering.
-- If a language has no natural single term, or the English word is what
-  people actually use in that language, omit that language entirely.
+- OMITTING A LANGUAGE IS THE CORRECT ANSWER whenever you are not confident.
+  A wrong entry is far worse than a missing one: these strings are unique
+  keys in a search index, so a bad one is unusable by any other concept and
+  makes searches in that language return the wrong people. Omit rather than
+  guess, and omit rather than invent a term to fill the slot.
+- Omit a language when speakers of it simply use the English word, when the
+  concept has no established term there, or when the only rendering would be
+  a transliteration nobody writes.
 - Never return a generic everyday word that means many other things.
 - For the language "${tagName}" is already in, give the most common written
   form (it may differ in case or spacing from the tag itself).
+- Use each language's own script.
 
 Reply with ONLY a JSON object, no markdown fence, no commentary:
 {
@@ -300,12 +321,14 @@ Omit any key you cannot answer well.`;
         },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          // Same thinking-model budget note as judgeConceptMatch: the
-          // visible answer is a small JSON object, but 2.5-flash spends
-          // output budget on internal reasoning first, so leave room for
-          // both or the response returns empty with finishReason
-          // MAX_TOKENS.
-          generationConfig: { temperature: 0, maxOutputTokens: 2048 },
+          // Same thinking-model budget trap as judgeConceptMatch: 2.5-flash
+          // spends output budget on internal reasoning before the visible
+          // answer, and an overrun returns EMPTY with finishReason
+          // MAX_TOKENS rather than a truncated object. The visible answer
+          // here is 19 entries, many in non-Latin scripts that cost several
+          // tokens per character, so the budget is sized for the full set
+          // plus thinking rather than the 1024 a one-digit reply needs.
+          generationConfig: { temperature: 0, maxOutputTokens: 4096 },
         }),
       },
       15000,
@@ -348,7 +371,13 @@ Omit any key you cannot answer well.`;
     const NON_ANSWERS = new Set([
       'n/a', 'na', 'none', 'null', 'nil', 'no', '-', '--', '—', 'x',
       'unknown', 'not applicable', 'no equivalent', 'same', 'same as english',
+      'omit', 'omitted', 'n.a.',
       '無', '无', '沒有', '没有', 'なし', '無し', '없음', 'ไม่มี', 'không có',
+      // Added with the ar/hi/bn/ur expansion: these are the four locales
+      // nobody here can eyeball, so the refusal forms they answer with have
+      // to be filtered rather than spotted later.
+      'لا يوجد', 'لا شيء', 'कोई नहीं', 'नहीं', 'কিছু না', 'নেই', 'کوئی نہیں',
+      'yok', 'нет', 'nessuno', 'tidak ada', 'nenhum', 'ninguno', 'aucun',
     ]);
 
     for (const [code, raw] of Object.entries(parsed)) {
@@ -679,6 +708,15 @@ serve(async (req) => {
                     alias: a.alias,
                     concept_id: newConcept.id,
                     language: a.language,
+                    // Provenance (20260910020000). This is the only writer
+                    // that stamps a source, and it is the whole reason the
+                    // column exists: four of the 19 locales are languages
+                    // nobody here can spot-check, so model output has to
+                    // stay separable from the curated bridges. Reverting a
+                    // language is then one statement:
+                    //   DELETE FROM tag_aliases
+                    //   WHERE source = 'llm' AND language = 'bn';
+                    source: 'llm',
                   })),
                   { onConflict: 'alias', ignoreDuplicates: true },
                 )

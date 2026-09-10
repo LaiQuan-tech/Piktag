@@ -15,7 +15,7 @@ const STORAGE_KEY = 'piktag_language';
 // Eager-load only the two most common locales at boot:
 //   * zh-TW — default fallback for this app
 //   * en    — universal fallback for non-CJK users
-// The other 13 locales are lazy-loaded via loadLocale() only when actually needed.
+// The other 17 locales are lazy-loaded via loadLocale() only when actually needed.
 // This avoids parsing ~440KB of JSON at boot that most users will never see.
 import zhTW from './locales/zh-TW.json';
 import en from './locales/en.json';
