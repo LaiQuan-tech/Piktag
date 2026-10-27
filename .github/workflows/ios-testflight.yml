@@ -34,8 +34,10 @@ on:
       - '!mobile/supabase/**'
       - '!mobile/scripts/**'
       - '.github/workflows/ios-testflight.yml'
-  schedule:
-    - cron: '30 20 * * *'   # daily UTC 20:30 (TW 04:30) — backstop only
+  # Daily schedule REMOVED 2026-10-27 (founder call: "把每天build取消").
+  # Builds now come only from push (24h cooldown) and workflow_dispatch.
+  # Known trade-off, accepted: if GitHub drops a push event (2026-08-06
+  # happened), nothing rebuilds it automatically - trigger it by hand.
   workflow_dispatch:          # on-demand manual run
 
 # A burst of commits → cancel older in-flight builds, only the
