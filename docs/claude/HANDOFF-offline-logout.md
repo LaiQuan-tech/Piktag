@@ -38,7 +38,7 @@ auth-js 本身很謹慎(只有非可重試錯誤才刪 session),所以**憑證�
 
 **覆蓋現況**:17 個畫面具離線快取或守衛;`OfflineBanner` 用於 2 處。
 
-## 驗收阻擋項與後續缺陷 — 全數修復(2026-09-01 逐項核對)
+## 驗收阻擋項與後續缺陷 — 全數修復(2026-09-01 逐項核對;2026-11-11 補登漏列的三項)
 
 | 項目 | 結果 | 依據 |
 |---|---|---|
@@ -49,6 +49,9 @@ auth-js 本身很謹慎(只有非可重試錯誤才刪 session),所以**憑證�
 | 團體 QR 離線快取 | ✓ 已做 | `6c075c8` |
 | `piktag_recent_locations` 遷 per-user | ✓ 已做 | `6c075c8` |
 | 6 個裝置全域 key 未隨登出清除(`recent_searches` / `user_presets` / `recent_locations` / `chat_send_queue_v1` / `viewed_ask_ids` / `burst_tag_prompted_v1`) | ✓ 六個全部納入 `dataCache`,受清除涵蓋 | `af9883b2` 等 |
+| **(2026-11-11 補登,原表漏列)** QrGroupDetail 成員「未知」被當成「空」—— 團體查到、成員 RPC 失敗時顯示「還沒有人掃」,且可能把空名單寫進無 TTL 快照 | ✓ 已修 | 從未合併的分支 `claude/sharp-payne-decbed`(`be6b4667`、`bd68fc63`)補回 main:`membersKnown` / `membersFailed` |
+| (同上補登)QrGroupList 快取裁剪丟掉最新團體(排序 nulls LAST)、參加場次無排序、載入例外靜默顯示空清單 | ✓ 已修 | 同分支 `f46df22d` 補回;刪團體時清 EVENT_QR 那段未補(main 已不寫該快照) |
+| (同上補登)HiddenTagEditor 讀磁碟蓋掉剛選地點、連續快選丟第一筆 | ✓ 已修 | 同分支 `f46df22d` 補回 |
 
 **複驗確認健全(不必重查)**:找不到任何會把合法使用者鎖在登入頁的路徑;
 全新安裝/損毀 blob/token 撤銷/超過 30 天 全部導向正確且可復原;離線登出的

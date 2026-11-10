@@ -21,8 +21,11 @@
 //
 // Drag-reorder writes back sort_position values 0..N-1 to the rows
 // in their new visual order on drop. Once any reorder happens, the
-// list permanently follows sort_position; newly-created groups land
-// at the top with sort_position = NULL until the user reorders.
+// list permanently follows sort_position; newly-created groups keep
+// sort_position = NULL and, because the query orders nulls LAST, sort
+// to the BOTTOM until the user reorders. (This said "at the top" and
+// was simply wrong — the cache trim below depends on getting it right,
+// since it is why the newest group was the one the cap discarded.)
 //
 // Delete uses a confirm Alert + SQL DELETE — cascades into
 // piktag_pending_connections via the existing FK. Connections rows
@@ -203,7 +206,9 @@ export default function QrGroupListScreen({ navigation }: Props) {
       // count — fall back to the last known value for that group.
       const cachedGroups = await getPersistentCache<QrGroup[]>(CACHE_KEYS.QR_GROUPS, user.id);
       const cachedCountById = new Map(
-        (cachedGroups ?? []).map((g) => [g.id, g.member_count] as const),
+        (Array.isArray(cachedGroups) ? cachedGroups : []).map(
+          (g) => [g.id, g.member_count] as const,
+        ),
       );
       const counts = await Promise.all(
         rows.map(async (r) => {
@@ -218,11 +223,34 @@ export default function QrGroupListScreen({ navigation }: Props) {
       liveGroupsDoneRef.current = true;
       setLoadFailed(false);
       setGroups(merged);
+      // Choose WHICH groups to cache by recency, but keep them in
+      // display order. Slicing the display order was wrong: that order
+      // is sort_position ascending with nulls LAST, so once a host has
+      // dragged their list into a custom order, every group created
+      // afterwards sorts to the bottom — and the group cut by the cap
+      // was therefore the newest one, which is precisely the QR needed
+      // at tonight's event. Selecting by created_at fixes what is kept;
+      // filtering `merged` rather than the sorted copy keeps the host's
+      // arrangement intact when this is painted back offline.
+      const keepIds = new Set(
+        [...merged]
+          .sort((a, b) => String(b.created_at ?? '').localeCompare(String(a.created_at ?? '')))
+          .slice(0, QR_GROUP_LIST_CACHE_MAX)
+          .map((g) => g.id),
+      );
       void setPersistentCache(
         CACHE_KEYS.QR_GROUPS,
         user.id,
-        merged.slice(0, QR_GROUP_LIST_CACHE_MAX),
+        merged.filter((g) => keepIds.has(g.id)),
       );
+    } catch (err) {
+      // The try above had only a finally. Nothing in it is expected to
+      // throw, but if something does (a corrupt cache value reaching
+      // .map, say) the rejection escaped unhandled while the finally
+      // still cleared the spinner — leaving the screen claiming the host
+      // has no Tags at all. Fail visibly instead.
+      console.warn('[QrGroupList] load threw:', err);
+      setLoadFailed(true);
     } finally {
       setLoading(false);
     }
@@ -262,11 +290,17 @@ export default function QrGroupListScreen({ navigation }: Props) {
         return;
       }
       // neq(host) = only sessions OTHERS host — my own live in `groups`.
+      // Ordered so the cache cap below keeps the most RECENT sessions.
+      // Without an order clause PostgREST returns rows in whatever order
+      // it likes, so which sessions survived the cap was arbitrary — a
+      // host with more than the cap could find last year's meetup cached
+      // and this week's missing.
       const { data: sess, error: sessErr } = await supabase
         .from('piktag_scan_sessions')
         .select('id, name, event_date, event_location, host_user_id')
         .in('id', sids)
-        .neq('host_user_id', user.id);
+        .neq('host_user_id', user.id)
+        .order('event_date', { ascending: false, nullsFirst: false });
       if (sessErr) return;
       const rows = ((sess ?? []) as any[]);
       const hostIds = [...new Set(rows.map((r) => r.host_user_id).filter(Boolean))];

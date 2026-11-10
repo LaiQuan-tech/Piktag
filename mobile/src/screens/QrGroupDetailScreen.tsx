@@ -91,8 +91,16 @@ type CurrentVibeTag = {
 type GroupDetailSnapshot = {
   group: Group;
   qrUsername: string;
-  members: Member[];
-  currentTags: CurrentVibeTag[];
+  // OPTIONAL on purpose, and it must stay that way. `undefined` means
+  // "we have never had a successful answer about this list", which is
+  // NOT the same as "the list is empty" — and this disk layer has no
+  // TTL, so writing [] for a request that merely failed freezes a lie
+  // in place: a host's 40-person event renders as "nobody has scanned
+  // this QR yet" on every offline cold start from then on, and nothing
+  // ever corrects it. Only write these when the server actually
+  // answered. Readers must distinguish the two (see membersKnown).
+  members?: Member[];
+  currentTags?: CurrentVibeTag[];
 };
 
 // 50 members ≈ a room's worth of scans; past that nobody is scrolling a
@@ -122,6 +130,16 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
 
   const [group, setGroup] = useState<Group | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
+  // Has the member list ever been ANSWERED for the group on screen —
+  // by the server or by a snapshot that recorded a real answer? False
+  // plus an empty list means "we could not ask", which must never be
+  // rendered as "nobody has scanned this QR yet".
+  const [membersKnown, setMembersKnown] = useState(false);
+  // Did an attempt actually FAIL, as opposed to not having happened yet?
+  // Without this, `!membersKnown` alone covers both, and the section
+  // announced "couldn't load" during the perfectly normal window between
+  // the group row arriving and the member RPC answering.
+  const [membersFailed, setMembersFailed] = useState(false);
   const [loading, setLoading] = useState(true);
   // The server answered and said this group isn't ours / doesn't exist.
   // Kept apart from "we couldn't reach the server" so the placeholder
@@ -150,12 +168,23 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
     [group?.qr_code_data],
   );
 
-  // Flipped the first time the network ANSWERS about this row —
+  // Flipped the first time the network ANSWERS about a section —
   // including when the answer is "it's gone". The disk hydration below
-  // refuses to paint after that, so a slow AsyncStorage read can never
-  // resurrect a snapshot over fresher server data, and in particular
-  // can never redraw a group the server just told us was deleted.
-  const liveFetchDoneRef = useRef(false);
+  // refuses to paint that section after that, so a slow AsyncStorage
+  // read can never resurrect a snapshot over fresher server data, and
+  // in particular can never redraw a group the server just told us was
+  // deleted.
+  //
+  // THREE flags, not one for the whole screen. The group row, the
+  // member list and the Vibe-shift tags are three independent requests
+  // that fail independently — which is the same reason QrGroupListScreen
+  // keeps liveGroupsDoneRef and liveAttendedDoneRef apart. With a single
+  // flag, a successful group fetch declared the members "answered" too,
+  // so a failed member RPC locked the cached list out of the screen and
+  // the empty state went on to claim nobody had scanned the QR.
+  const liveGroupDoneRef = useRef(false);
+  const liveMembersDoneRef = useRef(false);
+  const liveTagsDoneRef = useRef(false);
 
   // ── Identity invariant: what is on screen belongs to params.groupId ─
   //
@@ -185,9 +214,13 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
   if (renderedGroupId !== groupId) {
     setRenderedGroupId(groupId);
     groupIdRef.current = groupId;
-    liveFetchDoneRef.current = false;
+    liveGroupDoneRef.current = false;
+    liveMembersDoneRef.current = false;
+    liveTagsDoneRef.current = false;
     setGroup(null);
     setMembers([]);
+    setMembersKnown(false);
+    setMembersFailed(false);
     setCurrentTags([]);
     setSelectedFilterTag(null);
     setQrUsername('');
@@ -221,6 +254,9 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         // the transport-failure branch below does.
         setNotFound(false);
         setLoading(false);
+        // Members were not asked for, so they are not known: say so
+        // rather than leaving the section on "processing" forever.
+        setMembersFailed(true);
       }
       return;
     }
@@ -266,7 +302,14 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         // the server DID answer, and right now it demonstrably didn't.
         // Leaving it set produced the contradictory placeholder that
         // said 載入失敗 while hiding the one line that explains why.
-        if (onScreen()) setNotFound(false);
+        // The member RPC below is never reached on this path, so nothing
+        // else would ever mark the section as attempted — and "we
+        // couldn't reach the server" is exactly as true of the members
+        // as it is of the row.
+        if (onScreen()) {
+          setNotFound(false);
+          setMembersFailed(true);
+        }
         return;
       }
       if (!g) {
@@ -280,8 +323,12 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         // The network HAS answered — "gone" is an answer. Setting the
         // flag only on the success path let a disk read that resolved
         // later sail past the hydration guard and redraw the deleted
-        // group over this placeholder.
-        liveFetchDoneRef.current = true;
+        // group over this placeholder. ALL three sections are settled
+        // here: the row is gone, so nothing about it may be painted,
+        // members and tags included.
+        liveGroupDoneRef.current = true;
+        liveMembersDoneRef.current = true;
+        liveTagsDoneRef.current = true;
         setGroup(null);
         setNotFound(true);
         return;
@@ -295,12 +342,18 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
       // NOT gated" claim in the header comment was false. The write is
       // keyed by reqGroupId, so it is correct no matter what is on
       // screen; only the setStates care about that.
-      // liveFetchDoneRef is gated WITH them on purpose, not with the
-      // disk write: it suppresses the disk hydration effect, so letting
-      // a response for the previous group set it would starve the group
+      // The done-flags are gated WITH them on purpose, not with the
+      // disk write: they suppress the disk hydration effect, so letting
+      // a response for the previous group set one would starve the group
       // now on screen of its cached first paint.
+      //
+      // Only the ROW flag goes up here. The member and tag requests
+      // below have not been made yet, so theirs stay down — otherwise a
+      // successful group fetch declares the members "answered" too, and
+      // a cached member list can never reach the screen when its RPC
+      // fails.
       if (onScreen()) {
-        liveFetchDoneRef.current = true;
+        liveGroupDoneRef.current = true;
         setNotFound(false);
         setGroup(freshGroup);
         setNameInput(freshGroup.name ?? '');
@@ -333,8 +386,24 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         freshMembers = m as Member[];
         // Members carry no group id of their own, so the stamp check is
         // the only thing standing between this list and the previous
-        // group's attendees being shown under the new group's name.
-        if (onScreen()) setMembers(freshMembers);
+        // group's attendees being shown under the new group's name. The
+        // done-ref sits inside it too: a late answer for the previous
+        // group must not stop this group's disk hydration.
+        if (onScreen()) {
+          liveMembersDoneRef.current = true;
+          setMembers(freshMembers);
+          setMembersKnown(true);
+          setMembersFailed(false);
+        }
+      } else {
+        // No answer. Leave freshMembers null so the snapshot write below
+        // omits the field rather than recording an empty room, and leave
+        // membersKnown alone so the empty state says "couldn't load"
+        // instead of "nobody has scanned this QR yet". The disk
+        // hydration can still fill this section in, because
+        // liveMembersDoneRef is still down.
+        console.warn('[QrGroupDetail] members fetch failed:', mErr);
+        if (onScreen()) setMembersFailed(true);
       }
 
       // P0: fetch the "Vibe-to-Vibe" reactivation tags. Wrapped
@@ -350,7 +419,10 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         );
         if (!tagsErr && Array.isArray(tags)) {
           freshCurrentTags = tags as CurrentVibeTag[];
-          if (onScreen()) setCurrentTags(freshCurrentTags);
+          if (onScreen()) {
+            liveTagsDoneRef.current = true;
+            setCurrentTags(freshCurrentTags);
+          }
         } else if (tagsErr) {
           const isMissing =
             (tagsErr as any).code === 'PGRST202' ||
@@ -359,7 +431,10 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
             // Deployment fact, not a network hiccup — an empty section
             // here is the truth, so record it.
             freshCurrentTags = [];
-            if (onScreen()) setCurrentTags([]);
+            if (onScreen()) {
+              liveTagsDoneRef.current = true;
+              setCurrentTags([]);
+            }
           } else {
             // Could be transport. Keep what we have rather than blanking
             // the section (and the snapshot) on a bad connection.
@@ -377,18 +452,32 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         user.id,
         reqGroupId,
       );
+      // The `?? []` that used to close each of these was the bug: with no
+      // previous snapshot, a failed RPC was written down as an empty
+      // list, and with no TTL on this layer that empty is what every
+      // later offline cold start paints. Fall back to the previous
+      // value, and if there ISN'T one, leave the field out entirely —
+      // absent means unknown, and the reader can tell the difference.
+      const nextMembers = freshMembers ?? prevSnapshot?.members;
+      const nextCurrentTags = freshCurrentTags ?? prevSnapshot?.currentTags;
       void setPersistentQrGroupDetail<GroupDetailSnapshot>(user.id, reqGroupId, {
         group: freshGroup,
         qrUsername: freshUsername ?? prevSnapshot?.qrUsername ?? user.id,
-        members: (freshMembers ?? prevSnapshot?.members ?? []).slice(
-          0,
-          GROUP_DETAIL_CACHE_MAX_MEMBERS,
-        ),
-        currentTags: (freshCurrentTags ?? prevSnapshot?.currentTags ?? []).slice(
-          0,
-          GROUP_DETAIL_CACHE_MAX_CURRENT_TAGS,
-        ),
+        ...(nextMembers
+          ? { members: nextMembers.slice(0, GROUP_DETAIL_CACHE_MAX_MEMBERS) }
+          : {}),
+        ...(nextCurrentTags
+          ? {
+              currentTags: nextCurrentTags.slice(0, GROUP_DETAIL_CACHE_MAX_CURRENT_TAGS),
+            }
+          : {}),
       });
+    } catch (err) {
+      // A thrown RPC (rather than a resolved {error}) used to escape
+      // through the bare finally, leaving the members section on
+      // "processing" with no way to fall through to "couldn't load".
+      console.warn('[QrGroupDetail] fetch threw:', err);
+      if (onScreen()) setMembersFailed(true);
     } finally {
       // A response for a group the user has already navigated away from
       // must not clear the spinner belonging to the group now on
@@ -404,13 +493,21 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
   useEffect(() => {
     // Account switch resets the flag too (a groupId switch is already
     // handled by the identity block above, which runs during render).
-    liveFetchDoneRef.current = false;
+    liveGroupDoneRef.current = false;
+    liveMembersDoneRef.current = false;
+    liveTagsDoneRef.current = false;
     const uid = user?.id;
     if (!uid || !groupId) return;
     let cancelled = false;
     void (async () => {
       const cached = await getPersistentQrGroupDetail<GroupDetailSnapshot>(uid, groupId);
-      if (cancelled || liveFetchDoneRef.current) return;
+      if (cancelled) return;
+      // Gate PER SECTION below, not on one flag up here: when the group
+      // row came back but the member RPC did not, this read is the only
+      // thing that can put the member list back on screen.
+      if (liveGroupDoneRef.current && liveMembersDoneRef.current && liveTagsDoneRef.current) {
+        return;
+      }
       // Third guard on the same invariant: the map is keyed by group id
       // AND the row carries its own id AND the param may have moved on
       // while this disk read was resolving. All three must agree before
@@ -418,11 +515,26 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
       if (!cached?.group?.id) return;
       if (cached.group.id !== groupId || groupIdRef.current !== groupId) return;
       // Never clobber anything that already landed from the network.
-      setGroup((prev) => prev ?? cached.group);
-      setNameInput((prev) => prev || (cached.group.name ?? ''));
-      setQrUsername((prev) => prev || cached.qrUsername || '');
-      setMembers((prev) => (prev.length > 0 ? prev : cached.members ?? []));
-      setCurrentTags((prev) => (prev.length > 0 ? prev : cached.currentTags ?? []));
+      if (!liveGroupDoneRef.current) {
+        setGroup((prev) => prev ?? cached.group);
+        setNameInput((prev) => prev || (cached.group.name ?? ''));
+        setQrUsername((prev) => prev || cached.qrUsername || '');
+      }
+      // `members` absent from the snapshot means it was never answered
+      // for this group, so there is nothing to restore and the section
+      // must stay in its "couldn't load" state. An empty ARRAY is a real
+      // recorded answer and does restore — including the knownness, so
+      // a genuinely empty room still reads as empty offline.
+      if (!liveMembersDoneRef.current && cached.members) {
+        const cachedMembers = cached.members;
+        setMembers((prev) => (prev.length > 0 ? prev : cachedMembers));
+        setMembersKnown(true);
+        setMembersFailed(false);
+      }
+      if (!liveTagsDoneRef.current && cached.currentTags) {
+        const cachedTags = cached.currentTags;
+        setCurrentTags((prev) => (prev.length > 0 ? prev : cachedTags));
+      }
       setLoading(false);
     })();
     return () => {
@@ -442,6 +554,9 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
   // gates on "is there a group for this id", not on `loading`.
   useLoadDeadline(loading, () => {
     setLoading(false);
+    // Only read while membersKnown is false, and cleared by any later
+    // success or disk hydration, so this cannot mask a real answer.
+    setMembersFailed(true);
   });
 
   // Save name. Optimistic update so the title doesn't blink.
@@ -963,13 +1078,29 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
                 {filteredMembers.length === 0 ? (
                   <View style={styles.memberEmpty}>
                     <Text style={styles.memberEmptyText}>
-                      {filterEntry != null
-                        ? t('qrGroup.membersFilterEmpty', {
-                            defaultValue: '這個 Tag 中沒有貼這個標籤的人',
-                          })
-                        : t('qrGroup.membersEmpty', {
-                            defaultValue: '還沒有人掃這個 QR — 分享給朋友吧',
-                          })}
+                      {!membersKnown
+                        ? membersFailed
+                          ? // We asked and could not get an answer.
+                            // Saying "nobody has scanned this QR yet" to
+                            // a host standing in front of the room that
+                            // just scanned it is the one thing this
+                            // screen must never do.
+                            `${t('common.loadFailed', { defaultValue: '載入失敗' })} — ${t(
+                              'common.checkConnection',
+                              { defaultValue: '請檢查網路連線後重試' },
+                            )}`
+                          : // Not asked yet. Claiming a failure here
+                            // would be its own lie, and this window is
+                            // ordinary: the row arrives before the
+                            // member list does.
+                            t('common.processing', { defaultValue: '處理中' })
+                        : filterEntry != null
+                          ? t('qrGroup.membersFilterEmpty', {
+                              defaultValue: '這個 Tag 中沒有貼這個標籤的人',
+                            })
+                          : t('qrGroup.membersEmpty', {
+                              defaultValue: '還沒有人掃這個 QR — 分享給朋友吧',
+                            })}
                     </Text>
                   </View>
                 ) : (
