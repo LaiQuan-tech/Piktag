@@ -21,7 +21,7 @@ const crypto = require('crypto');
 // Why this matters:
 //   - Rotating the key currently requires a code change + deploy,
 //     not just an env var swap.
-//   - The project ref `kbwfdskulxnhjckdvghj` is enshrined in code.
+//   - The project ref `uamgqflfuqejjeatudqg` is enshrined in code.
 //   - The anon key is RLS-gated, so leak blast radius is limited —
 //     but if you suspect compromise (e.g. it was pasted somewhere
 //     public), rotate it via Supabase Dashboard → Settings → API.
@@ -30,9 +30,9 @@ const crypto = require('crypto');
 // bypasses RLS and would be a critical leak. Server-only secrets belong
 // in Vercel env vars only, never in source.
 // ─────────────────────────────────────────────────────────────────────────
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kbwfdskulxnhjckdvghj.supabase.co';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://uamgqflfuqejjeatudqg.supabase.co';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtid2Zkc2t1bHhuaGpja2R2Z2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTgwNTAsImV4cCI6MjA4Njk3NDA1MH0.q1wxMahfity_5An5I_PPSoxglJeKHXX6ohYeGvsaIC8';
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhbWdxZmxmdXFlamplYXR1ZHFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mzk1ODAsImV4cCI6MjA5ODIxNTU4MH0.MaBq2aXcCTkVVcHaIOagKqzczMKVupctJfZutNemhfA';
 
 const BRAND_COLOR = '#8c52ff';
 const BRAND_ACCENT = '#8c52ff';

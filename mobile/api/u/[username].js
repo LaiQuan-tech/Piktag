@@ -1,6 +1,6 @@
-const SUPABASE_URL = 'https://kbwfdskulxnhjckdvghj.supabase.co';
+const SUPABASE_URL = 'https://uamgqflfuqejjeatudqg.supabase.co';
 const SUPABASE_ANON_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtid2Zkc2t1bHhuaGpja2R2Z2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTgwNTAsImV4cCI6MjA4Njk3NDA1MH0.q1wxMahfity_5An5I_PPSoxglJeKHXX6ohYeGvsaIC8';
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhbWdxZmxmdXFlamplYXR1ZHFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2Mzk1ODAsImV4cCI6MjA5ODIxNTU4MH0.MaBq2aXcCTkVVcHaIOagKqzczMKVupctJfZutNemhfA';
 
 const BRAND_COLOR = '#8c52ff';
 const BRAND_BG = '#faf5ff';

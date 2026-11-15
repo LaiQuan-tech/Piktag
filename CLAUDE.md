@@ -118,7 +118,8 @@
   ON CONFLICT)。寫時間戳前先 `ls mobile/supabase/migrations/ | tail -3`。
   絕不 `supabase config push`(會清掉 dashboard 的 OAuth 設定)。
   push 到 main 自動套用,不要叫創辦人手跑 SQL。Supabase ref
-  `kbwfdskulxnhjckdvghj`。
+  `uamgqflfuqejjeatudqg`(2026-11 起與 lqtech/ifar/liyuanzhen 共用;
+  public schema 共用,PikTag 物件一律 piktag_ 前綴或既有名稱,不可動 schema 層設定)。
 - **寫 SQL 前先 live 探測 schema**(文件會過期,DB 不會):探測食譜與
   pgvector search_path、CLI 陷阱 → `docs/claude/ref-infra-ops.md`。
 - **i18n ×19**(`mobile/src/i18n/locales/*.json`):批次改動一律 Python

@@ -31,7 +31,7 @@ jobs:
       - name: Trigger daily-date-tag-anniversaries
         run: |
           curl --fail-with-body --silent --show-error -X POST \
-            "https://kbwfdskulxnhjckdvghj.supabase.co/functions/v1/daily-date-tag-anniversaries" \
+            "https://uamgqflfuqejjeatudqg.supabase.co/functions/v1/daily-date-tag-anniversaries" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json"
 
@@ -60,7 +60,7 @@ jobs:
         # running it, so they go in the log AND the run summary.
         run: |
           RESPONSE=$(curl --fail-with-body --silent --show-error -X POST \
-            "https://kbwfdskulxnhjckdvghj.supabase.co/functions/v1/auto-link-concepts" \
+            "https://uamgqflfuqejjeatudqg.supabase.co/functions/v1/auto-link-concepts" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json")
           echo "$RESPONSE"
@@ -83,7 +83,7 @@ jobs:
       - name: Trigger clear-stale-badges
         run: |
           curl --fail-with-body --silent --show-error -X POST \
-            "https://kbwfdskulxnhjckdvghj.supabase.co/functions/v1/clear-stale-badges" \
+            "https://uamgqflfuqejjeatudqg.supabase.co/functions/v1/clear-stale-badges" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json"
 
@@ -106,7 +106,7 @@ jobs:
       - name: Trigger linker-health-alert
         run: |
           response=$(curl --fail-with-body --silent --show-error -X POST \
-            "https://kbwfdskulxnhjckdvghj.supabase.co/functions/v1/linker-health-alert" \
+            "https://uamgqflfuqejjeatudqg.supabase.co/functions/v1/linker-health-alert" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json")
           echo "$response"
