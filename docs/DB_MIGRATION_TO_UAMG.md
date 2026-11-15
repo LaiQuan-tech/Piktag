@@ -61,6 +61,22 @@
 7. 出新版 App 指向目標(EXPO_PUBLIC_SUPABASE_URL/ANON_KEY 換新);送審設「手動發布」,
    核准後先不放出。
 
+### 階段 2 結果(2026-11-16)
+- 分支 `migrate/db-uamg`(commit 1be000b7)**切換日才合併進 main**。合併前 main
+  的 CI 仍指向舊庫;合併後 migration、edge function 部署、auth 設定同步、
+  daily-cron 全部改打新庫。
+- db push 不再用 DB 密碼(共用庫密碼不在我們手上),改用 CLI 暫時登入角色,
+  已對目標 dry-run 驗證「Remote database is up to date」。
+- 新增 GitHub secrets `EXPO_PUBLIC_SUPABASE_URL_UAMG` / `_ANON_KEY_UAMG`,
+  分支上的 App 建置讀這兩個;舊的 `EXPO_PUBLIC_SUPABASE_URL` / `_ANON_KEY`、
+  `SUPABASE_DB_PASSWORD`、`SUPABASE_SERVICE_ROLE_KEY` 在舊庫刪除後一併移除。
+- App 版本 1.0.12(新庫專用);從分支手動觸發 iOS / Android 建置。
+- 兩庫的 public 預設權限(default ACL)完全相同,未來 migration 行為不變。
+- **注意**:1.0.12 的 TestFlight / Play 內測版連的是新庫的 11/16 快照,
+  切換日會被重灌;在上面註冊或改的資料會消失,只拿來驗證不要實際使用。
+- 送審:創辦人在 App Store Connect 送 1.0.12,選「手動發布」;Android 從
+  internal 升 production 時先不放出(或切換日再升)。
+
 ## 階段 3 切換日(停機約 30-60 分鐘)
 8. 凍結舊庫:停 cron、撤 anon/authenticated 寫入。
 9. 先比對來源有無 11/16 後的新 migration,有就補到目標並重跑權限比對。
@@ -69,7 +85,10 @@
    每筆 insert 打推播);重灌後重跑孤兒清理,再改寫舊網址。
 10. 重跑 storage 搬遷(只補新增檔);排程 22 個 cron job;比對筆數。
     寄一封重設密碼信給創辦人自己的帳號,驗證 SMTP 金鑰可用。
-11. 官網、後台 Vercel env 切到目標;CI secrets(DB password、project ref)切到目標。
+11. 合併 `migrate/db-uamg` 進 main(合併前先 rebase,確認期間沒有新 migration
+    只進了舊庫);手動觸發 supabase-auth-config workflow,用 CI 的 SMTP_PASS
+    覆蓋目標的 SMTP 密碼。官網、後台(admin.pikt.ag)、/u 分享頁的 Vercel env
+    (SUPABASE_URL、ANON_KEY、SERVICE_ROLE_KEY)切到目標並重新部署。
 12. 創辦人按發布新版 App(送審/發布永遠由創辦人按)。
 13. 驗收:登入、加好友、掃名片、推播、搜尋、後台數據。
 
