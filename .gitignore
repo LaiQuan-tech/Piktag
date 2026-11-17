@@ -47,3 +47,13 @@ dist/
 __pycache__/
 *.pyc
 supabase/.temp/
+
+# 只有 root 那條 supabase/.temp/ 蓋不到 mobile/ 底下（2026-11-18 補）
+**/supabase/.temp/
+
+# Apple / Google 簽章與服務帳號（公開 repo，2026-11-18 補）
+*.p8
+*.p12
+*.mobileprovision
+google-play-service-account.json
+*service-account*.json

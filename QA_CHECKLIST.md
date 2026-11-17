@@ -36,7 +36,7 @@
 
 ## D. 按帳號判定（這次修的重點，務必測）
 
-- [ ] **空帳號會走精靈**：登入 `piktag.tester01@gmail.com`（密碼 `Piktag2026!test`）→ **精靈出現**（它 profile 是空的）
+- [ ] **空帳號會走精靈**：登入 `piktag.tester01@gmail.com`（密碼見密碼管理器）→ **精靈出現**（它 profile 是空的）
 - [ ] **走完不再問**：把 tester01 精靈走完 → 殺掉 App 重開 → **直接進首頁，不再跳精靈**
 - [ ] **step 1 中途離開會重問**：登入 `tester02` → 只填完 Step 1（名字 + username）→ 殺掉 App → 重開 → **精靈再次出現**（不會因為有名字就放行）
 - [ ] **既有完整帳號不被逼**：登入原本那個有 3 個好友的帳號 → **直接進首頁，不會被抓去走精靈**
@@ -68,7 +68,7 @@
 
 | 帳號 | Email | 密碼 |
 |---|---|---|
-| 1 | `piktag.tester01@gmail.com` | `Piktag2026!test` |
-| 2 | `piktag.tester02@gmail.com` | `Piktag2026!test` |
+| 1 | `piktag.tester01@gmail.com` | 見密碼管理器 |
+| 2 | `piktag.tester02@gmail.com` | 見密碼管理器 |
 
-> email 確認已關閉，免收信即可登入。忘記密碼或要更多組，跟 Claude 說即可重設 / 加開。
+> 密碼不寫在這裡：這個 repo 是公開的（2026-11-18 起改存密碼管理器）。email 確認已關閉，免收信即可登入。忘記密碼或要更多組，跟 Claude 說即可重設 / 加開。

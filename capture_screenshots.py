@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 """Capture PikTag mobile screenshots for PPT presentation."""
 
 import asyncio
@@ -8,8 +9,8 @@ BASE_URL = "https://dist-gamma-pink.vercel.app"
 OUTPUT_DIR = "/Users/aimand/.gemini/File/L PikTag/mobile/ppt-screenshots"
 VIEWPORT = {"width": 375, "height": 812}
 
-EMAIL = "piktag.verify3@yopmail.com"
-PASSWORD = "TestPik123!"
+EMAIL = os.environ["PIKTAG_TEST_EMAIL"]  # 帳密不寫進公開 repo
+PASSWORD = os.environ["PIKTAG_TEST_PASSWORD"]
 
 
 async def main():
