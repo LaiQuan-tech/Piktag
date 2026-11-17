@@ -6,7 +6,12 @@
 - 2026-11-18:階段 1 完成(35461fd0,聊天介面下架、鈴鐺搬到人脈頁)。
 - 2026-11-18:階段 2 完成(Ask 介面下架;只改客戶端;weekly-ask-prompt cron 與 landing /a/:askId 暫不動,舊版 App 仍在用,待全部階段完成後再決定)。
 - 階段 4 注意:EditProfile 仍借用 ask.regenerateAiTags、ask.aiNoSuggestions 兩個 i18n 鍵;舊的 ask_* 通知列仍顯示在通知頁(點擊已改導向)。
-- 2026-11-18:階段 3 進行中。
+- 2026-11-18:階段 3 完成(搜尋只搜自己人脈,客戶端本機索引;未改 DB)。待創辦人決定的缺口:
+  (a) 我是掃碼方時讀不到活動標籤(piktag_scan_sessions RLS 只開主辦方);
+  (b) 非會員聯絡人標籤要大小寫完全一致才對得到 concept —— 草稿 RPC `search_my_network_concepts` 可解,未寫成 migration;
+  (c) 「對方封鎖我」方向需 SECURITY DEFINER RPC 才能排除;
+  (d) 搜尋排序整個換成本機計分,未過 CLAUDE.md 的重放門檻;impression 仍寫 surface='search',會混進舊漏斗。
+- 階段 4 注意:Settings 的 share_location 開關與 lib/sharedLocation.ts 已無消費者。
 
 ## 創辦人決策(2026-11-18,本 session 逐項選定)
 
