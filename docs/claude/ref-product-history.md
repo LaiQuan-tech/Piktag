@@ -35,6 +35,8 @@ two-hop is_official predicates if ever revived.
 
 ## Nav change — Chat tab replaced event-QR tab (2026-06-24, SHIPPED)
 
+> **待重評(2026-11-18,依據:創辦人決定精簡回工具,聊天/Ask 下架、不再媒合陌生人)**:本節為舊定位,與 CLAUDE.md North Star 衝突時以後者為準。不要依本節維護或擴充已下架的面。
+
 Founder feedback 2026-06-24: the **活動 QR (event-group QR) tab is
 unpopular/ignored**; **chat should be promoted** into that bottom-tab slot.
 Approved after honest evaluation; **SHIPPED 2026-06-24** (plan below kept

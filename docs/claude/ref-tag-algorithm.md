@@ -5,6 +5,10 @@
 
 ## Product North Star — set by the founder (remember this)
 
+> **已被取代(2026-11-18,依據:創辦人決定精簡回工具)**:「媒合新朋友」、
+> Ask、陌生人搜尋不再是目標;現行定位以 CLAUDE.md 的 North Star 節為準。
+> 本節保留為歷史脈絡,其中「標籤品質、跨語言別名、掃→標摩擦」的論述仍適用。
+
 **The core of PikTag IS AI tag recommendation: in each context, recommend
 the *right* tags.** Everything else serves this.
 
@@ -117,6 +121,8 @@ framework (post-launch deferred #1 — split search ranking into
 p(click) / p(message) / p(endorse) once ≥500 events accrue).
 
 ### Adding a new ranking surface — the 3-point checklist
+
+> **待重評(2026-11-18,依據:創辦人決定精簡回工具,聊天/Ask 下架、不再媒合陌生人)**:本節為舊定位,與 CLAUDE.md North Star 衝突時以後者為準。不要依本節維護或擴充已下架的面。
 
 PikTag has multiple ranking surfaces (search, TagDetail explore,
 Ask match sheet, recommendation cron, magic moments). Meta only
@@ -317,6 +323,8 @@ founder when the trigger condition lands:
 
 
 ## Matching surfaces — concept-awareness (audited 2026-06-06)
+
+> **待重評(2026-11-18,依據:創辦人決定精簡回工具,聊天/Ask 下架、不再媒合陌生人)**:本節為舊定位,與 CLAUDE.md North Star 衝突時以後者為準。不要依本節維護或擴充已下架的面。
 
 Cross-language 媒合 only works if a surface expands query/tags through
 `concept_id` siblings. Audited all of them; made these concept-aware
