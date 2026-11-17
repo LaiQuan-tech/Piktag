@@ -24,7 +24,8 @@ export const CACHE_KEYS = {
   // the previous account's DMs would survive a sign-out on a shared
   // device. That is not a tradeoff we are willing to make.
   CHAT_THREADS: 'chatThreads',
-  // Popular-tags bootstrap for the Search default surface.
+  // Search's own-network index snapshot ({ v: 2, people }). Held the
+  // popular-tags bootstrap before 2026-11-18; readers check `v`.
   SEARCH_BOOTSTRAP: 'searchBootstrap',
   // The viewer's OWN scannable QR card (CameraScanScreen show mode).
   MY_QR: 'myQr',

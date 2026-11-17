@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo, useDeferredValue } from 'react';
 import {
   View,
   Text,
@@ -8,47 +8,31 @@ import {
   StyleSheet,
   StatusBar,
   ListRenderItemInfo,
-  Alert,
   ScrollView,
   Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import {
-  Search,
-  Hash,
-  Clock,
-  TrendingUp,
-  X,
-  MapPin,
-} from 'lucide-react-native';
+import { Search, Hash, Clock, X } from 'lucide-react-native';
 import RingedAvatar from '../components/RingedAvatar';
 import CoachMark from '../components/CoachMark';
-import FriendsMapModal, { type FriendLocation } from '../components/FriendsMapModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { requestForegroundPermissionsAsync, getCurrentPositionAsync, Accuracy, reverseGeocodeAsync } from 'expo-location';
 import { useTranslation } from 'react-i18next';
-import { getLocales } from 'expo-localization';
 import { supabase } from '../lib/supabase';
 import {
-  getCache,
-  setCache,
   CACHE_KEYS,
   getPersistentCache,
   setPersistentCache,
 } from '../lib/dataCache';
 import { stripSearchStopwords, filterLoneStopwordTokens } from '../lib/searchStopwords';
 import { ilikeEscape, hashDisplay } from '../lib/normalizeTag';
-import { getSiblingTagIds, getTagNamesByIds } from '../lib/tagSiblings';
 import { extractSearchIntent } from '../lib/extractSearchIntent';
 import { semanticTagSearch } from '../lib/semanticTagSearch';
 import * as ExpoCrypto from 'expo-crypto';
 import { sanitizeQueryForTelemetry } from '../lib/sanitizeTelemetry';
-import { haversineKm } from '../lib/geo';
-import { COLORS, BORDER_RADIUS, type ColorPalette } from '../constants/theme';
+import { BORDER_RADIUS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
-import { useAuthProfile } from '../context/AuthContext';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import { useNetInfo } from '../hooks/useNetInfo';
 import { useLoadDeadline } from '../hooks/useLoadDeadline';
@@ -56,53 +40,241 @@ import { checkOffline } from '../lib/netStatus';
 import { useRotatingPlaceholder } from '../hooks/useRotatingPlaceholder';
 import ErrorState from '../components/ErrorState';
 import LogoLoader from '../components/loaders/LogoLoader';
-import type { Tag, PiktagProfile } from '../types';
+
+// ════════════════════════════════════════════════════════════════════
+// Search = the viewer's OWN network only (founder 2026-11-18, personal
+// network tool; docs/PLAN-2026-11-tool-simplification.md stage 3).
+//
+// Explore-strangers, nearby people, global popular tags, the FoF boost
+// and the friends map were removed from this screen. What is left:
+//   • member friends (the viewer's piktag_connections rows)
+//   • non-member contacts (the viewer's un-promoted piktag_local_contacts)
+// matched by name / nickname / headline / note / met_location, and by
+// tags: the viewer's own private + public tags on each friend
+// (piktag_connection_tags), each friend's PUBLIC self-tags
+// (piktag_user_tags), event tags of the scan session the connection came
+// from, and the contact's own tags[].
+//
+// HOW STRANGERS ARE KEPT OUT: every person this screen can render comes
+// from the in-memory NetworkIndex, and the index is built from exactly
+// two queries — piktag_connections .eq('user_id', me) and
+// piktag_local_contacts .eq('owner_user_id', me). Every tag query is
+// keyed by ids from those two result sets (connection ids / friend ids /
+// their scan-session ids) and attached back onto those same people. No
+// RPC or query on this screen returns people; the server is only asked
+// to translate a query string into concept ids (tag_aliases /
+// tag_alias_locale_overrides / piktag_tags), which are then matched
+// against the index on the client. There is no path for a non-friend to
+// enter the result list.
+//
+// SPEED: matching runs on the device against the index, so name and tag
+// hits paint on every keystroke with no round-trip. The only network
+// step per query is the cross-language concept lookup (same two literal
+// paths as search_users: tag name / alias), debounced and cached per
+// keyword; its results merge in when they land.
+// ════════════════════════════════════════════════════════════════════
 
 // ── Recent searches: per-account, on disk ────────────────────────────
-// This was `piktag_recent_searches`, a DEVICE-GLOBAL AsyncStorage key
-// holding up to ten literal queries — the names and companies the user
-// typed. It was not in CACHE_KEYS, so clearPersistentCaches() (which
-// iterates exactly that object) never touched it: user A signed out,
-// user B signed in on the same phone, opened Search, and read A's last
-// ten searches. It now lives under CACHE_KEYS.RECENT_SEARCHES, keyed by
-// user id and therefore swept on sign-out.
-//
-// The legacy key is DELETED, never read as a fallback — the same
-// contract as the piktag_recent_locations / piktag_user_presets /
-// piktag_chat_send_queue_v1 migrations before it. Carrying entries over
-// would mean reading a store we cannot attribute to an account, which
-// is the leak itself. The cost is bounded: one user loses one search
-// history once, at update time.
+// Was the device-global `piktag_recent_searches` key (user A's queries
+// leaked to user B on a shared phone). Now CACHE_KEYS.RECENT_SEARCHES,
+// keyed by user id and swept on sign-out. The legacy key is DELETED,
+// never read as a fallback.
 const LEGACY_RECENT_SEARCHES_KEY = 'piktag_recent_searches';
 const MAX_RECENT_SEARCHES = 10;
-const CACHE_KEY_POPULAR_TAGS = 'search_popular_tags';
-const CACHE_KEY_SEARCH_QUERY = 'search_last_query';
 
-// Disk mirror of the popular-tags bootstrap — the Search tab's DEFAULT
-// surface. Cold-starting offline used to leave this screen either
-// spinning or on the retry CTA; with the snapshot the user can still
-// browse the tag world they already know (founder 2026-08-06: 搜尋 must
-// not be blank offline). The per-query LRU (searchCacheRef) stays
-// in-memory only: yesterday's result list for a half-typed query is not
-// something to resurrect a day later.
-//
-// Bound = the same TARGET the loader itself uses, so the offline
-// surface is exactly the online one, never a bigger accumulated blob.
-const SEARCH_BOOTSTRAP_MAX_TAGS = 50;
-type SearchBootstrapSnapshot = { tags: Tag[]; categories: string[] };
-
-// The browse-mode category filter (興趣/身份/個性, by semantic_type) only
-// earns its place once there's real volume — slicing a cold-start list of a
-// handful of tags into sub-buckets is noise, and exposes AI mis-classification
-// (founder 2026-06-09). Surface a category only when it has ≥ this many tags,
-// and only show the row at all when ≥2 categories qualify (1 == "全部", which
-// is pointless). Self-activates as the tag pool grows — no future code change.
+// Browse-mode category filter (by semantic_type) only shows when ≥2
+// categories each have ≥ this many tags (founder 2026-06-09).
 const MIN_TAGS_PER_CATEGORY = 6;
-function qualifyingTagCategories(tagList: any[]): string[] {
+
+// Tag wall progressive reveal (pure in-memory, no network on scroll).
+const WALL_PAGE = 20;
+const WALL_MAX = 100;
+
+// Index snapshot bounds. Android AsyncStorage reads a single entry
+// through a ~2MB CursorWindow, so the snapshot is compacted (tag
+// dictionary + per-person indexes) and kept under ~1MB of JSON; people
+// past the budget are dropped from the SNAPSHOT only (the live index
+// keeps everyone).
+const SNAPSHOT_BUDGET_CHARS = 1_000_000;
+const SNAPSHOT_MAX_TAGS_PER_PERSON = 40;
+const INDEX_SNAPSHOT_VERSION = 3;
+// Free-text fields (note can be long) are capped in the haystack.
+const INFO_HAY_MAX = 200;
+
+// One shared collator: people are sorted by name ONCE when an index is
+// built/decoded; per-keystroke sorts are stable and never re-compare
+// names.
+const NAME_COLLATOR = new Intl.Collator(undefined, { sensitivity: 'base' });
+
+// Debounce for the cross-language concept lookup. Local matches do not
+// wait for it.
+const EXPANSION_DEBOUNCE_MS = 250;
+
+// ── Network index types ──────────────────────────────────────────────
+
+// One tag on one person. `key` is the identity used for matching and
+// for the wall: 'c:<concept_id>' when the tag belongs to a concept (so
+// crystal / 水晶 / ねこ siblings collapse into one key), else
+// 't:<tag_id>', else 'n:<lowercased name>' for plain strings that never
+// resolved to a piktag_tags row.
+type NetTag = { key: string; name: string; st: string | null };
+
+type NetPerson = {
+  kind: 'friend' | 'contact';
+  // profile id for friends, local-contact id for contacts
+  id: string;
+  connectionId: string | null;
+  name: string;
+  username: string | null;
+  avatarUrl: string | null;
+  // lowercased haystacks
+  nameHay: string;
+  infoHay: string;
+  tags: NetTag[];
+};
+
+// Compact on-disk form: tags = [key, name, semantic_type] dictionary;
+// each person = [kind, id, connectionId, name, username, avatarUrl,
+// nameHay, infoHay, tagIndexes].
+type SnapshotTag = [string, string, string | null];
+type SnapshotPerson = [
+  'f' | 'c',
+  string,
+  string | null,
+  string,
+  string | null,
+  string | null,
+  string,
+  string,
+  number[],
+];
+type IndexSnapshot = { v: number; tags: SnapshotTag[]; people: SnapshotPerson[] };
+
+type WallTag = {
+  key: string;
+  name: string;
+  semantic_type: string | null;
+  count: number;
+};
+
+type ResultRow =
+  | { kind: 'friend'; person: NetPerson }
+  | { kind: 'contact'; person: NetPerson };
+
+const lower = (s: unknown): string => (typeof s === 'string' ? s.toLowerCase() : '');
+const infoHayOf = (parts: unknown[]): string => parts.map(lower).filter(Boolean).join(' ').slice(0, INFO_HAY_MAX);
+
+function sortByName(people: NetPerson[]): NetPerson[] {
+  return people.sort((a, b) => NAME_COLLATOR.compare(a.name, b.name));
+}
+
+function encodeSnapshot(people: NetPerson[]): IndexSnapshot {
+  const tagIndex = new Map<string, number>();
+  const tags: SnapshotTag[] = [];
+  const out: SnapshotPerson[] = [];
+  let size = 32;
+  // Members first: if the budget runs out, non-member contacts go first.
+  const ordered = [...people.filter((p) => p.kind === 'friend'), ...people.filter((p) => p.kind === 'contact')];
+  for (const p of ordered) {
+    const idx: number[] = [];
+    const newTags: SnapshotTag[] = [];
+    for (const tg of p.tags.slice(0, SNAPSHOT_MAX_TAGS_PER_PERSON)) {
+      const sig = tg.key + '\u0001' + tg.name;
+      let i = tagIndex.get(sig);
+      if (i === undefined) {
+        i = tags.length + newTags.length;
+        newTags.push([tg.key, tg.name, tg.st]);
+      }
+      idx.push(i);
+    }
+    const row: SnapshotPerson = [
+      p.kind === 'friend' ? 'f' : 'c',
+      p.id,
+      p.connectionId,
+      p.name,
+      p.username,
+      p.avatarUrl,
+      p.nameHay,
+      p.infoHay,
+      idx,
+    ];
+    const added = JSON.stringify(row).length + (newTags.length ? JSON.stringify(newTags).length : 0) + 2;
+    if (size + added > SNAPSHOT_BUDGET_CHARS) break;
+    size += added;
+    for (const nt of newTags) {
+      tagIndex.set(nt[0] + '\u0001' + nt[1], tags.length);
+      tags.push(nt);
+    }
+    out.push(row);
+  }
+  return { v: INDEX_SNAPSHOT_VERSION, tags, people: out };
+}
+
+function decodeSnapshot(snap: unknown): NetPerson[] | null {
+  const s = snap as IndexSnapshot | null;
+  if (!s || s.v !== INDEX_SNAPSHOT_VERSION || !Array.isArray(s.tags) || !Array.isArray(s.people)) return null;
+  const people: NetPerson[] = [];
+  for (const r of s.people) {
+    if (!Array.isArray(r) || r.length < 9) continue;
+    const tags: NetTag[] = [];
+    for (const i of Array.isArray(r[8]) ? r[8] : []) {
+      const tg = s.tags[i];
+      if (tg) tags.push({ key: tg[0], name: tg[1], st: tg[2] ?? null });
+    }
+    people.push({
+      kind: r[0] === 'f' ? 'friend' : 'contact',
+      id: r[1],
+      connectionId: r[2],
+      name: r[3] || '',
+      username: r[4],
+      avatarUrl: r[5],
+      nameHay: r[6] || '',
+      infoHay: r[7] || '',
+      tags,
+    });
+  }
+  return sortByName(people);
+}
+
+// Strip the display prefix ConnectionsScreen writes into its snapshot
+// (bidi mark + '#') so offline fallback tags compare as plain names.
+const plainTagName = (s: string): string => s.replace(/^[‎‏؜]*#?/, '').trim();
+
+function tagKeyOf(tag: { id?: string | null; concept_id?: string | null; name?: string | null }): string | null {
+  if (tag.concept_id) return 'c:' + tag.concept_id;
+  if (tag.id) return 't:' + tag.id;
+  const n = lower(tag.name).trim();
+  return n ? 'n:' + n : null;
+}
+
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
+
+// Pages a PostgREST select past the 1000-row default cap. Returns null
+// on ANY error so callers can refuse to install a partial index.
+async function fetchPaged<T>(
+  page: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>,
+  pageSize = 1000,
+  maxPages = 20,
+): Promise<T[] | null> {
+  const out: T[] = [];
+  for (let p = 0; p < maxPages; p++) {
+    const from = p * pageSize;
+    const { data, error } = await page(from, from + pageSize - 1);
+    if (error || !Array.isArray(data)) return null;
+    out.push(...data);
+    if (data.length < pageSize) break;
+  }
+  return out;
+}
+
+function qualifyingTagCategories(tagList: WallTag[]): string[] {
   const counts = new Map<string, number>();
-  for (const tg of tagList || []) {
-    const st = tg?.semantic_type;
-    if (st) counts.set(st, (counts.get(st) || 0) + 1);
+  for (const tg of tagList) {
+    if (tg.semantic_type) counts.set(tg.semantic_type, (counts.get(tg.semantic_type) || 0) + 1);
   }
   const qualifying = [...counts.entries()]
     .filter(([, n]) => n >= MIN_TAGS_PER_CATEGORY)
@@ -110,112 +282,363 @@ function qualifyingTagCategories(tagList: any[]): string[] {
   return qualifying.length >= 2 ? qualifying : [];
 }
 
-type CategoryKey = 'popular' | 'nearby' | 'recent';
+// Query → content keywords (stopword-stripped, lowercased).
+function parseKeywords(query: string): string[] {
+  const raw = query.trim().replace(/#/g, '');
+  if (!raw) return [];
+  let keywords = stripSearchStopwords(raw)
+    .split(/[\s,，、]+/)
+    .map((k) => k.trim())
+    .filter(Boolean);
+  keywords = filterLoneStopwordTokens(keywords);
+  if (keywords.length === 0) keywords = [raw];
+  return [...new Set(keywords.map((k) => k.toLowerCase()))].slice(0, 6);
+}
+
+// ── Build the index from the server ─────────────────────────────────
+// Every query here is scoped to the viewer: connections by user_id,
+// contacts by owner_user_id, and everything else keyed by ids taken from
+// those two result sets. Returns null on failure (caller keeps whatever
+// index/snapshot it already has).
+async function fetchNetworkIndex(uid: string): Promise<NetPerson[] | null> {
+  const [conns, contacts, blocksRes] = await Promise.all([
+    fetchPaged<any>((from, to) =>
+      supabase
+        .from('piktag_connections')
+        .select(
+          'id, connected_user_id, nickname, note, met_location, scan_session_id, connected_user:piktag_profiles!connected_user_id(id, username, full_name, avatar_url, headline, is_official)',
+        )
+        .eq('user_id', uid)
+        .order('created_at', { ascending: false })
+        .order('id')
+        .range(from, to),
+    ),
+    fetchPaged<any>((from, to) =>
+      supabase
+        .from('piktag_local_contacts')
+        .select('id, name, avatar_url, headline, note, met_location, tags')
+        .eq('owner_user_id', uid)
+        .is('promoted_to_connection_id', null)
+        .order('created_at', { ascending: false })
+        .order('id')
+        .range(from, to),
+    ),
+    // People the viewer blocked. block_user does NOT delete the
+    // connection row, so without this a blocked person would still show
+    // up in results, wall counts and tag filters (search_users excluded
+    // blocks both ways). RLS only exposes rows where the viewer is the
+    // BLOCKER; the reverse direction (someone blocked the viewer) cannot
+    // be read from the client — fully matching the old behaviour needs a
+    // SECURITY DEFINER RPC returning both directions.
+    fetchPaged<any>((from, to) =>
+      supabase
+        .from('piktag_blocks')
+        .select('blocked_id')
+        .eq('blocker_id', uid)
+        .order('blocked_id')
+        .range(from, to),
+    ),
+  ]);
+  // Fail closed: if we cannot tell who is blocked, install nothing.
+  if (!conns || !contacts || !blocksRes) return null;
+  const blocked = new Set<string>(blocksRes.map((b: any) => String(b?.blocked_id)).filter(Boolean));
+
+  // De-dupe friends by profile id; drop self.
+  const friendRows: any[] = [];
+  const seenFriend = new Set<string>();
+  for (const c of conns) {
+    const pid = c?.connected_user_id;
+    if (!pid || !c?.id || pid === uid || blocked.has(String(pid)) || seenFriend.has(pid)) continue;
+    seenFriend.add(pid);
+    friendRows.push(c);
+  }
+  const connIds = friendRows.map((c) => String(c.id));
+  const friendIds = friendRows.map((c) => String(c.connected_user_id));
+  const sessionIds = [
+    ...new Set(friendRows.map((c) => c.scan_session_id).filter(Boolean).map(String)),
+  ];
+
+  const [connTagChunks, selfTagChunks, sessionChunks] = await Promise.all([
+    Promise.all(
+      chunk(connIds, 50).map((ids) =>
+        fetchPaged<any>((from, to) =>
+          supabase
+            .from('piktag_connection_tags')
+            .select('connection_id, tag:piktag_tags!tag_id(id, name, concept_id, semantic_type)')
+            .in('connection_id', ids)
+            .order('id')
+            .range(from, to),
+        ),
+      ),
+    ),
+    Promise.all(
+      chunk(friendIds, 50).map((ids) =>
+        fetchPaged<any>((from, to) =>
+          supabase
+            .from('piktag_user_tags')
+            .select('user_id, tag:piktag_tags!tag_id(id, name, concept_id, semantic_type)')
+            .in('user_id', ids)
+            .eq('is_private', false)
+            .order('id')
+            .range(from, to),
+        ),
+      ),
+    ),
+    Promise.all(
+      chunk(sessionIds, 100).map((ids) =>
+        fetchPaged<any>((from, to) =>
+          supabase
+            .from('piktag_scan_sessions')
+            .select('id, event_tags')
+            .in('id', ids)
+            .order('id')
+            .range(from, to),
+        ),
+      ),
+    ),
+  ]);
+  if (connTagChunks.some((r) => r === null) || selfTagChunks.some((r) => r === null)) {
+    return null;
+  }
+  // Scan sessions are best-effort: RLS only lets the HOST read a session,
+  // so a missing row is normal, and an error just means no event tags.
+  const sessionTags = new Map<string, string[]>();
+  for (const rows of sessionChunks) {
+    for (const s of rows || []) {
+      if (s?.id && Array.isArray(s.event_tags)) {
+        sessionTags.set(String(s.id), s.event_tags.filter((x: unknown) => typeof x === 'string'));
+      }
+    }
+  }
+
+  // Plain strings (contact tags, event tags) → piktag_tags rows, so a
+  // contact tagged "crystal" shares the concept key of a friend tagged
+  // 水晶. Best-effort: unresolved strings fall back to a name key.
+  const plainStrings = new Set<string>();
+  for (const c of contacts) {
+    for (const s of Array.isArray(c?.tags) ? c.tags : []) {
+      if (typeof s === 'string' && s.trim()) plainStrings.add(s.trim());
+    }
+  }
+  for (const arr of sessionTags.values()) for (const s of arr) if (s.trim()) plainStrings.add(s.trim());
+  const nameToKey = new Map<string, { key: string; st: string | null }>();
+  const resolveChunks = await Promise.all(
+    chunk([...plainStrings], 50).map((names) =>
+      supabase.from('piktag_tags').select('id, name, concept_id, semantic_type').in('name', names),
+    ),
+  );
+  for (const r of resolveChunks) {
+    for (const t of (r?.data || []) as any[]) {
+      const k = tagKeyOf(t);
+      if (k && t?.name) nameToKey.set(lower(t.name), { key: k, st: t.semantic_type ?? null });
+    }
+  }
+
+  const connTagsById = new Map<string, NetTag[]>();
+  const addTag = (map: Map<string, NetTag[]>, owner: string, tag: any) => {
+    if (!tag?.name) return;
+    const k = tagKeyOf(tag);
+    if (!k) return;
+    // Keep the name→key map complete so case-variant plain strings
+    // ("Remittance" vs "remittance") still land on the same key.
+    if (!nameToKey.has(lower(tag.name))) {
+      nameToKey.set(lower(tag.name), { key: k, st: tag.semantic_type ?? null });
+    }
+    const arr = map.get(owner) || [];
+    arr.push({ key: k, name: tag.name, st: tag.semantic_type ?? null });
+    map.set(owner, arr);
+  };
+  for (const rows of connTagChunks) for (const r of rows || []) addTag(connTagsById, String(r.connection_id), r.tag);
+  const selfTagsById = new Map<string, NetTag[]>();
+  for (const rows of selfTagChunks) for (const r of rows || []) addTag(selfTagsById, String(r.user_id), r.tag);
+
+  const plainTag = (s: string): NetTag => {
+    const hit = nameToKey.get(lower(s.trim()));
+    return { key: hit?.key ?? 'n:' + lower(s.trim()), name: s.trim(), st: hit?.st ?? null };
+  };
+  const dedupeTags = (tags: NetTag[]): NetTag[] => {
+    const seen = new Set<string>();
+    const out: NetTag[] = [];
+    for (const t of tags) {
+      const sig = t.key + '|' + lower(t.name);
+      if (seen.has(sig)) continue;
+      seen.add(sig);
+      out.push(t);
+    }
+    return out;
+  };
+
+  const people: NetPerson[] = [];
+  for (const c of friendRows) {
+    const p = c.connected_user || {};
+    const pid = String(c.connected_user_id);
+    // @piktag is everyone's auto-friend and carries teaching tags; it
+    // must never pad tag results (CLAUDE.md 排序面 #4). Name search
+    // still finds it.
+    const official = p.is_official === true;
+    const tags = official
+      ? []
+      : dedupeTags([
+          ...(connTagsById.get(String(c.id)) || []),
+          ...(selfTagsById.get(pid) || []),
+          ...(c.scan_session_id ? (sessionTags.get(String(c.scan_session_id)) || []).map(plainTag) : []),
+        ]);
+    people.push({
+      kind: 'friend',
+      id: pid,
+      connectionId: String(c.id),
+      name: p.full_name || p.username || c.nickname || '',
+      username: p.username ?? null,
+      avatarUrl: p.avatar_url ?? null,
+      nameHay: [p.full_name, p.username, c.nickname].map(lower).join(' '),
+      infoHay: infoHayOf([p.headline, c.note, c.met_location]),
+      tags,
+    });
+  }
+  for (const c of contacts) {
+    if (!c?.id) continue;
+    people.push({
+      kind: 'contact',
+      id: String(c.id),
+      connectionId: null,
+      name: c.name || '',
+      username: null,
+      avatarUrl: c.avatar_url ?? null,
+      nameHay: lower(c.name),
+      infoHay: infoHayOf([c.headline, c.note, c.met_location]),
+      tags: dedupeTags(
+        (Array.isArray(c.tags) ? c.tags : [])
+          .filter((s: unknown): s is string => typeof s === 'string' && !!s.trim())
+          .map(plainTag),
+      ),
+    });
+  }
+  return sortByName(people);
+}
+
+// Offline fallback when no index snapshot exists yet: the CONNECTIONS
+// (ConnectionsScreen) and LOCAL_CONTACTS (useLocalContacts) snapshots
+// are already on disk. Name keys only — no concept merging offline.
+async function buildIndexFromLegacySnapshots(uid: string): Promise<NetPerson[] | null> {
+  const [cachedConns, cachedContacts] = await Promise.all([
+    getPersistentCache<any[]>(CACHE_KEYS.CONNECTIONS, uid),
+    getPersistentCache<any[]>(CACHE_KEYS.LOCAL_CONTACTS, uid),
+  ]);
+  if (!Array.isArray(cachedConns) && !Array.isArray(cachedContacts)) return null;
+  const toTags = (arr: unknown): NetTag[] =>
+    (Array.isArray(arr) ? arr : [])
+      .filter((s): s is string => typeof s === 'string')
+      .map(plainTagName)
+      .filter(Boolean)
+      .map((n) => ({ key: 'n:' + lower(n), name: n, st: null }));
+  const people: NetPerson[] = [];
+  for (const c of Array.isArray(cachedConns) ? cachedConns : []) {
+    const p = c?.connected_user || {};
+    const pid = c?.connected_user_id ?? p?.id;
+    if (!pid || !c?.id) continue;
+    people.push({
+      kind: 'friend',
+      id: String(pid),
+      connectionId: String(c.id),
+      name: p.full_name || p.username || c.nickname || '',
+      username: p.username ?? null,
+      avatarUrl: p.avatar_url ?? null,
+      nameHay: [p.full_name, p.username, c.nickname].map(lower).join(' '),
+      infoHay: infoHayOf([c.note, c.met_location]),
+      tags: toTags(c.tags),
+    });
+  }
+  for (const c of Array.isArray(cachedContacts) ? cachedContacts : []) {
+    if (!c?.id || c?.promoted_to_connection_id) continue;
+    people.push({
+      kind: 'contact',
+      id: String(c.id),
+      connectionId: null,
+      name: c.name || '',
+      username: null,
+      avatarUrl: c.avatar_url ?? null,
+      nameHay: lower(c.name),
+      infoHay: infoHayOf([c.headline, c.note, c.met_location]),
+      tags: toTags(c.tags),
+    });
+  }
+  return sortByName(people);
+}
+
+// Query string → concept keys, via the same two literal paths
+// search_users uses (tag name / alias), plus the viewer-locale alias
+// overrides. Returns ONLY concept ids — never people — so it cannot
+// widen the result set beyond the index. null on transport failure.
+async function fetchConceptKeys(kw: string, locale: string): Promise<Set<string> | null> {
+  const pattern = `%${ilikeEscape(kw)}%`;
+  const [aliasRes, overrideRes, nameRes] = await Promise.all([
+    supabase.from('tag_aliases').select('concept_id').ilike('alias', pattern).limit(200),
+    supabase
+      .from('tag_alias_locale_overrides')
+      .select('concept_id')
+      .ilike('alias', pattern)
+      .eq('locale', locale)
+      .limit(20),
+    supabase
+      .from('piktag_tags')
+      .select('concept_id')
+      .ilike('name', pattern)
+      .not('concept_id', 'is', null)
+      .limit(200),
+  ]);
+  if (aliasRes.error || nameRes.error) return null;
+  const keys = new Set<string>();
+  for (const r of [aliasRes, overrideRes, nameRes]) {
+    for (const row of (r.data || []) as any[]) {
+      if (row?.concept_id) keys.add('c:' + row.concept_id);
+    }
+  }
+  return keys;
+}
 
 // ── Memoized list item components ──
 
 type ProfileCardProps = {
-  profile: PiktagProfile;
-  onPress: (profile: PiktagProfile) => void;
+  person: NetPerson;
+  onPress: (person: NetPerson) => void;
   t: (key: string, opts?: any) => string;
 };
 
-const ProfileCard = React.memo(function ProfileCard({ profile, onPress, t }: ProfileCardProps) {
+const ProfileCard = React.memo(function ProfileCard({ person, onPress, t }: ProfileCardProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  // Endorser count rides on the search_users RPC payload (principle #2)
-  // as an extra field. PiktagProfile doesn't declare it because it's
-  // only meaningful for search-results rows; read defensively via cast.
-  const endorserCount = (profile as PiktagProfile & { endorser_count?: number }).endorser_count ?? 0;
-  const handlePress = useCallback(() => {
-    onPress(profile);
-  }, [onPress, profile]);
-
+  const handlePress = useCallback(() => onPress(person), [onPress, person]);
   return (
-    <TouchableOpacity
-      style={styles.profileCard}
-      onPress={handlePress}
-      activeOpacity={0.7}
-    >
-      <RingedAvatar
-        size={51}
-        ringStyle="subtle"
-        name={profile.full_name || profile.username || ''}
-        avatarUrl={profile.avatar_url}
-      />
+    <TouchableOpacity style={styles.profileCard} onPress={handlePress} activeOpacity={0.7}>
+      <RingedAvatar size={51} ringStyle="subtle" name={person.name} avatarUrl={person.avatarUrl} />
       <View style={styles.profileInfo}>
         <View style={styles.profileNameRow}>
           <Text style={styles.profileName} numberOfLines={1}>
-            {profile.full_name || profile.username || t('common.unnamed')}
+            {person.name || t('common.unnamed')}
           </Text>
-          {/* {profile.is_verified && (
-            <CheckCircle2
-              size={16}
-              color={colors.blue500}
-              fill={colors.blue500}
-              strokeWidth={0}
-              style={verifiedBadgeStyle}
-            />
-          )} */}
         </View>
-        {profile.username && (
+        {person.username ? (
           <Text style={styles.profileUsername} numberOfLines={1}>
-            @{profile.username}
+            @{person.username}
           </Text>
-        )}
-        {/* Endorser-count inline text (principle #2). Hidden at 0
-            so no-signal rows stay clean. Gray uniform — no color
-            tiering at this stage (founder, 2026-05-29). */}
-        {endorserCount > 0 && (
-          <Text style={styles.profileEndorser} numberOfLines={1}>
-            {t('tagDetail.endorsedBy', { count: endorserCount, defaultValue: '{{count}} 人認同' })}
-          </Text>
-        )}
+        ) : null}
       </View>
     </TouchableOpacity>
   );
 });
 
-const verifiedBadgeStyle = { marginLeft: 4 };
-
-// A local contact (non-member) the viewer manually tagged. Shown in the
-// intersection-search Friends tab below member matches. Manual tags are
-// owner-private, so this only ever surfaces for the user who set them.
-type TaggedContact = {
-  id: string;
-  name: string;
-  avatar_url: string | null;
-};
-
-type LocalContactCardProps = {
-  contact: TaggedContact;
-  onPress: (contact: TaggedContact) => void;
-  t: (key: string, opts?: any) => string;
-};
-
-const LocalContactCard = React.memo(function LocalContactCard({ contact, onPress, t }: LocalContactCardProps) {
+// A local contact (non-member). Owner-private by construction.
+const LocalContactCard = React.memo(function LocalContactCard({ person, onPress, t }: ProfileCardProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const handlePress = useCallback(() => {
-    onPress(contact);
-  }, [onPress, contact]);
-
+  const handlePress = useCallback(() => onPress(person), [onPress, person]);
   return (
-    <TouchableOpacity
-      style={styles.profileCard}
-      onPress={handlePress}
-      activeOpacity={0.7}
-    >
-      <RingedAvatar
-        size={51}
-        ringStyle="subtle"
-        name={contact.name || '?'}
-        avatarUrl={contact.avatar_url}
-      />
+    <TouchableOpacity style={styles.profileCard} onPress={handlePress} activeOpacity={0.7}>
+      <RingedAvatar size={51} ringStyle="subtle" name={person.name || '?'} avatarUrl={person.avatarUrl} />
       <View style={styles.profileInfo}>
         <View style={styles.profileNameRow}>
           <Text style={styles.profileName} numberOfLines={1}>
-            {contact.name || '?'}
+            {person.name || '?'}
           </Text>
         </View>
         <Text style={styles.profileUsername} numberOfLines={1}>
@@ -227,17 +650,15 @@ const LocalContactCard = React.memo(function LocalContactCard({ contact, onPress
 });
 
 type TagCardProps = {
-  tag: Tag;
+  tag: WallTag;
   isSelected?: boolean;
-  onPress: (tag: Tag) => void;
-  onLongPress?: (tag: Tag) => void;
+  onPress: (tag: WallTag) => void;
   countSuffix: string;
-  isTrending?: boolean;
   showSemanticType?: boolean;
   semanticTypeLabel?: string;
 };
 
-const TagCard = React.memo(function TagCard({ tag, isSelected, onPress, onLongPress, countSuffix, isTrending, showSemanticType, semanticTypeLabel }: TagCardProps) {
+const TagCard = React.memo(function TagCard({ tag, isSelected, onPress, countSuffix, showSemanticType, semanticTypeLabel }: TagCardProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
@@ -245,7 +666,6 @@ const TagCard = React.memo(function TagCard({ tag, isSelected, onPress, onLongPr
       style={[styles.tagCard, isSelected && styles.tagCardHighlighted]}
       activeOpacity={0.7}
       onPress={() => onPress(tag)}
-      onLongPress={onLongPress ? () => onLongPress(tag) : undefined}
     >
       <View style={styles.tagCardRow}>
         <Hash size={14} color={isSelected ? '#FFFFFF' : colors.piktag500} strokeWidth={2.5} />
@@ -259,16 +679,8 @@ const TagCard = React.memo(function TagCard({ tag, isSelected, onPress, onLongPr
         ) : null}
       </View>
       <View style={styles.tagCountRow}>
-        {isTrending && (
-          // accentPop on trending icon — only appears on tags that are
-          // genuinely growing right now, exactly the "currently-active
-          // high-pop highlight" the design system reserves the accent
-          // for. Most tags don't render this, so the magenta jump
-          // feels like a deliberate signal, not noise.
-          <TrendingUp size={12} color={isSelected ? '#FFFFFF' : colors.accentPop} />
-        )}
         <Text style={[styles.tagCount, isSelected && styles.tagCountHighlighted]}>
-          {tag.usage_count}{countSuffix}
+          {tag.count}{countSuffix}
         </Text>
       </View>
     </TouchableOpacity>
@@ -285,21 +697,11 @@ type RecentSearchItemProps = {
 const RecentSearchItem = React.memo(function RecentSearchItem({ query, onPress, onDelete, deleteLabel }: RecentSearchItemProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const handlePress = useCallback(() => {
-    onPress(query);
-  }, [onPress, query]);
-
-  const handleDeletePress = useCallback(() => {
-    onDelete(query);
-  }, [onDelete, query]);
-
+  const handlePress = useCallback(() => onPress(query), [onPress, query]);
+  const handleDeletePress = useCallback(() => onDelete(query), [onDelete, query]);
   return (
     <View style={styles.recentSearchItem}>
-      <TouchableOpacity
-        style={styles.recentSearchItemLeft}
-        onPress={handlePress}
-        activeOpacity={0.7}
-      >
+      <TouchableOpacity style={styles.recentSearchItemLeft} onPress={handlePress} activeOpacity={0.7}>
         <Clock size={16} color={colors.gray400} />
         <Text style={styles.recentSearchText} numberOfLines={1}>{query}</Text>
       </TouchableOpacity>
@@ -317,19 +719,6 @@ const RecentSearchItem = React.memo(function RecentSearchItem({ query, onPress, 
   );
 });
 
-// ── Helper: get user location (shared by nearby profiles & nearby tags) ──
-
-async function getUserLocation(): Promise<{ lat: number; lng: number } | null> {
-  try {
-    const { status } = await requestForegroundPermissionsAsync();
-    if (status !== 'granted') return null;
-    const loc = await getCurrentPositionAsync({ accuracy: Accuracy.Balanced });
-    return { lat: loc.coords.latitude, lng: loc.coords.longitude };
-  } catch {
-    return null;
-  }
-}
-
 // ── Main component ──
 
 type SearchScreenProps = {
@@ -341,339 +730,33 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
-  // GPS-derived city for {{city}} interpolation in the rotating
-  // placeholder prompts. We previously read `profile.location` (a
-  // free-text field) but that turned out to be empty for ~all users,
-  // so the city prompt always fell back to "我附近". Now we reverse-
-  // geocode the user's last shared GPS coords (`profile.latitude`/
-  // `profile.longitude` — written every time they tap "Nearby" with
-  // location permission). Reverse geocode runs on-device on iOS and
-  // through Play Services on Android, so it's fast and offline-safe.
-  // Caching: the lat/lng-keyed ref means we only call once per
-  // location change, even though the effect re-evaluates on every
-  // render.
-  const { profile: authProfile } = useAuthProfile();
-  const [userCity, setUserCity] = useState<string | null>(null);
-  const lastGeocodedKeyRef = useRef<string | null>(null);
-  useEffect(() => {
-    const lat = authProfile?.latitude;
-    const lng = authProfile?.longitude;
-    if (lat == null || lng == null) {
-      setUserCity(null);
-      lastGeocodedKeyRef.current = null;
-      return;
-    }
-    // Round to 2 decimals (~1 km granularity) so micro-position
-    // drift while sitting still doesn't re-fire the geocode.
-    const key = `${lat.toFixed(2)},${lng.toFixed(2)}`;
-    if (key === lastGeocodedKeyRef.current) return;
-    lastGeocodedKeyRef.current = key;
-    let cancelled = false;
-    (async () => {
-      try {
-        const results = await reverseGeocodeAsync({ latitude: lat, longitude: lng });
-        const r = results[0];
-        // Order: city > subregion > region. iOS often returns city
-        // for urban areas but only subregion for rural; Android can
-        // return region (e.g. "Taipei City"). All three render fine
-        // in the prompt template across all 15 locales.
-        const cityName = r?.city || r?.subregion || r?.region || null;
-        if (!cancelled) setUserCity(cityName);
-      } catch {
-        // Silent — null falls through to the locale's cityFallback
-        // ("在我附近的設計師" / "Designers near me" / etc.)
-        if (!cancelled) setUserCity(null);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [authProfile?.latitude, authProfile?.longitude]);
+  const uid = user?.id ?? null;
+  const { isConnected } = useNetInfo();
+
   const [isFocused, setIsFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState<CategoryKey | null>(null);
 
-  // Rotating prompt-style placeholder. Cycles through
-  // `search.promptHints` (a per-locale array, e.g. "我需要懂攝影
-  // 的朋友" / "在台北附近的設計師") so the search box reads as
-  // "tell me what you need" instead of "type a name" — trains
-  // users to start with intent, the discovery affordance that
-  // distinguishes PikTag from a contacts app.
-  //
-  // The {{city}} interpolation is Search-specific so it stays
-  // here; the calibrated rotation timing lives in the shared
-  // useRotatingPlaceholder hook (same code as the "建立 Tag"
-  // context input — one tuned implementation, no drift).
+  // Rotating prompt placeholder. Hints that carry {{city}} are "near me"
+  // prompts — nearby search is gone, so they are skipped rather than
+  // rewritten (i18n keys are cleaned up in stage 4).
   const promptHints = useMemo(() => {
     const raw = t('search.promptHints', { returnObjects: true });
     if (!Array.isArray(raw) || raw.length === 0) return null;
-    const cityFallback = t('search.promptHintCityFallback');
-    // When the user has a city, swap it in; otherwise replace the
-    // whole entry with a locale-specific fallback so the array
-    // length stays stable across users with/without location.
-    return (raw as string[]).map((h) => {
-      if (!h.includes('{{city}}')) return h;
-      if (userCity) return h.replace('{{city}}', userCity);
-      return cityFallback;
-    });
-  }, [t, userCity]);
-  const placeholder = useRotatingPlaceholder(
-    promptHints,
-    t('search.searchPlaceholder'),
-  );
+    const kept = (raw as string[]).filter((h) => typeof h === 'string' && !h.includes('{{city}}'));
+    return kept.length > 0 ? kept : null;
+  }, [t]);
+  const placeholder = useRotatingPlaceholder(promptHints, t('search.searchPlaceholder'));
 
-  // Data states
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [profiles, setProfiles] = useState<PiktagProfile[]>([]);
-  const [tagUsers, setTagUsers] = useState<{ tag: Tag; users: any[] }[]>([]);
-  // People found via the SEARCHER'S OWN manual tags for the matched tag
-  // words: member friends tagged through piktag_connection_tags, and
-  // local contacts tagged through piktag_local_contacts. Text search
-  // used to query only piktag_user_tags (public member self-tags), so
-  // anyone you'd manually tagged was invisible when you typed that tag.
-  // Owner-private by RLS — only the user who set the tags sees them.
-  const [searchTaggedFriends, setSearchTaggedFriends] = useState<PiktagProfile[]>([]);
-  const [searchTaggedContacts, setSearchTaggedContacts] = useState<TaggedContact[]>([]);
-  // LLM zero-results recovery: when the normal substring search yields
-  // nothing, the edge function `extract-search-intent` asks Gemini for
-  // content nouns hiding inside the user's natural-language query. We
-  // then re-run the tag substring search with those nouns. `Recovering`
-  // drives the "AI thinking" loading state; `ExtractedKeywords` drives
-  // the transparent "PikTag understood you mean:" chip above results.
-  const [llmRecovering, setLlmRecovering] = useState(false);
-  const [llmExtractedKeywords, setLlmExtractedKeywords] = useState<string[]>([]);
-  const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [tagCategories, setTagCategories] = useState<string[]>([]);
-  const [selectedTagCategory, setSelectedTagCategory] = useState<string | null>(null);
-  const [trendingTagIds, setTrendingTagIds] = useState<Set<string>>(new Set());
-
-  // Multi-tag selection (toggle only, no fetch until search button pressed)
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
-  const selectedTagIdSet = useMemo(() => new Set(selectedTagIds), [selectedTagIds]);
-
-  // Smart recommendations
-  // Removed `recommendedUsers` (2026-05-25): the horizontal "你可能想
-  // 認識" avatar row was generic "people you may know" surface — it
-  // competed with the tag-first home and trained users to skim past
-  // tags. Founder's call: trust tag-search + Ask (the explicit social
-  // mechanisms) rather than algorithmic suggestion. The find_tag_
-  // similar_strangers / search_screen_init RPCs still exist server-
-  // side in case we revive this; the column is just dropped from
-  // payload usage here.
-  const [errorToast, setErrorToast] = useState<string | null>(null);
-  // Tracks the auto-dismiss timer for the error toast so we can
-  // clear it on unmount — otherwise navigating away within the
-  // 2.5s dismiss window leaves a setState fire-and-forget that
-  // hits an unmounted component.
-  const errorToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(
-    () => () => {
-      if (errorToastTimerRef.current) {
-        clearTimeout(errorToastTimerRef.current);
-        errorToastTimerRef.current = null;
-      }
-    },
-    [],
-  );
-  // Set to `true` when the bootstrap (popular tags + recommendations)
-  // returned nothing after both the RPC attempt AND the legacy
-  // fallback. We use this — rather than just `!tags.length` — to avoid
-  // confusing a brand-new account (legitimately empty) with a network
-  // failure. The render path swaps in <ErrorState> with a retry CTA
-  // when this is true.
-  const [bootstrapFailed, setBootstrapFailed] = useState(false);
-  // A typed query returned nothing because we could not ASK, not because
-  // the user's network has nobody matching. Set only on positive
-  // evidence (the offline short-circuit and the query-surface deadline);
-  // cleared at the start of every search.
-  const [searchUnreachable, setSearchUnreachable] = useState(false);
-  // The SAME signal that drives the red <OfflineBanner> at the top of the
-  // screen. `searchUnreachable` is written from seven places and read at
-  // render, and an empty offline result was still reaching the
-  // 「你的人脈裡還沒有 X 的人」 branch — a confident claim about the user's
-  // network made with the offline banner visible directly above it, over a
-  // 發 Ask button that cannot post without a network either.
-  //
-  // Rather than keep chasing which writer lost the race, the render asks
-  // the connection directly. Offline is a FACT at paint time; whether some
-  // flag survived the round trip is not. If the banner is up, this screen
-  // does not get to say there is nobody.
-  const { isConnected } = useNetInfo();
-  // Offline AND nothing has ever been synced to this device — a different
-  // situation from "offline, and your saved people don't match". Saying
-  // 目前離線 for it reads as "this person isn't here", when the truth is we
-  // have never had the chance to copy your list down.
-  const [searchNoSnapshot, setSearchNoSnapshot] = useState(false);
-  // Current user id for the offline bootstrap snapshot, held in a ref so
-  // the cache writers stay stable callbacks (see persistSearchBootstrap).
-  const bootstrapUserIdRef = useRef<string | null>(null);
-  bootstrapUserIdRef.current = user?.id ?? null;
-  // One-shot: the disk snapshot is a cold-start fallback, not a source
-  // that competes with live data on every re-render.
-  const bootstrapHydratedRef = useRef(false);
-  // The bootstrap the network gave us, held until we have a user id to
-  // namespace it under. `runBootstrap` is a stable callback that fires
-  // exactly once on mount, so if the RPC answered before AuthContext
-  // resolved the session, persistSearchBootstrap's `if (!uid) return`
-  // silently dropped the write and Search had NOTHING on disk to show
-  // the next time the phone was offline. Kept here, written by the
-  // effect below the moment the id lands.
-  const pendingBootstrapRef = useRef<{ tags: Tag[]; categories: string[] } | null>(null);
-  // Is anything already painted on the default browse surface? Read by
-  // runBootstrap, which must not blank a cached grid on a refresh.
-  const hasTagsRef = useRef(false);
-  // ── The default tag wall, kept separately from `tags` ───────────────
-  // `tags` is shared state: on the default surface it holds the browse
-  // wall, and during a search it holds that query's matches. Every path
-  // that starts a search therefore has to clear it, and until now
-  // NOTHING put the wall back — the disk hydration below is one-shot,
-  // and `handleResetToDefault` (the header Reset, the empty-state
-  // button, and the clear (X) button inside the search box) wiped every other piece of
-  // transient state but never restored this one.
-  //
-  // Offline that produced the reported dead end: open Search (cached
-  // wall paints), type a query, get the honest offline error, tap the clear (X) button to
-  // give up — and the entire wall was replaced by 「找不到相關標籤」 for
-  // the rest of the session, because `tags` was left at [] and the only
-  // thing that could refill it was a network the user does not have.
-  //
-  // These two refs are the last-known DEFAULT surface, written wherever
-  // it is legitimately set and never by a search result. They make the
-  // promise in performSearch's offline comment — "the tag world the user
-  // browses by default still comes from the disk snapshot" — actually
-  // true. Refs, not state: nothing renders from them directly, and they
-  // must not re-run the effects keyed on `tags`.
-  const defaultTagsRef = useRef<Tag[]>([]);
-  const defaultCategoriesRef = useRef<string[]>([]);
-  const rememberDefaultTags = useCallback(
-    (tagList: Tag[], categories: string[]): void => {
-      if (!Array.isArray(tagList) || tagList.length === 0) return;
-      defaultTagsRef.current = tagList;
-      defaultCategoriesRef.current = Array.isArray(categories) ? categories : [];
-    },
-    [],
-  );
-
-
-  // Refs for stable closures
-  const skipNextSearch = useRef(false);
-  const [intersectionMode, setIntersectionMode] = useState(false);
-  const [intersectionProfiles, setIntersectionProfiles] = useState<PiktagProfile[]>([]);
-  const [intersectionFriends, setIntersectionFriends] = useState<PiktagProfile[]>([]);
-  const [intersectionExplore, setIntersectionExplore] = useState<PiktagProfile[]>([]);
-  // Local contacts that match ALL selected tags (manual tags only —
-  // owner-private). Rendered in the Friends tab below member matches.
-  const [intersectionContacts, setIntersectionContacts] = useState<TaggedContact[]>([]);
-  const [intersectionTab, setIntersectionTab] = useState<'friends' | 'explore'>('friends');
-  const [intersectionSelectedTags, setIntersectionSelectedTags] = useState<Tag[]>([]);
-
-  // Cached set of viewer's friend ids so every search result split is
-  // a constant-time lookup. Fetched once on mount; stays valid for the
-  // session (a freshly-added connection won't show up as "friend" until
-  // next mount, but searches happen often enough that the trade-off
-  // beats re-querying piktag_connections on every keystroke).
-  // Map of friend user_id → connection_id (NOT a Set anymore). The
-  // connection_id is needed to navigate to FriendDetail (which shows
-  // the searcher's manual/private tags for that friend). Without it,
-  // taps fall through to UserDetail (the public-only view) and the
-  // manual tags become invisible — the bug founder caught 2026-05-26.
-  // .has(userId) still works the same way for the friends-vs-explore
-  // bucket logic; .get(userId) gives us the connection_id at tap time.
-  const [myFriendIds, setMyFriendIds] = useState<Map<string, string>>(new Map());
-
-  // Friend-of-friend user_ids (2nd-degree network). Used by the
-  // ranking layer at the end of performSearch to bump search hits
-  // that are reachable through the viewer's network ahead of strangers
-  // with no connection. Fetched via the get_friend_of_friend_ids RPC
-  // (SECURITY DEFINER — see 20260526030000) because RLS on
-  // piktag_connections hides other users' connection rows from the
-  // direct client query.
-  //
-  // Cached as a Set for O(1) membership checks during sort. Refreshed
-  // on screen focus (mirroring myFriendIds) so a newly-added connection
-  // brings its network in within seconds.
-  const [foFIds, setFoFIds] = useState<Set<string>>(new Set());
-
-  // Default tab for text-query search results. Mirrors intersectionTab's
-  // semantics but lives separately because the two modes' result sets
-  // and UI containers are different.
-  const [searchTab, setSearchTab] = useState<'friends' | 'explore'>('friends');
-
-  // Friends-on-map. Lives on the search screen because the map is now a
-  // discovery affordance — same modal we used to host on Connections,
-  // just relocated. Phase A keeps the data scope at 1st-degree only;
-  // Phase B will expand to friends-of-friends with privacy opt-in.
-  const [mapVisible, setMapVisible] = useState(false);
-  const [mapFriends, setMapFriends] = useState<FriendLocation[]>([]);
-  useEffect(() => {
-    if (!user) return;
-    let cancelled = false;
-    (async () => {
-      const { data } = await supabase
-        .from('piktag_connections')
-        .select(
-          // `location_updated_at` MUST be in this select — the map's
-          // `isLocationFresh()` gate (24h staleness check in
-          // FriendsMapModal) silently drops every friend without it,
-          // surfacing as "目前還沒有好友分享位置" even when friends
-          // genuinely share. Founder caught the bug 2026-06-03 — the
-          // map only showed self. SettingsScreen.tsx + LocationContacts
-          // .tsx both write `location_updated_at` on every coord
-          // update, so the field is real DB-side; we just weren't
-          // reading it here.
-          'id, connected_user_id, nickname, connected_user:piktag_profiles!connected_user_id(id, full_name, username, avatar_url, latitude, longitude, location_updated_at, share_location)',
-        )
-        .eq('user_id', user.id);
-      if (cancelled || !data) return;
-      const friends: FriendLocation[] = [];
-      for (const row of data as any[]) {
-        const p = row.connected_user;
-        if (!p?.latitude || !p?.longitude) continue;
-        if (p.share_location === false) continue;
-        friends.push({
-          id: row.connected_user_id,
-          connectionId: row.id,
-          name: row.nickname || p.full_name || p.username || '?',
-          avatarUrl: p.avatar_url || null,
-          latitude: p.latitude,
-          longitude: p.longitude,
-          location_updated_at: p.location_updated_at ?? null,
-        });
-      }
-      setMapFriends(friends);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  // user?.id, not `user`: AuthContext hands out a NEW user object on
-  // every token refresh (hourly, and on every foreground). This only
-  // needs the identity, and depending on the object re-ran the whole
-  // query on every refresh — wasted bandwidth on exactly the weak venue
-  // networks this app exists for.
-  }, [user?.id]);
-  const recentSearchesRef = useRef(recentSearches);
-  recentSearchesRef.current = recentSearches;
+  // ── Network index ─────────────────────────────────────────────────
+  const [people, setPeople] = useState<NetPerson[] | null>(null);
+  const [indexLoading, setIndexLoading] = useState(true);
+  const peopleRef = useRef<NetPerson[] | null>(null);
+  peopleRef.current = people;
+  // Identity guard: a fetch started for one account must never install
+  // its index after a sign-out / account switch.
+  const activeUidRef = useRef<string | null>(uid);
+  activeUidRef.current = uid;
   const isMountedRef = useRef(true);
-
-  // LRU cache of recent search results so a user who types a query,
-  // deletes back, and retypes the same thing doesn't re-hit the DB.
-  // Capped at 20 entries — on overflow we evict the oldest insert.
-  type SearchCacheEntry = {
-    tags: any[];
-    profiles: any[];
-    tagUsers: { tag: Tag; users: any[] }[];
-    extractedKeywords?: string[];
-  };
-  const searchCacheRef = useRef<Map<string, SearchCacheEntry>>(new Map());
-  const SEARCH_CACHE_MAX = 20;
-
-  // Sequence counter so a slow in-flight search can't overwrite the
-  // results of a newer one. Cheaper than AbortController and doesn't
-  // require threading a signal through every Supabase query.
-  const searchSeqRef = useRef(0);
-
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
@@ -681,2552 +764,498 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     };
   }, []);
 
-  // Fetch the viewer's friend ids. Used to split every search result
-  // set into "friends" / "explore" buckets in O(1) per row. Fired on
-  // mount AND on every screen focus so a freshly-followed user from
-  // the UserDetail / FriendDetail subscreens immediately moves from
-  // the explore bucket to the friends bucket on this user's next
-  // search. Without the focus refetch, the cache stayed stale until
-  // a full app reload — users reported "I followed them but search
-  // still says they're not my friend".
-  //
-  // 30s cooldown mirrors ConnectionsScreen — useFocusEffect fires on
-  // every back-nav from a sub-screen, and the friend set changes
-  // rarely; without the cooldown a quick tab-flip re-runs the full
-  // SELECT every time, hammers the API on flaky networks.
-  const lastFriendsFetchAt = useRef<number>(0);
-  const fetchMyFriendIds = useCallback(async () => {
-    if (!user) return;
-    const now = Date.now();
-    if (now - lastFriendsFetchAt.current < 30_000) return;
-    lastFriendsFetchAt.current = now;
-    // No signal: build the map from the CONNECTIONS snapshot instead.
-    // This map is what decides FriendDetail vs UserDetail at tap time,
-    // and offline it used to be EMPTY — so a friend you had just found in
-    // the offline results opened UserDetail, the public-profile screen,
-    // which is server-only and therefore rendered the offline error page.
-    // Found the person, then a blank wall (founder: 點進去，什麼資料都沒有).
-    // The snapshot already carries both ids, so the route can be right.
-    if (await checkOffline()) {
-      const cached = await getPersistentCache<any[]>(CACHE_KEYS.CONNECTIONS, user.id);
-      if (!Array.isArray(cached)) return;
-      const cm = new Map<string, string>();
-      for (const c of cached) {
-        const uid = c?.connected_user_id ?? c?.connected_user?.id;
-        if (uid && c?.id) cm.set(String(uid), String(c.id));
-      }
-      // Never overwrite a live map with a smaller cached one — the
-      // snapshot holds the connections the friends list displays, which
-      // is a subset of what the server query returns.
-      setMyFriendIds((prev) => (prev.size > cm.size ? prev : cm));
-      return;
-    }
-    const { data, error } = await supabase
-      .from('piktag_connections')
-      .select('id, connected_user_id')
-      .eq('user_id', user.id);
-    // supabase-js RESOLVES with { data: null, error } on a transport
-    // failure, so `data ?? []` used to install an EMPTY map on any hiccup
-    // — every friend silently demoted to a stranger until the next mount.
-    if (error || !data) return;
-    const m = new Map<string, string>();
-    for (const c of data as Array<{ id: string; connected_user_id: string }>) {
-      if (c.connected_user_id && c.id) m.set(c.connected_user_id, c.id);
-    }
-    setMyFriendIds(m);
-  // user?.id, not `user`: AuthContext hands out a NEW user object on
-  // every token refresh (hourly, and on every foreground). This only
-  // needs the identity, and depending on the object re-ran the whole
-  // query on every refresh — wasted bandwidth on exactly the weak venue
-  // networks this app exists for.
-  }, [user?.id]);
+  // Fetch bookkeeping. `indexInFlight` holds the uid whose fetch is
+  // running, so a stale fetch for a previous account cannot block (or be
+  // mistaken for) the current one.
+  const lastIndexFetchAt = useRef(0);
+  const indexInFlight = useRef<string | null>(null);
+  const refreshIndexRef = useRef<(force?: boolean) => Promise<void>>(async () => {});
 
+  // Hydrate from disk first (instant paint, and the only source offline).
+  // This is the ONE place the offline fallback (legacy snapshots) runs.
+  const hydratedForRef = useRef<string | null>(null);
   useEffect(() => {
-    fetchMyFriendIds();
-  }, [fetchMyFriendIds]);
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchMyFriendIds();
-    }, [fetchMyFriendIds]),
-  );
-
-  // Fetch the FoF id set via the SECURITY DEFINER RPC. Fails soft —
-  // an error here means search loses the FoF boost but everything
-  // else still works. Same 30s cooldown as fetchMyFriendIds: FoF
-  // membership is a slow-moving derived set, no need to re-query on
-  // every focus.
-  const lastFoFFetchAt = useRef<number>(0);
-  const fetchFoFIds = useCallback(async () => {
-    if (!user) return;
-    const now = Date.now();
-    if (now - lastFoFFetchAt.current < 30_000) return;
-    lastFoFFetchAt.current = now;
-    try {
-      const { data, error } = await supabase.rpc('get_friend_of_friend_ids');
-      if (error) {
-        console.warn('[SearchScreen] get_friend_of_friend_ids failed:', error.message);
-        return;
-      }
-      const ids = Array.isArray(data) ? (data as string[]) : [];
-      setFoFIds(new Set(ids));
-    } catch (err) {
-      console.warn('[SearchScreen] get_friend_of_friend_ids threw:', err);
-    }
-  // user?.id, not `user`: AuthContext hands out a NEW user object on
-  // every token refresh (hourly, and on every foreground). This only
-  // needs the identity, and depending on the object re-ran the whole
-  // query on every refresh — wasted bandwidth on exactly the weak venue
-  // networks this app exists for.
-  }, [user?.id]);
-
-  useEffect(() => {
-    fetchFoFIds();
-  }, [fetchFoFIds]);
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchFoFIds();
-    }, [fetchFoFIds]),
-  );
-
-  // ── Data loaders (all wrapped in useCallback) ──
-
-  // Best-effort, once-per-app-run deletion of the device-global key.
-  // Delete only — it is never read. See LEGACY_RECENT_SEARCHES_KEY.
-  const purgeLegacyRecentSearches = useCallback(async () => {
-    try {
-      await AsyncStorage.removeItem(LEGACY_RECENT_SEARCHES_KEY);
-    } catch {}
-  }, []);
-
-  // Writes go through this one helper so the per-user namespacing can
-  // never be forgotten at a call site.
-  const persistRecentSearches = useCallback(async (list: string[]) => {
-    const uid = bootstrapUserIdRef.current;
-    if (!uid) return;
-    await setPersistentCache(CACHE_KEYS.RECENT_SEARCHES, uid, list);
-  }, []);
-
-  const loadRecentSearches = useCallback(async () => {
-    try {
-      void purgeLegacyRecentSearches();
-      const uid = bootstrapUserIdRef.current;
-      if (!uid) return;
-      const stored = await getPersistentCache<unknown>(
-        CACHE_KEYS.RECENT_SEARCHES,
-        uid,
-      );
-      // Defensive parse: a corrupted/wrong-shape stored value (older app
-      // version, manual edit, hot-reload swap) would otherwise set
-      // recentSearches to a non-array and crash every .map / .filter
-      // render downstream.
-      if (Array.isArray(stored)) {
-        setRecentSearches(stored.filter((s): s is string => typeof s === 'string'));
-      }
-    } catch {}
-  }, [purgeLegacyRecentSearches]);
-
-  const saveRecentSearch = useCallback(async (query: string) => {
-    try {
-      const trimmed = query.trim();
-      if (!trimmed) return;
-      const current = recentSearchesRef.current;
-      const updated = [trimmed, ...current.filter((s) => s !== trimmed)].slice(
-        0,
-        MAX_RECENT_SEARCHES,
-      );
-      setRecentSearches(updated);
-      await persistRecentSearches(updated);
-    } catch {}
-  }, [persistRecentSearches]);
-
-  // Detect tag language from text characters
-  const detectTagLang = useCallback((name: string): string => {
-    if (/[\u4e00-\u9fff]/.test(name)) return 'zh';     // CJK Chinese
-    if (/[\u3040-\u309f\u30a0-\u30ff]/.test(name)) return 'ja'; // Hiragana/Katakana
-    if (/[\uac00-\ud7af]/.test(name)) return 'ko';     // Korean
-    if (/[\u0e00-\u0e7f]/.test(name)) return 'th';     // Thai
-    if (/[\u0600-\u06ff]/.test(name)) return 'ar';     // Arabic
-    if (/[\u0900-\u097f]/.test(name)) return 'hi';     // Hindi
-    if (/[\u0980-\u09ff]/.test(name)) return 'bn';     // Bengali
-    return 'en'; // Latin/default
-  }, []);
-
-  // Mirror the bootstrap to disk. Reads the user id from a ref rather
-  // than a dep so this callback stays referentially stable — it is
-  // consumed by loadPopularTags / loadInitialViaRpc, and making those
-  // re-created when `user` lands would re-fire the whole bootstrap
-  // (an extra RPC round-trip on every cold start).
-  const persistSearchBootstrap = useCallback((tagList: Tag[], categories: string[]) => {
-    if (tagList.length === 0) return;
-    const uid = bootstrapUserIdRef.current;
-    if (!uid) {
-      // No id yet — park it rather than drop it. See pendingBootstrapRef.
-      pendingBootstrapRef.current = { tags: tagList, categories };
-      return;
-    }
-    pendingBootstrapRef.current = null;
-    void setPersistentCache<SearchBootstrapSnapshot>(CACHE_KEYS.SEARCH_BOOTSTRAP, uid, {
-      tags: tagList.slice(0, SEARCH_BOOTSTRAP_MAX_TAGS),
-      categories,
-    });
-  }, []);
-
-  useEffect(() => {
-    hasTagsRef.current = tags.length > 0;
-  }, [tags]);
-
-  // Drain the parked bootstrap once the session resolves. This is what
-  // guarantees that a normal ONLINE visit to Search always leaves a
-  // snapshot on disk, regardless of which of the two races won.
-  useEffect(() => {
-    const uid = user?.id;
-    const pending = pendingBootstrapRef.current;
-    if (!uid || !pending) return;
-    pendingBootstrapRef.current = null;
-    void setPersistentCache<SearchBootstrapSnapshot>(CACHE_KEYS.SEARCH_BOOTSTRAP, uid, {
-      tags: pending.tags.slice(0, SEARCH_BOOTSTRAP_MAX_TAGS),
-      categories: pending.categories,
-    });
-  }, [user?.id]);
-
-  const loadPopularTags = useCallback(async () => {
-    const cached = getCache<Tag[]>(CACHE_KEY_POPULAR_TAGS);
-    if (cached) {
-      setTags(cached);
-      const cats = qualifyingTagCategories(cached);
-      setTagCategories(cats);
-      rememberDefaultTags(cached, cats);
-      setLoading(false);
-      setInitialLoading(false);
-    } else {
-      setLoading(true);
-    }
-
-    // Use device system language (not app setting)
-    const deviceLocale = getLocales()?.[0]?.languageCode || 'zh';
-    const userLang = deviceLocale;
-
-    // STRATEGY (reworked 2026-06-03, founder): NEARBY-FIRST, then GLOBAL
-    // BACKFILL. Tags popular among users within ~50km lead the list;
-    // the global popular set fills the REST of the screen only when
-    // nearby doesn't produce enough. The previous logic was
-    // all-or-nothing — it showed nearby-only IF it found ≥5, otherwise
-    // DISCARDED the nearby tags and went pure-global. Pre-launch the
-    // network is cold, so almost every region has <5 nearby
-    // self-taggers → everyone hit the pure-global branch → everyone
-    // (any locale) saw the English-dominant most-members tags. Wrong
-    // UX: a Taiwan user should see Taiwan-relevant trending tags first.
-    // Now even 1-2 local tags lead, with global backfilling — and as a
-    // region's network grows, nearby naturally crowds global out.
-    const TARGET = 50;
-
-    // ── 1. NEARBY tags (geographic primacy). Best-effort → [] on any
-    //    miss (no GPS, no neighbours, RLS). usage_count is kept as the
-    //    TRUE global value from piktag_tags (NOT overwritten with the
-    //    local count) so the trending-growth math below isn't skewed;
-    //    the LOCAL count drives the ordering via the pre-map sort only.
-    let nearbyTags: Tag[] = [];
-    try {
-      const location = await getUserLocation();
-      if (location) {
-        const { lat: userLat, lng: userLng } = location;
-        const range = 0.5; // ~50km box
-        const { data: nearbyProfiles } = await supabase
-          .from('piktag_profiles').select('id')
-          .gte('latitude', userLat - range).lte('latitude', userLat + range)
-          .gte('longitude', userLng - range).lte('longitude', userLng + range)
-          .limit(500);
-        if (nearbyProfiles && nearbyProfiles.length > 0) {
-          const nearbyIds = nearbyProfiles.map((p: any) => p.id);
-          // SELF-DECLARED public tags of nearby users (is_private=false)
-          // — discovery is about self-claimed public identity markers,
-          // consistent with loadRecommendations + the trending pass.
-          const { data: tagData } = await supabase
-            .from('piktag_user_tags')
-            .select('tag:piktag_tags!tag_id(id, name, semantic_type, usage_count)')
-            .in('user_id', nearbyIds)
-            .eq('is_private', false)
-            .limit(5000);
-          if (tagData && tagData.length > 0) {
-            const tagMap: Record<string, { tag: any; count: number }> = {};
-            for (const ut of tagData) {
-              const tItem = (ut as any).tag;
-              if (tItem && !tagMap[tItem.id]) tagMap[tItem.id] = { tag: tItem, count: 0 };
-              if (tItem) tagMap[tItem.id].count++;
-            }
-            nearbyTags = Object.values(tagMap)
-              .sort((a, b) => b.count - a.count)
-              .slice(0, TARGET)
-              .map((item) => item.tag as Tag);
-          }
-        }
-      }
-    } catch (err) {
-      console.warn('[SearchScreen] nearby popular tags failed:', err);
-    }
-
-    // ── 2. GLOBAL BACKFILL — only fetched if nearby didn't already
-    //    fill the screen. Language-affinity sort so even the backfill
-    //    is locale-biased (same-language tags before English) rather
-    //    than pure most-members. Merge keeps nearby FIRST, then appends
-    //    global tags not already present, up to TARGET.
-    let merged: Tag[] = nearbyTags.slice(0, TARGET);
-    try {
-      if (merged.length < TARGET) {
-        const { data, error } = await supabase
-          .from('piktag_tags')
-          .select('id, name, semantic_type, usage_count, popularity_score')
-          .order('popularity_score', { ascending: false })
-          .limit(150);
-        if (!error && data) {
-          const globalSorted = [...data].sort((a, b) => {
-            const aMatch = detectTagLang(a.name) === userLang ? 1 : 0;
-            const bMatch = detectTagLang(b.name) === userLang ? 1 : 0;
-            if (aMatch !== bMatch) return bMatch - aMatch;
-            const aScore = (a as any).popularity_score ?? a.usage_count ?? 0;
-            const bScore = (b as any).popularity_score ?? b.usage_count ?? 0;
-            return bScore - aScore;
-          });
-          const seen = new Set(merged.map((t) => t.id));
-          for (const g of globalSorted) {
-            if (merged.length >= TARGET) break;
-            if (!seen.has(g.id)) {
-              merged.push(g as Tag);
-              seen.add(g.id);
-            }
-          }
-        }
-      }
-
-      // ── 3. Commit + trending (common to both nearby-only and merged).
-      if (merged.length > 0) {
-        setCache(CACHE_KEY_POPULAR_TAGS, merged);
-        setTags(merged);
-        const cats = qualifyingTagCategories(merged);
-        setTagCategories(cats);
-        rememberDefaultTags(merged, cats);
-        persistSearchBootstrap(merged, cats);
-
-        // Trending: 7-day growth over the FINAL merged set's ids. Runs
-        // on the merged list (incl. nearby) now, not global-only — a
-        // locally-led tag that's also globally surging earns its badge.
-        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-        const tagIds = merged.map((t) => t.id);
-        const { data: recentData } = await supabase
-          .from('piktag_user_tags')
-          .select('tag_id')
-          .in('tag_id', tagIds)
-          .gte('created_at', sevenDaysAgo)
-          .limit(3000);
-
-        if (recentData && recentData.length > 0) {
-          const recentCounts = new Map<string, number>();
-          for (const r of recentData) {
-            recentCounts.set(r.tag_id, (recentCounts.get(r.tag_id) || 0) + 1);
-          }
-          const trending = new Set<string>();
-          for (const tag of merged) {
-            const recent = recentCounts.get(tag.id) || 0;
-            const uc = (tag as any).usage_count ?? 0;
-            const growthRate = uc > 0 ? recent / uc : 0;
-            if (recent >= 3 || growthRate >= 0.2) trending.add(tag.id);
-          }
-          setTrendingTagIds(trending);
-        } else {
-          setTrendingTagIds(new Set());
-        }
-      }
-    } catch (err) {
-      console.warn('[SearchScreen] loadPopularTags global/merge failed:', err);
-    } finally {
-      if (isMountedRef.current) {
-        setLoading(false);
-        setInitialLoading(false);
-      }
-    }
-  }, [persistSearchBootstrap]);
-
-  const loadNearbyProfiles = useCallback(async () => {
-    setLoading(true);
-    setTags([]);
-    try {
-      const location = await getUserLocation();
-
-      // Fire profile‑location update in background (no await)
-      if (location && user) {
-        supabase
-          .from('piktag_profiles')
-          .update({ latitude: location.lat, longitude: location.lng, location_updated_at: new Date().toISOString() })
-          .eq('id', user.id)
-          .then(() => {});
-      }
-
-      // Fetch profiles with lat/lng
-      const { data, error } = await supabase
-        .from('piktag_profiles')
-        .select('id, username, full_name, avatar_url, is_verified, latitude, longitude')
-        .not('latitude', 'is', null)
-        .not('longitude', 'is', null)
-        .limit(50);
-
-      if (!error && data && isMountedRef.current) {
-        // Cast once at the Supabase boundary — the `.select(...)`
-        // result type is structurally narrower than PiktagProfile but
-        // every selected column is on the full type. After this the
-        // sort/filter chain types correctly without per-callsite casts.
-        const profiles = data as PiktagProfile[];
-        if (location) {
-          const { lat: userLat, lng: userLng } = location;
-          // Sort by distance
-          const sorted = profiles.sort((a, b) => {
-            const distA = Math.sqrt(
-              Math.pow((a.latitude || 0) - userLat, 2) + Math.pow((a.longitude || 0) - userLng, 2)
-            );
-            const distB = Math.sqrt(
-              Math.pow((b.latitude || 0) - userLat, 2) + Math.pow((b.longitude || 0) - userLng, 2)
-            );
-            return distA - distB;
-          });
-          setProfiles(sorted.filter((p) => p.id !== user?.id).slice(0, 20));
-        } else {
-          setProfiles(profiles.filter((p) => p.id !== user?.id).slice(0, 20));
-        }
-      }
-    } catch (err) {
-      console.warn('[SearchScreen] loadNearbyProfiles failed:', err);
-    } finally {
-      if (isMountedRef.current) setLoading(false);
-    }
-  // user?.id, not `user`: AuthContext hands out a NEW user object on
-  // every token refresh (hourly, and on every foreground). This only
-  // needs the identity, and depending on the object re-ran the whole
-  // query on every refresh — wasted bandwidth on exactly the weak venue
-  // networks this app exists for.
-  }, [user?.id]);
-
-  // ── Load initial data on mount (parallel) ──
-
-  // loadRecommendations REMOVED 2026-05-25. See state-declaration
-  // comment near top of the component for the rationale (tag-first +
-  // Ask, no algorithmic suggestion surface here).
-
-  // Fast path: one RPC returns popular tags, recommended users, and
-  // category roll-up in a single round-trip. Falls back to the legacy
-  // parallel loaders if the function is missing or errors. See
-  // supabase/migrations/20260428p_search_init_rpc.sql.
-  const loadInitialViaRpc = useCallback(async (): Promise<boolean> => {
-    try {
-      const { data, error } = await supabase.rpc('search_screen_init');
-      if (error) {
-        // supabase-js RESOLVES `{data:null, error}` on a transport
-        // failure instead of rejecting, so this branch — not the catch
-        // below — is where a dead network actually lands. It used to
-        // return false silently, `bootstrapFailed` stayed false, and the
-        // retry surface at the bottom of listData could never render:
-        // the user got a permanently blank Search tab with no
-        // explanation and no way to ask again.
-        setBootstrapFailed(true);
-        return false;
-      }
-      if (!data || typeof data !== 'object') return false;
-      const payload = data as {
-        popular_tags?: any[];
-        recent_categories?: any[];
-      };
-      const popular = Array.isArray(payload.popular_tags) ? payload.popular_tags : [];
-      // The RPC still returns recommended_users — we just ignore it.
-      // Field is left in the server contract for a possible revival
-      // (see state-declaration comment).
-      if (popular.length === 0) return false;
-
-      setCache(CACHE_KEY_POPULAR_TAGS, popular as Tag[]);
-      setTags(popular as Tag[]);
-      const cats = qualifyingTagCategories(popular as any[]);
-      setTagCategories(cats);
-      rememberDefaultTags(popular as Tag[], cats);
-      persistSearchBootstrap(popular as Tag[], cats);
-      setLoading(false);
-      setInitialLoading(false);
-      return true;
-    } catch (err) {
-      console.warn('[SearchScreen] search_screen_init RPC failed, falling back:', err);
-      // Distinct from "RPC succeeded but empty" — this is a real
-      // transport failure. Flag it so the legacy fallback's failure
-      // can be combined with this signal to surface <ErrorState>
-      // instead of a confusingly empty Search tab.
-      setBootstrapFailed(true);
-      return false;
-    }
-  }, [persistSearchBootstrap]);
-
-  // Bootstrap runner extracted so the same code path serves cold-start
-  // load and the user-tapped retry. Tracks `bootstrapFailed` only when
-  // both the RPC AND the legacy fallback came back empty — that's the
-  // signal the network is the problem, not the data.
-  const runBootstrap = useCallback(async () => {
-    setBootstrapFailed(false);
-    // Only raise the loader when there is nothing on screen worth
-    // keeping. A reconnect refresh runs over an already-painted (cached)
-    // tag grid, and blanking it back to the "#" LogoLoader would be the
-    // very thing this change exists to stop.
-    if (!hasTagsRef.current) setInitialLoading(true);
-    // Always load recent searches (local-only, cheap, doesn't need net).
-    loadRecentSearches();
-
-    // FAIL FAST WHEN THERE IS NO NETWORK. The RPC and both legacy
-    // loaders below each pay auth-js's ~25s refresh backoff before
-    // resolving with an error (see lib/netStatus.ts) — chained, that is
-    // over a minute of the LogoLoader the founder photographed and read
-    // as "app is broken". The disk hydration effect runs independently
-    // and paints the cached tag world if there is one; if it does, it
-    // fills `tags` and the retry surface stops rendering on its own.
-    if (await checkOffline()) {
-      setBootstrapFailed(true);
-      setLoading(false);
-      setInitialLoading(false);
-      return;
-    }
-
-    const ok = await loadInitialViaRpc();
-    if (ok) return;
-    // Legacy fallback. We await so the failure flag is meaningful;
-    // both loaders catch internally so we have to inspect the resulting
-    // state ourselves.
-    try {
-      await loadPopularTags();
-      // If popular tags came back empty, an empty default surface is
-      // still legit (brand-new instance with no tag activity yet) —
-      // bootstrapFailed is only flagged when loadInitialViaRpc threw
-      // a transport error.
-    } catch {
-      // Loader threw outright — definitely a network/server problem.
-    } finally {
-      setInitialLoading(false);
-    }
-  }, [
-    loadInitialViaRpc,
-    loadPopularTags,
-    loadRecentSearches,
-  ]);
-
-  // Cold-start offline fallback for the default surface. Runs alongside
-  // the bootstrap (not instead of it): whatever the network eventually
-  // returns overwrites this. With no network it is the only paint, so
-  // Search shows the tag world instead of a spinner or the retry CTA.
-  // The user still knows it's cached — the app-wide <OfflineBanner> in
-  // App.tsx is already showing 目前離線 / 部分功能需要網路, which is the
-  // established offline affordance; adding a second per-screen badge
-  // would be a competing pattern.
-  useEffect(() => {
-    const uid = user?.id;
-    if (!uid) return;
-    if (bootstrapHydratedRef.current) return;
-    // The in-memory cache being warm means the bootstrap already ran in
-    // this process — nothing to restore.
-    if (getCache<Tag[]>(CACHE_KEY_POPULAR_TAGS)) return;
-    bootstrapHydratedRef.current = true;
+    if (!uid || hydratedForRef.current === uid) return;
+    hydratedForRef.current = uid;
+    // Account switch: drop the previous account's fetch state so the new
+    // account's first fetch is neither blocked nor cooled down.
+    indexInFlight.current = null;
+    lastIndexFetchAt.current = 0;
+    setPeople(null);
     let cancelled = false;
     void (async () => {
-      const snap = await getPersistentCache<SearchBootstrapSnapshot>(
-        CACHE_KEYS.SEARCH_BOOTSTRAP,
-        uid,
-      );
-      if (cancelled || !isMountedRef.current) return;
-      if (!snap || !Array.isArray(snap.tags) || snap.tags.length === 0) {
-        // Nothing on disk. Offline that is the final answer for this
-        // surface, so stop the loader NOW and let the <ErrorState>
-        // branch of listData explain itself — never leave the "#"
-        // LogoLoader spinning against a network that cannot answer.
-        if (await checkOffline()) {
-          if (cancelled || !isMountedRef.current) return;
-          setLoading(false);
-          setInitialLoading(false);
-          setBootstrapFailed(true);
-        }
-        return;
+      const snap = await getPersistentCache<unknown>(CACHE_KEYS.SEARCH_BOOTSTRAP, uid);
+      let fromDisk: NetPerson[] | null = decodeSnapshot(snap);
+      if (!fromDisk && (await checkOffline())) {
+        fromDisk = await buildIndexFromLegacySnapshots(uid);
       }
-      // Never clobber anything the network already painted.
-      setTags((prev) => (prev.length > 0 ? prev : snap.tags));
-      setTagCategories((prev) =>
-        prev.length > 0 ? prev : Array.isArray(snap.categories) ? snap.categories : [],
-      );
-      // Remember it as the default wall even if the paint above was a
-      // no-op. This is the ONLY tag source that exists offline, and
-      // holding it here is what lets the user come back to it after a
-      // search — the hydration effect itself is one-shot and can never
-      // run a second time in this session.
-      rememberDefaultTags(
-        snap.tags,
-        Array.isArray(snap.categories) ? snap.categories : [],
-      );
-      setLoading(false);
-      setInitialLoading(false);
+      if (cancelled || !isMountedRef.current || !fromDisk || activeUidRef.current !== uid) return;
+      // Never clobber a live index that already landed.
+      setPeople((prev) => prev ?? fromDisk);
     })();
     return () => {
       cancelled = true;
     };
-  }, [user?.id, rememberDefaultTags]);
+  }, [uid]);
 
-  /**
-   * Put the default tag wall back on screen.
-   *
-   * Called by every "I'm done searching" exit — the clear (X) button in the search box,
-   * the header Reset, the empty-state button, an emptied query, and the
-   * 熱門 category chip. Before this existed those paths cleared the query
-   * but left `tags` at whatever the search had put there (offline: `[]`),
-   * so the browse surface the user came back to said 「找不到相關標籤」
-   * and stayed that way for the rest of the session.
-   *
-   * Three sources, cheapest first, and NONE of them needs a network:
-   *   1. `defaultTagsRef` — the wall as last painted in this session,
-   *      including the one restored from disk at cold start.
-   *   2. the CACHE_KEYS.SEARCH_BOOTSTRAP snapshot on disk, re-read here
-   *      because the cold-start hydration effect is one-shot.
-   *   3. `loadPopularTags()`, which needs the network but paints
-   *      instantly from the in-memory cache when it is warm and is
-   *      covered by the default-surface paint deadline when it is not.
-   *
-   * Read-only with respect to every cache: this never writes a snapshot,
-   * so a restore can never degrade one.
-   */
-  const restoreDefaultTags = useCallback(async (): Promise<void> => {
-    const remembered = defaultTagsRef.current;
-    if (remembered.length > 0) {
-      setTags(remembered);
-      setTagCategories(defaultCategoriesRef.current);
-      setLoading(false);
-      setInitialLoading(false);
-      return;
-    }
-    const uid = bootstrapUserIdRef.current;
-    if (uid) {
-      const snap = await getPersistentCache<SearchBootstrapSnapshot>(
-        CACHE_KEYS.SEARCH_BOOTSTRAP,
-        uid,
-      );
-      if (!isMountedRef.current) return;
-      if (snap && Array.isArray(snap.tags) && snap.tags.length > 0) {
-        const cats = Array.isArray(snap.categories) ? snap.categories : [];
-        rememberDefaultTags(snap.tags, cats);
-        setTags(snap.tags);
-        setTagCategories(cats);
-        setLoading(false);
-        setInitialLoading(false);
+  const refreshIndex = useCallback(
+    async (force = false) => {
+      if (!uid || indexInFlight.current === uid) return;
+      const now = Date.now();
+      if (!force && now - lastIndexFetchAt.current < 30_000) return;
+      // Claim the slot BEFORE any await so the mount call and the focus
+      // call that fires in the same tick cannot both start a fetch.
+      indexInFlight.current = uid;
+      if (await checkOffline()) {
+        if (indexInFlight.current === uid) indexInFlight.current = null;
+        // Offline: hydrate already painted the disk index (or the legacy
+        // fallback). Building a fallback here raced it and could throw
+        // away the better compact snapshot.
+        if (isMountedRef.current) setIndexLoading(false);
         return;
       }
-    }
-    void loadPopularTags();
-  }, [loadPopularTags, rememberDefaultTags]);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      await runBootstrap();
-      if (cancelled) return;
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [runBootstrap]);
-
-  // Recent searches are per-account now, so they are (re)loaded when the
-  // account id lands or changes. runBootstrap also calls this, but it
-  // fires on mount — possibly before AuthContext has resolved a session,
-  // in which case there is no id to read under and the list would stay
-  // empty for the whole launch. Signing in as someone else re-runs this
-  // and swaps in THEIR history rather than leaving the previous user's
-  // on screen.
-  useEffect(() => {
-    setRecentSearches([]);
-    void loadRecentSearches();
-  }, [user?.id, loadRecentSearches]);
-
-  // Auto-retry the bootstrap on reconnect when the previous attempt
-  // flagged a network failure. Without this, users who opened Search
-  // while offline would be stuck on the error surface even after
-  // connectivity returned.
-  const onDefaultSurface = searchQuery.trim() === '' && !intersectionMode;
-
-  useNetInfoReconnect(useCallback(() => {
-    // Was gated on `bootstrapFailed`, which meant that offline WITH a
-    // disk snapshot — where we paint cached tags and set no failure
-    // flag — Search kept showing the stale tag world for the rest of the
-    // session even after signal returned. Now it refreshes either way.
-    //
-    // Still scoped to the DEFAULT surface: `tags` doubles as "the tags
-    // this query matched", so running the bootstrap while results are on
-    // screen would overwrite them with the popular-tag list.
-    if (!onDefaultSurface) return;
-    void runBootstrap();
-  }, [onDefaultSurface, runBootstrap]));
-
-  // Online but going nowhere. Stop the LogoLoader and offer retry; if
-  // the request does eventually land it still paints over this.
-  //
-  // Two deadlines, because the two surfaces mean different things.
-  // DEFAULT surface (no query): a dead bootstrap is a load failure, so
-  // flag it and let listData render <ErrorState> with a retry.
-  useLoadDeadline((loading || initialLoading) && onDefaultSurface, () => {
-    setLoading(false);
-    setInitialLoading(false);
-    setBootstrapFailed(true);
-  });
-  // QUERY surface: a dead search is just "no results" — never flag
-  // bootstrapFailed here or clearing the query would drop the user onto
-  // an error screen for a tag world we may well still have cached.
-  useLoadDeadline((loading || initialLoading) && !onDefaultSurface, () => {
-    setLoading(false);
-    setInitialLoading(false);
-    // Never bootstrapFailed here — clearing the query would then drop
-    // the user onto an error screen for a tag world we may well still
-    // have cached. But the QUERY did go unanswered, and saying "nobody
-    // in your network matches" on the strength of a request that never
-    // came back is the same lie the offline branch used to tell.
-    setSearchUnreachable(true);
-  });
-
-  // ── Event handlers (all useCallback) ──
-
-  const handleCategoryPress = useCallback((key: CategoryKey) => {
-    setSearchQuery('');
-    setProfiles([]);
-    setTags([]);
-    setActiveCategory(key === 'popular' ? null : key);
-    switch (key) {
-      // restoreDefaultTags, not loadPopularTags: this chip means "show
-      // me the browse wall", and offline the cached wall IS the answer.
-      // The old call blanked the grid and then waited on a network that
-      // could not respond.
-      case 'popular': void restoreDefaultTags(); break;
-      case 'nearby': loadNearbyProfiles(); break;
-      case 'recent': setLoading(false); break;
-    }
-  }, [restoreDefaultTags, loadNearbyProfiles]);
-
-  const performSearch = useCallback(
-    async (query: string) => {
-      // Claim the sequence FIRST, before any early return.
-      //
-      // It used to be claimed further down, after the empty-keyword restore
-      // and the LRU cache-hit branch — so those two paths painted their
-      // result without invalidating an older pass still in flight. Every
-      // late writer in the online path is guarded only by
-      // `seq !== searchSeqRef.current`, so that older pass sailed through
-      // and repainted over them. Concretely: on weak venue wifi (alive
-      // enough that checkOffline() says false, so the slow online path
-      // runs) the user gives up and taps X, the browse wall comes back —
-      // and then the abandoned query's tags and profiles land on top of it.
-      const seq = ++searchSeqRef.current;
-      // Strip natural-language scaffolding ("找在扶輪社的朋友" →
-      // "扶輪社") so the substring search has a chance. Idempotent +
-      // falls back to the literal phrase if over-strips. Then split
-      // + filter lone stopword tokens ("找 PM 朋友" → ["PM"]).
-      const cleaned = stripSearchStopwords(query.trim().replace(/#/g, ''));
-      let keywords = cleaned
-        .split(/[\s,，、]+/)
-        .map(k => k.trim())
-        .filter(Boolean);
-      keywords = filterLoneStopwordTokens(keywords);
-      if (keywords.length === 0) {
-        // User typed only stopwords — fall back to the literal phrase
-        // so we at least ilike-search what they typed.
-        const literal = query.trim().replace(/#/g, '');
-        if (literal) keywords = [literal];
-      }
-
-      if (keywords.length === 0) {
-        // The query box was emptied (or held only stopwords), so we are
-        // back on the browse surface. Restore the cached wall rather
-        // than re-running the network loader — offline the loader has
-        // nothing to give and would leave the grid blank.
-        setActiveCategory(null);
-        setLlmExtractedKeywords([]);
-        setSearchUnreachable(false);
-        void restoreDefaultTags();
-        return;
-      }
-
-      // Cache hit: skip the DB round-trips entirely. Move to
-      // most-recently-used position by delete+set.
-      //
-      // Skipped when offline. This LRU holds what the SERVER answered for
-      // this query — tags, public profiles, tag members — and none of it
-      // includes the viewer's own saved people, which is the only thing
-      // search can answer without a network. Taking the hit here returned
-      // an online-shaped result and never ran the offline branch below, so
-      // searching a name you had already searched while connected quietly
-      // behaved differently from searching a new one.
-      const offlineNow = await checkOffline();
-      const cacheKey = query.trim().toLowerCase();
-      const cache = searchCacheRef.current;
-      const cached = offlineNow ? undefined : cache.get(cacheKey);
-      if (cached) {
-        cache.delete(cacheKey);
-        cache.set(cacheKey, cached);
-        setActiveCategory(null);
-        // Copy, do NOT hand back the cached array itself: the private-world
-        // effect below is keyed on `tags`, and restoring the identical
-        // reference makes React bail out, so the effect never re-runs and
-        // the manualTagSigRef reset a few lines down is a no-op. That is
-        // the real "search finds this person sometimes but not others"
-        // bug — a REPEATED query (cache hit) rendered tags and public
-        // profiles but silently dropped the viewer's own contacts and
-        // nicknamed friends. A fresh array re-fires the effect, and the
-        // sig reset then lets it through.
-        setTags([...cached.tags]);
-        setProfiles(cached.profiles);
-        setTagUsers(cached.tagUsers);
-        // Restore the AI-extracted keywords chip too, so a repeated
-        // recovery-fed query shows the same "PikTag understood..." line
-        // without paying the LLM again.
-        setLlmExtractedKeywords(cached.extractedKeywords || []);
-        // Bust the private-world effect's sig guard so it re-fires
-        // for the same query+tag combo. Without this, tapping a recent
-        // search for a query that was previously searched in this
-        // session would restore tags via the cache but the L1829
-        // effect — which actually fetches `searchTaggedFriends` /
-        // `searchTaggedContacts` — would short-circuit on identical
-        // sig, leaving the result list visually empty (chip shown,
-        // no people underneath). Symptom the founder caught: a
-        // recent-search tap for "天上聖母" rendered the #媽祖 chip
-        // but no friend row, while a fresh type of the same query
-        // surfaced the friend. Same applies to the searchTab auto-
-        // select effect — without this reset the tab can stay on
-        // an explore-only bucket when the cached query had only
-        // friend matches.
-        manualTagSigRef.current = '';
-        searchTabAutoQueryRef.current = '';
-        saveRecentSearch(query.trim());
-        return;
-      }
-
-      // Use first keyword for main search (profiles + aliases)
-      const mainKeyword = keywords[0];
-
-      // Strip PostgREST .or() grammar chars (comma / paren / percent)
-      // before interpolation. Same escape the local-contact branch
-      // (below) does to its qSafe — a stray comma in mainKeyword
-      // (e.g. a paste like "alex, designer") otherwise terminates
-      // the .or() filter list and 400s the whole request. Mirrors
-      // the protective pattern at line ~2294 (`qSafe.replace(...)`).
-      const orSafe = mainKeyword.replace(/[,()%]/g, '');
-
-      setLoading(true);
-      setActiveCategory(null);
-      // Fresh attempt: nothing is known to be unreachable yet.
-      setSearchUnreachable(false);
-      // Also clear the "never synced" flag. It was only ever WRITTEN in the
-      // offline branch and never reset, so once it had been true it changed
-      // the wording of every later error: a user who had since come online
-      // and synced still got 還沒同步過你的通訊錄 / 連上網路後會自動同步 on an
-      // ordinary query failure — untrue on both counts, and it hides the
-      // honest "load failed, retry" card.
-      setSearchNoSnapshot(false);
-      // Clear any stale AI-extracted-keywords chip from the previous
-      // search; recovery will repopulate this only if it actually fires.
-      setLlmExtractedKeywords([]);
-
-      // Most of search is a query and cannot work offline: public tags,
-      // aliases, profiles, biolinks all need the server. Land on the
-      // result in a second instead of spinning the LogoLoader through
-      // ~25s of auth-refresh backoff first.
-      //
-      // YOUR OWN SAVED CONTACTS ARE THE EXCEPTION, and they are the ones
-      // you most need without signal — at the event, abroad, in a
-      // basement, trying to recall who someone was. "local" in
-      // piktag_local_contacts means owner-scoped, not on-device, so this
-      // used to be impossible; useLocalContacts now keeps a persistent
-      // disk snapshot (CACHE_KEYS.LOCAL_CONTACTS) that survives an
-      // offline cold start, so the data is already on the phone and only
-      // this path had not caught up.
-      //
-      // Matched on the same fields as the online private-world search
-      // (name / headline / note / met_location / tags) so a query does
-      // not quietly mean something different offline.
-      if (offlineNow) {
-        if (!isMountedRef.current || seq !== searchSeqRef.current) return;
-        setTags([]);
-        setProfiles([]);
-        setTagUsers([]);
-
-        const needle = query.trim().toLowerCase();
-        const hay = (...parts: unknown[]) =>
-          parts
-            .flat()
-            .filter((v) => typeof v === 'string' && v)
-            .join(' ')
-            .toLowerCase();
-
-        // TWO caches, because "the people I know" lives in two places and
-        // searching only one of them looks broken. piktag_local_contacts
-        // is filtered by `.is('promoted_to_connection_id', null)`, so that
-        // snapshot holds ONLY saved contacts who have not joined yet —
-        // your actual friends are not in it. Searching a friend's name
-        // offline therefore found nothing, which is what was reported.
-        let offlineFriends: PiktagProfile[] = [];
-        let offlineContacts: TaggedContact[] = [];
-        let everSynced = false;
-        try {
-          const [cachedConns, cachedContacts] = await Promise.all([
-            getPersistentCache<any[]>(CACHE_KEYS.CONNECTIONS, user?.id),
-            getPersistentCache<any[]>(CACHE_KEYS.LOCAL_CONTACTS, user?.id),
-          ]);
-          // A snapshot with zero rows still counts as synced — that is a
-          // real answer about an empty address book, not a missing copy.
-          everSynced = Array.isArray(cachedConns) || Array.isArray(cachedContacts);
-          if (needle && Array.isArray(cachedConns)) {
-            offlineFriends = cachedConns
-              .filter((c) =>
-                hay(
-                  c?.nickname,
-                  c?.note,
-                  c?.met_location,
-                  c?.connected_user?.full_name,
-                  c?.connected_user?.username,
-                  Array.isArray(c?.tags) ? c.tags : [],
-                ).includes(needle),
-              )
-              .map((c) => c?.connected_user)
-              .filter((p): p is PiktagProfile => !!p?.id);
-          }
-          if (needle && Array.isArray(cachedContacts)) {
-            offlineContacts = cachedContacts
-              .filter((c) =>
-                hay(
-                  c?.name,
-                  c?.headline,
-                  c?.note,
-                  c?.met_location,
-                  Array.isArray(c?.tags) ? c.tags : [],
-                ).includes(needle),
-              )
-              .map((c) => ({
-                id: String(c.id),
-                name: c?.name || '',
-                avatar_url: c?.avatar_url ?? null,
-              }));
-          }
-        } catch {
-          // No snapshot yet, or unreadable — fall through to the honest
-          // offline state below rather than failing the search.
-        }
-        if (!isMountedRef.current || seq !== searchSeqRef.current) return;
-        // Friends go through searchTaggedFriends, which buckets as friends
-        // by definition and renders member rows — tapping one opens the
-        // profile, which is what a member is. Contacts keep the contact row.
-        setSearchTaggedFriends(offlineFriends);
-        setSearchTaggedContacts(offlineContacts);
-
-        // Only claim "we could not ask" when there is genuinely nothing
-        // to show. WITHOUT this flag an empty result fell into the
-        // dead-end branch and told the user 「你的人脈裡還沒有「X」的人」
-        // — a confident statement about their network that we had no
-        // grounds for — under a 發 Ask CTA that cannot post offline
-        // either. With matches, the results speak for themselves and the
-        // app-wide <OfflineBanner> already says why the rest is missing;
-        // a second per-screen badge would be a competing pattern.
-        const nothingToShow = offlineFriends.length === 0 && offlineContacts.length === 0;
-        setSearchNoSnapshot(nothingToShow && !everSynced);
-        setSearchUnreachable(nothingToShow);
-        setLoading(false);
-        saveRecentSearch(query.trim());
-        return;
-      }
-
+      lastIndexFetchAt.current = now;
+      if (!peopleRef.current) setIndexLoading(true);
       try {
-        // Search tags: match ANY keyword. Order by popularity_score
-        // (the blended usage+search rank from 20260526010000) so a
-        // tag people actively search for outranks a tag people just
-        // self-attach to. popularity_score is a generated stored
-        // column that updates atomically on every search-count bump.
-        const tagPromises = keywords.map(kw =>
-          supabase
-            .from('piktag_tags')
-            .select('id, name, semantic_type, usage_count, popularity_score, concept_id')
-            .ilike('name', `%${kw}%`)
-            .order('popularity_score', { ascending: false })
-            .limit(20)
-        );
-
-        const [aliasResult, localeOverrideResult, profilesResult, biolinkResult, ...tagResults] = await Promise.all([
-          // Alias search with first keyword
-          supabase
-            .from('tag_aliases')
-            .select('concept_id, concept:tag_concepts(canonical_name, semantic_type)')
-            .ilike('alias', `%${mainKeyword}%`)
-            .limit(10),
-          // Locale-aware alias overrides (20260526020000). Same alias
-          // can route to a different concept depending on the viewer's
-          // locale — the canonical case is zh-TW "聖母" → Mazu, where
-          // global default is Mary. Hits here front-load above name
-          // matches AND default alias matches, so the locale-preferred
-          // concept dominates ranking. Strict locale match — no '*'
-          // fallback, no base-locale collapse — the override list is
-          // small and explicit by design.
-          supabase
-            .from('tag_alias_locale_overrides')
-            .select('concept_id')
-            .ilike('alias', `%${mainKeyword}%`)
-            .eq('locale', i18n.language || '')
-            .limit(10),
-          // Profile search with first keyword
-          supabase
-            .from('piktag_profiles')
-            .select('id, username, full_name, avatar_url, is_verified')
-            .or(`username.ilike.%${orSafe}%,full_name.ilike.%${orSafe}%,headline.ilike.%${orSafe}%,bio.ilike.%${orSafe}%`)
-            .limit(20),
-          // Biolinks search — surfaces a profile when its handle lives
-          // in a biolink rather than in the username/headline. Catches
-          // the "I know them as @alex_pikt on IG" / "fullwish on LINE"
-          // input pattern that profile-field search alone misses. The
-          // user_id from a biolink hit gets resolved to its profile
-          // via the inner join in one round-trip.
-          //
-          // Privacy: visibility='public' filter is the guard — only
-          // biolinks the owner has explicitly marked public are
-          // searchable. is_active filters out soft-deleted rows.
-          //
-          // Cost note: `url ILIKE` can match domain noise on generic
-          // platform-name queries ("instagram" → every IG biolink).
-          // Watch telemetry; if that turns out to be a real problem,
-          // either blacklist platform domains in stopwords or split
-          // out a derived `handle` column. Premature for now.
-          supabase
-            .from('piktag_biolinks')
-            .select('user_id, piktag_profiles!inner(id, username, full_name, avatar_url, is_verified)')
-            .or(`label.ilike.%${orSafe}%,url.ilike.%${orSafe}%`)
-            .eq('visibility', 'public')
-            .eq('is_active', true)
-            .limit(20),
-          ...tagPromises,
-        ]);
-
-        // ── DID WE ACTUALLY ASK? ───────────────────────────────────────
-        // supabase-js RESOLVES a transport failure as `{data: null,
-        // error}` — it does not throw. Every query above therefore
-        // "succeeds", the `catch` below never runs, `searchUnreachable`
-        // stays false, and the empty result set that comes out the other
-        // end renders 「你的人脈裡還沒有「X」的人」: a confident statement
-        // about the user's own network made on the strength of requests
-        // that never left the phone. On the venue wifi this whole pass
-        // exists for, that is the single most misleading thing the app
-        // can say.
-        //
-        // These three are the queries whose silence would be read as
-        // "nobody matched" — direct profile hits, biolink-derived hits,
-        // and the per-keyword tag scans. The alias tables are pure
-        // enrichment and are excluded on purpose: they cannot manufacture
-        // a false "nobody", and a transport failure takes down profiles
-        // and tags too, so nothing is missed by leaving them out.
-        const searchQueriesFailed =
-          !!profilesResult.error ||
-          !!biolinkResult.error ||
-          tagResults.some((r) => !!r.error);
-
-        // Merge tag results, deduplicate by id
-        const tagMap = new Map<string, any>();
-        for (const result of tagResults) {
-          for (const tag of (result.data || [])) {
-            if (!tagMap.has(tag.id)) tagMap.set(tag.id, tag);
-          }
-        }
-        // Client-side merge sort. Use popularity_score if the DB has
-        // been migrated; fall back to usage_count for pre-migration
-        // safety. This ranks tags the same way the DB ORDER BY did
-        // — necessary because we merged results from N parallel
-        // per-keyword queries, each individually sorted, and a
-        // global re-sort is the only way to get a coherent ranking.
-        const tagsResult = {
-          data: [...tagMap.values()].sort((a, b) => {
-            const aScore = a.popularity_score ?? a.usage_count ?? 0;
-            const bScore = b.popularity_score ?? b.usage_count ?? 0;
-            return bScore - aScore;
-          }),
-        };
-
-        // Merge alias results: find tags by concept_id.
-        //
-        // Two passes, in priority order:
-        //   1. Locale-override aliases → tags → UNSHIFT to front of
-        //      mergedTags. The locale-preferred concept (e.g. zh-TW
-        //      聖母 → Mazu) takes ranking precedence over the global
-        //      default that ships in tag_aliases.
-        //   2. Default aliases → tags → APPEND to mergedTags (existing
-        //      behavior). These ride below name matches and any
-        //      override hits.
-        let mergedTags = tagsResult.data || [];
-
-        // Pass 1: locale overrides.
-        if (
-          !localeOverrideResult.error &&
-          localeOverrideResult.data &&
-          localeOverrideResult.data.length > 0
-        ) {
-          const overrideConceptIds = (localeOverrideResult.data as any[])
-            .map((a) => a.concept_id)
-            .filter(Boolean);
-          if (overrideConceptIds.length > 0) {
-            const { data: overrideTags } = await supabase
-              .from('piktag_tags')
-              .select('id, name, semantic_type, usage_count, popularity_score, concept_id')
-              .in('concept_id', overrideConceptIds)
-              .order('popularity_score', { ascending: false })
-              .limit(10);
-
-            if (overrideTags && overrideTags.length > 0) {
-              const existingIds = new Set(mergedTags.map((t: any) => t.id));
-              const fresh = overrideTags.filter((t: any) => !existingIds.has(t.id));
-              // Front-load: override concepts beat the default ranking.
-              mergedTags = [...fresh, ...mergedTags];
-            }
-          }
-        }
-
-        // Pass 2: default global aliases.
-        if (!aliasResult.error && aliasResult.data && aliasResult.data.length > 0) {
-          const conceptIds = aliasResult.data.map((a: any) => a.concept_id).filter(Boolean);
-          if (conceptIds.length > 0) {
-            const { data: conceptTags } = await supabase
-              .from('piktag_tags')
-              .select('id, name, semantic_type, usage_count, popularity_score, concept_id')
-              .in('concept_id', conceptIds)
-              .order('popularity_score', { ascending: false })
-              .limit(10);
-
-            if (conceptTags) {
-              // Deduplicate by tag id
-              const existingIds = new Set(mergedTags.map((t: any) => t.id));
-              for (const ct of conceptTags) {
-                if (!existingIds.has(ct.id)) {
-                  mergedTags.push(ct);
-                }
-              }
-            }
-          }
-        }
-
-        // Bail if a newer search has started — don't clobber its UI state.
-        if (seq !== searchSeqRef.current) return;
-
-        // Raise the honest empty-state. `searchUnreachable` is only ever
-        // consulted when the result set is empty (listData), so setting
-        // it alongside a partial result costs nothing and guarantees we
-        // never assert "there is nobody" off an unanswered request.
-        if (searchQueriesFailed) setSearchUnreachable(true);
-
-        let finalTagUsers: { tag: Tag; users: any[] }[] = [];
-        if (mergedTags.length > 0) {
-          setTags(mergedTags);
-
-          // Fast path: one RPC returns the page-ready ranked user slice.
-          // We then group locally by the top-3 tags so the existing UI
-          // (tag-grouped sections) stays unchanged.
-          let rpcGrouped: { tag: Tag; users: any[] }[] | null = null;
-          try {
-            const { data: rpcRows, error: rpcErr } = await supabase.rpc('search_users', {
-              // Pass the FULL multi-keyword query — search_users now
-              // tokenizes server-side (20260518000000 migration), so
-              // "designer taipei" matches tags for both words instead
-              // of being ignored after keywords[0]. Re-joined with a
-              // space; the RPC re-splits on whitespace.
-              p_query: keywords.join(' '),
-              p_limit: 50,
-            });
-            if (!rpcErr && Array.isArray(rpcRows) && rpcRows.length > 0) {
-              const seenIds = new Set<string>();
-              const flat = (rpcRows as any[])
-                .map((r) => ({
-                  id: r.id,
-                  username: r.username,
-                  full_name: r.full_name,
-                  avatar_url: r.avatar_url,
-                  is_verified: r.is_verified,
-                  is_public: true,
-                  // North-Star principle #2 — distinct endorser count
-                  // from the search_users RPC. Carried through as an
-                  // extra field on the PiktagProfile-shaped object;
-                  // ProfileCard reads it via cast. 0 when the
-                  // migration hasn't yet applied → no badge renders.
-                  endorser_count: r.endorser_count ?? 0,
-                }))
-                .filter((p) => p.id !== user?.id && !seenIds.has(p.id) && (seenIds.add(p.id), true));
-              if (flat.length > 0) {
-                // Group: assign all matched users to the top tag bucket.
-                // The legacy UI shows up to 3 buckets — we surface them
-                // all under the strongest matched tag, which is the
-                // common case anyway (most queries return a single tag).
-                const topTag = mergedTags[0];
-                rpcGrouped = [{ tag: topTag as Tag, users: flat.slice(0, 10) }];
-              } else {
-                rpcGrouped = [];
-              }
-            }
-          } catch (rpcCatchErr) {
-            // RPC missing or runtime error — fall back to legacy loop.
-            console.warn('[SearchScreen] search_users RPC failed, falling back:', rpcCatchErr);
-          }
-
-          if (rpcGrouped !== null) {
-            setTagUsers(rpcGrouped);
-            finalTagUsers = rpcGrouped;
-          } else {
-          // Fetch users who have the top matched tags OR same concept (max 3 tags, 10 users each)
-          const topTags = mergedTags.slice(0, 3);
-          if (topTags.length > 0) {
-            const tagUserResults: { tag: Tag; users: any[] }[] = [];
-            for (const tag of topTags) {
-              // Find all tag_ids sharing the same concept
-              let allTagIds = [tag.id];
-              if ((tag as any).concept_id) {
-                const { data: siblingTags } = await supabase
-                  .from('piktag_tags')
-                  .select('id')
-                  .eq('concept_id', (tag as any).concept_id);
-                if (siblingTags) {
-                  allTagIds = [...new Set([tag.id, ...siblingTags.map((t: any) => t.id)])];
-                }
-              }
-
-              const { data: utData } = await supabase
-                .from('piktag_user_tags')
-                .select('user_id, piktag_profiles!inner(id, username, full_name, avatar_url, is_verified, is_public)')
-                .in('tag_id', allTagIds)
-                .eq('is_private', false)
-                .limit(10);
-
-              if (utData && utData.length > 0) {
-                // Deduplicate users (same user may have multiple synonym tags)
-                const seenIds = new Set<string>();
-                const users = utData
-                  .map((ut: any) => ut.piktag_profiles)
-                  .filter((p: any) => {
-                    if (!p || !p.is_public || p.id === user?.id || seenIds.has(p.id)) return false;
-                    seenIds.add(p.id);
-                    return true;
-                  });
-                if (users.length > 0) {
-                  tagUserResults.push({ tag, users });
-                }
-              }
-            }
-            setTagUsers(tagUserResults);
-            finalTagUsers = tagUserResults;
-          } else {
-            setTagUsers([]);
-          }
-          }
+        const fresh = await fetchNetworkIndex(uid);
+        if (!isMountedRef.current || activeUidRef.current !== uid) return;
+        if (fresh) {
+          setPeople(fresh);
+          void setPersistentCache<IndexSnapshot>(CACHE_KEYS.SEARCH_BOOTSTRAP, uid, encodeSnapshot(fresh));
         } else {
-          setTags([]);
-          setTagUsers([]);
-        }
-
-        // Merge direct profile hits + biolink-derived profile hits.
-        // Order: direct hits first (stronger signal — name/headline
-        // matches the query verbatim), then biolink hits (handle was
-        // hiding inside a social URL). Self-exclude + dedupe by id.
-        const profileMap = new Map<string, PiktagProfile>();
-        if (!profilesResult.error && profilesResult.data) {
-          for (const p of profilesResult.data as PiktagProfile[]) {
-            if (p && p.id && p.id !== user?.id && !profileMap.has(p.id)) {
-              profileMap.set(p.id, p);
-            }
-          }
-        }
-        if (!biolinkResult.error && biolinkResult.data) {
-          // Supabase types the inner-join column as an array even when
-          // the FK is many-to-one — handle both shapes defensively so
-          // a runtime shape change doesn't silently drop matches.
-          for (const row of biolinkResult.data as any[]) {
-            const joined = row?.piktag_profiles;
-            const p: PiktagProfile | null = Array.isArray(joined)
-              ? (joined[0] ?? null)
-              : (joined ?? null);
-            if (p && p.id && p.id !== user?.id && !profileMap.has(p.id)) {
-              profileMap.set(p.id, p);
-            }
-          }
-        }
-        // `let` (not `const`) because the geographic-boost block at
-        // the end of this function re-sorts in place — nearby viewers'
-        // search results bubble up after a single batch location query.
-        let finalProfiles = [...profileMap.values()];
-        setProfiles(finalProfiles);
-
-        // === Zero-results LLM recovery ===
-        // When the regular substring search + stopword stripping yields
-        // nothing, ask Gemini (via the extract-search-intent edge fn)
-        // for the content nouns inside the user's sentence and re-run
-        // the tag search with them. Covers natural-language queries in
-        // any language the client-side stopword stripper doesn't handle
-        // (ja/ko/th/es/fr/...) plus complex multi-concept en/zh queries.
-        // `loading` stays true through recovery — listData swaps from
-        // generic spinner to the "AI thinking" variant via llmRecovering.
-        let postRecoveryTags = mergedTags;
-        let postRecoveryKeywords: string[] = [];
-        // Captured for telemetry below: was the public-query path
-        // empty (and therefore did we enter the LLM recovery path)?
-        const directHit =
-          mergedTags.length > 0 ||
-          finalProfiles.length > 0 ||
-          finalTagUsers.length > 0;
-        let recoveryTriggered = false;
-        if (
-          seq === searchSeqRef.current &&
-          mergedTags.length === 0 &&
-          finalProfiles.length === 0 &&
-          finalTagUsers.length === 0
-        ) {
-          recoveryTriggered = true;
-          setLlmRecovering(true);
-          try {
-            // Recovery layer 1 (algo #2, 2026-07-05): embedding → pgvector
-            // kNN over concept embeddings — an order of magnitude cheaper
-            // and faster than the Gemini extraction below. A miss (or
-            // timeout) falls straight through to layer 2; downstream is
-            // identical for both (same keywords contract).
-            let extracted = await semanticTagSearch(query.trim());
-            if (extracted.length === 0) {
-              extracted = await extractSearchIntent(query.trim());
-            }
-            if (seq === searchSeqRef.current && extracted.length > 0) {
-              // Pass A — direct name match on piktag_tags. Hits when a
-              // Gemini-extracted keyword is itself a substring of (or
-              // contains) a real tag name. Cheap, deterministic.
-              const llmResults = await Promise.all(
-                extracted.map((kw) =>
-                  supabase
-                    .from('piktag_tags')
-                    .select('id, name, semantic_type, usage_count, popularity_score, concept_id')
-                    .ilike('name', `%${kw}%`)
-                    .order('popularity_score', { ascending: false })
-                    .limit(10),
-                ),
-              );
-              const llmTagMap = new Map<string, any>();
-              for (const r of llmResults) {
-                for (const t of (r.data || [])) {
-                  if (!llmTagMap.has(t.id)) llmTagMap.set(t.id, t);
-                }
-              }
-              // Pass B — alias → concept → tag expansion. Required
-              // for semantic bridges where the user's natural-language
-              // query has zero substring overlap with the canonical
-              // tag name (e.g. "賣房子" never substring-matches
-              // "商用不動產", but they share a "real estate" concept
-              // via curated alias). Aligns the client with what
-              // search_users already does server-side.
-              //
-              // IMPORTANT: only expand keywords of length ≥ 2 chars.
-              // Pass A's single-CJK-char keywords (the "養貓" → also
-              // "貓" trick we ask Gemini for) are intentionally broad
-              // for direct NAME match — ILIKE '%貓%' usefully hits the
-              // short tag 「貓派」. But applied to ALIASES, a single
-              // char ILIKE explodes — for "天上聖母" Gemini also emits
-              // "天 / 聖 / 母", alias ILIKE '%天%' matches dozens of
-              // unrelated aliases (天主教 / 春天 / 母語 / …), each
-              // pointing to a different concept that drags in all its
-              // sibling tags. The launch test surfaced 14 unrelated
-              // chips this way. 2-char floor is the cheapest correct
-              // fix — real CJK content nouns are ≥ 2 chars by language
-              // structure, English/JP keywords already are.
-              try {
-                const aliasKeywords = extracted.filter(
-                  (kw) => typeof kw === 'string' && kw.trim().length >= 2,
-                );
-                if (aliasKeywords.length > 0) {
-                  // Parallel: default-alias lookups + locale-override
-                  // lookups. The override hits get tracked separately
-                  // so we can promote their concept tags to the FRONT
-                  // of the LLM-recovery tag list, matching how the
-                  // main-path merge prioritizes them.
-                  const aliasResults = await Promise.all(
-                    aliasKeywords.flatMap((kw) => [
-                      supabase
-                        .from('tag_aliases')
-                        .select('concept_id')
-                        .ilike('alias', `%${kw}%`)
-                        .limit(10),
-                      supabase
-                        .from('tag_alias_locale_overrides')
-                        .select('concept_id')
-                        .ilike('alias', `%${kw}%`)
-                        .eq('locale', i18n.language || '')
-                        .limit(10),
-                    ]),
-                  );
-                  const defaultConceptIds = new Set<string>();
-                  const overrideConceptIds = new Set<string>();
-                  for (let i = 0; i < aliasResults.length; i++) {
-                    const isOverride = i % 2 === 1; // pair pattern from flatMap above
-                    const bucket = isOverride ? overrideConceptIds : defaultConceptIds;
-                    for (const a of (aliasResults[i].data || []) as any[]) {
-                      if (a.concept_id) bucket.add(a.concept_id);
-                    }
-                  }
-                  const conceptIds = new Set<string>([
-                    ...overrideConceptIds,
-                    ...defaultConceptIds,
-                  ]);
-                  if (conceptIds.size > 0) {
-                    const { data: conceptTags } = await supabase
-                      .from('piktag_tags')
-                      .select('id, name, semantic_type, usage_count, popularity_score, concept_id')
-                      .in('concept_id', [...conceptIds])
-                      .order('popularity_score', { ascending: false })
-                      .limit(10);
-                    for (const t of (conceptTags || []) as any[]) {
-                      if (!llmTagMap.has(t.id)) llmTagMap.set(t.id, t);
-                    }
-                  }
-                }
-              } catch (aliasErr) {
-                console.warn('[SearchScreen] alias→concept expansion failed:', aliasErr);
-              }
-              const llmTags = [...llmTagMap.values()];
-              if (seq === searchSeqRef.current) {
-                postRecoveryKeywords = extracted;
-                setLlmExtractedKeywords(extracted);
-                if (llmTags.length > 0) {
-                  postRecoveryTags = llmTags;
-                  setTags(llmTags as Tag[]);
-                  // Pull users for the recovered tags too. Without
-                  // this, recovery surfaces a "#tag" chip but leaves
-                  // the result list empty — the viewer has to tap the
-                  // chip to drill in. That's a friend-add miss against
-                  // the North Star (the whole point of recovery is to
-                  // bridge "natural-language query" → matching people).
-                  // search_users tokenizes server-side + does the
-                  // alias→concept→tag expansion + filters self/blocks
-                  // (mirrors the non-recovery RPC call at L1123).
-                  try {
-                    const { data: rpcRows, error: rpcErr } = await supabase.rpc(
-                      'search_users',
-                      { p_query: extracted.join(' '), p_limit: 50 },
-                    );
-                    if (
-                      !rpcErr &&
-                      seq === searchSeqRef.current &&
-                      Array.isArray(rpcRows) &&
-                      rpcRows.length > 0
-                    ) {
-                      const seenIds = new Set<string>();
-                      const flat = (rpcRows as any[])
-                        .map((r) => ({
-                          id: r.id,
-                          username: r.username,
-                          full_name: r.full_name,
-                          avatar_url: r.avatar_url,
-                          is_verified: r.is_verified,
-                          is_public: true,
-                        }))
-                        .filter(
-                          (p) =>
-                            p.id !== user?.id &&
-                            !seenIds.has(p.id) &&
-                            (seenIds.add(p.id), true),
-                        );
-                      if (flat.length > 0) {
-                        const recoveredGrouped = [
-                          { tag: llmTags[0] as Tag, users: flat.slice(0, 10) },
-                        ];
-                        setTagUsers(recoveredGrouped);
-                        finalTagUsers = recoveredGrouped;
-                      }
-                    }
-                  } catch (rpcCatchErr) {
-                    console.warn(
-                      '[SearchScreen] recovery search_users RPC failed:',
-                      rpcCatchErr,
-                    );
-                  }
-                }
-              }
-            }
-          } catch (recErr) {
-            console.warn('[SearchScreen] LLM recovery failed:', recErr);
-          } finally {
-            if (seq === searchSeqRef.current) setLlmRecovering(false);
-          }
-        }
-
-        // === Network + Geographic boost: combined re-sort ===
-        //
-        // Two ranking signals stacked on top of popularity_score:
-        //
-        //   FoF (+2 points) — the user is a friend-of-friend
-        //     (2nd-degree connection). Reachable through the viewer's
-        //     network, which is exactly the "discovery through
-        //     people you trust" angle PikTag leans on. Stronger
-        //     signal than geographic proximity because a friend's
-        //     friend in another city is more useful leverage than a
-        //     stranger nearby.
-        //
-        //   Nearby (+1 point) — the user is within 50 km AND has
-        //     opt-in share_location=true. Bubbles up the "designer
-        //     in Taipei" intent. Binary step function (not continuous
-        //     decay) for pre-launch simplicity — easy to debug + tune.
-        //
-        // Combined score per user: 0 (neither) → 1 (nearby) → 2 (FoF)
-        // → 3 (both). Stable sort by score DESC preserves the upstream
-        // popularity ordering within each tier.
-        //
-        // The geographic fetch is conditional on viewer having a
-        // location; the FoF data is already pre-fetched on mount, so
-        // it costs nothing per search.
-        //
-        // Privacy:
-        //   • share_location=true gates ALL distance computation
-        //   • FoF set comes from a SECURITY DEFINER RPC that respects
-        //     blocks (in either direction).
-        const NEARBY_KM = 50;
-        const viewerLat = authProfile?.latitude;
-        const viewerLon = authProfile?.longitude;
-        const hasGeoSignal = viewerLat != null && viewerLon != null;
-        const hasNetworkSignal = foFIds.size > 0;
-
-        if (
-          (hasGeoSignal || hasNetworkSignal) &&
-          (finalProfiles.length > 0 || finalTagUsers.length > 0) &&
-          seq === searchSeqRef.current
-        ) {
-          const userIdSet = new Set<string>();
-          for (const p of finalProfiles) userIdSet.add(p.id);
-          for (const g of finalTagUsers) {
-            for (const u of g.users) {
-              if (u?.id) userIdSet.add(u.id);
-            }
-          }
-
-          if (userIdSet.size > 0) {
-            const nearbyIds = new Set<string>();
-
-            // Only run the geo query if viewer has location — saves
-            // a round-trip for users who haven't shared theirs.
-            if (hasGeoSignal) {
-              try {
-                const { data: locRows } = await supabase
-                  .from('piktag_profiles')
-                  .select('id, latitude, longitude, share_location')
-                  .in('id', [...userIdSet]);
-
-                for (const row of (locRows || []) as Array<{
-                  id: string;
-                  latitude: number | null;
-                  longitude: number | null;
-                  share_location: boolean | null;
-                }>) {
-                  if (
-                    row.share_location === true &&
-                    haversineKm(viewerLat, viewerLon, row.latitude, row.longitude) <= NEARBY_KM
-                  ) {
-                    nearbyIds.add(row.id);
-                  }
-                }
-              } catch (geoErr) {
-                // Fail-soft: a flaky location lookup never breaks the
-                // search. nearbyIds stays empty and the FoF boost
-                // continues to apply on its own.
-                console.warn('[SearchScreen] geo boost failed:', geoErr);
-              }
-            }
-
-            if (
-              (nearbyIds.size > 0 || foFIds.size > 0) &&
-              seq === searchSeqRef.current
-            ) {
-              const scoreOf = (id: string): number => {
-                let s = 0;
-                if (foFIds.has(id)) s += 2;
-                if (nearbyIds.has(id)) s += 1;
-                return s;
-              };
-              const byBoost = (a: { id: string }, b: { id: string }) =>
-                scoreOf(b.id) - scoreOf(a.id);
-
-              const sortedProfiles = [...finalProfiles].sort(byBoost);
-              const sortedTagUsers = finalTagUsers.map((g) => ({
-                ...g,
-                users: [...g.users].sort(byBoost),
-              }));
-
-              finalProfiles = sortedProfiles;
-              finalTagUsers = sortedTagUsers;
-              setProfiles(sortedProfiles);
-              setTagUsers(sortedTagUsers);
-            }
-          }
-        }
-
-        // Cache this result set so typing-then-retyping is free. We
-        // cache the POST-recovery state — a repeated recovery-fed
-        // query gets the chip + results instantly, no second LLM call.
-        //
-        // NEVER CACHE A RESULT PRODUCED BY A FAILED FETCH. An empty set
-        // that came out of dead wifi used to be written here like any
-        // other, which made the lie permanent: re-running the same query
-        // AFTER reconnecting hit the LRU, skipped the server entirely,
-        // and instantly re-asserted 「你的人脈裡還沒有「X」的人」 from the
-        // moment the phone had no signal. The cache is for answers, not
-        // for silence.
-        if (!searchQueriesFailed) {
-          const entry: SearchCacheEntry = {
-            tags: postRecoveryTags,
-            profiles: finalProfiles,
-            tagUsers: finalTagUsers,
-            extractedKeywords: postRecoveryKeywords,
-          };
-          cache.set(cacheKey, entry);
-          if (cache.size > SEARCH_CACHE_MAX) {
-            const oldest = cache.keys().next().value;
-            if (oldest !== undefined) cache.delete(oldest);
-          }
-        }
-
-        // Save to recent searches
-        saveRecentSearch(query.trim());
-
-        // Bump search_count on the top tags this search actually
-        // surfaced so they rise in future result rankings (the
-        // popularity_score blend from 20260526010000). Top 5 only —
-        // a long-tail match buried at position 18 shouldn't gain the
-        // same ranking weight as the chip that was clearly the
-        // intended hit. Fire-and-forget; the RPC is a single
-        // statement so cost is negligible.
-        if (postRecoveryTags.length > 0) {
-          const topIds = postRecoveryTags.slice(0, 5).map((tg) => tg.id).filter(Boolean);
-          if (topIds.length > 0) {
-            void supabase.rpc('bump_tag_search_count', { p_tag_ids: topIds });
-          }
-        }
-
-        // Telemetry — fire-and-forget insert so the founder can see
-        // post-launch which queries kept dying (especially "recovery
-        // fired but still nothing" — those feed the alias seed work).
-        // RLS scopes the row to auth.uid(); a 30-day cron prunes.
-        if (user) {
-          void supabase
-            .from('piktag_search_telemetry')
-            .insert({
-              user_id: user.id,
-              // Sanitize before storing — RLS already scopes rows to
-              // auth.uid(), but redacting email/phone-shape strings
-              // means future cross-user "what keeps failing" analysis
-              // can't accidentally surface a user's contact details.
-              query: sanitizeQueryForTelemetry(query),
-              direct_hit: directHit,
-              recovery_triggered: recoveryTriggered,
-              extracted_keywords:
-                postRecoveryKeywords.length > 0 ? postRecoveryKeywords : null,
-              final_tag_count: postRecoveryTags.length,
-              final_profile_count: finalProfiles.length,
-              final_tag_user_count: finalTagUsers.length,
-              locale: i18n.language || null,
-            });
+          // Allow an immediate retry; keep whatever index is on screen.
+          lastIndexFetchAt.current = 0;
         }
       } catch (err) {
-        if (seq !== searchSeqRef.current) return;
-        console.warn('[SearchScreen] search query failed:', err);
-        setTags([]);
-        setProfiles([]);
-        // A throw is the least ambiguous "we could not ask" there is, so
-        // the empty state below must be the retry card, never 「你的人脈
-        // 裡還沒有…」. Nothing is written to the LRU on this path either.
-        setSearchUnreachable(true);
-        setErrorToast(t('common.unknownError'));
-        if (errorToastTimerRef.current) clearTimeout(errorToastTimerRef.current);
-        errorToastTimerRef.current = setTimeout(() => setErrorToast(null), 2500);
+        console.warn('[SearchScreen] network index failed:', err);
+        lastIndexFetchAt.current = 0;
       } finally {
-        if (seq === searchSeqRef.current) setLoading(false);
+        if (indexInFlight.current === uid) indexInFlight.current = null;
+        if (isMountedRef.current) {
+          setIndexLoading(false);
+          // The account changed while this fetch ran: fetch for the
+          // current account now (the current closure, not this one).
+          if (activeUidRef.current && activeUidRef.current !== uid) {
+            void refreshIndexRef.current(true);
+          }
+        }
       }
     },
-    [restoreDefaultTags, saveRecentSearch, user, i18n, t],
+    [uid],
+  );
+  refreshIndexRef.current = refreshIndex;
+
+  useEffect(() => {
+    void refreshIndex(true);
+  }, [refreshIndex]);
+  useFocusEffect(
+    useCallback(() => {
+      void refreshIndex();
+    }, [refreshIndex]),
+  );
+  useNetInfoReconnect(
+    useCallback(() => {
+      void refreshIndex(true);
+    }, [refreshIndex]),
+  );
+  // A dead request must not spin forever.
+  useLoadDeadline(indexLoading && !people, () => {
+    setIndexLoading(false);
+  });
+
+  // ── Derived: tag universe of the viewer's network ─────────────────
+  const { wallTags, tagNameEntries } = useMemo(() => {
+    const byKey = new Map<string, { names: Map<string, number>; st: string | null; ids: Set<string> }>();
+    for (const p of people || []) {
+      for (const tg of p.tags) {
+        let e = byKey.get(tg.key);
+        if (!e) {
+          e = { names: new Map(), st: tg.st, ids: new Set() };
+          byKey.set(tg.key, e);
+        }
+        e.names.set(tg.name, (e.names.get(tg.name) || 0) + 1);
+        if (!e.st && tg.st) e.st = tg.st;
+        e.ids.add(p.kind + ':' + p.id);
+      }
+    }
+    const wall: WallTag[] = [];
+    const entries: { key: string; lname: string }[] = [];
+    for (const [key, e] of byKey) {
+      let best = '';
+      let bestN = -1;
+      for (const [n, c] of e.names) {
+        if (c > bestN) {
+          best = n;
+          bestN = c;
+        }
+        entries.push({ key, lname: n.toLowerCase() });
+      }
+      wall.push({ key, name: best, semantic_type: e.st, count: e.ids.size });
+    }
+    // Stable sort: ties keep the name order the index was built in.
+    wall.sort((a, b) => b.count - a.count);
+    return { wallTags: wall, tagNameEntries: entries };
+  }, [people]);
+  const wallTagByKey = useMemo(() => {
+    const m = new Map<string, WallTag>();
+    for (const w of wallTags) m.set(w.key, w);
+    return m;
+  }, [wallTags]);
+
+  // ── Query state ───────────────────────────────────────────────────
+  const trimmedQuery = searchQuery.trim();
+  // Matching reads the DEFERRED query so a big index never blocks the
+  // keystroke itself; the input stays responsive and results follow.
+  const deferredTrimmedQuery = useDeferredValue(searchQuery).trim();
+  // Tag-filter mode: people who carry ALL of these tag keys.
+  const [filterTags, setFilterTags] = useState<WallTag[]>([]);
+  const filterMode = filterTags.length > 0;
+  const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+  const [selectedTagCategory, setSelectedTagCategory] = useState<string | null>(null);
+  const selectedKeySet = useMemo(() => new Set(selectedKeys), [selectedKeys]);
+
+  // AI zero-result recovery (submit only): keywords extracted for a
+  // specific query string; dropped as soon as the text changes.
+  const [recovery, setRecovery] = useState<{ query: string; keywords: string[] } | null>(null);
+  const [recovering, setRecovering] = useState(false);
+  const activeRecovery = recovery && recovery.query === trimmedQuery ? recovery : null;
+
+  const keywords = useMemo(
+    () => (activeRecovery ? activeRecovery.keywords.map((k) => k.toLowerCase()) : parseKeywords(deferredTrimmedQuery)),
+    [activeRecovery, deferredTrimmedQuery],
   );
 
-  // Submit-only search: typing alone never hits the server. The user
-  // commits to a query by pressing the keyboard's "Search" key (handled
-  // by handleSubmitEditing below), which gives us bounded, predictable
-  // server load — a long query at 5 chars/sec used to fan out 5 RPCs +
-  // 5 ilike scans per pause; now it's exactly one round-trip per intent.
-  //
-  // While the user is mid-edit, we KEEP the previous result set on
-  // screen (option B from the design discussion) — clearing on every
-  // keystroke would flicker, and showing a "press Search" placeholder
-  // while there's clearly content the user might still want fights
-  // their mental model.
-  //
-  // The one exception: text fully cleared → restore the default browse
-  // (popular tags). That's not "a search", it's "no query intent", and
-  // matching the X-button behaviour on backspace-to-empty avoids the
-  // weird state of an empty input box still showing yesterday's results.
+  // Cross-language concept expansion, cached per keyword for the session.
+  const expansionCacheRef = useRef(new Map<string, Set<string>>());
+  // Words whose lookup is on the wire — never sent twice concurrently.
+  const expansionInFlightRef = useRef(new Set<string>());
+  // Words whose lookup just failed (or was skipped offline) → not
+  // "pending" for a short while, so the dead-end state can render.
+  const expansionFailedAtRef = useRef(new Map<string, number>());
+  const [expansionVersion, setExpansionVersion] = useState(0);
+  const [expansionPending, setExpansionPending] = useState(false);
+  const keywordsSig = keywords.join('\u0001');
+  useEffect(() => {
+    if (filterMode) {
+      setExpansionPending(false);
+      return;
+    }
+    const now = Date.now();
+    const needed = keywords.filter(
+      (k) =>
+        k.length >= 2 &&
+        !expansionCacheRef.current.has(k) &&
+        now - (expansionFailedAtRef.current.get(k) ?? 0) > 10_000,
+    );
+    setExpansionPending(needed.length > 0);
+    // In-flight words resolve on their own and bump expansionVersion,
+    // which re-runs this effect.
+    const toFetch = needed.filter((k) => !expansionInFlightRef.current.has(k));
+    if (toFetch.length === 0) return;
+    const timer = setTimeout(() => {
+      for (const k of toFetch) expansionInFlightRef.current.add(k);
+      void (async () => {
+        const markFailed = () => {
+          const at = Date.now();
+          for (const k of toFetch) {
+            if (!expansionCacheRef.current.has(k)) expansionFailedAtRef.current.set(k, at);
+          }
+        };
+        try {
+          if (await checkOffline()) {
+            markFailed();
+            return;
+          }
+          const locale = i18n.language || '';
+          const results = await Promise.all(toFetch.map((k) => fetchConceptKeys(k, locale).catch(() => null)));
+          results.forEach((r, i) => {
+            if (r) expansionCacheRef.current.set(toFetch[i], r);
+          });
+          markFailed();
+        } finally {
+          for (const k of toFetch) expansionInFlightRef.current.delete(k);
+          if (isMountedRef.current) setExpansionVersion((v) => v + 1);
+        }
+      })();
+    }, EXPANSION_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+    // keywordsSig captures `keywords`; expansionVersion re-evaluates
+    // after an in-flight lookup lands.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keywordsSig, filterMode, i18n.language, expansionVersion]);
+
+  // ── Matching (on-device, every keystroke) ─────────────────────────
+  const { results, matchedTags } = useMemo(() => {
+    const list = people || [];
+    if (filterMode) {
+      const need = filterTags.map((f) => f.key);
+      const out: ResultRow[] = [];
+      for (const p of list) {
+        const keys = new Set(p.tags.map((tg) => tg.key));
+        if (need.every((k) => keys.has(k))) out.push({ kind: p.kind, person: p });
+      }
+      // `list` is already in NAME_COLLATOR order; a stable sort on kind
+      // keeps that order inside each group.
+      out.sort((a, b) => (a.kind === b.kind ? 0 : a.kind === 'friend' ? -1 : 1));
+      return { results: out, matchedTags: [] as WallTag[] };
+    }
+    if (keywords.length === 0) return { results: [] as ResultRow[], matchedTags: [] as WallTag[] };
+
+    // Per keyword: tag keys in this network whose name contains it
+    // (local concept siblings come along for free, since keys are
+    // concept-level) + concept keys the server resolved for it.
+    const perKw = keywords.map((kw) => {
+      const keys = new Set<string>();
+      for (const e of tagNameEntries) if (e.lname.includes(kw)) keys.add(e.key);
+      const exp = expansionCacheRef.current.get(kw);
+      if (exp) for (const k of exp) if (wallTagByKey.has(k)) keys.add(k);
+      return { kw, keys };
+    });
+
+    const scored: { row: ResultRow; matched: number; score: number }[] = [];
+    for (const p of list) {
+      let matched = 0;
+      let score = 0;
+      for (const { kw, keys } of perKw) {
+        let hit = 0;
+        if (p.nameHay.includes(kw)) hit = 3;
+        if (hit < 2 && keys.size > 0 && p.tags.some((tg) => keys.has(tg.key))) hit = 2;
+        if (hit === 0 && p.infoHay.includes(kw)) hit = 1;
+        if (hit > 0) {
+          matched++;
+          score += hit;
+        }
+      }
+      if (matched > 0) scored.push({ row: { kind: p.kind, person: p }, matched, score });
+    }
+    scored.sort(
+      (a, b) =>
+        b.matched - a.matched ||
+        b.score - a.score ||
+        // ties keep the index's NAME_COLLATOR order (stable sort)
+        (a.row.kind === b.row.kind ? 0 : a.row.kind === 'friend' ? -1 : 1),
+    );
+
+    const tagKeys = new Set<string>();
+    for (const { keys } of perKw) for (const k of keys) tagKeys.add(k);
+    const tagsOut = [...tagKeys]
+      .map((k) => wallTagByKey.get(k))
+      .filter((w): w is WallTag => !!w)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 20);
+    return { results: scored.map((s) => s.row), matchedTags: tagsOut };
+    // expansionVersion: the cache ref changed
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [people, filterMode, filterTags, keywords, tagNameEntries, wallTagByKey, expansionVersion]);
+
+  // ── Recent searches ───────────────────────────────────────────────
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const recentSearchesRef = useRef(recentSearches);
+  recentSearchesRef.current = recentSearches;
+  const uidRef = useRef<string | null>(uid);
+  uidRef.current = uid;
+
+  const persistRecentSearches = useCallback(async (list: string[]) => {
+    const id = uidRef.current;
+    if (!id) return;
+    await setPersistentCache(CACHE_KEYS.RECENT_SEARCHES, id, list);
+  }, []);
+
+  useEffect(() => {
+    setRecentSearches([]);
+    if (!uid) return;
+    void (async () => {
+      try {
+        await AsyncStorage.removeItem(LEGACY_RECENT_SEARCHES_KEY);
+      } catch {}
+      try {
+        const stored = await getPersistentCache<unknown>(CACHE_KEYS.RECENT_SEARCHES, uid);
+        if (Array.isArray(stored) && isMountedRef.current) {
+          setRecentSearches(stored.filter((s): s is string => typeof s === 'string'));
+        }
+      } catch {}
+    })();
+  }, [uid]);
+
+  const saveRecentSearch = useCallback(
+    async (query: string) => {
+      try {
+        const q = query.trim();
+        if (!q) return;
+        const updated = [q, ...recentSearchesRef.current.filter((s) => s !== q)].slice(0, MAX_RECENT_SEARCHES);
+        setRecentSearches(updated);
+        await persistRecentSearches(updated);
+      } catch {}
+    },
+    [persistRecentSearches],
+  );
+
+  // ── Committed query (submit / recent tap) ─────────────────────────
+  // Live matching runs per keystroke; analytics (impressions, telemetry)
+  // and the AI recovery only fire for a COMMITTED query so typing does
+  // not flood the tables.
+  const [committedQuery, setCommittedQuery] = useState('');
+  const resultsRef = useRef(results);
+  resultsRef.current = results;
+  const pendingRef = useRef(false);
+  pendingRef.current = expansionPending || (indexLoading && !people);
+
+  const commitQuery = useCallback(
+    async (raw: string) => {
+      const q = raw.trim();
+      if (!q) return;
+      setCommittedQuery(q);
+      void saveRecentSearch(q);
+      // Let in-flight expansion settle (bounded) before judging "zero".
+      const started = Date.now();
+      while (pendingRef.current && Date.now() - started < 3000) {
+        await new Promise((r) => setTimeout(r, 100));
+      }
+      if (!isMountedRef.current) return;
+      let recoveryTriggered = false;
+      let extracted: string[] = [];
+      const directHit = resultsRef.current.length > 0;
+      if (!directHit && !(await checkOffline())) {
+        recoveryTriggered = true;
+        setRecovering(true);
+        try {
+          extracted = await semanticTagSearch(q);
+          if (extracted.length === 0) extracted = await extractSearchIntent(q);
+          if (isMountedRef.current && extracted.length > 0) {
+            setRecovery({ query: q, keywords: extracted });
+          }
+        } catch (err) {
+          console.warn('[SearchScreen] recovery failed:', err);
+        } finally {
+          if (isMountedRef.current) setRecovering(false);
+        }
+      }
+      const id = uidRef.current;
+      if (id) {
+        void supabase.from('piktag_search_telemetry').insert({
+          user_id: id,
+          query: sanitizeQueryForTelemetry(q),
+          direct_hit: directHit,
+          recovery_triggered: recoveryTriggered,
+          extracted_keywords: extracted.length > 0 ? extracted : null,
+          final_tag_count: 0,
+          final_profile_count: resultsRef.current.filter((r) => r.kind === 'friend').length,
+          final_tag_user_count: 0,
+          locale: i18n.language || null,
+        });
+      }
+    },
+    [saveRecentSearch, i18n.language],
+  );
+
+  // ── Handlers ──────────────────────────────────────────────────────
+  const searchInputRef = useRef<TextInput>(null);
+
   const handleSearchChange = useCallback(
     (text: string) => {
       setSearchQuery(text);
-
-      // Skip if triggered by handleSearchByTags (programmatic write).
-      if (skipNextSearch.current) {
-        skipNextSearch.current = false;
-        return;
-      }
-
-      // Mid-edit invalidates the previous query's AI-recovery chip.
-      // The "PikTag understood: …" line belongs to the LAST submitted
-      // query — leaving it on screen while the user types something
-      // new reads as "AI is interpreting every keystroke" (it isn't).
-      // The chip auto-restores on next submit if performSearch's
-      // cache hit or recovery path repopulates it.
-      setLlmExtractedKeywords([]);
-      setLlmRecovering(false);
-
-      // Exit intersection mode when the user starts editing the text
-      // box — staying in intersection mode would render a stale chip
-      // bar above a query that no longer matches.
-      if (intersectionMode) {
-        setIntersectionMode(false);
-        setIntersectionProfiles([]);
-      }
-
-      if (text.trim().length === 0) {
-        performSearch('');
-      }
+      if (filterMode) setFilterTags([]);
     },
-    [performSearch, intersectionMode],
+    [filterMode],
   );
+
+  const handleSubmitEditing = useCallback(() => {
+    if (searchQuery.trim()) void commitQuery(searchQuery);
+  }, [commitQuery, searchQuery]);
 
   const handleRecentSearchTap = useCallback(
     (query: string) => {
+      setFilterTags([]);
       setSearchQuery(query);
-      performSearch(query);
+      void commitQuery(query);
     },
-    [performSearch],
+    [commitQuery],
   );
 
-  const handleTagPress = useCallback(
-    (tag: Tag) => {
-      setSelectedTagIds(prev =>
-        prev.includes(tag.id)
-          ? prev.filter(id => id !== tag.id)
-          : [...prev, tag.id]
-      );
+  const handleDeleteRecentAt = useCallback(
+    async (query: string) => {
+      const updated = recentSearches.filter((q) => q !== query);
+      setRecentSearches(updated);
+      try {
+        await persistRecentSearches(updated);
+      } catch {}
     },
-    [],
+    [recentSearches, persistRecentSearches],
   );
 
-  const handleTagLongPress = useCallback(
-    (tag: Tag) => {
-      navigation.navigate('TagDetail', { tagId: tag.id, tagName: tag.name });
+  const handleClearHistory = useCallback(async () => {
+    await persistRecentSearches([]);
+    setRecentSearches([]);
+  }, [persistRecentSearches]);
+
+  const handleTagPress = useCallback((tag: WallTag) => {
+    setSelectedKeys((prev) => (prev.includes(tag.key) ? prev.filter((k) => k !== tag.key) : [...prev, tag.key]));
+  }, []);
+
+  const applyFilter = useCallback(
+    (keys: string[]) => {
+      const tags = keys.map((k) => wallTagByKey.get(k)).filter((w): w is WallTag => !!w);
+      setSelectedKeys([]);
+      if (tags.length === 0) return;
+      setFilterTags(tags);
+      setSearchQuery(tags.map((w) => w.name).join(' + '));
+      setCommittedQuery(tags.map((w) => w.name).join(' + '));
+      searchInputRef.current?.blur();
     },
-    [navigation],
+    [wallTagByKey],
   );
 
-  const handleSearchByTags = useCallback(async (idsOverride?: string[]) => {
-    // idsOverride lets callers pass the freshly-computed id list
-    // synchronously, skipping the round-trip through React state
-    // (which would otherwise force a setTimeout-races-state hack).
-    // The chip-remove handler uses this; the floating search button
-    // omits it and reads selectedTagIds straight from closure.
-    const tagIds = idsOverride ?? selectedTagIds;
-    const tagIdSet = idsOverride ? new Set(idsOverride) : selectedTagIdSet;
-    if (tagIds.length === 0 || !user) return;
-    // Resolve a full Tag object for EVERY selected id, in selection
-    // order. The live `tags` array usually misses earlier-picked tags
-    // (each may have been chosen from its own text search), so fill the
-    // gaps from piktag_tags. Build by id — a partial DB response must
-    // not silently shrink the set and mis-route a genuine 2-tag search
-    // to single-tag TagDetail.
-    const byId = new Map<string, Tag>();
-    for (const t of tags) {
-      if (tagIdSet.has(t.id)) byId.set(t.id, t);
-    }
-    if (byId.size !== tagIds.length) {
-      const { data } = await supabase
-        .from('piktag_tags')
-        .select('id, name, semantic_type, usage_count, concept_id')
-        .in('id', tagIds);
-      for (const t of (data || []) as Tag[]) byId.set(t.id, t);
-    }
-    const selected = tagIds
-      .map((id) => byId.get(id))
-      .filter((t): t is Tag => !!t);
-
-    if (tagIds.length === 1) {
-      // Always pass the id (always valid); name is best-effort. The old
-      // code skipped navigation entirely when the name didn't resolve.
-      navigation.navigate('TagDetail', {
-        tagId: tagIds[0],
-        tagName: byId.get(tagIds[0])?.name ?? '',
-      });
-      setSelectedTagIds([]);
-      return;
-    }
-
-    // Multiple tags: do intersection search
-    setIntersectionMode(true);
-    setIntersectionProfiles([]);
-    setIntersectionFriends([]);
-    setIntersectionExplore([]);
-    setIntersectionContacts([]);
-    setIntersectionSelectedTags(selected);
-    setSearchQuery(selected.map(t => t.name).join(' + '));
-    skipNextSearch.current = true;
-    setLoading(true);
-
-    try {
-      // Per-tag entity sets. An "entity" is either a member (key
-      // 'u:'+userId) or a local contact (key 'c:'+contactId). A member
-      // matches a tag via a PUBLIC self-tag (piktag_user_tags) OR the
-      // viewer's own MANUAL tag on the connection (piktag_connection_tags);
-      // a contact matches via its text[] tags (piktag_local_contacts).
-      // connection_tags + local_contacts are owner-scoped by RLS, so
-      // manual tags stay private to the searching user — exactly the
-      // founder's "manual tags are owner-only searchable" rule.
-      //
-      // Each tag's work is independent — run all tags in parallel
-      // (a sequential per-tag loop made a 3-tag search visibly slow).
-      const entitySets: Set<string>[] = await Promise.all(
-        tagIds.map(async (tagId) => {
-          // Concept-sibling expansion (same concept = same meaning).
-          // Names are needed because piktag_local_contacts.tags stores
-          // plain name strings, not FKs, so contacts match by name.
-          const allTagIds = await getSiblingTagIds(tagId);
-          const siblingNames = await getTagNamesByIds(allTagIds);
-
-          const [publicResult, connTagResult, contactResult] = await Promise.all([
-            supabase
-              .from('piktag_user_tags')
-              .select('user_id')
-              .in('tag_id', allTagIds)
-              .eq('is_private', false),
-            supabase
-              .from('piktag_connection_tags')
-              .select('connection:piktag_connections!connection_id(connected_user_id)')
-              .in('tag_id', allTagIds)
-              .limit(1000),
-            siblingNames.length > 0
-              ? supabase
-                  .from('piktag_local_contacts')
-                  .select('id')
-                  .overlaps('tags', siblingNames)
-                  .limit(500)
-              : Promise.resolve({ data: [] } as any),
-          ]);
-
-          const set = new Set<string>();
-          for (const d of publicResult.data || []) {
-            set.add('u:' + (d as any).user_id);
-          }
-          for (const d of connTagResult.data || []) {
-            const cu = (d as any).connection?.connected_user_id;
-            if (cu) set.add('u:' + cu);
-          }
-          for (const d of contactResult.data || []) {
-            set.add('c:' + (d as any).id);
-          }
-          return set;
-        }),
-      );
-
-      let intersection = entitySets[0] || new Set<string>();
-      for (let i = 1; i < entitySets.length; i++) {
-        intersection = new Set([...intersection].filter(k => entitySets[i].has(k)));
-      }
-
-      const memberIds = [...intersection]
-        .filter(k => k.startsWith('u:'))
-        .map(k => k.slice(2))
-        .slice(0, 50);
-      const contactIds = [...intersection]
-        .filter(k => k.startsWith('c:'))
-        .map(k => k.slice(2))
-        .slice(0, 50);
-
-      let friends: PiktagProfile[] = [];
-      let explore: PiktagProfile[] = [];
-      let contacts: TaggedContact[] = [];
-
-      if (memberIds.length > 0) {
-        const [profileResult, myConnsResult] = await Promise.all([
-          supabase.from('piktag_profiles')
-            .select('id, username, full_name, avatar_url, is_verified')
-            .in('id', memberIds),
-          supabase.from('piktag_connections')
-            .select('connected_user_id')
-            .eq('user_id', user.id),
-        ]);
-
-        const allProfiles = (profileResult.data || []) as PiktagProfile[];
-        const friendIds = new Set((myConnsResult.data || []).map((c: any) => c.connected_user_id));
-
-        friends = allProfiles.filter(p => friendIds.has(p.id));
-        explore = allProfiles.filter(p => !friendIds.has(p.id) && p.id !== user?.id);
-        setIntersectionProfiles(allProfiles);
-      }
-
-      if (contactIds.length > 0) {
-        const { data: contactRows } = await supabase
-          .from('piktag_local_contacts')
-          .select('id, name, avatar_url')
-          .in('id', contactIds);
-        contacts = (contactRows || []).map((c: any) => ({
-          id: c.id,
-          name: c.name,
-          avatar_url: c.avatar_url ?? null,
-        }));
-      }
-
-      setIntersectionFriends(friends);
-      setIntersectionExplore(explore);
-      setIntersectionContacts(contacts);
-      // Friends-first: contacts count toward the Friends tab, so default
-      // there whenever the viewer's own world produced ANY match.
-      setIntersectionTab((friends.length + contacts.length) > 0 ? 'friends' : 'explore');
-    } catch (err) {
-      console.warn('Intersection search error:', err);
-      setProfiles([]);
-    }
-
-    setLoading(false);
-    setSelectedTagIds([]);
-  }, [selectedTagIds, selectedTagIdSet, tags, navigation, user]);
-
-
-  const handleProfilePress = useCallback(
-    (profile: PiktagProfile) => {
-      // Log the click → piktag_search_learnings (Lesson #1 attribution).
-      // Fire-and-forget — never blocks navigation. The row's `converted`
-      // flag gets backfilled to TRUE later inside get_or_create_conversation
-      // if this click leads to a message within 30 min. That feeds the
-      // post-launch p(click) → p(message) calibration the deferred-#1
-      // multi-predictor split needs (CLAUDE.md).
-      if (user?.id) {
-        // Prefer the LLM-extracted keyword when available — it's the
-        // semantic anchor; raw query text often has stopwords / filler.
-        // Falls back to the raw query so we always log something useful.
-        const keyword =
-          (llmExtractedKeywords && llmExtractedKeywords[0]) ||
-          searchQuery.trim() ||
-          '(empty)';
-        const rawQuery = searchQuery.trim() || keyword;
-        void supabase
-          .from('piktag_search_learnings')
-          .insert({
-            query: rawQuery,
-            extracted_keyword: keyword,
-            clicked_user_id: profile.id,
-            searcher_id: user.id,
-            // algo #4: joins this click back to the exact impression set.
-            query_id: searchQueryIdRef.current,
-          })
-          .then(({ error }) => {
-            if (error) {
-              // 42P01 (table missing) etc. are tolerated — logging is
-              // analytics, not user-visible. Quietly warn for real errors.
-              const code = (error as any).code;
-              if (code !== '42P01' && code !== 'PGRST205') {
-                console.warn('[search] click log failed:', error.message);
-              }
-            }
-          });
-      }
-
-      // If the tapped profile is a friend, route to FriendDetail with
-      // the cached connection_id so the screen can render the
-      // searcher's manual/private tags via piktag_connection_tags.
-      // Non-friends (or stale-cache misses) fall through to UserDetail.
-      const connectionId = myFriendIds.get(profile.id);
-      if (connectionId) {
-        navigation.navigate('FriendDetail', {
-          connectionId,
-          friendId: profile.id,
-        });
+  const handleRemoveFilterTag = useCallback(
+    (key: string) => {
+      const remaining = filterTags.filter((w) => w.key !== key);
+      if (remaining.length === 0) {
+        setFilterTags([]);
+        setSearchQuery('');
+        setCommittedQuery('');
         return;
       }
-      // Offline, resolve the connection id at TAP TIME rather than
-      // trusting the map to have loaded. UserDetail is the public-profile
-      // screen and is server-only, so sending a friend there with no
-      // signal guarantees a blank error page — the exact dead end the
-      // founder hit after offline search started working. FriendDetail
-      // renders from the same CONNECTIONS snapshot the offline results
-      // came from, so if we found them, it can show them.
-      void (async () => {
-        if (await checkOffline()) {
-          const cached = await getPersistentCache<any[]>(CACHE_KEYS.CONNECTIONS, user?.id);
-          const row = Array.isArray(cached)
-            ? cached.find(
-                (c) => (c?.connected_user_id ?? c?.connected_user?.id) === profile.id,
-              )
-            : null;
-          if (row?.id) {
-            navigation.navigate('FriendDetail', {
-              connectionId: String(row.id),
-              friendId: profile.id,
-            });
-            return;
-          }
-        }
-        navigation.navigate('UserDetail', { userId: profile.id });
-      })();
+      setFilterTags(remaining);
+      setSearchQuery(remaining.map((w) => w.name).join(' + '));
+      setCommittedQuery(remaining.map((w) => w.name).join(' + '));
     },
-    [navigation, myFriendIds, user, searchQuery, llmExtractedKeywords],
+    [filterTags],
   );
 
-  const handleLocalContactPress = useCallback(
-    (contact: TaggedContact) => {
-      navigation.navigate('LocalContactDetail', { contactId: contact.id });
-    },
-    [navigation],
-  );
-
-  const handleFocus = useCallback(() => setIsFocused(true), []);
-  const handleBlur = useCallback(() => setIsFocused(false), []);
-  const handleSubmitEditing = useCallback(() => {
-    const q = searchQuery.trim();
-    // Empty submit is a no-op — handleSearchChange already restored
-    // the popular-tags browse view when the box was cleared, so
-    // there's nothing further to do.
-    if (q.length === 0) return;
-    performSearch(searchQuery);
-  }, [performSearch, searchQuery]);
-
-  // Universal "back to default view" — used by the header Reset button,
-  // the empty-state button, and the search-input X button. Wipes every
-  // piece of transient state EXCEPT recent searches (users want their
-  // history preserved so they can re-run past queries).
   const handleResetToDefault = useCallback(() => {
     setSearchQuery('');
-    setSelectedTagIds([]);
+    setCommittedQuery('');
+    setSelectedKeys([]);
+    setFilterTags([]);
+    setRecovery(null);
+    setRecovering(false);
     setSelectedTagCategory(null);
-    setIntersectionMode(false);
-    setIntersectionProfiles([]);
-    setIntersectionFriends([]);
-    setIntersectionExplore([]);
-    setIntersectionSelectedTags([]);
-    // Wipe the LLM-recovery surface too — without these, pressing X
-    // briefly shows an "AI understood: …" chip floating over the
-    // newly-empty input until the manual-tag effect catches up.
-    setLlmExtractedKeywords([]);
-    setLlmRecovering(false);
-    setSearchTaggedFriends([]);
-    setSearchTaggedContacts([]);
-    // Put the browse wall back. This was the missing half of "reset":
-    // every OTHER piece of transient state was cleared here, but `tags`
-    // was left holding the search's result set — which offline is `[]`,
-    // because performSearch's offline branch clears it. Tapping the clear (X) button to
-    // give up on a search therefore replaced the whole cached tag wall
-    // with 「找不到相關標籤」 and nothing in the session could bring it
-    // back.
-    void restoreDefaultTags();
-    // Invalidate whatever is still in flight. Without this the abandoned
-    // query's results land on the restored browse wall a few seconds after
-    // the user pressed X to get rid of them.
-    searchSeqRef.current++;
-    // The searchUnreachable flag belongs to the query we just abandoned.
-    // Leaving it set would make the next empty result claim we could not
-    // reach the server when we never asked.
-    setSearchUnreachable(false);
-    setSearchNoSnapshot(false);
     searchInputRef.current?.blur();
-  }, [restoreDefaultTags]);
+  }, []);
 
-  // Remove a single entry from recent searches (per-item × icon).
-  // The "clear all history" button stays intact.
-  const handleDeleteRecentAt = useCallback(async (query: string) => {
-    const updated = recentSearches.filter((q) => q !== query);
-    setRecentSearches(updated);
-    try {
-      await persistRecentSearches(updated);
-    } catch {
-      // best-effort — UI already updated
-    }
-  }, [recentSearches, persistRecentSearches]);
-
-  // ── Computed display flags (memoized) ──
-
-  const trimmedQuery = useMemo(() => searchQuery.trim(), [searchQuery]);
-
-  const showProfiles = useMemo(
-    () => trimmedQuery !== '' && profiles.length > 0,
-    [trimmedQuery, profiles.length],
-  );
-
-  const showTags = useMemo(
-    () => trimmedQuery === '' || tags.length > 0,
-    [trimmedQuery, tags.length],
-  );
-
-  // Show recent searches when search box is empty
-  const showRecent = trimmedQuery === '' && recentSearches.length > 0;
-
-  // ── Memoized translated suffix for tag counts ──
-  const tagCountSuffix = useMemo(() => t('search.tagCountSuffix'), [t]);
-
-  // Filtered tags by selected category
-  // IG-search-style progressive reveal of the popular-tags grid.
-  // ~20 tags fill the first screen (the search bar eats the top), so
-  // we render `popularVisibleCount` (init 20) and grow it by a page
-  // on scroll-to-end (see the FlatList onEndReached). The full pool
-  // (up to 50, nearby-first + global backfill) is already in `tags`,
-  // so each reveal is INSTANT — no extra query, no spinner. Founder
-  // 2026-06-03; matches the "commodity surfaces must feel instant"
-  // principle (no network on scroll). 2026-06-03.
-  const POPULAR_PAGE = 20;
-  const [popularVisibleCount, setPopularVisibleCount] = useState(POPULAR_PAGE);
-  // Re-window from the first page whenever the popular set reloads or
-  // the category filter changes — a fresh list should start at 20.
-  useEffect(() => {
-    setPopularVisibleCount(POPULAR_PAGE);
-  }, [tags, selectedTagCategory]);
-
-  const filteredTags = useMemo(() => {
-    // Only honor the selected category while it still QUALIFIES (is in
-    // tagCategories, the volume-gated chip list). Otherwise a refresh that
-    // drops the pool below the gate hides the chip row while the stale
-    // selection keeps silently filtering the list — a near-empty grid with
-    // no visible chip to clear it. Row hidden ⇒ list unfiltered, always.
-    const activeCategory =
-      selectedTagCategory && tagCategories.includes(selectedTagCategory)
-        ? selectedTagCategory
-        : null;
-    const base = activeCategory
-      ? tags.filter((t) => t.semantic_type === activeCategory)
-      : tags;
-    return base.slice(0, popularVisibleCount);
-  }, [tags, selectedTagCategory, tagCategories, popularVisibleCount]);
-
-  // Reveal the next page of popular tags when the user scrolls to the
-  // end of the home (no-query) grid. Pure in-memory reveal from the
-  // already-loaded `tags` pool — instant. No-op in query / intersection
-  // modes (those render their own result lists, not filteredTags).
-  const handleListEndReached = useCallback(() => {
-    if (trimmedQuery !== '' || intersectionMode) return;
-    setPopularVisibleCount((c) =>
-      c < tags.length ? Math.min(c + POPULAR_PAGE, tags.length) : c,
-    );
-  }, [trimmedQuery, intersectionMode, tags.length]);
-
-  // ── FlatList data and renderers ──
-
-  // Build a single flat data array for the main FlatList to avoid nested ScrollView/FlatList issues.
-  // We use a discriminated‑union item type so we can render different sections.
-
-  type ListItem =
-    | { type: 'loading' }
-    | { type: 'sectionLabel'; label: string; showClear?: boolean }
-    | { type: 'recentHeader' }
-    | { type: 'recentEmpty' }
-    | { type: 'recentItem'; query: string; index: number }
-    | { type: 'clearHistoryBtn' }
-    | { type: 'profilesHeader' }
-    | { type: 'profilesEmpty'; isDeadEnd?: boolean; conceptLabel?: string }
-    | { type: 'profileItem'; profile: PiktagProfile }
-    | { type: 'localContactItem'; contact: TaggedContact }
-    | { type: 'tagsHeader' }
-    | { type: 'tagsHomeHeader' }
-    | { type: 'tagsEmpty' }
-    | { type: 'tagsGrid' }
-    | { type: 'bootstrapError' }
-    | { type: 'searchError' }
-    | { type: 'intersectionTabs' }
-    | { type: 'searchTabs'; friendsCount: number; exploreCount: number }
-    | { type: 'aiThinking' }
-    | { type: 'aiKeywordsChip'; keywords: string[] };
-
-  // Merge profile-match + tag-match results into one deduplicated list,
-  // then split by friend status. Mirrors the friends/explore split that
-  // intersection mode already does, just on a different result source.
-  const { searchFriends, searchExplore } = useMemo(() => {
-    const seenIds = new Set<string>();
-    const merged: PiktagProfile[] = [];
-    for (const p of profiles) {
-      if (p?.id && !seenIds.has(p.id)) {
-        seenIds.add(p.id);
-        merged.push(p);
-      }
-    }
-    for (const tu of tagUsers) {
-      for (const u of tu.users) {
-        if (u?.id && !seenIds.has(u.id)) {
-          seenIds.add(u.id);
-          merged.push(u as PiktagProfile);
-        }
-      }
-    }
-    // Member friends matched via the searcher's own manual tags. These
-    // come from piktag_connection_tags — i.e. people the viewer already
-    // has a connection with — so they are friends BY DEFINITION and must
-    // bucket as friends even when the session-cached `myFriendIds` is
-    // stale (a connection added after mount isn't in that snapshot).
-    const taggedFriendIds = new Set<string>();
-    for (const p of searchTaggedFriends) {
-      if (p?.id) {
-        taggedFriendIds.add(p.id);
-        if (!seenIds.has(p.id)) {
-          seenIds.add(p.id);
-          merged.push(p);
-        }
-      }
-    }
-    const friends: PiktagProfile[] = [];
-    const explore: PiktagProfile[] = [];
-    for (const p of merged) {
-      if (myFriendIds.has(p.id) || taggedFriendIds.has(p.id)) friends.push(p);
-      else explore.push(p);
-    }
-    return { searchFriends: friends, searchExplore: explore };
-  }, [profiles, tagUsers, searchTaggedFriends, myFriendIds]);
-
-  // Whenever a fresh search produces results, default the tab to
-  // "friends" if any matched, else "explore". Mirrors the intersection
-  // tab default at the call site of handleSearchByTags.
-  //
-  // Auto-set ONCE per committed query: results arrive in waves (text
-  // results, then the async manual-tag results), and without this guard
-  // the late wave re-fires this effect and yanks the tab back to
-  // "friends" even after the user has manually tapped "explore".
-  const searchTabAutoQueryRef = useRef<string>('');
-  useEffect(() => {
-    if (trimmedQuery === '') {
-      searchTabAutoQueryRef.current = '';
-      return;
-    }
-    if (searchTabAutoQueryRef.current === trimmedQuery) return;
-    if (searchFriends.length + searchExplore.length + searchTaggedContacts.length === 0) return;
-    searchTabAutoQueryRef.current = trimmedQuery;
-    setSearchTab(
-      searchFriends.length + searchTaggedContacts.length > 0 ? 'friends' : 'explore',
-    );
-  }, [trimmedQuery, searchFriends.length, searchExplore.length, searchTaggedContacts.length]);
-
-  // Private-world search — populates the Friends tab with people from
-  // the SEARCHER'S OWN world that the public RPC can't find:
-  //   • connection_tags  — viewer's manual tags on a member friend
-  //   • local_contacts.tags — viewer's manual tags on a contact
-  //   • local_contacts.name / headline / note / met_location
-  //   • connections.nickname / met_location — viewer's custom nickname
-  //     + the place you noted meeting them
-  // All sources are owner-scoped by RLS, so this stays private.
-  // (Bio is also matched, but in performSearch's piktag_profiles
-  // query — bio is public.)
-  //
-  // Driven by `tags` (set by the debounced performSearch) — that's the
-  // committed-search signal. trimmedQuery is read via closure to avoid
-  // firing the effect on every keystroke; the sig key includes both
-  // so a same-tag-set but different-text query still re-fetches.
-  const manualTagSigRef = useRef<string>('');
-  useEffect(() => {
-    if (trimmedQuery === '' || intersectionMode) {
-      setSearchTaggedFriends([]);
-      setSearchTaggedContacts([]);
-      manualTagSigRef.current = '';
-      return;
-    }
-    const sig = trimmedQuery + '|' + tags.map((t: any) => t.id).join(',');
-    if (sig === manualTagSigRef.current) return;
-    manualTagSigRef.current = sig;
-    let cancelled = false;
-    (async () => {
-      try {
-        // Every branch below is a server query, so with no signal this
-        // whole block is ~25s of auth-refresh backoff per await for a
-        // guaranteed-empty result. Bail. Release the sig guard on the way
-        // out so the next dependency change (a keystroke, or tags landing
-        // after reconnect) actually re-runs this instead of being
-        // short-circuited as "already done for this query".
-        //
-        // THE OFFLINE CHECK MUST COME BEFORE THE CLEARS BELOW. This effect
-        // is keyed on `tags`, and performSearch's offline branch sets
-        // `tags` to [] right after filling searchTaggedFriends /
-        // searchTaggedContacts from the on-device snapshots. So this
-        // effect fired immediately afterwards and wiped them — offline,
-        // the only results that exist were erased microseconds after they
-        // were found, every single time. That is why searching a friend's
-        // name in airplane mode kept coming back empty even after the
-        // snapshot reads were fixed: the reads were never the problem.
-        // Offline, performSearch OWNS these two arrays; this effect must
-        // not touch them.
-        if (await checkOffline()) {
-          manualTagSigRef.current = '';
-          return;
-        }
-        // Online: drop the previous query's results so they do not linger
-        // during the re-fetch. Safe to do after the await — checkOffline
-        // answers from a cached NetInfo subscription, so there is no
-        // round-trip here to leave stale rows on screen.
-        if (cancelled) return;
-        setSearchTaggedFriends([]);
-        setSearchTaggedContacts([]);
-        // 1. Resolve concept-sibling tag ids/names (only if any tag matched).
-        let allTagIds: string[] = [];
-        let allTagNames: string[] = [];
-        if (tags.length > 0) {
-          const baseTagIds = tags.map((t: any) => t.id).filter(Boolean);
-          const conceptIds = [
-            ...new Set(tags.map((t: any) => t.concept_id).filter(Boolean)),
-          ];
-          allTagIds = [...baseTagIds];
-          if (conceptIds.length > 0) {
-            const { data: sib } = await supabase
-              .from('piktag_tags')
-              .select('id')
-              .in('concept_id', conceptIds);
-            if (sib && sib.length > 0) {
-              allTagIds = [...new Set([...allTagIds, ...sib.map((s: any) => s.id)])];
-            }
-          }
-          const { data: nameRows } = await supabase
-            .from('piktag_tags')
-            .select('name')
-            .in('id', allTagIds);
-          allTagNames = (nameRows || [])
-            .map((r: any) => r.name)
-            .filter(Boolean);
-        }
-
-        // 2. Reduce the query to content nouns (same pass performSearch
-        //    uses) so a natural-language query like "找在扶輪社的朋友"
-        //    reduces to "扶輪社" for the name/headline ilike match too.
-        //    Then strip characters that would break PostgREST's .or()
-        //    filter grammar (comma / paren / percent). Plain Chinese
-        //    + English names survive untouched.
-        const qSafe = stripSearchStopwords(trimmedQuery)
-          .replace(/[,()%]/g, '')
-          .trim();
-
-        // 2b. Resolve the typed query to a tag id DIRECTLY (case-insensitive)
-        //     + concept siblings, independent of the debounced performSearch.
-        //     A tag you only applied privately (low usage) may not surface
-        //     into `tags`, leaving allTagIds empty and the friend
-        //     (connection_tags) path dead. This guarantees it resolves.
-        if (qSafe) {
-          const { data: directTags } = await supabase
-            .from('piktag_tags')
-            .select('id, concept_id')
-            .ilike('name', ilikeEscape(qSafe))
-            .limit(5);
-          const directIds = (directTags || []).map((d: any) => d.id).filter(Boolean);
-          if (directIds.length > 0) {
-            allTagIds = [...new Set([...allTagIds, ...directIds])];
-            const directConcepts = [
-              ...new Set((directTags || []).map((d: any) => d.concept_id).filter(Boolean)),
-            ];
-            if (directConcepts.length > 0) {
-              const { data: sib2 } = await supabase
-                .from('piktag_tags')
-                .select('id')
-                .in('concept_id', directConcepts);
-              if (sib2) allTagIds = [...new Set([...allTagIds, ...sib2.map((s: any) => s.id)])];
-            }
-            const { data: nameRows2 } = await supabase
-              .from('piktag_tags')
-              .select('name')
-              .in('id', allTagIds);
-            allTagNames = [
-              ...new Set([
-                ...allTagNames,
-                ...((nameRows2 || []).map((r: any) => r.name).filter(Boolean)),
-              ]),
-            ];
-          }
-        }
-
-        // The local-contact tag match keys off NAMES (its `tags` is a
-        // text[] of plain strings, no FK to piktag_tags). Include the RAW
-        // typed query so a tag that exists ONLY on a local contact — with
-        // no global piktag_tags row at all — is still found. This is the
-        // core "I tagged a contact, search must find them" case (founder
-        // 2026-06-09); without it such a tag was completely unsearchable.
-        const lcTagMatch = [
-          ...new Set([...allTagNames, ...(qSafe ? [qSafe] : [])]),
-        ];
-
-        // 3. Run all private-world queries in parallel: 2 tag-based,
-        //    2 text-based. The tag-based ones short-circuit when no
-        //    tag matched the query.
-        const [ctByTagRes, lcByTagRes, lcByTextRes, connByNickRes, lcByTagCiRes] = await Promise.all([
-          allTagIds.length > 0
-            ? supabase
-                .from('piktag_connection_tags')
-                .select(
-                  'connection:piktag_connections!connection_id(connected_user_id, connected_user:piktag_profiles!connected_user_id(id, username, full_name, avatar_url, is_verified))',
-                )
-                .in('tag_id', allTagIds)
-                .limit(500)
-            : Promise.resolve({ data: [] } as any),
-          lcTagMatch.length > 0
-            ? supabase
-                .from('piktag_local_contacts')
-                .select('id, name, avatar_url')
-                .overlaps('tags', lcTagMatch)
-                .limit(200)
-            : Promise.resolve({ data: [] } as any),
-          qSafe.length > 0
-            ? supabase
-                .from('piktag_local_contacts')
-                .select('id, name, avatar_url')
-                .or(`name.ilike.%${qSafe}%,headline.ilike.%${qSafe}%,note.ilike.%${qSafe}%,met_location.ilike.%${qSafe}%`)
-                .limit(50)
-            : Promise.resolve({ data: [] } as any),
-          qSafe.length > 0
-            ? supabase
-                .from('piktag_connections')
-                .select(
-                  'nickname, connected_user_id, connected_user:piktag_profiles!connected_user_id(id, username, full_name, avatar_url, is_verified)',
-                )
-                .or(`nickname.ilike.%${qSafe}%,met_location.ilike.%${qSafe}%`)
-                .limit(50)
-            : Promise.resolve({ data: [] } as any),
-          // Case-insensitive contact-tag match (English case-variants):
-          // overlaps() above is case-SENSITIVE, so this RPC (lower()=lower()
-          // server-side) catches "remittance" vs a stored "Remittance".
-          // Additive — if the RPC isn't deployed yet supabase-js returns the
-          // error in `data:null` (it doesn't throw), so the overlaps result
-          // still stands. No regression.
-          lcTagMatch.length > 0
-            ? supabase.rpc('search_owner_contacts_by_tag', { p_terms: lcTagMatch, p_limit: 200 })
-            : Promise.resolve({ data: [] } as any),
-        ]);
-
-        if (cancelled) return;
-
-        // Merge member friends (tag-based + nickname-based). Dedupe by id.
-        const seenFriendIds = new Set<string>();
-        const friends: PiktagProfile[] = [];
-        const pushFriend = (p: any) => {
-          if (p?.id && p.id !== user?.id && !seenFriendIds.has(p.id)) {
-            seenFriendIds.add(p.id);
-            friends.push(p as PiktagProfile);
-          }
-        };
-        for (const row of (ctByTagRes.data || []) as any[]) {
-          pushFriend(row.connection?.connected_user);
-        }
-        for (const row of (connByNickRes.data || []) as any[]) {
-          pushFriend(row.connected_user);
-        }
-        setSearchTaggedFriends(friends);
-
-        // Merge contacts (tag-based + name/headline-based). Dedupe by id.
-        const seenContactIds = new Set<string>();
-        const contacts: TaggedContact[] = [];
-        const pushContact = (c: any) => {
-          if (c?.id && !seenContactIds.has(c.id)) {
-            seenContactIds.add(c.id);
-            contacts.push({ id: c.id, name: c.name, avatar_url: c.avatar_url ?? null });
-          }
-        };
-        for (const c of (lcByTagRes.data || []) as any[]) pushContact(c);
-        for (const c of (lcByTextRes.data || []) as any[]) pushContact(c);
-        // Case-insensitive RPC matches (may overlap lcByTagRes — pushContact dedupes).
-        for (const c of (lcByTagCiRes?.data || []) as any[]) pushContact(c);
-        setSearchTaggedContacts(contacts);
-      } catch (privateErr) {
-        console.warn('[SearchScreen] private-world search failed:', privateErr);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-    // trimmedQuery intentionally read via closure (NOT in deps): it
-    // changes per keystroke, but `tags` is the committed-search signal,
-    // so we only want to fetch once performSearch has settled. The
-    // closure always sees the current value at run time.
-    //
-    // Deps are `tags` ONLY (plus mode/user) on purpose. An earlier attempt
-    // added a committedQuery dep to force this lookup for tag-less queries;
-    // that was wrong twice over. Every performSearch path already hands
-    // setTags a FRESH array (mergedTags, or a new []), so a tag-less query
-    // does re-fire this effect. Worse, the extra dep made the effect run
-    // TWICE per search: the first run (still holding the previous query's
-    // tags) claimed the sig and started a fetch, the setTags that followed
-    // cancelled that fetch, and the second run short-circuited on an
-    // identical sig whenever both queries matched the same tag ids —
-    // most commonly both matching NONE, i.e. exactly the person-name
-    // search it was meant to fix. Net effect: contacts never loaded on the
-    // second such search. The real defect was the cache-hit path above.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tags, intersectionMode, user]);
-
-  // ── Impression log → piktag_search_impressions ────────────────
-  //
-  // v3 Quality-Score primitive (CLAUDE.md "v3 vision — Tag-auction
-  // monetization", pre-launch must-ship #1). Logs every (searcher,
-  // target_user, rank_position) tuple that actually rendered. Pairs
-  // with the existing click log (piktag_search_learnings) so post-
-  // launch we can compute CTR per (concept, target, rank) — without
-  // impressions a click in position 1 vs position 7 are indistinguishable.
-  //
-  // Fire-and-forget — analytics must NEVER break the search UX.
-  // Wrapped in try/catch; failures get a console.warn and continue.
-  //
-  // Debounce/dedupe via a signature ref: (mode|tab|query|concept|ids)
-  // hashes the displayed result set. Scroll-back / re-render with the
-  // same set is a no-op; a NEW search or tab-switch re-logs. A 3-second
-  // floor on identical-signature re-logs handles late wave merges.
-  const impressionSigRef = useRef<{ sig: string; at: number }>({ sig: '', at: 0 });
-  // Label chain (algo #4, 2026-07-05): one uuid per DISTINCT rendered
-  // result set, stamped on both the impression rows and any click rows
-  // that follow — so post-launch ranking work can join
-  // impression→click→message per executed query instead of guessing by
-  // time windows. Minted where the sig changes; read by the click logger.
+  // ── Analytics: impressions + clicks (committed queries only) ──────
+  const impressionSigRef = useRef('');
   const searchQueryIdRef = useRef<string | null>(null);
+  const isCommitted = filterMode || (committedQuery !== '' && committedQuery === trimmedQuery);
   useEffect(() => {
-    if (!user?.id) return;
-    if (loading || initialLoading) return;
-    if (trimmedQuery === '' && !intersectionMode) return;
-    // Build the displayed-profile list IN RENDER ORDER. Rank position is
-    // 0-indexed against the FULL displayed list (incl. contact rows that
-    // we skip when logging — preserves the "what the user actually saw"
-    // semantic without polluting the table with non-member rows). Mirrors
-    // the listData branches above so the rank matches what FlatList renders.
-    const ordered: { profile: PiktagProfile; rank: number }[] = [];
-    let rankCursor = 0;
-    if (intersectionMode) {
-      if (intersectionTab === 'friends') {
-        for (const p of intersectionFriends) {
-          ordered.push({ profile: p, rank: rankCursor++ });
-        }
-        rankCursor += intersectionContacts.length; // contacts occupy positions but aren't logged
-      } else {
-        for (const p of intersectionExplore) {
-          ordered.push({ profile: p, rank: rankCursor++ });
-        }
-      }
-    } else if (trimmedQuery !== '') {
-      if (searchTab === 'friends') {
-        for (const p of searchFriends) {
-          ordered.push({ profile: p, rank: rankCursor++ });
-        }
-        rankCursor += searchTaggedContacts.length;
-      } else {
-        for (const p of searchExplore) {
-          ordered.push({ profile: p, rank: rankCursor++ });
-        }
-      }
-    }
+    if (!uid || !isCommitted || recovering) return;
+    if (expansionPending) return;
+    const ordered: { id: string; rank: number }[] = [];
+    results.forEach((r, i) => {
+      if (r.kind === 'friend') ordered.push({ id: r.person.id, rank: i });
+    });
     if (ordered.length === 0) return;
-    // Top matched concept feeds the per-concept CTR rollup later. NULL
-    // when the query matched on name/headline/bio only (no tag concept).
-    const conceptId: string | null = ((tags[0] as any)?.concept_id) ?? null;
-    const queryText = (trimmedQuery || (intersectionSelectedTags[0]?.name ?? '')).trim();
-    if (queryText === '') return;
-    const ids = ordered.map((o) => o.profile.id).join(',');
-    const mode = intersectionMode ? 'intx' : 'text';
-    const tab = intersectionMode ? intersectionTab : searchTab;
-    const sig = `${mode}|${tab}|${queryText}|${conceptId ?? ''}|${ids}`;
-    const now = Date.now();
-    if (
-      sig === impressionSigRef.current.sig &&
-      now - impressionSigRef.current.at < 3000
-    ) {
-      return;
-    }
-    impressionSigRef.current = { sig, at: now };
+    const queryText = trimmedQuery;
+    if (!queryText) return;
+    const firstConcept =
+      (filterMode ? filterTags : matchedTags).find((w) => w.key.startsWith('c:'))?.key.slice(2) ?? null;
+    const sig = `${filterMode ? 'intx' : 'text'}|${queryText}|${ordered.map((o) => o.id).join(',')}`;
+    if (sig === impressionSigRef.current) return;
+    impressionSigRef.current = sig;
     searchQueryIdRef.current = ExpoCrypto.randomUUID();
-    const rows = ordered.map(({ profile, rank }) => ({
-      searcher_id: user.id,
-      target_user_id: profile.id,
-      concept_id: conceptId,
+    const rows = ordered.map(({ id, rank }) => ({
+      searcher_id: uid,
+      target_user_id: id,
+      concept_id: firstConcept,
       query_text: queryText,
       rank_position: rank,
       surface: 'search',
@@ -3247,259 +1276,172 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     } catch (err) {
       console.warn('[SearchScreen] impression log failed:', err);
     }
-  }, [
-    user,
-    loading,
-    initialLoading,
-    trimmedQuery,
-    intersectionMode,
-    intersectionTab,
-    intersectionFriends,
-    intersectionExplore,
-    intersectionContacts.length,
-    intersectionSelectedTags,
-    searchTab,
-    searchFriends,
-    searchExplore,
-    searchTaggedContacts.length,
-    tags,
-  ]);
+  }, [uid, isCommitted, recovering, expansionPending, results, trimmedQuery, filterMode, filterTags, matchedTags]);
+
+  const handlePersonPress = useCallback(
+    (person: NetPerson) => {
+      if (trimmedQuery) void saveRecentSearch(trimmedQuery);
+      if (person.kind === 'contact') {
+        navigation.navigate('LocalContactDetail', { contactId: person.id });
+        return;
+      }
+      if (uid) {
+        const keyword = (activeRecovery && activeRecovery.keywords[0]) || trimmedQuery || '(empty)';
+        void supabase
+          .from('piktag_search_learnings')
+          .insert({
+            query: trimmedQuery || keyword,
+            extracted_keyword: keyword,
+            clicked_user_id: person.id,
+            searcher_id: uid,
+            query_id: searchQueryIdRef.current,
+          })
+          .then(({ error }) => {
+            if (error) {
+              const code = (error as any).code;
+              if (code !== '42P01' && code !== 'PGRST205') {
+                console.warn('[search] click log failed:', error.message);
+              }
+            }
+          });
+      }
+      if (person.connectionId) {
+        navigation.navigate('FriendDetail', { connectionId: person.connectionId, friendId: person.id });
+      }
+    },
+    [navigation, uid, trimmedQuery, activeRecovery, saveRecentSearch],
+  );
+
+  // ── Tag wall (default surface) ────────────────────────────────────
+  const tagCategories = useMemo(() => qualifyingTagCategories(wallTags.slice(0, WALL_MAX)), [wallTags]);
+  const [wallVisibleCount, setWallVisibleCount] = useState(WALL_PAGE);
+  useEffect(() => {
+    setWallVisibleCount(WALL_PAGE);
+  }, [wallTags, selectedTagCategory]);
+  const filteredWall = useMemo(() => {
+    const active = selectedTagCategory && tagCategories.includes(selectedTagCategory) ? selectedTagCategory : null;
+    const base = wallTags.slice(0, WALL_MAX);
+    return (active ? base.filter((w) => w.semantic_type === active) : base).slice(0, wallVisibleCount);
+  }, [wallTags, selectedTagCategory, tagCategories, wallVisibleCount]);
+
+  const handleListEndReached = useCallback(() => {
+    if (trimmedQuery !== '' || filterMode) return;
+    const cap = Math.min(wallTags.length, WALL_MAX);
+    setWallVisibleCount((c) => (c < cap ? Math.min(c + WALL_PAGE, cap) : c));
+  }, [trimmedQuery, filterMode, wallTags.length]);
+
+  const tagCountSuffix = useMemo(() => t('search.tagCountSuffix'), [t]);
+
+  // ── List data ─────────────────────────────────────────────────────
+  type ListItem =
+    | { type: 'loading' }
+    | { type: 'aiThinking' }
+    | { type: 'aiKeywordsChip'; keywords: string[] }
+    | { type: 'recentHeader' }
+    | { type: 'recentItem'; query: string; index: number }
+    | { type: 'filterChips' }
+    | { type: 'resultsLabel' }
+    | { type: 'personItem'; row: ResultRow }
+    | { type: 'profilesEmpty'; isDeadEnd: boolean; conceptLabel: string }
+    | { type: 'tagsHeader' }
+    | { type: 'matchedTagsGrid' }
+    | { type: 'tagsHomeHeader' }
+    | { type: 'wallGrid' }
+    | { type: 'tagsEmpty' }
+    | { type: 'indexError' }
+    | { type: 'searchError' };
 
   const listData = useMemo<ListItem[]>(() => {
     const items: ListItem[] = [];
+    const hasIndex = people !== null;
 
-    // 1. Loading
-    if (loading || initialLoading) {
-      // Swap the generic spinner for the "AI thinking" variant when
-      // zero-results recovery is running — the user sees a clear
-      // signal that the system is trying harder, not just hanging.
-      items.push({ type: llmRecovering ? 'aiThinking' : 'loading' });
-      return items;
-    }
-
-    // 1b. Bootstrap failure — RPC + fallback both yielded nothing AND
-    // we have no cached tags / recommendations to show. Render the
-    // retry surface in place of the (otherwise blank) default screen.
-    if (
-      bootstrapFailed &&
-      trimmedQuery === '' &&
-      !intersectionMode &&
-      tags.length === 0
-    ) {
-      items.push({ type: 'bootstrapError' });
-      return items;
-    }
-
-    // Intersection mode — tabbed Friends / Explore results. The Friends
-    // tab holds member matches AND manually-tagged local contacts (both
-    // are the viewer's own world); Explore holds non-friend members.
-    if (intersectionMode) {
-      items.push({ type: 'intersectionTabs' as any });
-      if (intersectionTab === 'friends') {
-        if (intersectionFriends.length + intersectionContacts.length > 0) {
-          intersectionFriends.forEach((profile) => {
-            items.push({ type: 'profileItem', profile });
-          });
-          intersectionContacts.forEach((contact) => {
-            items.push({ type: 'localContactItem', contact });
-          });
-        } else {
-          items.push({ type: 'profilesEmpty' });
-        }
+    if (filterMode) {
+      items.push({ type: 'filterChips' });
+      if (!hasIndex) {
+        items.push({ type: indexLoading ? 'loading' : 'indexError' });
+        return items;
+      }
+      if (results.length > 0) {
+        for (const row of results) items.push({ type: 'personItem', row });
       } else {
-        if (intersectionExplore.length > 0) {
-          intersectionExplore.forEach((profile) => {
-            items.push({ type: 'profileItem', profile });
-          });
-        } else {
-          items.push({ type: 'profilesEmpty' });
-        }
+        items.push({ type: 'profilesEmpty', isDeadEnd: true, conceptLabel: filterTags.map((w) => hashDisplay(w.name)).join(' + ') });
       }
       return items;
     }
 
-    // Text-query mode. Results are grouped under a Friends / Explore tab
-    // pair, mirroring intersection mode — friends-first when present so
-    // the user sees their network before strangers. Falls through to the
-    // explore tab when there are no friend matches.
     if (trimmedQuery !== '') {
-      // Friends tab also holds the searcher's manually-tagged local
-      // contacts, so they count toward the friends total + tab badge.
-      const friendsCount = searchFriends.length + searchTaggedContacts.length;
-      const totalCount = friendsCount + searchExplore.length;
-      // A TOTAL dead end = no people AND no tags matched anywhere. Only
-      // then do we collapse the page to the clean 3-element empty state
-      // (concept-in-title + one retry hint). The concept the user searched
-      // for, folded INTO that title: the AI-extracted tag (#日文) when
-      // present, else the raw query.
-      const isDeadEnd = totalCount === 0 && tags.length === 0;
-      const conceptLabel = llmExtractedKeywords.length > 0
-        ? hashDisplay(llmExtractedKeywords[0])
-        : trimmedQuery;
-
-      // AI-recovery transparency: when the LLM extracted content nouns
-      // from a natural-language query, surface them above the results so
-      // the user can see how PikTag understood their sentence (and
-      // course-correct if it's wrong). SUPPRESSED on a dead end — the
-      // concept is folded into the empty-state title there, so showing
-      // the chip too would say the same thing twice (founder 2026-06-11,
-      // "太雜").
-      if (llmExtractedKeywords.length > 0 && !isDeadEnd) {
-        items.push({ type: 'aiKeywordsChip', keywords: llmExtractedKeywords });
+      if (recovering) {
+        items.push({ type: 'aiThinking' });
+        return items;
       }
-      // Tags section — always show when search found matching tags.
-      if (tags.length > 0) {
+      if (!hasIndex) {
+        if (indexLoading) items.push({ type: 'loading' });
+        else items.push({ type: isConnected ? 'indexError' : 'searchError' });
+        return items;
+      }
+      if (activeRecovery && activeRecovery.keywords.length > 0 && results.length > 0) {
+        items.push({ type: 'aiKeywordsChip', keywords: activeRecovery.keywords });
+      }
+      if (matchedTags.length > 0) {
         items.push({ type: 'tagsHeader' });
-        items.push({ type: 'tagsGrid' });
+        items.push({ type: 'matchedTagsGrid' });
       }
-
-      if (totalCount > 0) {
-        items.push({
-          type: 'searchTabs',
-          friendsCount,
-          exploreCount: searchExplore.length,
-        });
-        if (searchTab === 'friends') {
-          if (friendsCount > 0) {
-            for (const profile of searchFriends) {
-              items.push({ type: 'profileItem', profile });
-            }
-            for (const contact of searchTaggedContacts) {
-              items.push({ type: 'localContactItem', contact });
-            }
-          } else {
-            items.push({ type: 'profilesEmpty' });
-          }
-        } else {
-          if (searchExplore.length > 0) {
-            for (const profile of searchExplore) {
-              items.push({ type: 'profileItem', profile });
-            }
-          } else {
-            items.push({ type: 'profilesEmpty' });
-          }
-        }
+      if (results.length > 0) {
+        items.push({ type: 'resultsLabel' });
+        for (const row of results) items.push({ type: 'personItem', row });
+      } else if (expansionPending) {
+        items.push({ type: 'loading' });
       } else {
-        // totalCount === 0: no people matched the committed query.
-        // Previously, when tag matches existed we pushed NOTHING
-        // here, so a query that found tags but zero people read as
-        // success (no "no members matched" feedback). Always surface
-        // it — the tags grid above + this make the result honest.
-        // isDeadEnd carries the concept into the title + drops the
-        // standalone chip / hint / clear (clean 3-element layout).
-        if (searchUnreachable || !isConnected) {
-          // We could not ask. Say that, with a retry — never "there is
-          // nobody", and never the Ask CTA, which needs the network too.
-          //
-          // `!isConnected` is the belt to searchUnreachable's braces, and
-          // it is the half that cannot lose a race: it is read at paint
-          // time from the same NetInfo subscription as the red banner
-          // above. Offline, an empty result means we could only look at
-          // what is already on the phone — that is never grounds for
-          // 「你的人脈裡還沒有 X 的人」.
-          items.push({ type: 'searchError' });
-        } else {
-          items.push({ type: 'profilesEmpty', isDeadEnd, conceptLabel });
-        }
+        const conceptLabel = activeRecovery && activeRecovery.keywords.length > 0
+          ? hashDisplay(activeRecovery.keywords[0])
+          : trimmedQuery;
+        items.push({ type: 'profilesEmpty', isDeadEnd: matchedTags.length === 0, conceptLabel });
       }
-    } else if (isFocused && recentSearches.length > 0) {
-      // IG-style: recent searches only appear when the user taps the input.
-      // Unfocused (default) state just shows popular tags + recommendations.
-      items.push({ type: 'sectionLabel', label: '', showClear: true });
-      recentSearches.forEach((query, index) => {
-        items.push({ type: 'recentItem', query, index });
-      });
-    } else {
-      // Default unfocused view — tag-first home.
-      //
-      // Order: header → tag grid → recommended users. Previously
-      // recommended-users came FIRST, which buried tags below an avatar
-      // row and read as a generic "people you may know" surface. The
-      // founder's North Star is tag-first discovery (the brand is
-      // *PikTag*), so tags now lead the home column and the avatar row
-      // moves below — supporting context rather than top billing.
-      items.push({ type: 'tagsHomeHeader' });
-      if (tags.length > 0) {
-        items.push({ type: 'tagsGrid' });
-      } else {
-        items.push({ type: 'tagsEmpty' });
-      }
+      return items;
     }
 
+    if (isFocused && recentSearches.length > 0) {
+      items.push({ type: 'recentHeader' });
+      recentSearches.forEach((query, index) => items.push({ type: 'recentItem', query, index }));
+      return items;
+    }
+
+    // Default surface: the tags of the viewer's own network.
+    if (!hasIndex) {
+      if (indexLoading) items.push({ type: 'loading' });
+      else items.push({ type: isConnected ? 'indexError' : 'searchError' });
+      return items;
+    }
+    items.push({ type: 'tagsHomeHeader' });
+    items.push({ type: wallTags.length > 0 ? 'wallGrid' : 'tagsEmpty' });
     return items;
   }, [
-    loading,
-    initialLoading,
-    searchUnreachable,
-    // Recompute when the connection flips, so reconnecting turns the
-    // offline card back into a real result without a re-search.
-    isConnected,
-    showRecent,
-    recentSearches,
-    showProfiles,
+    people,
+    filterMode,
+    filterTags,
+    indexLoading,
+    results,
     trimmedQuery,
-    profiles,
-    showTags,
-    tags,
-    tagUsers,
+    recovering,
+    isConnected,
+    activeRecovery,
+    matchedTags,
+    expansionPending,
     isFocused,
-    intersectionMode,
-    intersectionProfiles,
-    intersectionFriends,
-    intersectionExplore,
-    intersectionContacts,
-    intersectionTab,
-    searchFriends,
-    searchExplore,
-    searchTaggedContacts,
-    searchTab,
-    llmRecovering,
-    llmExtractedKeywords,
-    bootstrapFailed,
+    recentSearches,
+    wallTags.length,
   ]);
 
   const keyExtractor = useCallback((item: ListItem, index: number): string => {
     switch (item.type) {
-      case 'loading':
-        return 'loading';
-      case 'sectionLabel':
-        return `section-${item.label}`;
-      case 'recentHeader':
-        return 'recentHeader';
-      case 'recentEmpty':
-        return 'recentEmpty';
       case 'recentItem':
         return `recent-${item.index}`;
-      case 'profilesHeader':
-        return 'profilesHeader';
-      case 'profilesEmpty':
-        return 'profilesEmpty';
-      case 'profileItem':
-        return `profile-${item.profile.id}`;
-      case 'localContactItem':
-        return `contact-${item.contact.id}`;
-      case 'tagsHeader':
-        return 'tagsHeader';
-      case 'tagsHomeHeader':
-        return 'tagsHomeHeader';
-      case 'tagsEmpty':
-        return 'tagsEmpty';
-      case 'tagsGrid':
-        return 'tagsGrid';
-      case 'clearHistoryBtn':
-        return 'clearHistoryBtn';
-      case 'intersectionTabs':
-        return 'intersectionTabs';
-      case 'searchTabs':
-        return 'searchTabs';
-      case 'aiThinking':
-        return 'aiThinking';
+      case 'personItem':
+        return `${item.row.kind}-${item.row.person.id}`;
       case 'aiKeywordsChip':
         return 'aiKeywordsChip-' + item.keywords.join(',');
-      case 'bootstrapError':
-        return 'bootstrapError';
       default:
-        return `item-${index}`;
+        return item.type || `item-${index}`;
     }
   }, []);
 
@@ -3539,167 +1481,29 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             </View>
           );
 
-        case 'bootstrapError':
-          return (
-            <ErrorState onRetry={() => void runBootstrap()} />
-          );
+        case 'indexError':
+          return <ErrorState onRetry={() => void refreshIndex(true)} />;
 
         case 'searchError':
-          // ErrorState reads NetInfo itself and picks the offline vs
-          // load-failed wording; retry re-runs the same query.
-          return searchNoSnapshot ? (
+          // Offline and nothing was ever synced to this device.
+          return (
             <ErrorState
               heading={t('search.noSnapshotTitle', { defaultValue: '還沒同步過你的通訊錄' })}
               subtitle={t('search.noSnapshotBody', {
                 defaultValue: '連上網路後會自動同步，之後即使離線也能搜尋你的好友和聯絡人。',
               })}
-              onRetry={() => void performSearch(trimmedQuery)}
+              onRetry={() => void refreshIndex(true)}
             />
-          ) : (
-            <ErrorState onRetry={() => void performSearch(trimmedQuery)} />
           );
 
-        case 'intersectionTabs':
-          return (
-            <View>
-              {/* Google-style selected tag chips */}
-              {intersectionSelectedTags.length > 0 && (
-                <View style={styles.selectedChipsRow}>
-                  {intersectionSelectedTags.map((tag) => (
-                    <View key={tag.id} style={styles.selectedChip}>
-                      <Text style={styles.selectedChipText}>{hashDisplay(tag.name)}</Text>
-                      <TouchableOpacity
-                        onPress={() => {
-                          const remaining = intersectionSelectedTags.filter(t => t.id !== tag.id);
-                          setIntersectionSelectedTags(remaining);
-                          if (remaining.length <= 1) {
-                            setIntersectionMode(false);
-                            setSearchQuery('');
-                            if (remaining.length === 1) {
-                              navigation.navigate('TagDetail', { tagId: remaining[0].id, tagName: remaining[0].name });
-                            }
-                            return;
-                          }
-                          // Re-filter results with remaining tags. We
-                          // pass the freshly-computed ids directly so
-                          // handleSearchByTags doesn't read stale
-                          // selectedTagIds from React's closure — the
-                          // old setTimeout(…, 100) hack used to bridge
-                          // that gap is now obsolete (and racy if the
-                          // user removed two chips in quick succession).
-                          const remainingIds = remaining.map(t => t.id);
-                          setSelectedTagIds(remainingIds);
-                          void handleSearchByTags(remainingIds);
-                        }}
-                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                      >
-                        <X size={14} color={'#FFFFFF'} />
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
-              )}
-              {/* Friends / Explore tabs */}
-              <View style={styles.intersectionTabRow}>
-                <TouchableOpacity
-                  style={[styles.intersectionTabBtn, intersectionTab === 'friends' && styles.intersectionTabBtnActive]}
-                  onPress={() => setIntersectionTab('friends')}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.intersectionTabText, intersectionTab === 'friends' && styles.intersectionTabTextActive]}>
-                    {t('tagDetail.tabConnections')} ({intersectionFriends.length + intersectionContacts.length})
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.intersectionTabBtn, intersectionTab === 'explore' && styles.intersectionTabBtnActive]}
-                  onPress={() => setIntersectionTab('explore')}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.intersectionTabText, intersectionTab === 'explore' && styles.intersectionTabTextActive]}>
-                    {t('tagDetail.tabExplore')} ({intersectionExplore.length})
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          );
-
-        case 'searchTabs':
-          // Same Friends / Explore tab strip as intersection mode but
-          // bound to text-query state, with counts coming from the
-          // pre-split useMemo above.
-          return (
-            <View style={styles.intersectionTabRow}>
-              <TouchableOpacity
-                style={[styles.intersectionTabBtn, searchTab === 'friends' && styles.intersectionTabBtnActive]}
-                onPress={() => setSearchTab('friends')}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.intersectionTabText, searchTab === 'friends' && styles.intersectionTabTextActive]}>
-                  {t('tagDetail.tabConnections')} ({item.friendsCount})
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.intersectionTabBtn, searchTab === 'explore' && styles.intersectionTabBtnActive]}
-                onPress={() => setSearchTab('explore')}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.intersectionTabText, searchTab === 'explore' && styles.intersectionTabTextActive]}>
-                  {t('tagDetail.tabExplore')} ({item.exploreCount})
-                </Text>
-              </TouchableOpacity>
-            </View>
-          );
-
-        case 'clearHistoryBtn':
-          return (
-            <TouchableOpacity
-              style={styles.clearHistoryBtn}
-              onPress={() => {
-                Alert.alert(
-                  t('search.clearHistoryConfirmTitle'),
-                  t('search.clearHistoryConfirmMessage'),
-                  [
-                    { text: t('common.cancel'), style: 'cancel' },
-                    {
-                      text: t('common.confirm'),
-                      style: 'destructive',
-                      onPress: async () => {
-                        await persistRecentSearches([]);
-                        setRecentSearches([]);
-                      },
-                    },
-                  ]
-                );
-              }}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.clearHistoryText}>{t('search.clearHistory')}</Text>
-            </TouchableOpacity>
-          );
-
-        case 'sectionLabel':
+        case 'recentHeader':
           return (
             <View style={styles.sectionLabelRow}>
-              <Text style={styles.sectionLabelText}>{item.label}</Text>
-              {item.showClear && (
-                <TouchableOpacity
-                  onPress={async () => {
-                    await persistRecentSearches([]);
-                    setRecentSearches([]);
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.sectionLabelClear}>{t('search.clearHistory', { defaultValue: '清除' })}</Text>
-                </TouchableOpacity>
-              )}
+              <Text style={styles.sectionLabelText}>{t('search.recentSearchesLabel')}</Text>
+              <TouchableOpacity onPress={() => void handleClearHistory()} activeOpacity={0.7}>
+                <Text style={styles.sectionLabelClear}>{t('search.clearHistory', { defaultValue: '清除' })}</Text>
+              </TouchableOpacity>
             </View>
-          );
-
-        case 'recentEmpty':
-          return (
-            <Text style={styles.emptyText}>
-              {t('search.noRecentSearches')}
-            </Text>
           );
 
         case 'recentItem':
@@ -3712,19 +1516,34 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             />
           );
 
-        case 'profilesHeader':
+        case 'filterChips':
           return (
-            <Text style={styles.resultSectionLabel}>
-              {t('search.profilesSectionLabel')}
-            </Text>
+            <View style={styles.selectedChipsRow}>
+              {filterTags.map((tag) => (
+                <View key={tag.key} style={styles.selectedChip}>
+                  <Text style={styles.selectedChipText}>{hashDisplay(tag.name)}</Text>
+                  <TouchableOpacity
+                    onPress={() => handleRemoveFilterTag(tag.key)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <X size={14} color={'#FFFFFF'} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
           );
 
-        case 'profilesEmpty': {
-          // Tab-level empty (this tab has none but the OTHER tab / tags
-          // do): one quiet line, nothing else. The standalone concept
-          // chip still sits above explaining the query — no Ask here
-          // (there ARE results, just not in this tab) and no clear
-          // button (the search box × already does that).
+        case 'resultsLabel':
+          return <Text style={styles.resultSectionLabel}>{t('search.searchResultsLabel')}</Text>;
+
+        case 'personItem':
+          return item.row.kind === 'friend' ? (
+            <ProfileCard person={item.row.person} onPress={handlePersonPress} t={t} />
+          ) : (
+            <LocalContactCard person={item.row.person} onPress={handlePersonPress} t={t} />
+          );
+
+        case 'profilesEmpty':
           if (!item.isDeadEnd) {
             return (
               <View style={styles.emptyStateContainer}>
@@ -3734,113 +1553,61 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
               </View>
             );
           }
-          // TRUE dead end. Two elements only (founder 2026-06-11 "太雜"):
-          //   1. title with the concept folded in ("你的人脈裡還沒有「#日文」的人")
-          //   2. one quiet hint to retry with a tag / another keyword
-          // The 發 Ask CTA that used to sit here was removed 2026-11-18
-          // with the rest of the Ask UI (personal network tool, phase 2).
-          // The "PikTag 解讀…" chip and the "清除重新搜尋" button (a dup
-          // of the box ×) stay gone.
           return (
             <View style={styles.emptyStateContainer}>
               <Text style={styles.emptyStateTitle} numberOfLines={3}>
                 {t('search.deadEndTitle', {
-                  concept: item.conceptLabel ?? trimmedQuery,
+                  concept: item.conceptLabel,
                   defaultValue: '你的人脈裡還沒有「{{concept}}」的人',
                 })}
               </Text>
               <Text style={styles.emptyStateHint}>
-                {t('search.tryTagSearchHint', {
-                  defaultValue: 'Try searching #tags or a different keyword',
-                })}
+                {t('search.tryTagSearchHint', { defaultValue: 'Try searching #tags or a different keyword' })}
               </Text>
             </View>
           );
-        }
-
-        case 'profileItem':
-          return (
-            <ProfileCard
-              profile={item.profile}
-              onPress={handleProfilePress}
-              t={t}
-            />
-          );
-
-        case 'localContactItem':
-          return (
-            <LocalContactCard
-              contact={item.contact}
-              onPress={handleLocalContactPress}
-              t={t}
-            />
-          );
 
         case 'tagsHeader':
+          return <Text style={styles.resultSectionLabel}>{t('search.tagsSectionLabel')}</Text>;
+
+        case 'matchedTagsGrid':
           return (
-            <Text style={styles.resultSectionLabel}>
-              {t('search.tagsSectionLabel')}
-            </Text>
+            <View style={[styles.tagsGrid, styles.matchedTagsGrid]}>
+              {matchedTags.map((tag) => (
+                <TagCard
+                  key={tag.key}
+                  tag={tag}
+                  isSelected={selectedKeySet.has(tag.key)}
+                  onPress={handleTagPress}
+                  countSuffix={tagCountSuffix}
+                  showSemanticType
+                  semanticTypeLabel={tag.semantic_type ? t(`semanticType.${tag.semantic_type}`) : undefined}
+                />
+              ))}
+            </View>
           );
 
         case 'tagsHomeHeader':
-          // The visual "招牌" of the search home: a #-prefixed title in
-          // PikTag purple makes the tag-first identity obvious at a
-          // glance, and the subtitle explicitly invites the tap-a-tag
-          // path so users without a search-sentence in mind have a
-          // clear next move.
           return (
             <View style={styles.tagsHomeHeader}>
               <Text style={styles.tagsHomeHeaderTitle}>
                 <Text style={styles.tagsHomeHeaderHash}>#</Text>
-                {t('search.popularTagsLabel')}
+                {t('search.tagsSectionLabel')}
               </Text>
               <Text style={styles.tagsHomeHeaderSubtitle}>
-                {t('search.tagsHomePrompt', {
-                  defaultValue: '點任一標籤直接找朋友，或用上方搜尋框打一句話',
-                })}
+                {t('search.tagsHomePrompt', { defaultValue: '點任一標籤直接找朋友，或用上方搜尋框打一句話' })}
               </Text>
             </View>
           );
 
         case 'tagsEmpty':
-          return (
-            <Text style={styles.emptyText}>
-              {t('search.noTagsFound')}
-            </Text>
-          );
+          return <Text style={styles.emptyText}>{t('common.noTags')}</Text>;
 
-        case 'tagsGrid': {
-          // When searching, show flat grid
-          if (trimmedQuery !== '') {
-            return (
-              <View style={styles.tagsGrid}>
-                {tags.map((tag) => (
-                  <TagCard
-                    key={tag.id}
-                    tag={tag}
-                    isSelected={selectedTagIdSet.has(tag.id)}
-                    onPress={handleTagPress}
-                    onLongPress={handleTagLongPress}
-                    countSuffix={tagCountSuffix}
-                    isTrending={trendingTagIds.has(tag.id)}
-                    showSemanticType
-                    semanticTypeLabel={tag.semantic_type ? t(`semanticType.${tag.semantic_type}`) : undefined}
-                  />
-                ))}
-              </View>
-            );
-          }
-
-          // Category chips + filtered grid
+        case 'wallGrid':
           return (
             <View>
               {tagCategories.length > 0 && (
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.categoryChipsRow}
-                >
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryChipsRow}>
                   <TouchableOpacity
                     style={[styles.categoryChip, !selectedTagCategory && styles.categoryChipActive]}
                     onPress={() => setSelectedTagCategory(null)}
@@ -3865,102 +1632,61 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                 </ScrollView>
               )}
               <View style={styles.tagsGrid}>
-                {filteredTags.map((tag) => (
+                {filteredWall.map((tag) => (
                   <TagCard
-                    key={tag.id}
+                    key={tag.key}
                     tag={tag}
-                    isSelected={selectedTagIdSet.has(tag.id)}
+                    isSelected={selectedKeySet.has(tag.key)}
                     onPress={handleTagPress}
-                    onLongPress={handleTagLongPress}
                     countSuffix={tagCountSuffix}
-                    isTrending={trendingTagIds.has(tag.id)}
                   />
                 ))}
               </View>
-
             </View>
           );
-        }
 
         default:
           return null;
       }
     },
     [
-      activeCategory,
-      handleCategoryPress,
+      styles,
+      t,
+      refreshIndex,
+      handleClearHistory,
       handleRecentSearchTap,
-      handleProfilePress,
-      handleLocalContactPress,
+      handleDeleteRecentAt,
+      filterTags,
+      handleRemoveFilterTag,
+      handlePersonPress,
+      matchedTags,
+      selectedKeySet,
       handleTagPress,
-      handleTagLongPress,
-      selectedTagIdSet,
-      tags,
-      filteredTags,
+      tagCountSuffix,
       tagCategories,
       selectedTagCategory,
-      trendingTagIds,
-      tagCountSuffix,
-      tagUsers,
-      navigation,
-      t,
-      trimmedQuery,
-      llmExtractedKeywords,
-      handleResetToDefault,
-      handleDeleteRecentAt,
-      intersectionTab,
-      intersectionFriends,
-      intersectionExplore,
-      intersectionContacts,
-      intersectionSelectedTags,
-      searchTab,
-      searchNoSnapshot,
-      handleSearchByTags,
-      runBootstrap,
-      styles,
-      colors,
+      filteredWall,
     ],
   );
 
-  // ── Memoized search container style ──
   const searchContainerStyle = useMemo(
     () => [styles.searchContainer, isFocused && styles.searchContainerFocused],
     [isFocused, styles],
   );
-
-  // Manual focus fallback: on some devices (e.g. iPhone XR) the native
-  // hit-testing on the TextInput occasionally misses. Wrapping the whole
-  // pill in a Pressable that forwards tap → textInput.focus() makes the
-  // search box bulletproof regardless of which sub-view the touch lands on.
-  const searchInputRef = useRef<TextInput>(null);
-  const focusSearchInput = useCallback(() => {
-    searchInputRef.current?.focus();
-  }, []);
+  // Manual focus fallback (some devices miss the TextInput hit-test).
+  const focusSearchInput = useCallback(() => searchInputRef.current?.focus(), []);
+  const handleFocus = useCallback(() => setIsFocused(true), []);
+  const handleBlur = useCallback(() => setIsFocused(false), []);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={topEdges}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
       <View style={styles.header}>
         <View style={styles.headerTitleRow}>
           <Text style={[styles.headerTitle, { color: colors.text }]}>{t('search.headerTitle', { defaultValue: '搜尋' })}</Text>
-          <TouchableOpacity
-            style={styles.headerMapBtn}
-            activeOpacity={0.6}
-            onPress={() => setMapVisible(true)}
-            accessibilityLabel={t('search.openMap', { defaultValue: '地圖檢視' })}
-            accessibilityRole="button"
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <MapPin size={22} color={colors.text} />
-          </TouchableOpacity>
         </View>
         <Pressable style={searchContainerStyle} onPress={focusSearchInput}>
-          <Search
-            size={20}
-            color={colors.gray400}
-            style={styles.searchIcon}
-            pointerEvents="none"
-          />
+          <Search size={20} color={colors.gray400} style={styles.searchIcon} pointerEvents="none" />
           <TextInput
             ref={searchInputRef}
             style={styles.searchInput}
@@ -4006,36 +1732,22 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         onEndReachedThreshold={0.5}
       />
 
-      {/* Floating search button when tags are selected */}
-      {selectedTagIds.length > 0 && (
+      {/* Floating bar when tags are selected: filter the viewer's own
+          network to people carrying ALL selected tags. */}
+      {selectedKeys.length > 0 && (
         <View style={styles.floatingSearchBar}>
           <Text style={styles.floatingSearchText}>
-            {selectedTagIds.length} {t('search.tagsSelected', { defaultValue: '個標籤已選' })}
+            {selectedKeys.length} {t('search.tagsSelected', { defaultValue: '個標籤已選' })}
           </Text>
-          <TouchableOpacity style={styles.floatingClearBtn} onPress={() => setSelectedTagIds([])} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.floatingClearBtn} onPress={() => setSelectedKeys([])} activeOpacity={0.7}>
             <Text style={styles.floatingClearText}>{t('search.clearAll', { defaultValue: '清除' })}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.floatingSearchBtn} onPress={() => handleSearchByTags()} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.floatingSearchBtn} onPress={() => applyFilter(selectedKeys)} activeOpacity={0.8}>
             <Search size={16} color={'#FFFFFF'} />
             <Text style={styles.floatingSearchBtnText}>{t('search.searchBtn', { defaultValue: '搜尋' })}</Text>
           </TouchableOpacity>
         </View>
       )}
-      {errorToast && (
-        <View style={styles.toast}>
-          <Text style={styles.toastText}>{errorToast}</Text>
-        </View>
-      )}
-
-      <FriendsMapModal
-        visible={mapVisible}
-        onClose={() => setMapVisible(false)}
-        friends={mapFriends}
-        onFriendPress={(connectionId, friendId) => {
-          setMapVisible(false);
-          navigation.navigate('FriendDetail', { connectionId, friendId });
-        }}
-      />
 
       <CoachMark
         hintId="search_intent"
@@ -4052,7 +1764,6 @@ const topEdges: ('top')[] = ['top'];
 
 function makeStyles(c: ColorPalette) {
   return StyleSheet.create({
-  // Semantic type badge
   semanticBadge: {
     backgroundColor: c.gray100,
     borderRadius: 8,
@@ -4071,7 +1782,6 @@ function makeStyles(c: ColorPalette) {
   semanticBadgeTextSelected: {
     color: 'rgba(255,255,255,0.8)',
   },
-  // Floating search bar
   floatingSearchBar: {
     position: 'absolute',
     bottom: 0,
@@ -4114,42 +1824,6 @@ function makeStyles(c: ColorPalette) {
     fontWeight: '600',
     color: '#FFFFFF',
   },
-  // Selected tags bar (unused, kept for reference)
-  selectedTagsBar: {
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: c.gray200,
-    backgroundColor: c.gray50,
-  },
-  selectedTagChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: c.piktag500,
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    gap: 6,
-  },
-  selectedTagChipText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  clearAllBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    justifyContent: 'center',
-  },
-  clearAllText: {
-    fontSize: 13,
-    color: c.gray500,
-  },
-  intersectionHint: {
-    fontSize: 12,
-    color: c.gray400,
-    paddingHorizontal: 16,
-    paddingTop: 6,
-  },
   selectedChipsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -4171,32 +1845,6 @@ function makeStyles(c: ColorPalette) {
     fontWeight: '600',
     color: '#FFFFFF',
   },
-  intersectionTabRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: c.gray200,
-    marginBottom: 8,
-  },
-  intersectionTabBtn: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  intersectionTabBtnActive: {
-    borderBottomColor: c.piktag500,
-  },
-  intersectionTabText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: c.gray500,
-  },
-  intersectionTabTextActive: {
-    fontWeight: '600',
-    color: c.piktag600,
-  },
-  // Main styles
   container: {
     flex: 1,
     backgroundColor: c.white,
@@ -4213,22 +1861,13 @@ function makeStyles(c: ColorPalette) {
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 16,
+    minHeight: 44,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: c.gray900,
     lineHeight: 32,
-  },
-  // Map button sits next to the title — quick entry to "where are
-  // people I might know geographically". Sized 44dp to hit the
-  // recommended tap target while the icon stays at 22dp visually.
-  headerMapBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   searchContainer: {
     flexDirection: 'row',
@@ -4271,16 +1910,13 @@ function makeStyles(c: ColorPalette) {
     paddingTop: 16,
     paddingBottom: 100,
   },
-  categorySectionLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: c.gray700,
-    marginBottom: 16,
-  },
   tagsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+  },
+  matchedTagsGrid: {
+    marginBottom: 20,
   },
   tagCard: {
     flexDirection: 'row',
@@ -4325,9 +1961,6 @@ function makeStyles(c: ColorPalette) {
     paddingVertical: 40,
     alignItems: 'center',
   },
-  // "Reading your intent..." text under the spinner during zero-results
-  // LLM recovery. Sits below the existing LogoLoader so the visual is
-  // familiar but the message tells the user we're trying harder.
   aiThinkingText: {
     fontSize: 14,
     fontWeight: '500',
@@ -4335,15 +1968,7 @@ function makeStyles(c: ColorPalette) {
     marginTop: 14,
     textAlign: 'center',
   },
-  // "PikTag understood you mean:" chip strip — shown above results when
-  // the LLM-recovery path produced the keywords that ultimately matched.
-  // Transparent surface for the user to course-correct if the model
-  // mis-read their sentence.
   aiChipRow: {
-    // No paddingTop / paddingHorizontal here — scrollContent already
-    // provides 24px top + 20px horizontal. Adding our own stacked
-    // them and left the chip indented 16px more than the result
-    // cards below.
     paddingBottom: 12,
   },
   aiChipLabel: {
@@ -4374,7 +1999,6 @@ function makeStyles(c: ColorPalette) {
     textAlign: 'center',
     paddingVertical: 24,
   },
-  // Empty-state (profilesEmpty) — used when a query yields no users.
   emptyStateContainer: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -4393,28 +2017,11 @@ function makeStyles(c: ColorPalette) {
     textAlign: 'center',
     marginTop: 8,
   },
-  clearRetryButton: {
-    marginTop: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    backgroundColor: c.gray100,
-  },
-  clearRetryButtonText: {
-    fontSize: 14,
-    color: c.gray700,
-    fontWeight: '500',
-  },
   sectionLabelRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
-    // No marginTop — this row is only ever rendered as the first
-    // list item (the recent-searches "clear" header), so scrollContent's
-    // own paddingTop: 24 already provides the top breathing room.
-    // Stacking added 16 more, leaving the X button floating ~40px
-    // below the search box.
   },
   sectionLabelText: {
     fontSize: 16,
@@ -4433,9 +2040,6 @@ function makeStyles(c: ColorPalette) {
     marginBottom: 12,
     marginTop: 4,
   },
-  // The home-header "招牌" — bigger and bolder than resultSectionLabel
-  // because this is the visual anchor of the entire default search
-  // surface (tag-first branding lives here).
   tagsHomeHeader: {
     marginBottom: 16,
     marginTop: 4,
@@ -4455,9 +2059,6 @@ function makeStyles(c: ColorPalette) {
     color: c.gray500,
     marginTop: 4,
     lineHeight: 18,
-  },
-  profilesSection: {
-    marginBottom: 20,
   },
   profileCard: {
     flexDirection: 'row',
@@ -4481,13 +2082,6 @@ function makeStyles(c: ColorPalette) {
   },
   profileUsername: {
     fontSize: 13,
-    color: c.gray500,
-    marginTop: 2,
-  },
-  // Endorser-count inline text (principle #2). Same gray as
-  // profileUsername — informational, no color tier.
-  profileEndorser: {
-    fontSize: 12,
     color: c.gray500,
     marginTop: 2,
   },
@@ -4515,31 +2109,6 @@ function makeStyles(c: ColorPalette) {
     paddingLeft: 12,
     paddingRight: 4,
   },
-  clearHistoryBtn: {
-    alignSelf: 'flex-end',
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-  },
-  clearHistoryText: {
-    fontSize: 13,
-    color: c.red500,
-    fontWeight: '500',
-  },
-
-  // Tag Category
-  tagCategorySection: {
-    marginBottom: 16,
-  },
-  tagCategoryTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: c.gray700,
-    paddingHorizontal: 20,
-    marginBottom: 10,
-    marginTop: 8,
-  },
-
-  // Category Chips
   categoryChipsRow: {
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -4565,21 +2134,6 @@ function makeStyles(c: ColorPalette) {
   },
   categoryChipTextActive: {
     color: c.piktag600,
-  },
-  toast: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    bottom: 32,
-    backgroundColor: c.gray900,
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  toastText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    textAlign: 'center',
   },
   });
 }
