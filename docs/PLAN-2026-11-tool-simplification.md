@@ -11,7 +11,9 @@
   (b) 非會員聯絡人標籤要大小寫完全一致才對得到 concept —— 草稿 RPC `search_my_network_concepts` 可解,未寫成 migration;
   (c) 「對方封鎖我」方向需 SECURITY DEFINER RPC 才能排除;
   (d) 搜尋排序整個換成本機計分,未過 CLAUDE.md 的重放門檻;impression 仍寫 surface='search',會混進舊漏斗。
-- 階段 4 注意:Settings 的 share_location 開關與 lib/sharedLocation.ts 已無消費者。
+- 2026-11-18:階段 4 完成(下架功能的通知在客戶端隱藏、不計未讀;19 語系刪 131 個無引用鍵)。限制:App 在背景時這些推播仍由 OS 顯示,要從伺服器停發才擋得掉。
+- 待決定:Settings 的 share_location 開關與 lib/sharedLocation.ts 已無消費者。
+- 2026-11-18:階段 5(整體驗收與 push)進行中。
 
 ## 創辦人決策(2026-11-18,本 session 逐項選定)
 
