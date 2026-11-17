@@ -35,7 +35,6 @@ import {
 import { useTranslation } from 'react-i18next';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
-import { LinearGradient } from 'expo-linear-gradient';
 import RingedAvatar from '../components/RingedAvatar';
 import CoachMark from '../components/CoachMark';
 import NotificationBell from '../components/NotificationBell';
@@ -51,18 +50,15 @@ import {
 import { ConnectionsScreenSkeleton } from '../components/SkeletonLoader';
 import ErrorState from '../components/ErrorState';
 import { useAuth } from '../hooks/useAuth';
-import { useAuthProfile } from '../context/AuthContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
 import { warmFriendDetails } from '../lib/warmFriendDetails';
-import { useAskFeed } from '../hooks/useAskFeed';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import { useLoadDeadline } from '../hooks/useLoadDeadline';
 import { checkOffline } from '../lib/netStatus';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { shouldShowPhonePrompt, dismissPhonePrompt } from '../lib/phonePrompt';
-import AskStoryRow from '../components/ask/AskStoryRow';
 import type { Connection, ConnectionTag } from '../types';
-import { OFFICIAL_ACCOUNT_ID, isOfficialDemoAsk, getDemoAskText } from '../lib/officialDemoAsk';
+import { OFFICIAL_ACCOUNT_ID } from '../lib/officialAccount';
 
 // PikTag official account (fixed UUID, auto-friended at wizard completion).
 // Used to detect the "only friend is @piktag" cold-start state.
@@ -96,23 +92,11 @@ type ConnectionItemProps = {
   item: ConnectionWithTags;
   isSelected: boolean;
   selectMode: boolean;
-  // True iff this friend has an active Ask in the viewer's
-  // fetch_ask_feed result. Drives the avatar gradient ring —
-  // same visual convention FriendDetailScreen uses, so the same
-  // brand-purple gradient consistently means "this person is
-  // currently asking for something" across every surface.
-  hasActiveAsk: boolean;
-  // Short preview of the friend's active Ask body. When set,
-  // renders as a subtle chip below the tags row — same idea as
-  // IG story captions: a glanceable hint of WHAT they're asking
-  // for, without forcing a tap-through. Caller is responsible
-  // for truncating to a reasonable length (Map-side, not here).
-  askPreview?: string | null;
   onPress: (item: ConnectionWithTags) => void;
   onLongPress: (item: ConnectionWithTags) => void;
 };
 
-const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk, askPreview, onPress, onLongPress }: ConnectionItemProps) => {
+const ConnectionItem = React.memo(({ item, isSelected, selectMode, onPress, onLongPress }: ConnectionItemProps) => {
   // Sub-components need their own theme hooks — parent's `styles`
   // and `colors` are scoped inside its function and not visible here.
   const { colors } = useTheme();
@@ -127,8 +111,7 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk,
   // RingedAvatar(59) + textSection structure as a real connection
   // so the fixed getItemLayout height still holds — just dimmed,
   // showing the contact's uploaded avatar (or initials when none),
-  // a "尚未加入" badge where @username would be,
-  // no ask gradient, no select checkbox. Tap → edit it.
+  // a "尚未加入" badge where @username would be. Tap → edit it.
   // Not-yet-on-PikTag: a manually-added local contact. Same dim row;
   // tap → edit it. (The web "scanned + left a name" pending-scan rail
   // / 絕招一 was removed — it produced name-only, untaggable records
@@ -194,20 +177,6 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk,
       accessibilityLabel={displayName}
       accessibilityRole="button"
     >
-      {/* Buzz tint — soft brand-purple wash that fades to clear on
-          the right when this friend has a live Ask. Reads as
-          "this row is alive" without competing with the chip's
-          gradient pill or the avatar's rotating ring. pointerEvents
-          none so taps still land on the parent TouchableOpacity. */}
-      {hasActiveAsk && !isSelected ? (
-        <LinearGradient
-          colors={['rgba(140,82,255,0.07)', 'rgba(140,82,255,0)']}
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 1, y: 0.5 }}
-          style={StyleSheet.absoluteFill}
-          pointerEvents="none"
-        />
-      ) : null}
       {selectMode && (
         <View style={styles.checkboxContainer}>
           {isSelected ? (
@@ -219,7 +188,7 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk,
       )}
       <RingedAvatar
         size={59}
-        ringStyle={hasActiveAsk ? 'gradient' : 'subtle'}
+        ringStyle="subtle"
         name={displayName}
         avatarUrl={avatarUrl}
       />
@@ -247,26 +216,6 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk,
             {item.tags.join('  ')}
           </Text>
         )}
-        {/* Ask-preview chip — gradient-filled pill that visually
-            echoes the rotating gradient ring on the avatar above.
-            Z-gen "this person is buzzing right now" cue, not a
-            subtle hint. Same gradient colors as the renderQrMode /
-            Vibe hero / QR share screen — single brand-purple
-            language across every "this is alive" surface. Caption
-            style mirrors IG story captions; tap the row to read
-            the full ask on FriendDetail. */}
-        {askPreview ? (
-          <LinearGradient
-            colors={['#ff5757', '#c44dff', '#8c52ff']}
-            start={{ x: 0, y: 0.5 }}
-            end={{ x: 1, y: 0.5 }}
-            style={styles.askPreviewChip}
-          >
-            <Text style={styles.askPreviewText} numberOfLines={1}>
-              {askPreview}
-            </Text>
-          </LinearGradient>
-        ) : null}
       </View>
     </TouchableOpacity>
   );
@@ -287,16 +236,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // register, the server trigger promotes them into real
   // connections and they drop out of this (un-promoted) query.
   const { contacts: localContacts_, refresh: refreshLocalContacts } = useLocalContacts();
-  const { asks: askFeedItems, myAsk: myActiveAsk, refresh: refreshAsks } = useAskFeed();
-
-  // Ask create modal visibility — opened from the cold-start
-  // "broadcast an Ask" card so a brand-new user (zero friends) has
-  // a one-tap path to find people through the platform without
-  // needing a network first. AskStoryRow has its OWN modal-trigger
-  // for users with at least some asks; this is the explicit
-  // empty-state-only path.
-  // (askCreateVisible removed 2026-06-04 — cold-start Ask card cut;
-  // the AskStoryRow owns Ask creation now.)
 
   const lastFetchRef = React.useRef<number>(0);
 
@@ -622,17 +561,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     useCallback(() => {
       const loadAll = async () => {
         if (!user) return;
-        // Always refresh the Ask feed on focus — independent of the
-        // 30s connection-list cooldown. Reported case: A and B are
-        // friends, A posts an Ask, B receives the push notification,
-        // but B doesn't see the Ask in the rail because B's app is
-        // foregrounded mid-session and the realtime INSERT event
-        // didn't reach this client (e.g. websocket asleep, race with
-        // the push payload). The notification trigger and the feed
-        // RPC look at the same connections rows, so if B got the
-        // notification B *should* see the Ask. A focus refetch
-        // guarantees that without changing the RPC contract.
-        refreshAsks();
         // Refresh local contacts every focus (independent of the 30s
         // connection cooldown) — EditLocalContactScreen holds its own
         // useLocalContacts instance, so a create/edit/delete there
@@ -653,7 +581,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         }
       };
       loadAll();
-    }, [fetchConnections, refreshAsks, refreshLocalContacts])
+    }, [fetchConnections, refreshLocalContacts])
   );
 
   // Pull-to-refresh (founder 2026-06-26: the Friends list lacked the
@@ -663,7 +591,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     lastFetchRef.current = 0;
-    refreshAsks();
     refreshLocalContacts();
     try {
       await fetchConnections();
@@ -671,7 +598,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       setRefreshing(false);
       lastFetchRef.current = Date.now();
     }
-  }, [fetchConnections, refreshAsks, refreshLocalContacts]);
+  }, [fetchConnections, refreshLocalContacts]);
 
   // Auto-refetch when the network comes back if we previously errored.
   // Bypass the 30s cooldown — a manual reconnect signal is a strong
@@ -774,30 +701,15 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     }
 
-    // Promote friends with an active Ask to the top — same idea as
-    // IG's "story rail" pushing has-story friends ahead, just on the
-    // vertical list instead of the horizontal rail. This is a STATUS
-    // override, not a sort mode: within both groups (has-ask vs not)
-    // the user's chosen sort still wins. ES2019 Array.sort is stable
-    // so the secondary pass cleanly partitions the list without
-    // disturbing the order inside each partition. When an Ask expires
-    // the friend naturally falls back into their normal slot.
-    const askAuthorSet = new Set((askFeedItems || []).map((a) => a.author_id));
-    sorted.sort((a, b) => {
-      const aHas = askAuthorSet.has(a.connected_user_id) ? 1 : 0;
-      const bHas = askAuthorSet.has(b.connected_user_id) ? 1 : 0;
-      return bHas - aHas;
-    });
-
     if (filterTag) {
       return sorted.filter((c) => c.tags.includes(filterTag));
     }
     return sorted;
-  }, [connections, filterTag, sortMode, askFeedItems]);
+  }, [connections, filterTag, sortMode]);
 
   // Map un-promoted local contacts into the connection row shape and
   // append AFTER real connections (keeps the tuned real-connection
-  // sort + ask-promotion untouched; not-yet-joined people group at
+  // sort untouched; not-yet-joined people group at
   // the end behind the badge). is_reviewed:true makes them invisible
   // to all the 待整理 / "new" badge / select logic with zero extra
   // guards. filterTag applies to their tags too.
@@ -1016,54 +928,18 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     });
   }, [sortedConnections, localContacts_, selectedIds, suggestedTagNames, exitSelectMode, navigation]);
 
-  // Per-author lookup table for active Asks. Stores both the
-  // existence flag (drives the avatar gradient ring) and a
-  // truncated body preview (drives the IG-caption-style chip
-  // beneath the tags row). Built once per askFeedItems change so
-  // the per-row render stays O(1).
-  //
-  // Preview length cap: 40 visible characters. Empirically that
-  // fits roughly one line at the row's natural width without
-  // pushing the layout taller, and is long enough to convey
-  // "I'm looking for a frontend engineer" sized intents.
-  const ASK_PREVIEW_LEN = 40;
-  const askPreviewByAuthor = useMemo(() => {
-    const m = new Map<string, string>();
-    for (const a of askFeedItems || []) {
-      if (!a?.author_id || !a?.body) continue;
-      // Official @piktag demo Ask stores English body in the DB; swap in
-      // the viewer-language demo text so the pill matches the rail + detail
-      // localization (getDemoAskText). Regular asks use their real body.
-      const rawBody = isOfficialDemoAsk(a.author_id)
-        ? (getDemoAskText(t).body || a.body)
-        : a.body;
-      // Collapse whitespace + truncate. ellipsis ASCII to keep
-      // the renderable width tight on iOS Pinyin Mono Dot.
-      const oneLine = rawBody.replace(/\s+/g, ' ').trim();
-      const preview =
-        oneLine.length > ASK_PREVIEW_LEN
-          ? oneLine.slice(0, ASK_PREVIEW_LEN).trimEnd() + '…'
-          : oneLine;
-      m.set(a.author_id, preview);
-    }
-    return m;
-  }, [askFeedItems, t]);
-
   // --- Optimized: useCallback renderItem with memoized ConnectionItem ---
   const renderItem = useCallback(({ item }: { item: ConnectionWithTags }) => {
-    const preview = askPreviewByAuthor.get(item.connected_user_id) ?? null;
     return (
       <ConnectionItem
         item={item}
         isSelected={selectedIds.has(item.id)}
         selectMode={selectMode}
-        hasActiveAsk={preview != null}
-        askPreview={preview}
         onPress={handleConnectionPress}
         onLongPress={handleConnectionLongPress}
       />
     );
-  }, [selectedIds, selectMode, askPreviewByAuthor, handleConnectionPress, handleConnectionLongPress]);
+  }, [selectedIds, selectMode, handleConnectionPress, handleConnectionLongPress]);
 
   // Phone-prompt banner state. Async check (AsyncStorage + Supabase)
   // so we render the cold-start view first, then upgrade once known.
@@ -1165,36 +1041,8 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // --- Optimized: stable keyExtractor ---
   const keyExtractor = useCallback((item: ConnectionWithTags) => item.id, []);
 
-  // My own profile for the Ask story row. Sourced from AuthContext —
-  // the central cache fetches piktag_profiles ONCE at login, so we
-  // no longer pay a per-mount round-trip here. Shape downstream:
-  // { full_name, avatar_url } — both nullable, same as before.
-  const { profile: authProfile } = useAuthProfile();
-  const myProfile = useMemo(
-    () => ({
-      full_name: authProfile?.full_name ?? null,
-      avatar_url: authProfile?.avatar_url ?? null,
-    }),
-    [authProfile?.full_name, authProfile?.avatar_url],
-  );
-
   // (Invite-code redeem resume removed — the invite/redeem gate was
   // retired; open signup, no codes.)
-
-  const handleAskPressUser = useCallback((userId: string, askId?: string, authorId?: string) => {
-    // Track Ask view for response analytics
-    if (askId && authorId) {
-      import('../lib/searchLearning').then(({ recordAskResponse }) => {
-        recordAskResponse({ askId, authorId, action: 'view' });
-      }).catch(() => {});
-    }
-    const conn = connections.find(c => c.connected_user_id === userId);
-    if (conn) {
-      navigation.navigate('FriendDetail', { connectionId: conn.id, friendId: userId });
-    } else {
-      navigation.navigate('UserDetail', { userId });
-    }
-  }, [connections, navigation]);
 
   // --- Optimized: stable ListHeaderComponent via useMemo ---
   const listHeader = useMemo(() => {
@@ -1228,17 +1076,9 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             </Pressable>
           </Pressable>
         )}
-        <AskStoryRow
-          asks={askFeedItems}
-          myAsk={myActiveAsk}
-          myAvatarUrl={myProfile.avatar_url}
-          myName={myProfile.full_name || '?'}
-          onRefresh={refreshAsks}
-          onPressUser={handleAskPressUser}
-        />
       </>
     );
-  }, [askFeedItems, myActiveAsk, myProfile, selectMode, refreshAsks, handleAskPressUser, showPhonePrompt, handlePhonePromptPress, handlePhonePromptDismiss, t, styles, colors]);
+  }, [selectMode, showPhonePrompt, handlePhonePromptPress, handlePhonePromptDismiss, t, styles, colors]);
 
   // --- Optimized: stable contentContainerStyle ---
   const contentContainerStyle = useMemo(() => [
@@ -1603,11 +1443,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         </View>
       </Modal>
 
-      {/* (Cold-start Ask modal removed 2026-06-04 — the ask card was
-          cut from the empty state; the AskStoryRow above owns its own
-          AskCreateModal, so this duplicate instance is no longer
-          needed.) */}
-
       <CoachMark
         hintId="home_scan"
         text={t('coach.homeScan')}
@@ -1931,33 +1766,6 @@ function makeStyles(c: ColorPalette) {
     color: c.gray400,
     lineHeight: 18,
     marginTop: 3,
-  },
-  // Ask-preview chip — gradient-filled, white-text pill. Sits
-  // below the tags row when the friend has a live Ask. Inline-
-  // sized via alignSelf flex-start so the chip wraps tight to
-  // the text width instead of stretching. The gradient + white
-  // text deliberately uses the same red→magenta→deep-purple
-  // sweep as the QR share screen + Vibe hero gradient + the
-  // avatar's rotating ring — single brand-purple vocabulary for
-  // "this surface is alive right now". Stronger visual weight
-  // than the previous soft piktag50 pill because: the user
-  // explicitly asked for Z-gen "buzz" energy, and a friend
-  // ASK is genuinely a high-priority event worth interrupting
-  // the row's neutral rhythm for.
-  askPreviewChip: {
-    alignSelf: 'flex-start',
-    maxWidth: '100%',
-    marginTop: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-  },
-  askPreviewText: {
-    fontSize: 12,
-    color: '#FFFFFF',
-    fontWeight: '700',
-    lineHeight: 16,
-    letterSpacing: 0.1,
   },
   // On This Day card
   onThisDayCard: {

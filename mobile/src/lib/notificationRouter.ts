@@ -109,37 +109,23 @@ export async function routeFromNotification(
     return;
   }
 
-  // ask_bridge — "Bob 認識 #律師 的朋友". The press should land
-  // somewhere the user can actually act: their own active Ask's
-  // detail page, where they can read the full bridge list and tap
-  // a bridge friend to message them. For v1 we don't have a
-  // dedicated Ask detail screen, so route to Connections (home)
-  // — the bridge list is in `data.bridge_names`, and the
-  // long-press handler already lets users dig in.
-  if (type === 'ask_bridge') {
-    navigation.navigate('Main', { screen: 'HomeTab' } as any);
-    return;
-  }
-
-  // ask_prompt — "今天想要什麼？". Tapping it should open the
-  // Ask create modal directly. The AskCreateModal lives inside
-  // AskStoryRow on the connections screen and on the profile
-  // screen; rather than coupling routing to the modal lifecycle,
-  // route to HomeTab and let the user tap the "+ Ask" circle on
-  // the rail. (A future polish: deep-link straight to the modal.)
-  if (type === 'ask_prompt') {
-    navigation.navigate('Main', { screen: 'HomeTab' } as any);
-    return;
-  }
-
-  // ask_web_reply — a non-member replied to the viewer's own Ask via
-  // the pikt.ag/a/<id> share page. The reply lives inside the
-  // view-own AskCreateModal (opened by tapping the "your Ask" circle
-  // on the rail), same entry point as ask_prompt/ask_bridge — no
-  // dedicated Ask detail screen exists yet, so route to HomeTab and
-  // let the user tap their own Ask circle to see the web-replies list.
-  if (type === 'ask_web_reply') {
-    navigation.navigate('Main', { screen: 'HomeTab' } as any);
+  // Ask notifications. The Ask UI (story row, create modal, view sheet)
+  // was taken down from this client 2026-11-18 (phase 2 of the personal
+  // network tool simplification). The server still writes these rows for
+  // old app versions, so a tap must never open Ask UI or a dead route:
+  //   * ask_posted    — carries data.actor_user_id (the asker). Not handled
+  //                     here on purpose: it falls through to the generic
+  //                     user-centric branch below and lands on the asker's
+  //                     FriendDetail / UserDetail.
+  //   * ask_bridge    — about the viewer's OWN Ask; data has only
+  //                     bridge_names / tags, no user id to land on.
+  //   * ask_prompt    — weekly "what do you need?" nudge to create an Ask.
+  //   * ask_web_reply — a non-member replied to the viewer's own Ask via
+  //                     pikt.ag/a/<id>; no member user id exists.
+  // The last three have no person and no in-app surface left, so they land
+  // on Notifications (a no-op when tapped from NotificationsScreen itself).
+  if (type === 'ask_bridge' || type === 'ask_prompt' || type === 'ask_web_reply') {
+    navigation.navigate('Notifications');
     return;
   }
 

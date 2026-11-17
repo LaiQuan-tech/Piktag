@@ -53,7 +53,6 @@ import { CACHE_KEYS, getPersistentCache } from '../lib/dataCache';
 import { useRotatingPlaceholder } from '../hooks/useRotatingPlaceholder';
 import { toBirthdayDate } from '../lib/birthday';
 import BirthdayInput from '../components/BirthdayInput';
-import { useAskFeed } from '../hooks/useAskFeed';
 import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import PlatformSearchModal from '../components/PlatformSearchModal';
@@ -435,12 +434,6 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
   // rewrites that cache on every successful launch — so this is the one
   // source that is reliably present offline.
   const { profile: ctxProfile } = useAuthProfile();
-  // myAsk drives the avatar's gradient ring on this screen too — same
-  // semantic as ProfileScreen: the gradient ring signals "I have an
-  // active Ask", subtle when not. Without this, every user editing
-  // their profile would see a permanent gradient and the visual signal
-  // means nothing.
-  const { myAsk } = useAskFeed();
   const userId = user?.id;
 
   const [form, setForm] = useState<FormData>({
@@ -1979,7 +1972,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
             <View style={styles.avatarStack}>
               <RingedAvatar
                 size={108}
-                ringStyle={myAsk ? 'gradient' : 'subtle'}
+                ringStyle="subtle"
                 badge="pencil"
                 name={form.full_name || form.username || ''}
                 avatarUrl={avatarUrl}

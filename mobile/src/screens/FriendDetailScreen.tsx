@@ -57,7 +57,6 @@ import RecordCard from '../components/RecordCard';
 import { StatsRow, StatDot } from '../components/StatsLine';
 import InitialsAvatar from '../components/InitialsAvatar';
 import RingedAvatar from '../components/RingedAvatar';
-import TagChip from '../components/TagChip';
 import OverlappingAvatars from '../components/OverlappingAvatars';
 import HiddenTagEditor from '../components/HiddenTagEditor';
 import ErrorState from '../components/ErrorState';
@@ -81,12 +80,11 @@ import {
 import { supabase } from '../lib/supabase';
 import { toBirthdayDate } from '../lib/birthday';
 import { useAuth } from '../hooks/useAuth';
-import { useAskFeed } from '../hooks/useAskFeed';
 import type { Connection, PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
 import { isIdModePlatform, isSafeBiolinkUrl } from '../lib/platforms';
 import { openOrCopyBiolink } from '../lib/biolinks';
-import { isOfficialDemoAsk, isOfficialAccount, getOfficialBio, getDemoAskText, getDemoAskTag, getOfficialTagLabel } from '../lib/officialDemoAsk';
+import { isOfficialAccount, getOfficialBio, getOfficialTagLabel } from '../lib/officialAccount';
 import { hashDisplay } from '../lib/normalizeTag';
 
 // How many scan-event tags to show before the "show all" toggle kicks in.
@@ -249,36 +247,8 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  // Friend's avatar gradient ring is the visual signal for "this person
-  // has an active Ask right now". useAskFeed already pulls asks from
-  // 1st/2nd-degree connections (which a friend is by definition), so we
-  // can derive this for free without a per-screen extra fetch. Subtle
-  // ring otherwise — same conditional rule as own ProfileScreen, kept
-  // consistent so the same brand-purple gradient means the same thing
-  // wherever it appears.
-  const { asks: askFeedAsks } = useAskFeed();
   const { connectionId: routeConnectionId, friendId } = route.params || {};
 
-  // Friend's active Ask, surfaced on the profile as a conversation hook —
-  // founder framing (2026-05-27): "重點不是能不能滿足該好友的需求，而是
-  // 創造聯絡的話題". So we render the Ask as ambient context (no CTA,
-  // no respond button), positioned right under the bio so the reading
-  // order goes "who they are (bio) → what they're asking now (ask) →
-  // what they have (tags)". Same askFeedAsks the ring colour already
-  // consumes — zero net fetch.
-  const friendActiveAsk = useMemo(
-    () => askFeedAsks.find((a) => a.author_id === friendId) ?? null,
-    [askFeedAsks, friendId],
-  );
-  // Tag chips for the Ask card. The official demo Ask's body rotates
-  // weekly (getDemoAskText); its DB tags are the fixed [ReactNative,
-  // SideQuest] placeholders, so swap in the rotation's single tag so the
-  // chip matches the shown body. Real users' Asks keep their own tags.
-  const friendAskTagNames = useMemo(() => {
-    if (!friendActiveAsk) return [] as string[];
-    if (isOfficialDemoAsk(friendActiveAsk.author_id)) return [getDemoAskTag()];
-    return friendActiveAsk.ask_tag_names;
-  }, [friendActiveAsk]);
   // connectionId is state-backed because handleToggleFollow may newly
   // create a connection (via lib/followUser.ts) and we need to thread
   // the fresh id into pickTag / hidden-tag flows that key off it. The
@@ -1607,14 +1577,9 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         <View style={styles.profileSection}>
           {/* Avatar + Name/Username */}
           <View style={styles.profileRow}>
-            {/* Gradient ring iff this friend has an active Ask in the
-                fetch_ask_feed result. Subtle when not, so the gradient
-                stops being a permanent decoration that everyone has —
-                matches the rule we just applied to ProfileScreen and
-                EditProfileScreen. */}
             <RingedAvatar
               size={68}
-              ringStyle={friendActiveAsk ? 'gradient' : 'subtle'}
+              ringStyle="subtle"
               name={displayName}
               avatarUrl={avatarUrl}
             />
@@ -1667,86 +1632,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
           {/* Bio (max 3 lines). @piktag's stored bio is English-only
               teaching copy — render it in the viewer's device language
-              instead, same reasoning as the demo Ask below. Regular
+              instead (it is instructional copy for every viewer). Regular
               friends' self-written bios are untouched. */}
           {isOfficialAccount(profile?.id) ? (
             <Text style={styles.bio} numberOfLines={3}>{getOfficialBio(t)}</Text>
           ) : profile?.bio ? (
             <Text style={styles.bio} numberOfLines={3}>{profile.bio}</Text>
-          ) : null}
-
-          {/* Friend's active Ask — conversation hook, not a CTA. See the
-              friendActiveAsk memo above for the framing. No respond
-              button on purpose: opening this profile and seeing "they're
-              currently looking for X" is meant to seed a real human
-              message, not a transactional response flow. */}
-          {friendActiveAsk ? (
-            <View style={styles.askCard}>
-              <View style={styles.askHeader}>
-                {isOfficialDemoAsk(friendActiveAsk.author_id) ? (
-                  // Official account's Ask is a 10-year-long demo row —
-                  // its real expires_at is meaningless and a live
-                  // countdown against it produces absurd output (tens of
-                  // thousands of hours left). Show a single static badge
-                  // instead of any countdown/status text.
-                  <Text style={styles.askLabel}>{t('ask.demoBadge', { defaultValue: 'Demo Ask' })}</Text>
-                ) : (
-                  <>
-                    <Text style={styles.askLabel}>{t('ask.askingNow')}</Text>
-                    <Text style={styles.askMeta}>
-                      {t('ask.timeLeft', {
-                        hours: Math.max(
-                          0,
-                          Math.round(
-                            (new Date(friendActiveAsk.expires_at).getTime() - Date.now()) /
-                              3600000,
-                          ),
-                        ),
-                      })}
-                    </Text>
-                  </>
-                )}
-              </View>
-              {isOfficialDemoAsk(friendActiveAsk.author_id) ? (
-                <>
-                  <Text style={styles.askTitle} numberOfLines={2}>
-                    {getDemoAskText(t).title}
-                  </Text>
-                  <Text style={styles.askBody} numberOfLines={3}>
-                    {getDemoAskText(t).body}
-                  </Text>
-                </>
-              ) : (
-                <>
-                  {friendActiveAsk.title ? (
-                    <Text style={styles.askTitle} numberOfLines={2}>
-                      {friendActiveAsk.title}
-                    </Text>
-                  ) : null}
-                  <Text style={styles.askBody} numberOfLines={3}>
-                    {friendActiveAsk.body}
-                  </Text>
-                </>
-              )}
-              {friendAskTagNames.length > 0 ? (
-                <View style={styles.askTagsRow}>
-                  {friendAskTagNames.slice(0, 6).map((tagName) => (
-                    // selected={true} → piktag500 fill + white text
-                    // (canonical TagChip "selected" treatment per
-                    // CLAUDE.md). Distinguishes the Ask's matching
-                    // criteria from the friend's identity tags row
-                    // below — see the askCard style comment for
-                    // the founder's 2026-06-03 reversal rationale.
-                    <TagChip
-                      key={tagName}
-                      label={tagName}
-                      variant="toggle"
-                      selected={true}
-                    />
-                  ))}
-                </View>
-              ) : null}
-            </View>
           ) : null}
 
           {/* Section 1: User tags — friend's self-applied + my picked tags.
@@ -2813,65 +2704,6 @@ function makeStyles(c: ColorPalette) {
   // (recordCard / recordRow / recordLabel / recordValue / recordNotes
   // / recordDivider / reminderRow moved into the shared RecordCard
   // component — task #38 follow-up 2026-05-31.)
-  // Friend's-active-Ask card. Soft purple-tinted background to
-  // signal "this is live / happening now". marginBottom: 12 added
-  // 2026-06-03 — without it the Ask card sat flush against the
-  // friend's tag-row below (founder caught the missing gap).
-  //
-  // The previous comment here pinned the Ask-card's internal tags
-  // to the gray chip variant for "no purple wall" reasons. That
-  // rule still applies to the FRIEND'S TAGS section below this
-  // card (10+ chips, would dilute the 標籤 CTA if all purple) —
-  // but the founder reversed it specifically for THIS card's
-  // tags 2026-06-03: those tags ARE the Ask's matching criteria,
-  // distinct from the friend's identity tags, and rendering them
-  // purple inside the already-purple card makes that role clear.
-  // Max 6 tags by slice — no "wall" risk inside this scope.
-  askCard: {
-    backgroundColor: c.piktag50,
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 12,
-  },
-  askHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  askLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: c.piktag600,
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-  },
-  askMeta: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: c.gray500,
-  },
-  askTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: c.gray900,
-    lineHeight: 20,
-    marginTop: 2,
-  },
-  askBody: {
-    fontSize: 14,
-    color: c.gray700,
-    lineHeight: 20,
-    marginTop: 4,
-  },
-  askTagsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 10,
-  },
   // CRM Reminders
   reminderEditRow: {
     flex: 1,

@@ -89,9 +89,12 @@ export const CACHE_KEYS = {
   // had no snapshot at all, so every card scanned at an event vanished
   // from the offline friends list with no explanation.
   LOCAL_CONTACTS: 'localContacts',
-  // Which Asks this viewer has already opened (AskStoryRow). Was the
+  // Which Asks this viewer has already opened (was AskStoryRow). Was the
   // device-global `piktag_viewed_ask_ids`, so A's read state greyed out
-  // B's unread Asks.
+  // B's unread Asks. The Ask UI was taken down 2026-11-18 and nothing
+  // writes this key any more. The definition STAYS so
+  // clearPersistentCaches() (which iterates this object) still sweeps the
+  // snapshots older builds left on disk. Do not delete it.
   VIEWED_ASKS: 'viewedAsks',
   // The connection id of the last post-event burst we offered to batch
   // tag (lib/burstTag). Was `piktag_burst_tag_prompted_v1` and held one
@@ -529,6 +532,10 @@ export async function clearPersistentCaches(userId: string | null | undefined): 
       // used to run when a chat thread mounted (lib/chatSendQueue); with
       // the chat UI gone (2026-11-18) sign-out is the remaining sweep.
       'piktag_chat_send_queue_v1',
+      // Device-global viewed-Ask ids from before the per-user
+      // VIEWED_ASKS key. AskStoryRow purged it on mount; with the Ask UI
+      // gone (2026-11-18) sign-out is the remaining sweep.
+      'piktag_viewed_ask_ids',
     ]);
   } catch {
     // best-effort

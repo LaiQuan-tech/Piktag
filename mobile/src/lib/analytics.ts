@@ -110,9 +110,6 @@ export const trackFriendAdded = (props: {
 /** User sent a chat message. */
 export const trackMessageSent = () => capture('message_sent');
 
-/** User posted an Ask. */
-export const trackAskPosted = () => capture('ask_posted');
-
 /**
  * Onboarding-wizard funnel (founder 2026-06-29). One event per step
  * COMPLETION: 'profile' | 'tags' | 'links' ('links' fires inside

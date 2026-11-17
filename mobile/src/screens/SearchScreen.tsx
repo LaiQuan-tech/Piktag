@@ -56,8 +56,6 @@ import { checkOffline } from '../lib/netStatus';
 import { useRotatingPlaceholder } from '../hooks/useRotatingPlaceholder';
 import ErrorState from '../components/ErrorState';
 import LogoLoader from '../components/loaders/LogoLoader';
-import { AskCreateModal } from '../components/ask/AskStoryRow';
-import { useAskFeed } from '../hooks/useAskFeed';
 import type { Tag, PiktagProfile } from '../types';
 
 // ── Recent searches: per-account, on disk ────────────────────────────
@@ -609,11 +607,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // Phase B will expand to friends-of-friends with privacy opt-in.
   const [mapVisible, setMapVisible] = useState(false);
   const [mapFriends, setMapFriends] = useState<FriendLocation[]>([]);
-  // Ask conversion from a dead-end search. If the user already has an
-  // active ask, the modal opens in view mode (existingAsk); otherwise
-  // it's a create form pre-seeded with the failed query.
-  const [askVisible, setAskVisible] = useState(false);
-  const { myAsk, refresh: refreshAsk } = useAskFeed();
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
@@ -3336,7 +3329,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       const totalCount = friendsCount + searchExplore.length;
       // A TOTAL dead end = no people AND no tags matched anywhere. Only
       // then do we collapse the page to the clean 3-element empty state
-      // (concept-in-title → one Ask CTA). The concept the user searched
+      // (concept-in-title + one retry hint). The concept the user searched
       // for, folded INTO that title: the AI-extracted tag (#日文) when
       // present, else the raw query.
       const isDeadEnd = totalCount === 0 && tags.length === 0;
@@ -3741,13 +3734,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
               </View>
             );
           }
-          // TRUE dead end → the North-Star moment: the user just spoke a
-          // NEED out loud. Three elements only (founder 2026-06-11 "太雜"):
+          // TRUE dead end. Two elements only (founder 2026-06-11 "太雜"):
           //   1. title with the concept folded in ("你的人脈裡還沒有「#日文」的人")
-          //   2. one motivating subtitle
-          //   3. one CTA — 發 Ask
-          // The "PikTag 解讀…" chip, the "試試 #標籤" hint and the
-          // "清除重新搜尋" button (a dup of the box ×) are all gone.
+          //   2. one quiet hint to retry with a tag / another keyword
+          // The 發 Ask CTA that used to sit here was removed 2026-11-18
+          // with the rest of the Ask UI (personal network tool, phase 2).
+          // The "PikTag 解讀…" chip and the "清除重新搜尋" button (a dup
+          // of the box ×) stay gone.
           return (
             <View style={styles.emptyStateContainer}>
               <Text style={styles.emptyStateTitle} numberOfLines={3}>
@@ -3757,23 +3750,10 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                 })}
               </Text>
               <Text style={styles.emptyStateHint}>
-                {t('search.deadEndAskHint', {
-                  defaultValue: '發個 Ask，讓朋友幫你找到他',
+                {t('search.tryTagSearchHint', {
+                  defaultValue: 'Try searching #tags or a different keyword',
                 })}
               </Text>
-              <TouchableOpacity
-                style={styles.askCtaButton}
-                onPress={() => setAskVisible(true)}
-                activeOpacity={0.85}
-                accessibilityRole="button"
-                accessibilityLabel={t('search.askEmptyStateButton', {
-                  defaultValue: 'Post an Ask',
-                })}
-              >
-                <Text style={styles.askCtaButtonText}>
-                  {t('search.askEmptyStateButton', { defaultValue: 'Post an Ask' })}
-                </Text>
-              </TouchableOpacity>
             </View>
           );
         }
@@ -4055,14 +4035,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           setMapVisible(false);
           navigation.navigate('FriendDetail', { connectionId, friendId });
         }}
-      />
-
-      <AskCreateModal
-        visible={askVisible}
-        onClose={() => setAskVisible(false)}
-        existingAsk={myAsk}
-        seedBody={trimmedQuery}
-        onCreated={refreshAsk}
       />
 
       <CoachMark
@@ -4432,22 +4404,6 @@ function makeStyles(c: ColorPalette) {
     fontSize: 14,
     color: c.gray700,
     fontWeight: '500',
-  },
-  // Ask conversion CTA in the no-results state. Single emphasized
-  // pill (the prompt sentence was folded into the button label in
-  // the empty-state slim refactor) — productive next step. The
-  // "clear and retry" below stays the neutral grey secondary.
-  askCtaButton: {
-    marginTop: 12,
-    paddingVertical: 11,
-    paddingHorizontal: 24,
-    borderRadius: 22,
-    backgroundColor: c.piktag500,
-  },
-  askCtaButtonText: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    fontWeight: '700',
   },
   sectionLabelRow: {
     flexDirection: 'row',

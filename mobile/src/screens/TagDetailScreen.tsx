@@ -16,7 +16,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import RingedAvatar from '../components/RingedAvatar';
-import AskListByTag from '../components/ask/AskListByTag';
 import ErrorState from '../components/ErrorState';
 import { supabase } from '../lib/supabase';
 import { getSiblingTagIds } from '../lib/tagSiblings';
@@ -87,7 +86,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
   // Optional caller-supplied localized label (e.g. the official @piktag
   // demo tag's viewer-language display text — "Photography" vs the real
   // tagName "攝影"). HEADER DISPLAY ONLY: every query, the sibling-resolve
-  // effect, explore fetch, and the Ask list all key on the real tagName /
+  // effect and explore fetch all key on the real tagName /
   // resolvedTagId below, unchanged. Falls back to tagName when absent, so
   // non-official callers (the vast majority) are byte-for-byte unaffected.
   const displayLabel = route.params?.displayLabel as string | undefined;
@@ -679,21 +678,6 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
   );
   const currentData = isConnectionsTab ? connectionsData : exploreUsers;
 
-  // Active asks tagged with this tag — surfaces "who is currently
-  // asking about #X" above the user list. Auto-hides when there are
-  // none. Same render on both tabs so the discovery moment doesn't
-  // disappear when the user toggles 追蹤 / 探索.
-  const handleAskAuthorPress = useCallback(
-    (userId: string) => {
-      navigateToProfile(userId);
-    },
-    [navigateToProfile],
-  );
-  const asksHeader = useMemo(
-    () => (tagId ? <AskListByTag tagId={tagId} onPressAsk={handleAskAuthorPress} /> : null),
-    [tagId, handleAskAuthorPress],
-  );
-
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
@@ -797,7 +781,6 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           data={connectionsData}
           renderItem={renderConnectionItem}
           keyExtractor={connectionKeyExtractor}
-          ListHeaderComponent={asksHeader}
           contentContainerStyle={[
             styles.listContent,
             connectionsData.length === 0 && styles.listContentEmpty,
@@ -823,7 +806,6 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           data={exploreUsers}
           renderItem={renderExploreItem}
           keyExtractor={exploreKeyExtractor}
-          ListHeaderComponent={asksHeader}
           contentContainerStyle={[
             styles.listContent,
             exploreUsers.length === 0 && styles.listContentEmpty,

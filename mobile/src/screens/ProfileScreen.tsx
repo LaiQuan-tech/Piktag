@@ -36,8 +36,6 @@ import {
 import { openOrCopyBiolink } from '../lib/biolinks';
 import QrCodeModal from '../components/QrCodeModal';
 import RingedAvatar from '../components/RingedAvatar';
-import { AskCreateModal } from '../components/ask/AskStoryRow';
-import { useAskFeed } from '../hooks/useAskFeed';
 import { ProfileScreenSkeleton } from '../components/SkeletonLoader';
 import ErrorState from '../components/ErrorState';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
@@ -107,15 +105,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   // still falls through to the normal (mostly empty) profile render
   // rather than being told to check its connection.
   const [unreachable, setUnreachable] = useState(false);
-
-  // Ask creation entry — the avatar's "+" badge launches the same
-  // AskCreateModal used by AskStoryRow on the Connections tab. Reuses
-  // the existing useAskFeed hook so we share state with whichever
-  // other tab last opened the modal (the modal's existingAsk prop
-  // automatically flips to view/delete mode when there's an active
-  // ask, matching AskStoryRow's behaviour).
-  const { myAsk, refresh: refreshAskFeed } = useAskFeed();
-  const [askModalVisible, setAskModalVisible] = useState(false);
 
   // --- Data fetching ---
 
@@ -344,14 +333,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     useCallback(() => {
       // Always refetch on focus to catch edits from EditProfile
       fetchAllData();
-      // Also refetch ask feed — each useAskFeed() call has independent
-      // state, so when the user deletes their ask from a different
-      // screen (ConnectionsScreen's AskStoryRow, or the AskCreateModal
-      // there), this screen's myAsk pointer would otherwise stay stale
-      // until the realtime DELETE event lands. Belt-and-suspenders
-      // alongside the realtime listener in the hook itself.
-      refreshAskFeed();
-    }, [fetchAllData, refreshAskFeed]),
+    }, [fetchAllData]),
   );
 
   const onRefresh = useCallback(async () => {
@@ -529,27 +511,11 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         <View style={styles.profileSection}>
           {/* Avatar + Name/Username */}
           <View style={styles.profileRow}>
-            {/* "+" on an avatar is reserved for "create new ask" across
-                the app — same affordance as AskStoryRow's my-Ask card.
-                Tapping here opens AskCreateModal; if the viewer already
-                has an active ask the modal switches to view/delete mode
-                automatically. EditProfile is reachable via the "編輯
-                個人檔案" button below the stats row. */}
-            {/* Ring style is the visual signal for "I have an active Ask".
-                When myAsk is null we drop to the subtle 1.5px border so
-                the gradient stops being visual noise that everyone has
-                all the time. The "+" badge stays in both states (it's
-                the affordance for creating an Ask, independent of the
-                current Ask state) — onPress branches to view/delete or
-                create inside AskCreateModal. */}
             <RingedAvatar
               size={68}
-              ringStyle={myAsk ? 'gradient' : 'subtle'}
-              badge="plus"
+              ringStyle="subtle"
               name={profile?.full_name || profile?.username || ''}
               avatarUrl={profile?.avatar_url}
-              onPress={() => setAskModalVisible(true)}
-              accessibilityLabel={t('ask.newAsk', { defaultValue: '新增 Ask' })}
             />
             <View style={styles.nameSection}>
               <View style={styles.nameRow}>
@@ -559,17 +525,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 )} */}
               </View>
               <Text style={styles.usernameText}>@{displayUsername}</Text>
-              {/* "Tap + to ask · I need…" hint — surfaces the reverse-
-                  lookup affordance that distinguishes PikTag from a
-                  contacts app. Only shown when the user has no active
-                  ask; once they post one, the surrounding UI (Profile
-                  ask card / connections AskFeed) takes over speaking
-                  for the same affordance, so the hint becomes noise. */}
-              {!myAsk && (
-                <Text style={styles.askPromptHint} numberOfLines={1}>
-                  {t('profile.askPromptHint')}
-                </Text>
-              )}
             </View>
           </View>
 
@@ -660,7 +615,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 - has_self      → EditProfile completion hint
                 - has_friend    → principle #3 endorsement_request cron
                                   (server-side, no user nag needed)
-                - has_ask       → AskStoryRow placeholder
+                - has_ask       → (Ask UI removed 2026-11-18)
                 - has_event     → QR / card scan naturally accrues
                 - distinct_concepts → exposing would cause tag spam
               RPC get_tag_graph_health stays for admin dashboard
@@ -705,13 +660,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           </View>
         )}
       </ScrollView>
-
-      <AskCreateModal
-        visible={askModalVisible}
-        onClose={() => setAskModalVisible(false)}
-        existingAsk={myAsk}
-        onCreated={refreshAskFeed}
-      />
 
       <CoachMark
         hintId="profile_tags"
@@ -797,16 +745,6 @@ function makeStyles(c: ColorPalette) {
     fontSize: 14,
     fontWeight: '500',
     color: c.gray500,
-  },
-  // Faint italic caption that hints at the reverse-lookup affordance
-  // sitting on the avatar's `+` badge. Faded enough to read as
-  // "suggestion" rather than "label" — once the user has an active
-  // ask the hint is hidden so it doesn't compete with the real status.
-  askPromptHint: {
-    fontSize: 12,
-    color: c.gray400,
-    marginTop: 3,
-    fontStyle: 'italic',
   },
   // (statsRow + statDot moved into the shared StatsLine component.
   // statText / statNumber / statLabel kept — they style the per-stat
