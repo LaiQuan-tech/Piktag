@@ -26,6 +26,7 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { callHfFallback } from '../_shared/hfFallback.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -139,48 +140,71 @@ serve(async (req) => {
       });
     }
 
+    // Missing key no longer returns early: skip Gemini and try the HF
+    // backup; the original 500 is returned below if that also fails.
+    // Quota was already claimed once above — the backup never re-claims.
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-    if (!geminiApiKey) {
-      return new Response(
-        JSON.stringify({ error: 'GEMINI_API_KEY not configured', keywords: [] }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
+
+    let text: string | null = null;
+    if (geminiApiKey) {
+      try {
+        const upstream = await fetch(
+          'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': geminiApiKey,
+            },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: PROMPT(query) }] }],
+              // 2.5-flash is a thinking model — leave headroom for the
+              // internal reasoning chain. Visible answer is just a short
+              // JSON array; 1024 is plenty after thinking tokens.
+              generationConfig: { temperature: 0, maxOutputTokens: 1024 },
+            }),
+          },
+        );
+
+        if (!upstream.ok) {
+          const errBody = await upstream.text().catch(() => '');
+          console.error(
+            'extract-search-intent upstream error:',
+            upstream.status,
+            errBody.slice(0, 300),
+          );
+        } else {
+          const result = await upstream.json();
+          text = (result?.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+        }
+      } catch (e) {
+        console.error('extract-search-intent fetch threw:', e instanceof Error ? e.message : String(e));
+      }
     }
 
-    const upstream = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': geminiApiKey,
-        },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: PROMPT(query) }] }],
-          // 2.5-flash is a thinking model — leave headroom for the
-          // internal reasoning chain. Visible answer is just a short
-          // JSON array; 1024 is plenty after thinking tokens.
-          generationConfig: { temperature: 0, maxOutputTokens: 1024 },
-        }),
-      },
-    );
-
-    if (!upstream.ok) {
-      const errBody = await upstream.text().catch(() => '');
-      console.error(
-        'extract-search-intent upstream error:',
-        upstream.status,
-        errBody.slice(0, 300),
-      );
-      // Fail soft — client falls back to the literal empty-state path.
-      return new Response(JSON.stringify({ keywords: [] }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    if (text === null) {
+      // Backup provider when the Gemini call fails — see _shared/hfFallback.ts
+      const hfText = await callHfFallback({
+        caller: 'extract-search-intent',
+        user: PROMPT(query),
+        maxTokens: 256,
+        temperature: 0,
+        timeoutMs: 8000,
       });
+      if (hfText === null) {
+        if (!geminiApiKey) {
+          return new Response(
+            JSON.stringify({ error: 'GEMINI_API_KEY not configured', keywords: [] }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          );
+        }
+        // Fail soft — client falls back to the literal empty-state path.
+        return new Response(JSON.stringify({ keywords: [] }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      text = hfText.trim();
     }
-
-    const result = await upstream.json();
-    const text: string =
-      (result?.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
 
     // Strip optional markdown fences (Gemini sometimes leaks them
     // despite the "no fences" rule).

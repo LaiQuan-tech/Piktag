@@ -120,6 +120,18 @@ jobs:
           echo "Diff base: $BASE"
           changed=$(git diff --name-only --relative "$BASE"..HEAD -- 'supabase/functions/*/**' \
             | awk -F'/' '{print $3}' | sort -u)
+          # Shared code: `_shared/` (and any `_`-prefixed dir) is NOT a
+          # function — `supabase functions deploy _shared` fails. Drop
+          # those names, and when `_shared/` changed, redeploy every
+          # function that imports from `../_shared/` (the CLI bundles the
+          # shared module into each importer at deploy time).
+          if echo "$changed" | grep -qx '_shared'; then
+            importers=$(grep -l '\.\./_shared/' supabase/functions/*/*.ts 2>/dev/null \
+              | awk -F'/' '{print $3}' | sort -u || true)
+            echo "_shared/ changed — adding importers: $(echo $importers | xargs)"
+            changed=$(printf '%s\n%s\n' "$changed" "$importers" | sort -u)
+          fi
+          changed=$(echo "$changed" | grep -v '^_' || true)
           # Drop any names whose directory no longer exists. A DELETED
           # function can't be `functions deploy`d (no local source), so a
           # removal commit would otherwise fail this step. The orphaned

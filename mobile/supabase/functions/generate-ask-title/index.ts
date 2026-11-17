@@ -1,4 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { callHfFallback } from '../_shared/hfFallback.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -53,12 +54,9 @@ serve(async (req) => {
   }
 
   try {
-    const apiKey = Deno.env.get('GEMINI_API_KEY');
-    if (!apiKey) {
-      return jsonResponse(500, {
-        error: 'GEMINI_API_KEY not configured on the Edge Function',
-      });
-    }
+    // Missing key no longer returns early: skip the Gemini loop and try the
+    // HF backup; the original 500 is returned below if that also fails.
+    const apiKey = Deno.env.get('GEMINI_API_KEY') ?? '';
 
     let body: GenerateTitleBody;
     try {
@@ -87,7 +85,7 @@ serve(async (req) => {
     let lastError = '';
     let rawSnippet = '';
 
-    for (const model of MODEL_FALLBACK_CHAIN) {
+    for (const model of apiKey ? MODEL_FALLBACK_CHAIN : []) {
       try {
         const upstream = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
@@ -127,6 +125,18 @@ serve(async (req) => {
       }
     }
 
+    // Backup provider when the whole Gemini chain fails — see _shared/hfFallback.ts
+    const hfText = await callHfFallback({ caller: 'generate-ask-title', user: prompt, maxTokens: 200, temperature: 0.4, timeoutMs: 15000 });
+    const hfTitle = hfText ? extractTitle(hfText) : null;
+    if (hfTitle) {
+      return jsonResponse(200, { title: hfTitle });
+    }
+
+    if (!apiKey) {
+      return jsonResponse(500, {
+        error: 'GEMINI_API_KEY not configured on the Edge Function',
+      });
+    }
     console.error('generate-ask-title all models failed:', lastError, 'snippet:', rawSnippet);
     return jsonResponse(503, { error: 'AI service unavailable' });
   } catch (err) {

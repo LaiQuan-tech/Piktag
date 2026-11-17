@@ -22,6 +22,7 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { callHfFallback, hfImagePart } from '../_shared/hfFallback.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -233,12 +234,9 @@ serve(async (req) => {
   }
 
   try {
-    const apiKey = Deno.env.get('GEMINI_API_KEY');
-    if (!apiKey) {
-      return jsonResponse(500, {
-        error: 'GEMINI_API_KEY not configured on the Edge Function',
-      });
-    }
+    // Missing key no longer returns early: skip the Gemini loop and try the
+    // HF backup; the original 500 is returned below if that also fails.
+    const apiKey = Deno.env.get('GEMINI_API_KEY') ?? '';
 
     let body: ScanBody;
     try {
@@ -397,7 +395,7 @@ serve(async (req) => {
     // twice more, burning quota that delays recovery).
     let sawRateLimit = false;
 
-    for (const model of MODEL_FALLBACK_CHAIN) {
+    for (const model of apiKey ? MODEL_FALLBACK_CHAIN : []) {
       try {
         // Per-model generationConfig.
         //   - responseMimeType + responseSchema: native JSON mode (see
@@ -496,6 +494,29 @@ serve(async (req) => {
         console.error(`scan-business-card fetch threw [${model}]:`, msg);
         lastError = `${model}: fetch threw`;
       }
+    }
+
+    // Backup provider when the whole Gemini chain fails — see _shared/hfFallback.ts
+    // Mirrors the Gemini parts: text mode = prompt only (OCR text is
+    // embedded in it, image ignored); image mode = image + prompt.
+    // Tight timeout: scan speed is a product red line.
+    const hfText = await callHfFallback({
+      caller: 'scan-business-card',
+      user: isTextMode
+        ? prompt
+        : [hfImagePart(image, mimeType), { type: 'text', text: prompt }],
+      maxTokens: 1024,
+      temperature: 0.2,
+      timeoutMs: 10000,
+    });
+    const hfCard = hfText ? extractCardObject(hfText) : null;
+    if (hfCard) {
+      return jsonResponse(200, { data: hfCard });
+    }
+    if (!apiKey) {
+      return jsonResponse(500, {
+        error: 'GEMINI_API_KEY not configured on the Edge Function',
+      });
     }
 
     console.error(

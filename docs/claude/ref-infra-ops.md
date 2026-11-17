@@ -80,6 +80,16 @@
   already does `if (model.startsWith('gemini-2.5'))`). When Google ships
   the next generation, re-probe before adding ids (a quick `{diag:true}`-
   style per-model status loop, then remove it).
+- **HF 備援(2026-11-18)。** 5 支使用者即時路徑(suggest-tags /
+  scan-business-card / extract-search-intent / generate-icebreaker /
+  generate-ask-title)在整條 Gemini 鏈失敗或缺 key 時,改走
+  `functions/_shared/hfFallback.ts`(Hugging Face router,Qwen3-Next-80B →
+  Gemma 4 31B;有圖只走 Gemma 4)。需 Supabase secret **`HF_TOKEN`**,沒設 =
+  no-op。logs 搜 `[hf-fallback]` 可看到何時在跑備援。**刻意不接**:
+  auto-link-concepts(別名是落庫的翻譯,品質是護城河,cron 會自己補跑)、
+  notification-tag-suggest(cron)、所有 embedding(向量空間不相容)。
+  換 HF model id 前先用 `huggingface.co/api/models/<id>?expand[]=inferenceProviderMapping`
+  確認有 live provider。`_shared/` 改動時 deploy workflow 會自動重部署所有 importer。
 
 
 ## Live-DB 探測(寫 SQL / 依賴 schema 前必跑)

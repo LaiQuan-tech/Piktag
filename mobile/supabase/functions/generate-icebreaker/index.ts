@@ -27,6 +27,7 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { callHfFallback } from '../_shared/hfFallback.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -91,10 +92,9 @@ serve(async (req) => {
   }
 
   try {
-    const apiKey = Deno.env.get('GEMINI_API_KEY');
-    if (!apiKey) {
-      return jsonResponse(500, { error: 'GEMINI_API_KEY not configured' });
-    }
+    // Missing key no longer returns early: skip the Gemini loop and try the
+    // HF backup; the original 500 is returned below if that also fails.
+    const apiKey = Deno.env.get('GEMINI_API_KEY') ?? '';
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
     const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -288,7 +288,7 @@ serve(async (req) => {
 
     let lastError = '';
     let rawSnippet = '';
-    for (const model of MODEL_FALLBACK_CHAIN) {
+    for (const model of apiKey ? MODEL_FALLBACK_CHAIN : []) {
       try {
         const upstream = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
@@ -329,6 +329,17 @@ serve(async (req) => {
         console.error(`generate-icebreaker fetch threw [${model}]:`, msg);
         lastError = `${model}: fetch threw`;
       }
+    }
+
+    // Backup provider when the whole Gemini chain fails — see _shared/hfFallback.ts
+    const hfText = await callHfFallback({ caller: 'generate-icebreaker', user: promptLines, maxTokens: 400, temperature: 0.8, timeoutMs: 15000 });
+    const hfSuggestions = hfText ? extractStringArray(hfText) : [];
+    if (hfSuggestions.length >= 1) {
+      const body: Suggestions = { suggestions: hfSuggestions.slice(0, 3) };
+      return jsonResponse(200, body);
+    }
+    if (!apiKey) {
+      return jsonResponse(500, { error: 'GEMINI_API_KEY not configured' });
     }
 
     console.error('generate-icebreaker all models failed:', lastError, 'snippet:', rawSnippet);

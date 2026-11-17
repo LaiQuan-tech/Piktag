@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { callHfFallback } from '../_shared/hfFallback.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -149,12 +150,9 @@ serve(async (req) => {
   }
 
   try {
-    const apiKey = Deno.env.get('GEMINI_API_KEY');
-    if (!apiKey) {
-      return jsonResponse(500, {
-        error: 'GEMINI_API_KEY not configured on the Edge Function',
-      });
-    }
+    // Missing key no longer returns early: skip the Gemini loop and try the
+    // HF backup; the original 500 is returned below if that also fails.
+    const apiKey = Deno.env.get('GEMINI_API_KEY') ?? '';
 
     let body: SuggestBody;
     try {
@@ -324,7 +322,7 @@ serve(async (req) => {
     const removedPromise = getRemovedTagNames(req);
 
     const chain = fast ? FAST_MODEL_CHAIN : MODEL_FALLBACK_CHAIN;
-    for (const model of chain) {
+    for (const model of apiKey ? chain : []) {
       try {
         const upstream = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
@@ -376,6 +374,23 @@ serve(async (req) => {
         console.error(`suggest-tags fetch threw [${model}]:`, msg);
         lastError = `${model}: fetch threw`;
       }
+    }
+
+    // Backup provider when the whole Gemini chain fails — see _shared/hfFallback.ts
+    const hfText = await callHfFallback({ caller: 'suggest-tags', user: prompt, maxTokens: 512, temperature: 0.4, timeoutMs: fast ? 10000 : 15000 });
+    const hfSuggestions = hfText ? extractStringArray(hfText) : null;
+    if (hfSuggestions && hfSuggestions.length > 0) {
+      const removed = await removedPromise;
+      const filtered =
+        removed.size > 0
+          ? hfSuggestions.filter((s) => !removed.has(s.toLowerCase()))
+          : hfSuggestions;
+      return jsonResponse(200, { suggestions: filtered });
+    }
+    if (!apiKey) {
+      return jsonResponse(500, {
+        error: 'GEMINI_API_KEY not configured on the Edge Function',
+      });
     }
 
     console.error('suggest-tags all models failed:', lastError, 'snippet:', rawSnippet);
