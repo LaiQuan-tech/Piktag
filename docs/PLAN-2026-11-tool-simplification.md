@@ -4,7 +4,9 @@
 
 - 2026-11-18:階段 0 完成(CLAUDE.md North Star 改寫;舊定位文件加「已被取代」標記)。
 - 2026-11-18:階段 1 完成(35461fd0,聊天介面下架、鈴鐺搬到人脈頁)。
-- 2026-11-18:階段 2 進行中(只改客戶端;weekly-ask-prompt cron 與 landing /a/:askId 暫不動,舊版 App 仍在用,待全部階段完成後再決定)。
+- 2026-11-18:階段 2 完成(Ask 介面下架;只改客戶端;weekly-ask-prompt cron 與 landing /a/:askId 暫不動,舊版 App 仍在用,待全部階段完成後再決定)。
+- 階段 4 注意:EditProfile 仍借用 ask.regenerateAiTags、ask.aiNoSuggestions 兩個 i18n 鍵;舊的 ask_* 通知列仍顯示在通知頁(點擊已改導向)。
+- 2026-11-18:階段 3 進行中。
 
 ## 創辦人決策(2026-11-18,本 session 逐項選定)
 
