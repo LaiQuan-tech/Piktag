@@ -127,7 +127,7 @@ export async function registerForPushNotifications(
  *     (Hide and "Don't suggest" both set is_dismissed; without
  *     this filter a dismissed-but-unread row keeps the badge
  *     at 1 forever — @lpfrg's 2026-05-30 report)
- *   - type IN KNOWN_NOTIFICATION_TYPES  →  the row would
+ *   - type IN ACTIVE_NOTIFICATION_TYPES (KNOWN minus RETIRED)  →  the row would
  *     actually appear in some tab if NotificationsScreen rendered
  *     it. Legacy / orphan types (e.g. 'contract_expiry' never
  *     wired into any tab) don't get counted — otherwise they're
@@ -138,14 +138,16 @@ export async function refreshBadgeFromServer(userId: string): Promise<void> {
   try {
     // Imported lazily-at-call-time to keep this module dependency-
     // light; the constant module itself is sync.
-    const { KNOWN_NOTIFICATION_TYPES } = await import('./notificationTypes');
+    // ACTIVE = KNOWN minus RETIRED (chat / Ask types the server still
+    // writes for old app versions but this client no longer shows).
+    const { ACTIVE_NOTIFICATION_TYPES } = await import('./notificationTypes');
 
     // Preferred path: server RPC that respects the per-user badge baseline
     // (the 3-day auto-clear — notifications created at/before the last clear
     // no longer badge, but stay in the feed). On older backends the RPC is
     // missing → fall through to the direct count below.
     const rpc = await supabase.rpc('get_badge_count', {
-      p_types: KNOWN_NOTIFICATION_TYPES as unknown as string[],
+      p_types: ACTIVE_NOTIFICATION_TYPES as string[],
     });
     if (!rpc.error && typeof rpc.data === 'number') {
       const Notifications = await import('expo-notifications');
@@ -159,7 +161,7 @@ export async function refreshBadgeFromServer(userId: string): Promise<void> {
       .eq('user_id', userId)
       .eq('is_read', false)
       .eq('is_dismissed', false)
-      .in('type', KNOWN_NOTIFICATION_TYPES as unknown as string[]);
+      .in('type', ACTIVE_NOTIFICATION_TYPES as string[]);
     if (error) {
       // 42703 = `is_dismissed` not yet migrated; fall back to the
       // narrower query so stale environments still get SOMETHING
@@ -172,7 +174,7 @@ export async function refreshBadgeFromServer(userId: string): Promise<void> {
           .select('id', { count: 'exact', head: true })
           .eq('user_id', userId)
           .eq('is_read', false)
-          .in('type', KNOWN_NOTIFICATION_TYPES as unknown as string[]);
+          .in('type', ACTIVE_NOTIFICATION_TYPES as string[]);
         if (fb.error) {
           console.warn('[badge] fallback unread query failed:', fb.error.message);
           return;

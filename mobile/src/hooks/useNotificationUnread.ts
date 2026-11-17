@@ -15,6 +15,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { RETIRED_NOTIFICATION_TYPES_PGRST } from '../lib/notificationTypes';
 
 export function useNotificationUnread(): { hasUnread: boolean; refresh: () => void } {
   const { user } = useAuth();
@@ -31,7 +32,11 @@ export function useNotificationUnread(): { hasUnread: boolean; refresh: () => vo
         .from('piktag_notifications')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', userId)
-        .eq('is_read', false);
+        .eq('is_read', false)
+        // Retired chat / Ask types (server still writes them for old app
+        // versions) are hidden from the feed, so they must not light the
+        // dot either — otherwise it can never be cleared.
+        .not('type', 'in', RETIRED_NOTIFICATION_TYPES_PGRST);
       // A failed request is not evidence of "nothing unread" — leave the
       // dot exactly as it was rather than clearing it on a flaky network.
       if (error) return;

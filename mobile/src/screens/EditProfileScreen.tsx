@@ -2106,7 +2106,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                         activeOpacity={0.7}
                         hitSlop={8}
                         accessibilityRole="button"
-                        accessibilityLabel={t('ask.regenerateAiTags', { defaultValue: '重新生成' })}
+                        accessibilityLabel={t('editProfile.regenerateAiTags', { defaultValue: '重新生成' })}
                       >
                         <RefreshCw size={14} color={colors.piktag600} strokeWidth={2.2} />
                       </TouchableOpacity>
@@ -2134,7 +2134,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
 
                 {aiTriedAndEmpty && aiSuggestions.length === 0 && !aiLoading && (
                   <Text style={styles.ai_emptyHint}>
-                    {t('ask.aiNoSuggestions', { defaultValue: 'AI 沒有想到合適的標籤，再試一次或自己輸入' })}
+                    {t('editProfile.aiNoSuggestions', { defaultValue: 'AI 沒有想到合適的標籤，再試一次或自己輸入' })}
                   </Text>
                 )}
               </View>

@@ -52,3 +52,52 @@ export const KNOWN_NOTIFICATION_TYPES = [
 ] as const;
 
 export type KnownNotificationType = (typeof KNOWN_NOTIFICATION_TYPES)[number];
+
+/**
+ * Types whose feature was taken off this client (2026-11-18 tool
+ * simplification, docs/PLAN-2026-11-tool-simplification.md): chat, Ask,
+ * stranger-discovery via Ask. The SERVER still writes these rows and still
+ * sends their pushes, because older app versions in the wild still have
+ * the features — the backend was deliberately left untouched.
+ *
+ * On this client they are hidden from the notification feed, excluded
+ * from every unread signal (app-icon badge, header-bell dot), and their
+ * banners are suppressed while the app is in the foreground. There is
+ * nothing to open behind them any more, so showing them would be a
+ * dead end.
+ *
+ * Why they are NOT deleted from KNOWN_NOTIFICATION_TYPES: that list is
+ * the auditable record of every type the backend can emit, and pushes of
+ * these types can still arrive (a background push is shown by the OS
+ * before any JS runs). Keeping them "known but retired" makes it explicit
+ * that they are handled on purpose — routed safely by notificationRouter,
+ * hidden here — rather than orphans someone forgot. 'chat' was never in
+ * KNOWN (it never had a feed row of its own on this client) but is listed
+ * here so the foreground-banner and unread filters cover it too.
+ */
+export const RETIRED_NOTIFICATION_TYPES: readonly string[] = [
+  'chat',
+  'ask_posted',
+  'ask_bridge',
+  'ask_prompt',
+  'ask_web_reply',
+];
+
+const RETIRED_SET = new Set<string>(RETIRED_NOTIFICATION_TYPES);
+
+export function isRetiredNotificationType(type: string | null | undefined): boolean {
+  return !!type && RETIRED_SET.has(type);
+}
+
+/**
+ * KNOWN minus RETIRED: the types this client actually surfaces. This is
+ * what unread counts (badge RPC / fallback count) must be restricted to.
+ */
+export const ACTIVE_NOTIFICATION_TYPES: readonly string[] =
+  KNOWN_NOTIFICATION_TYPES.filter((t) => !RETIRED_SET.has(t));
+
+/**
+ * PostgREST value for `.not('type', 'in', ...)` — excludes retired rows
+ * from queries that are not otherwise restricted by type.
+ */
+export const RETIRED_NOTIFICATION_TYPES_PGRST = `(${RETIRED_NOTIFICATION_TYPES.join(',')})`;

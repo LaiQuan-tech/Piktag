@@ -18,6 +18,7 @@ import ErrorBoundary from './src/components/ErrorBoundary';
 import OfflineBanner from './src/components/OfflineBanner';
 import { supabase } from './src/lib/supabase';
 import { routeFromNotification } from './src/lib/notificationRouter';
+import { isRetiredNotificationType } from './src/lib/notificationTypes';
 import { refreshSharedLocationIfNeeded } from './src/lib/sharedLocation';
 import { touchLastActive } from './src/lib/pushNotifications';
 
@@ -39,13 +40,31 @@ import { touchLastActive } from './src/lib/pushNotifications';
 void applyStoredAnalyticsOptIn();
 
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    // Kept for backward compat with older expo-notifications versions.
-    shouldShowAlert: true,
-  } as any),
+  // Retired types (chat / Ask — taken off this client 2026-11-18, but the
+  // server still pushes them for old app versions) get no foreground
+  // banner, sound or badge: there is nothing behind them to open. A
+  // background push is displayed by the OS before JS runs, so that case
+  // cannot be filtered here; a tap on it is routed safely by
+  // notificationRouter.
+  handleNotification: async (notification) => {
+    const type = (notification?.request?.content?.data as any)?.type;
+    if (isRetiredNotificationType(typeof type === 'string' ? type : null)) {
+      return {
+        shouldShowBanner: false,
+        shouldShowList: false,
+        shouldPlaySound: false,
+        shouldSetBadge: false,
+        shouldShowAlert: false,
+      } as any;
+    }
+    return {
+      shouldShowBanner: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      // Kept for backward compat with older expo-notifications versions.
+      shouldShowAlert: true,
+    } as any;
+  },
 });
 
 // Sentry DSN comes from EXPO_PUBLIC_SENTRY_DSN, substituted into the JS

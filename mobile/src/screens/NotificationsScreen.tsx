@@ -21,6 +21,10 @@ import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { routeFromNotification } from '../lib/notificationRouter';
 import { refreshBadgeFromServer, maybeAskPushPermission } from '../lib/pushNotifications';
+import {
+  isRetiredNotificationType,
+  RETIRED_NOTIFICATION_TYPES_PGRST,
+} from '../lib/notificationTypes';
 import { useAuth } from '../hooks/useAuth';
 import {
   getCache,
@@ -60,12 +64,18 @@ function filterNotifications(
   notifications: Notification[],
   tab: NotificationTab
 ): Notification[] {
+  // Retired types (chat / Ask — features taken off this client
+  // 2026-11-18; see RETIRED_NOTIFICATION_TYPES) are never shown. The
+  // server still writes them for old app versions, and rows already in
+  // the disk cache from before the update may carry them, so drop them
+  // here regardless of what the fetch filtered.
+  notifications = notifications.filter((n) => !isRetiredNotificationType(n.type));
   switch (tab) {
     case 'social':
       // Things people directly involving you did: followed,
       // friended, tagged your profile, clicked your biolink,
-      // accepted your invite, posted an Ask, tagged something
-      // that propagated (vibe_shift), or had their tag trend.
+      // accepted your invite, tagged something that propagated
+      // (vibe_shift), or had their tag trend.
       return notifications.filter(
         (n) =>
           n.type === 'follow' ||
@@ -80,20 +90,17 @@ function filterNotifications(
           n.type === 'biolink_click' ||
           n.type === 'invite_accepted' ||
           n.type === 'vibe_shift' ||
-          n.type === 'ask_posted' ||
           n.type === 'tag_trending' ||
-          n.type === 'contact_sync_nudge' ||
-          n.type === 'ask_web_reply'
+          n.type === 'contact_sync_nudge'
       );
     case 'matches':
       // ★ North-Star tab: AI-driven discovery / re-activation.
-      // "People you might know", convergence, bridge, reconnect
-      // nudges, weekly combo digest — every magic-moment match.
+      // "People you might know", convergence, reconnect nudges,
+      // weekly combo digest — every magic-moment match.
       return notifications.filter(
         (n) =>
           n.type === 'recommendation' ||
           n.type === 'tag_convergence' ||
-          n.type === 'ask_bridge' ||
           n.type === 'reconnect_suggest' ||
           n.type === 'tag_combo'
       );
@@ -106,7 +113,6 @@ function filterNotifications(
           n.type === 'birthday' ||
           n.type === 'anniversary' ||
           n.type === 'on_this_day' ||
-          n.type === 'ask_prompt' ||
           n.type === 'endorsement_request' ||
           n.type === 'tag_suggest_nudge' ||
           n.type === 'reminder'
@@ -145,7 +151,7 @@ function getNotificationDisplay(
   const type = item.type;
 
   // Magic-moment notifications (on_this_day, reconnect_suggest, tag_combo,
-  // tag_convergence, ask_bridge, ask_prompt) are self-directed system
+  // tag_convergence) are self-directed system
   // insights without an actor user — `data.username` is intentionally
   // absent. The SQL enqueue_*_notifications functions store the rich
   // pre-formatted hook in `title` ("一年前的今天", "Eva 也標了 #咖啡
@@ -155,8 +161,6 @@ function getNotificationDisplay(
   const MAGIC_MOMENT_TYPES = new Set([
     'on_this_day',
     'tag_convergence',
-    'ask_bridge',
-    'ask_prompt',
     'reconnect_suggest',
     'tag_combo',
   ]);
@@ -175,22 +179,6 @@ function getNotificationDisplay(
       username: '',
       body: t('notifications.types.contact_joined.body', {
         name: savedName,
-        defaultValue: item.body || '',
-      }),
-    };
-  }
-
-  // Non-member replied to the viewer's Ask via the pikt.ag/a/<id>
-  // share page (ask activation item 5, 2026-07-06). Self-directed —
-  // the replier isn't a PikTag user, so there's no actor avatar/
-  // username row; data.replier_name is the only identity we have.
-  if (type === 'ask_web_reply') {
-    const replierName =
-      (typeof data.replier_name === 'string' && data.replier_name.trim()) || '';
-    return {
-      username: '',
-      body: t('notifications.askWebReplyBody', {
-        name: replierName,
         defaultValue: item.body || '',
       }),
     };
@@ -559,6 +547,8 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
         .select('id, user_id, type, title, body, data, is_read, created_at')
         .eq('user_id', user.id)
         .eq('is_dismissed', false)
+        // Retired chat / Ask rows must not eat into the 50-row window.
+        .not('type', 'in', RETIRED_NOTIFICATION_TYPES_PGRST)
         .order('created_at', { ascending: false })
         .limit(50);
 
@@ -574,6 +564,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
             .from('piktag_notifications')
             .select('id, user_id, type, title, body, data, is_read, created_at')
             .eq('user_id', user.id)
+            .not('type', 'in', RETIRED_NOTIFICATION_TYPES_PGRST)
             .order('created_at', { ascending: false })
             .limit(50);
           if (!fallback.error && fallback.data) {
@@ -667,6 +658,8 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
         },
         (payload) => {
           const newNotification = payload.new as Notification;
+          // Retired chat / Ask types: not shown, not counted.
+          if (isRetiredNotificationType(newNotification.type)) return;
           setNotifications((prev) => [newNotification, ...prev]);
           refreshBadgeFromServer(user.id).catch(() => {});
         }
