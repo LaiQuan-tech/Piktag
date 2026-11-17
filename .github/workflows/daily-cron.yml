@@ -114,3 +114,32 @@ jobs:
             echo "linker health check reported unhealthy — failing workflow as second-layer heartbeat"
             exit 1
           }
+
+  # Embedding-v2 / reranker SHADOW data collection (2026-11-18,
+  # mobile/docs/plans/2026-11-18-embedding-v2-shadow-design.md). Backfills
+  # tag_concepts.embedding_v2 (bge-m3) and scores concept_judge_shadow rows
+  # with the reranker. No live decision reads any of it. Without the
+  # HF_TOKEN Supabase secret the fn answers {skipped} — a no-op.
+  # continue-on-error: this experiment must never fail the workflow.
+  hf-shadow:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 19 * * *' || github.event_name == 'workflow_dispatch'
+    continue-on-error: true
+    steps:
+      - name: Trigger hf-shadow backfill + shadow
+        run: |
+          for ACTION in backfill shadow; do
+            RESPONSE=$(curl --fail-with-body --silent --show-error --max-time 170 -X POST \
+              "https://kbwfdskulxnhjckdvghj.supabase.co/functions/v1/hf-shadow" \
+              -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+              -H "Content-Type: application/json" \
+              -d "{\"action\":\"$ACTION\"}") || echo "hf-shadow $ACTION failed"
+            echo "$RESPONSE"
+            {
+              echo "### hf-shadow $ACTION"
+              echo ''
+              echo '```json'
+              echo "$RESPONSE"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          done

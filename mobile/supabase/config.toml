@@ -84,3 +84,11 @@ verify_jwt = false
 # JWT, so platform verification must be off. The function does its own
 # constant-time CRON_SECRET check. Same pattern as the other daily-* fns.
 verify_jwt = false
+
+[functions.hf-shadow]
+# Embedding-v2 / reranker SHADOW data collection (no live decision uses it;
+# mobile/docs/plans/2026-11-18-embedding-v2-shadow-design.md). GitHub
+# Actions daily-cron POSTs with CRON_SECRET as bearer — opaque, not a JWT,
+# so platform verification must be off. The function does its own
+# constant-time CRON_SECRET check. Same pattern as linker-health-alert.
+verify_jwt = false

@@ -184,6 +184,9 @@ Respond ONLY in JSON array format, no markdown:
   }
 }
 
+// Also recorded in concept_judge_shadow.judge_model (embedding-v2 shadow).
+const JUDGE_MODEL = 'gemini-2.5-flash';
+
 /**
  * LLM gray-zone judge. Given a freshly-coined tag and the embedding
  * candidates that scored in [GRAY_ZONE_FLOOR, SIMILARITY_THRESHOLD) —
@@ -192,13 +195,17 @@ Respond ONLY in JSON array format, no markdown:
  * that recovers cross-language matches (扶輪社 ↔ Rotary Club) which
  * embeddings alone score at only ~0.71.
  *
- * Returns the matched concept_id, or null if none is a true synonym.
+ * Returns the matched concept_id, null if the judge genuinely answered
+ * "0 / no match", or undefined if the call failed (HTTP error, exception,
+ * unparsable or out-of-range reply). The live caller treats null and
+ * undefined identically (`if (judgedId)`); the split only feeds
+ * concept_judge_shadow.judge_ok.
  */
 async function judgeConceptMatch(
   tagName: string,
   candidates: { concept_id: string; canonical_name: string; similarity: number }[],
   apiKey: string,
-): Promise<string | null> {
+): Promise<string | null | undefined> {
   try {
     const list = candidates
       .map((c, i) => `${i + 1}. ${c.canonical_name}`)
@@ -217,7 +224,7 @@ ${list}
 Reply with ONLY the number of the matching concept, or 0 if none is a true synonym.`;
 
     const response = await fetchWithTimeout(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+      `https://generativelanguage.googleapis.com/v1beta/models/${JUDGE_MODEL}:generateContent`,
       {
         method: 'POST',
         headers: {
@@ -240,7 +247,7 @@ Reply with ONLY the number of the matching concept, or 0 if none is a true synon
     if (!response.ok) {
       const bodyText = await response.text().catch(() => '');
       console.error('judgeConceptMatch upstream error: HTTP', response.status, bodyText.slice(0, 300));
-      return null;
+      return undefined;
     }
 
     const result = await response.json();
@@ -250,13 +257,15 @@ Reply with ONLY the number of the matching concept, or 0 if none is a true synon
     // 0" → 3) and mint a FALSE synonym link. Anything not clean is
     // treated as no-match — conservative: it just mints a new concept.
     const m = text.match(/^(\d+)$/);
-    const n = m ? parseInt(m[1], 10) : 0;
+    if (!m) return undefined; // unparsable → judge failed (still no link)
+    const n = parseInt(m[1], 10);
+    if (n === 0) return null; // genuine "no match"
     if (n >= 1 && n <= candidates.length) {
       return candidates[n - 1].concept_id;
     }
-    return null;
+    return undefined; // out-of-range → judge failed (still no link)
   } catch {
-    return null;
+    return undefined;
   }
 }
 
@@ -629,6 +638,26 @@ serve(async (req) => {
           matchedConcept = candidates[0];
         } else {
           const judgedId = await judgeConceptMatch(tag.name, candidates, geminiApiKey);
+          // Shadow log for the embedding-v2/reranker experiment
+          // (mobile/docs/plans/2026-11-18-embedding-v2-shadow-design.md).
+          // DB insert only, no HF call; a failure only logs and never
+          // changes the linking decision below.
+          try {
+            const { error: shadowErr } = await supabase.from('concept_judge_shadow').insert({
+              tag_name: tag.name,
+              candidates: candidates.map((c: any) => ({
+                concept_id: c.concept_id,
+                name: c.canonical_name,
+                sim: c.similarity,
+              })),
+              judge_model: JUDGE_MODEL,
+              judge_ok: judgedId !== undefined,
+              judge_pick_concept_id: judgedId ?? null,
+            });
+            if (shadowErr) console.warn(`concept_judge_shadow insert failed for "${tag.name}":`, shadowErr.message);
+          } catch (e) {
+            console.warn(`concept_judge_shadow insert threw for "${tag.name}":`, e);
+          }
           if (judgedId) {
             matchedConcept = candidates.find((c: any) => c.concept_id === judgedId) || null;
             if (matchedConcept) {

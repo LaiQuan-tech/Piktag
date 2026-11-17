@@ -90,6 +90,13 @@
   notification-tag-suggest(cron)、所有 embedding(向量空間不相容)。
   換 HF model id 前先用 `huggingface.co/api/models/<id>?expand[]=inferenceProviderMapping`
   確認有 live provider。`_shared/` 改動時 deploy workflow 會自動重部署所有 importer。
+  - **Embedding v2 + reranker 影子模式(2026-11-18)**:設計見
+    `mobile/docs/plans/2026-11-18-embedding-v2-shadow-design.md`。
+    **shadow only, no live decision uses embedding_v2/reranker**。
+    `hf-shadow` fn(CRON_SECRET,daily-cron 呼叫 backfill+shadow)回填
+    `tag_concepts.embedding_v2`(bge-m3)、替 `concept_judge_shadow`
+    (linker 灰區 judge 每次寫一筆)打 reranker 分數;報表
+    `admin_embedding_v2_shadow_report()`。logs 搜 `[hf-shadow]`。同一把 `HF_TOKEN`。
 
 
 ## Live-DB 探測(寫 SQL / 依賴 schema 前必跑)
