@@ -1,10 +1,12 @@
-// Unread-notification indicator for the Chat header bell.
+// Unread-notification indicator for the header bell (components/
+// NotificationBell — in the Connections header since 2026-11-18, when the
+// chat UI that used to hold it was taken down).
 //
 // The bell lost its tab on 2026-09-01 (event tags took the slot), so the
 // only in-app sign that something is waiting is the dot this drives.
-// Deliberately a DOT, not a number: the Chat tab already carries a
-// numeric badge for unread messages, and two different counts on one
-// surface teaches people to distrust both. Anything time-critical
+// Deliberately a DOT, not a number: it began beside the Chat tab's
+// numeric unread-message badge, where two different counts on one
+// surface teach people to distrust both; a dot is still all it needs. Anything time-critical
 // arrives as a push, which deep-links straight to its target.
 //
 // `head: true` + `count: 'exact'` asks Postgres for the count only —

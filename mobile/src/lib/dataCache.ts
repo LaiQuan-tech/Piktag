@@ -11,7 +11,12 @@ export const CACHE_KEYS = {
   AUTH_PROFILE: 'authProfile',
   // ── Offline surfaces, round 2 (founder 2026-08-06: 通知 / 搜尋 /
   //    聊天歷史 / QR must all survive a venue with no signal) ──
-  // Inbox conversation list (ChatList).
+  // CHAT_INBOX / CHAT_THREADS / CHAT_SEND_QUEUE: the chat UI was taken
+  // down 2026-11-18 and nothing writes these keys any more. The
+  // definitions STAY so clearPersistentCaches() (which iterates this
+  // object) still sweeps the snapshots — including unsent DM bodies —
+  // that older builds left on disk. Do not delete them.
+  // Inbox conversation list (was ChatList).
   CHAT_INBOX: 'chatInbox',
   // Recent messages per conversation, as ONE map under ONE key — see
   // the bounds below. A key-per-conversation scheme would escape
@@ -239,70 +244,6 @@ export async function getPersistentCache<T>(
     return (parsed?.data ?? null) as T | null;
   } catch {
     return null;
-  }
-}
-
-// ── Chat-history bounds ──────────────────────────────────────────────
-// Reading past threads offline is worth real disk; the WHOLE archive is
-// not. We keep the most recently touched conversations only, and only
-// the tail of each one — enough to reopen a thread at a venue and
-// remember what was said, nowhere near "sync the account to the phone".
-// 20 x 30 x ~200 bytes ≈ 120 KB worst case.
-export const CHAT_THREAD_CACHE_MAX_CONVERSATIONS = 20;
-export const CHAT_THREAD_CACHE_MAX_MESSAGES = 30;
-
-type ThreadCacheEntry<T> = { updatedAt: number; messages: T[] };
-type ThreadCacheMap<T> = Record<string, ThreadCacheEntry<T>>;
-
-/**
- * Recent messages for ONE conversation, out of the single per-user
- * CHAT_THREADS map. Newest-first, exactly as the thread screen holds
- * them.
- */
-export async function getPersistentThreadMessages<T>(
-  userId: string | null | undefined,
-  conversationId: string,
-): Promise<T[] | null> {
-  if (!userId || !conversationId) return null;
-  const map = await getPersistentCache<ThreadCacheMap<T>>(CACHE_KEYS.CHAT_THREADS, userId);
-  const entry = map?.[conversationId];
-  return Array.isArray(entry?.messages) ? entry.messages : null;
-}
-
-/**
- * Write the tail of one conversation, pruning the map back to the N
- * most recently written conversations. Read-modify-write on a single
- * key — the whole point is that sign-out can wipe it in one call.
- */
-export async function setPersistentThreadMessages<T>(
-  userId: string | null | undefined,
-  conversationId: string,
-  messages: T[],
-): Promise<void> {
-  if (!userId || !conversationId) return;
-  try {
-    const existing =
-      (await getPersistentCache<ThreadCacheMap<T>>(CACHE_KEYS.CHAT_THREADS, userId)) ?? {};
-    const next: ThreadCacheMap<T> = {
-      ...existing,
-      [conversationId]: {
-        updatedAt: Date.now(),
-        messages: messages.slice(0, CHAT_THREAD_CACHE_MAX_MESSAGES),
-      },
-    };
-    const ids = Object.keys(next);
-    if (ids.length > CHAT_THREAD_CACHE_MAX_CONVERSATIONS) {
-      const keep = ids
-        .sort((a, b) => (next[b]?.updatedAt ?? 0) - (next[a]?.updatedAt ?? 0))
-        .slice(0, CHAT_THREAD_CACHE_MAX_CONVERSATIONS);
-      const pruned: ThreadCacheMap<T> = {};
-      for (const id of keep) pruned[id] = next[id];
-      await setPersistentCache(CACHE_KEYS.CHAT_THREADS, userId, pruned);
-      return;
-    }
-    await setPersistentCache(CACHE_KEYS.CHAT_THREADS, userId, next);
-  } catch {
-    // Best-effort, same contract as every other write here.
   }
 }
 
@@ -582,9 +523,13 @@ export async function mergePersistentFriendDetails<T extends object>(
 export async function clearPersistentCaches(userId: string | null | undefined): Promise<void> {
   if (!userId) return;
   try {
-    await AsyncStorage.multiRemove(
-      Object.values(CACHE_KEYS).map((key) => persistKey(key, userId)),
-    );
+    await AsyncStorage.multiRemove([
+      ...Object.values(CACHE_KEYS).map((key) => persistKey(key, userId)),
+      // Device-global unsent-DM queue from before 2026-08-08. Its purge
+      // used to run when a chat thread mounted (lib/chatSendQueue); with
+      // the chat UI gone (2026-11-18) sign-out is the remaining sweep.
+      'piktag_chat_send_queue_v1',
+    ]);
   } catch {
     // best-effort
   }

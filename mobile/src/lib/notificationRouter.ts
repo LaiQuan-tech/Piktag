@@ -7,7 +7,8 @@
 //      start or background → foreground).
 //
 // Before this helper existed, App.tsx's push handler only routed
-// `type === 'chat'` and silently dropped every other type, so a tap on
+// `type === 'chat'` (chat UI removed 2026-11-18; chat now routes here
+// too, to Notifications) and silently dropped every other type, so a tap on
 // a `follow` / `tag_added` / `biolink_click` push opened the app but
 // went nowhere. The in-app handler (NotificationsScreen) already had
 // full routing — extracting it here lets the OS-tap path reuse it.
@@ -152,40 +153,23 @@ export async function routeFromNotification(
   }
 
   // reconnect_suggest — "Eva 也標了 #X #Y — 你們很久沒聊了".
-  // The whole magic moment is the "wait, I forgot we had this in
-  // common" jolt + the friction-free path to actually message them.
-  // 2026-07-03 (founder: 喚醒沉睡人脈): route STRAIGHT into the
-  // conversation with icebreakers armed — the old FriendDetail landing
-  // added two decisions (find the 訊息 button, then face a blank box)
-  // between the jolt and the message. Same get_or_create_conversation
-  // RPC FriendDetail's own message CTA uses; ChatThread self-hydrates
-  // the header from just a conversationId (the chat-push path already
-  // relies on that). On any failure, fall through to the profile.
+  // Used to open a ChatThread with icebreakers armed (2026-07-03). The
+  // chat UI was taken down 2026-11-18 (PikTag back to a personal
+  // network tool, phase 1), so ChatThread no longer exists as a route.
+  // Land on the friend's profile instead: hint the user id and let the
+  // generic user-id branch below resolve FriendDetail vs UserDetail.
   if (type === 'reconnect_suggest' && typeof data.friend_id === 'string') {
-    try {
-      const { data: conv, error } = await supabase.rpc('get_or_create_conversation', {
-        other_user_id: data.friend_id,
-      });
-      if (!error && conv) {
-        const conversationId =
-          typeof conv === 'string'
-            ? conv
-            : (conv as any)?.id ?? (conv as any)?.conversation_id ?? conv;
-        navigation.navigate('ChatThread', {
-          conversationId,
-          otherUserId: data.friend_id,
-          // Force the icebreaker suggestions regardless of the thread's
-          // own dormancy math — the nudge IS the dormancy signal.
-          suggestIcebreakers: true,
-        });
-        return;
-      }
-    } catch {
-      /* fall through to the profile route below */
-    }
-    // Fallback: let the generic user-id branch below resolve
-    // FriendDetail vs UserDetail. We just hint userId via data.
     data.connected_user_id = data.friend_id;
+  }
+
+  // chat — message push from send-chat-push (still sent by the server for
+  // old app versions). The chat UI is gone from this client (2026-11-18),
+  // so there is no thread to open. Land on Notifications rather than the
+  // sender's profile or a dead route. From NotificationsScreen itself
+  // this navigate is a no-op.
+  if (type === 'chat') {
+    navigation.navigate('Notifications');
+    return;
   }
 
   // 2. Biolink-click → aggregate analytics, not the clicker's profile

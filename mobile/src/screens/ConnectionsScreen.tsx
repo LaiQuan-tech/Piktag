@@ -38,6 +38,7 @@ import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import RingedAvatar from '../components/RingedAvatar';
 import CoachMark from '../components/CoachMark';
+import NotificationBell from '../components/NotificationBell';
 import { supabase } from '../lib/supabase';
 import { hashDisplay } from '../lib/normalizeTag';
 import {
@@ -1398,6 +1399,16 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                 color={sortMode !== 'recent' ? colors.piktag600 : (isDark ? '#FFFFFF' : colors.gray600)}
               />
             </TouchableOpacity>
+            {/* Notifications bell — moved here from the Chat header when the
+                chat UI was taken down (2026-11-18). It is the only in-app
+                entry to Notifications (push taps deep-link directly). Same
+                size/colour/touch target as its siblings so it reads as part
+                of this row, never as a competitor to the "+" CTA. */}
+            <NotificationBell
+              size={24}
+              color={isDark ? '#FFFFFF' : colors.gray600}
+              style={styles.headerIconBtn}
+            />
           </View>
         </View>
       )}

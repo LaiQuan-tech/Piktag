@@ -9,7 +9,6 @@ import {
   Home,
   Search,
   QrCode,
-  MessageCircle,
   Hash,
   User,
 } from 'lucide-react-native';
@@ -23,7 +22,6 @@ import { useTranslation } from 'react-i18next';
 import { registerForPushNotifications, refreshBadgeFromServer } from '../lib/pushNotifications';
 import { captureAcquisitionSource } from '../lib/acquisition';
 import { identifyUser } from '../lib/analytics';
-import { ChatUnreadProvider, useChatUnread } from '../hooks/useChatUnread';
 
 // Auth Screens — eager (needed before session resolves)
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -58,7 +56,6 @@ import ScanResultScreen from '../screens/ScanResultScreen';
 const AuthStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
 const SearchStack = createNativeStackNavigator();
-const ChatStack = createNativeStackNavigator();
 const NotificationStack = createNativeStackNavigator();
 const ProfileStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -93,22 +90,6 @@ function SearchStackNavigator() {
   );
 }
 
-function ChatStackNavigator() {
-  return (
-    <ChatStack.Navigator screenOptions={{ headerShown: false }}>
-      {/* Chat inbox is the tab root (founder 2026-06-24 — chat promoted
-          to a first-class tab, replacing the event-QR tab). Threads +
-          compose live in RootStack (full-screen, no tab bar) so opening
-          a chat from a profile returns to that profile; opening one from
-          here returns to the inbox. */}
-      <ChatStack.Screen
-        name="ChatList"
-        getComponent={() => require('../screens/ChatListScreen').default}
-      />
-    </ChatStack.Navigator>
-  );
-}
-
 // Event tags (the QR-group list) took the bell's tab slot, 2026-09-01.
 // Creating an event QR is a North-Star add-friend moment and it was
 // reachable only through a Hash icon in the Profile header — one icon,
@@ -124,7 +105,8 @@ function ChatStackNavigator() {
 // sits ahead of the surface you use once a match already exists. The
 // centre of a five-tab bar is also the easiest slot to reach and the one
 // convention reserves for CREATING something — which is what this tab
-// does. Chat keeps its tab and its unread badge; a badge is found by its
+// does. (Chat tab removed 2026-11-18; the bell is in the Connections
+// header now.) Chat kept its tab and its unread badge; a badge is found by its
 // colour, not its position.
 function EventTagStackNavigator() {
   return (
@@ -146,7 +128,6 @@ function MainTabs() {
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
-  const { total: chatUnread } = useChatUnread();
   const insets = useSafeAreaInsets();
   // edgeToEdgeEnabled (app.json) + targetSdk 35 make the app draw UNDER the
   // Android system nav bar, so this bottom-pinned tab bar MUST reserve the
@@ -186,13 +167,6 @@ function MainTabs() {
         tabBarStyle: baseTabBarStyle,
         tabBarActiveTintColor: isDark ? '#ffffff' : colors.piktag500,
         tabBarInactiveTintColor: isDark ? '#8e8e8e' : colors.gray400,
-        // Unread chat count badge — accentPop on purpose (high-saturation
-        // pop reserved for moments that should jump the eye, per the
-        // theme's accent vs primary system).
-        tabBarBadgeStyle: {
-          backgroundColor: colors.accentPop,
-          color: '#FFFFFF',
-        },
       }}
     >
       <Tab.Screen
@@ -216,13 +190,9 @@ function MainTabs() {
         options={{
           tabBarAccessibilityLabel: t('tabs.search'),
           // No tabBarBadge here: an unread count on the magnifying glass
-          // misdirects people to a tab that has nothing to do with
-          // messages. Unread messages are counted on ChatTab, which owns
-          // them. (This note used to say the count "moved to
-          // NotificationsTab" and that the inbox was reached from the
-          // bell tab's header — both stale long before the bell gave up
-          // its tab on 2026-09-01. Chat has been its own tab since
-          // 2026-06-24, and now carries the bell in ITS header.)
+          // misdirects people to a tab that has nothing to do with it.
+          // (The chat tab and its unread badge were removed 2026-11-18;
+          // the notification bell now lives in the Connections header.)
           tabBarIcon: ({ color, focused }) => (
             // Search is the exception (founder 2026-06-26): a filled magnifier
             // reads as a lollipop, so keep it outline even when active — the
@@ -246,29 +216,9 @@ function MainTabs() {
           ),
         }}
       />
-      <Tab.Screen
-        name="ChatTab"
-        component={ChatStackNavigator}
-        options={{
-          tabBarAccessibilityLabel: t('tabs.chat'),
-          // Chat is the reactivation-loop endpoint (search→message,
-          // icebreaker→reconnect). Promoted from the bell-tab header to a
-          // first-class tab 2026-06-24, taking the slot the unpopular
-          // event-QR tab held. The unread badge lives here now.
-          tabBarBadge: chatUnread > 0 ? chatUnread : undefined,
-          tabBarIcon: ({ color, focused }) => (
-            <MessageCircle
-              // Optical balance (founder 2026-06-26): a filled speech-bubble
-              // reads heavier than the other glyphs, so 22 looks equal to the
-              // others' 24 — same apparent size, not the same number.
-              size={22}
-              color={color}
-              fill={focused ? color : 'none'}
-              strokeWidth={focused ? 2.5 : 2}
-            />
-          ),
-        }}
-      />
+      {/* ChatTab removed 2026-11-18 (PikTag back to a personal network
+          tool, phase 1: chat UI taken down; tables / RPCs / edge
+          functions stay for old app versions). Four tabs now. */}
       <Tab.Screen
         name="ProfileTab"
         component={ProfileStackNavigator}
@@ -301,8 +251,7 @@ const RootStack = createNativeStackNavigator();
 // is the only input, and it changes exactly once per sign-in.
 const MainNavigator = React.memo(function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
   return (
-    <ChatUnreadProvider>
-      <RootStack.Navigator screenOptions={{ headerShown: false }}>
+    <RootStack.Navigator screenOptions={{ headerShown: false }}>
         {needsOnboarding ? (
           <RootStack.Screen name="Onboarding" component={OnboardingScreen} />
         ) : null}
@@ -318,8 +267,9 @@ const MainNavigator = React.memo(function MainNavigator({ needsOnboarding }: { n
             pushes reached from the Home header QR button + on_this_day
             deep links. Kept, not deleted — the conference/meetup case the
             store copy sells. */}
-        {/* Pushed from the Chat header bell (the bell lost its tab to
-            event tags, 2026-09-01). A RootStack route so it opens over
+        {/* Pushed from the Connections header bell (bell lost its tab to
+            event tags 2026-09-01, sat in the Chat header until chat was
+            taken down 2026-11-18). A RootStack route so it opens over
             whichever tab you are on, and so push deep-links keep a
             target. */}
         <RootStack.Screen name="Notifications" component={NotificationsScreen} />
@@ -336,18 +286,9 @@ const MainNavigator = React.memo(function MainNavigator({ needsOnboarding }: { n
           getComponent={() => require('../screens/QrGroupDetailScreen').default}
         />
 
-        {/* Chat thread + compose live in RootStack so back-navigation
-            returns to the origin (TagDetail → UserDetail → ChatThread →
-            back → UserDetail). The inbox (ChatList) is the ChatTab root. */}
-        <RootStack.Screen
-          name="ChatThread"
-          getComponent={() => require('../screens/ChatThreadScreen').default}
-        />
-        <RootStack.Screen
-          name="ChatCompose"
-          getComponent={() => require('../screens/ChatComposeScreen').default}
-          options={{ presentation: 'modal' }}
-        />
+        {/* ChatThread / ChatCompose routes removed 2026-11-18 (chat UI
+            taken down). Chat pushes route to Notifications instead — see
+            lib/notificationRouter. */}
 
         {/* Lazy: secondary screens loaded on first navigation */}
         <RootStack.Screen
@@ -457,8 +398,7 @@ const MainNavigator = React.memo(function MainNavigator({ needsOnboarding }: { n
           getComponent={() => require('../screens/ActivityReviewScreen').default}
           options={{ presentation: 'modal' }}
         />
-      </RootStack.Navigator>
-    </ChatUnreadProvider>
+    </RootStack.Navigator>
   );
 });
 

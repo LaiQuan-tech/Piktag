@@ -27,7 +27,6 @@ import {
   X,
   AlertTriangle,
   UserPlus,
-  MessageCircle,
   Users,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -177,7 +176,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const [followerCount, setFollowerCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
-  const [messageLoading, setMessageLoading] = useState(false);
   const [unfollowModalVisible, setUnfollowModalVisible] = useState(false);
 
   // Event-room offer modal (UX fix 2026-07-05: the system Alert was too
@@ -1349,84 +1347,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     }
   };
 
-  const handleOpenChat = async () => {
-    if (!authUser || !resolvedUserId || messageLoading) return;
-    setMessageLoading(true);
-    const openThread = (conversationId: string): void => {
-      // ChatThread lives in RootStack alongside UserDetail, so a plain
-      // push keeps the navigation history (TagDetail → UserDetail →
-      // ChatThread → back returns to UserDetail).
-      (navigation as any).navigate('ChatThread', {
-        conversationId,
-        otherUserId: resolvedUserId,
-        otherDisplayName: profile?.full_name ?? profile?.username ?? '',
-        otherAvatarUrl: profile?.avatar_url,
-      });
-    };
-    try {
-      // ── Offline: resolve the conversation from the inbox snapshot ──
-      // The unfixed twin of FriendDetailScreen's Message button (fixed
-      // in d6ddeee5). With no signal this had no guard at all: the RPC
-      // sat through supabase-js's ~25s auth-refresh backoff behind a
-      // spinner, then the `catch` swallowed the failure silently — or,
-      // when supabase-js resolved the transport error instead of
-      // throwing, the `else` branch below put a raw English
-      // `TypeError: Network request failed` in an Alert in front of a
-      // zh-TW user.
-      //
-      // CACHE_KEYS.CHAT_INBOX already holds the conversation id keyed by
-      // `other_user_id`, so anyone you have talked to from this device
-      // walks straight into the thread — whose history is itself cached
-      // (CHAT_THREADS) and whose composer queues offline sends.
-      // Read-only: nothing here writes a cache, so this path cannot
-      // degrade a snapshot.
-      if (await checkOffline()) {
-        const cachedInbox = await getPersistentCache<CachedInboxRow[]>(
-          CACHE_KEYS.CHAT_INBOX,
-          authUser.id,
-        );
-        const row = Array.isArray(cachedInbox)
-          ? cachedInbox.find((c) => c?.other_user_id === resolvedUserId)
-          : null;
-        if (row?.id) {
-          openThread(String(row.id));
-          return;
-        }
-        // Never talked to this person from this device, so there is no
-        // id to reuse and only the server can mint one. Say that in the
-        // user's own language — never a raw error string.
-        Alert.alert(t('app.offline'), t('common.willAutoRetry'));
-        return;
-      }
-
-      const { data, error } = await supabase.rpc('get_or_create_conversation', {
-        other_user_id: resolvedUserId,
-      });
-      if (error) {
-        const code = (error as any)?.code ?? '';
-        const msg = (error.message ?? '').toLowerCase();
-        if (code === 'blocked' || msg.includes('blocked')) {
-          Alert.alert(t('chat.userBlocked'));
-        } else if (code === 'invalid_participants' || msg.includes('invalid_participants')) {
-          Alert.alert(t('chat.cannotMessageSelf'));
-        } else {
-          // Anything else is a load failure as far as the user is
-          // concerned. `error.message` is a raw English server/transport
-          // string — never put one in front of someone.
-          Alert.alert(t('common.loadFailed'), t('common.checkConnection'));
-        }
-        return;
-      }
-      const conversationId = typeof data === 'string' ? data : (data as any)?.id ?? (data as any)?.conversation_id ?? data;
-      openThread(conversationId);
-    } catch (err) {
-      console.warn('handleOpenChat error:', err);
-      Alert.alert(t('common.loadFailed'), t('common.checkConnection'));
-    } finally {
-      setMessageLoading(false);
-    }
-  };
-
   const handleToggleFollow = async () => {
     if (!authUser || !resolvedUserId || followLoading) return;
 
@@ -1814,7 +1734,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               moment that matters here. Once they're following the
               button collapses to a secondary "追蹤中" pill, since
               the unfollow path is just a maintenance action.
-              Everything else (Message / Tag / +icon) sits on
+              Everything else (Tag / +icon) sits on
               secondary gray. Reverted from the previous LinearGradient
               follow button + primary tag button, both of which
               competed with each other for primary attention. */}
@@ -1850,20 +1770,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 )}
               </TouchableOpacity>
             )}
-            {authUser && resolvedUserId && authUser.id !== resolvedUserId && (
-              <TouchableOpacity
-                style={styles.secondaryBtn}
-                onPress={handleOpenChat}
-                activeOpacity={0.7}
-                disabled={messageLoading}
-              >
-                {messageLoading ? (
-                  <BrandSpinner size={20} />
-                ) : (
-                  <Text style={styles.secondaryBtnText} numberOfLines={1}>{t('userDetail.sendMessage')}</Text>
-                )}
-              </TouchableOpacity>
-            )}
+            {/* Message button removed 2026-11-18 (chat UI taken down). */}
             {isFollowing && (
               <TouchableOpacity
                 style={styles.tagBtnPrimary}

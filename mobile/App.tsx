@@ -221,31 +221,12 @@ function AppInner() {
       const nav = navigationRef.current as any;
       if (!nav) return;
 
-      // chat type stays special-cased and routes STRAIGHT to ChatThread.
-      // ChatThread is a RootStack screen (moved there in the 2026-06-24 nav
-      // refactor), so the old nested Main→SearchTab→ChatThread form no longer
-      // resolves — SearchStack has no ChatThread route, the action doesn't
-      // bubble to RootStack, and the user lands on SearchMain with the
-      // conversationId dropped. Match the in-app callers (ChatList /
-      // UserDetail / FriendDetail) which navigate('ChatThread', …) directly.
-      if (type === 'chat' && data?.conversationId) {
-        // Pass the sender identity through when the payload carries it
-        // (send-chat-push added senderId/senderName/senderAvatar
-        // 2026-07-02) so ChatThread's header renders instantly. Older
-        // pushes without the fields still work — ChatThread self-heals
-        // the other participant from the conversation row.
-        nav.navigate('ChatThread', {
-          conversationId: data.conversationId,
-          ...(data.senderId
-            ? {
-                otherUserId: data.senderId,
-                otherDisplayName: data.senderName ?? undefined,
-                otherAvatarUrl: data.senderAvatar ?? null,
-              }
-            : {}),
-        });
-        return;
-      }
+      // chat type used to route STRAIGHT to ChatThread. The chat UI was
+      // taken down 2026-11-18 (phase 1 of the tool simplification) and
+      // ChatThread is no longer a registered route, but send-chat-push
+      // still fires for old app versions. `chat` now goes through
+      // routeFromNotification like everything else, which lands it on
+      // Notifications — never on a missing route.
 
       // All other types (follow / tag_added / tag_trending / biolink_click /
       // ask_posted / birthday / anniversary / friend / recommendation / …)

@@ -1085,14 +1085,12 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       routes: [
         { name: 'HomeTab' },
         { name: 'SearchTab' },
-        // Event tags sit in the CENTRE slot as of 2026-09-03, ahead of
-        // chat. This list must match MainTabs exactly — in names AND in
+        // This list must match MainTabs exactly — in names AND in
         // order: a name that is not a real tab strands the brand-new user
         // at the end of the wizard, and an order that disagrees with the
         // navigator hands them a tab bar that does not match the one
-        // everyone else has.
+        // everyone else has. (ChatTab removed 2026-11-18 with the chat UI.)
         { name: 'EventTagTab' },
-        { name: 'ChatTab' },
         { name: 'ProfileTab' },
       ],
     };

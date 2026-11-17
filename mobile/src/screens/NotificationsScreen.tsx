@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, MessageCircle, Trash2 } from 'lucide-react-native';
+import { ArrowLeft, Trash2 } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { COLORS, SPACING, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -22,7 +22,6 @@ import { supabase } from '../lib/supabase';
 import { routeFromNotification } from '../lib/notificationRouter';
 import { refreshBadgeFromServer, maybeAskPushPermission } from '../lib/pushNotifications';
 import { useAuth } from '../hooks/useAuth';
-import { useChatUnread } from '../hooks/useChatUnread';
 import {
   getCache,
   setCache,
@@ -484,7 +483,6 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
-  const { total: chatUnread } = useChatUnread();
 
   const TAB_LABELS: Record<NotificationTab, string> = useMemo(
     () => ({

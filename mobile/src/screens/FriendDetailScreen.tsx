@@ -46,7 +46,6 @@ import {
   MoreHorizontal,
   X,
   AlertTriangle,
-  MessageCircle,
   UserPlus,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -349,11 +348,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   // Follow state
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
-  // Message-button state — parallels UserDetailScreen.handleOpenChat.
-  // The button sits between "追蹤中" and "標籤" so users can jump
-  // straight into a 1:1 thread with this friend without bouncing
-  // through the chat inbox first.
-  const [messageLoading, setMessageLoading] = useState(false);
 
   // Unfollow confirm modal
   const [unfollowModalVisible, setUnfollowModalVisible] = useState(false);
@@ -1413,85 +1407,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     }
   };
 
-  // Resolves (or creates) a 1:1 conversation with this friend and
-  // navigates to ChatThread. ChatThread lives in RootStack so a plain
-  // push preserves history (FriendDetail → ChatThread → back returns
-  // to FriendDetail).
-  const handleOpenChat = async () => {
-    if (!user || !friendId || messageLoading) return;
-    setMessageLoading(true);
-    const openThread = (conversationId: string) => {
-      (navigation as any).navigate('ChatThread', {
-        conversationId,
-        otherUserId: friendId,
-        otherDisplayName: profile?.full_name ?? profile?.username ?? '',
-        otherAvatarUrl: profile?.avatar_url,
-      });
-    };
-    try {
-      // ── Offline: resolve the conversation from the inbox snapshot ──
-      // This was the one major navigation action on the screen with no
-      // network guard, so with no signal the button spun for ~25-30s
-      // (the auth-refresh backoff explained in lib/netStatus.ts) and
-      // then raised an Alert containing a raw English transport error.
-      //
-      // The RPC is called get_or_create_conversation, but for someone
-      // already in your friends list the conversation almost always
-      // EXISTS, and CACHE_KEYS.CHAT_INBOX already holds its id keyed by
-      // `other_user_id`. Read it and walk straight into the thread,
-      // whose history is itself cached (CHAT_THREADS) and whose composer
-      // queues offline sends. Read-only: nothing here writes a cache, so
-      // this path cannot degrade a snapshot.
-      if (await checkOffline()) {
-        const cachedInbox = await getPersistentCache<CachedInboxRow[]>(
-          CACHE_KEYS.CHAT_INBOX,
-          user.id,
-        );
-        const row = Array.isArray(cachedInbox)
-          ? cachedInbox.find((c) => c?.other_user_id === friendId)
-          : null;
-        if (row?.id) {
-          openThread(String(row.id));
-          return;
-        }
-        // Genuinely never talked to this person from this device, so
-        // there is no id to reuse and only the server can mint one. Say
-        // that in the user's own language — never a raw error string.
-        Alert.alert(t('app.offline'), t('common.willAutoRetry'));
-        return;
-      }
-
-      const { data, error } = await supabase.rpc('get_or_create_conversation', {
-        other_user_id: friendId,
-      });
-      if (error) {
-        const code = (error as any)?.code ?? '';
-        const msg = (error.message ?? '').toLowerCase();
-        if (code === 'blocked' || msg.includes('blocked')) {
-          Alert.alert(t('chat.userBlocked'));
-        } else if (code === 'invalid_participants' || msg.includes('invalid_participants')) {
-          Alert.alert(t('chat.cannotMessageSelf'));
-        } else {
-          // Anything else is a load failure as far as the user is
-          // concerned. `error.message` is a raw English server/transport
-          // string — never put one in front of someone.
-          Alert.alert(t('common.loadFailed'), t('common.checkConnection'));
-        }
-        return;
-      }
-      const conversationId =
-        typeof data === 'string'
-          ? data
-          : (data as any)?.id ?? (data as any)?.conversation_id ?? data;
-      openThread(conversationId);
-    } catch (err) {
-      console.warn('handleOpenChat error:', err);
-      Alert.alert(t('common.loadFailed'), t('common.checkConnection'));
-    } finally {
-      setMessageLoading(false);
-    }
-  };
-
   // Em dash, not 0, while the counts are unknown — see `statsKnown`.
   // Identical to ProfileScreen's helper of the same name.
   const statText = useCallback(
@@ -2009,7 +1924,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           {/* Action buttons.
               Visual hierarchy on this screen: 「標籤」 is the ONE
               primary CTA (piktag500 + white text). Everything else
-              (Follow / Following / Message / +icon) shares the same
+              (Follow / Following / +icon) shares the same
               gray secondary treatment so they're visually flat
               relative to each other and the user's eye lands on
               標籤 — the action this whole screen exists for.
@@ -2033,18 +1948,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 </Text>
               )}
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.secondaryBtn}
-              onPress={handleOpenChat}
-              activeOpacity={0.7}
-              disabled={messageLoading}
-            >
-              {messageLoading ? (
-                <BrandSpinner size={20} />
-              ) : (
-                <Text style={styles.secondaryBtnText} numberOfLines={1}>{t('friendDetail.sendMessage')}</Text>
-              )}
-            </TouchableOpacity>
+            {/* Message button removed 2026-11-18 (chat UI taken down). */}
             {isFollowing && (
               <TouchableOpacity
                 style={styles.primaryBtn}
