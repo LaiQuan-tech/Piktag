@@ -241,7 +241,7 @@ jobs:
   build-and-upload:
     needs: gate
     # Fail open at the JOB level, not just inside the gate's script. Build
-    # unless the gate positively said not to. `always()` is what lets this
+    # unless the gate positively said not to. `!cancelled()` is what lets this
     # run when the gate job itself failed or was skipped.
     #
     # Why: runs 31907532662 and its neighbours show `gate: failure,
@@ -255,7 +255,10 @@ jobs:
     #
     # The Apple-upload-slot protection is intact: a gate that actually RUNS
     # and decides there is nothing new still emits 'false' and still skips.
-    if: always() && needs.gate.outputs.should_build != 'false'
+    # `!cancelled()`, not `always()`: always() also survives a concurrency
+    # cancellation, so a superseded build kept going and could ship, and the
+    # newer run was then throttled by the cooldown (2026-11-26).
+    if: ${{ !cancelled() && needs.gate.outputs.should_build != 'false' }}
     # macos-15 is proven good: "Build iOS Archive" succeeds here and
     # the Xcode-26 gate passes (setup-xcode resolves Xcode 26 on this
     # image). The earlier "stuck at 574" was NOT a runner/Xcode issue
