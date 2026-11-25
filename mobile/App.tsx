@@ -120,7 +120,8 @@ const linking = {
       // fell back to HomeTab's default route (Connections) and a
       // `pikt.ag/<username>` profile deep link silently landed on the home
       // screen. Keep this block in sync with RootStack's screen names.
-      FriendDetail: 'friend/:id',
+      // Param name must match what FriendDetailScreen reads from route.params.
+      FriendDetail: 'friend/:friendId',
       CameraScan: 'scan',
       ScanResult: 'scan-result',
       // Single-segment username catch-all for the pikt.ag/<username> profile
