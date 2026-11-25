@@ -1433,6 +1433,44 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     void openOrCopyBiolink({ platform: link.platform, url: link.url, id: link.id }, t);
   };
 
+  // Hooks must stay above the early returns below: calling them after
+  // `if (loading) return` changes the hook count between renders and
+  // crashes the screen ("Rendered more hooks than during the previous render").
+  // Sequenced like FriendDetail's: a second rename can start while the
+  // first is in flight, and only the latest may touch the UI.
+  const nicknameSaveRef = useRef(0);
+  const handleSaveNickname = useCallback(
+    async (next: string) => {
+      if (!connectionId || !authUser?.id || !resolvedUserId) return;
+      const token = ++nicknameSaveRef.current;
+      const previous = nickname;
+      const trimmed = next.trim();
+      const optimistic = trimmed.length > 0 ? trimmed : null;
+      if (optimistic === previous) return;
+
+      setNickname(optimistic);
+      const result = await saveFriendNickname({
+        userId: authUser.id,
+        connectionId,
+        friendId: resolvedUserId,
+        next,
+        previous,
+      });
+      if (token !== nicknameSaveRef.current) return;
+      if (!result.ok) {
+        if (result.reason === 'noop') return;
+        setNickname(previous);
+        Alert.alert(
+          t('common.error', { defaultValue: '發生錯誤' }),
+          t('friendDetail.nicknameSaveFailed', {
+            defaultValue: '名稱沒有儲存成功，請稍後再試。',
+          }),
+        );
+      }
+    },
+    [connectionId, authUser?.id, resolvedUserId, nickname, t],
+  );
+
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -1490,41 +1528,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   // term this screen showed the real name for someone the viewer had
   // already renamed elsewhere — the same person looking different
   // depending on which door you came through.
-  // Sequenced like FriendDetail's: a second rename can start while the
-  // first is in flight, and only the latest may touch the UI.
-  const nicknameSaveRef = useRef(0);
-  const handleSaveNickname = useCallback(
-    async (next: string) => {
-      if (!connectionId || !authUser?.id || !resolvedUserId) return;
-      const token = ++nicknameSaveRef.current;
-      const previous = nickname;
-      const trimmed = next.trim();
-      const optimistic = trimmed.length > 0 ? trimmed : null;
-      if (optimistic === previous) return;
-
-      setNickname(optimistic);
-      const result = await saveFriendNickname({
-        userId: authUser.id,
-        connectionId,
-        friendId: resolvedUserId,
-        next,
-        previous,
-      });
-      if (token !== nicknameSaveRef.current) return;
-      if (!result.ok) {
-        if (result.reason === 'noop') return;
-        setNickname(previous);
-        Alert.alert(
-          t('common.error', { defaultValue: '發生錯誤' }),
-          t('friendDetail.nicknameSaveFailed', {
-            defaultValue: '名稱沒有儲存成功，請稍後再試。',
-          }),
-        );
-      }
-    },
-    [connectionId, authUser?.id, resolvedUserId, nickname, t],
-  );
-
   const displayName = nickname || profile.full_name || profile.username || 'Unknown';
   const username = profile.username || '';
   const verified = profile.is_verified || false;
