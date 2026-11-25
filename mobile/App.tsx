@@ -298,7 +298,7 @@ function AppInner() {
                   // mounts — `onStateChange` only fires on transitions,
                   // so without this we'd miss the landing screen of
                   // every session.
-                  const route = navigationRef.getCurrentRoute();
+                  const route = navigationRef.getCurrentRoute() as { name: string; params?: object } | undefined;
                   if (route?.name) {
                     trackScreen(route.name, route.params as Record<string, unknown> | undefined);
                   }
@@ -308,7 +308,7 @@ function AppInner() {
                   // tab switch, modal present). `getCurrentRoute()`
                   // resolves the deepest active leaf, which is what we
                   // want for screen-level analytics.
-                  const route = navigationRef.getCurrentRoute();
+                  const route = navigationRef.getCurrentRoute() as { name: string; params?: object } | undefined;
                   if (route?.name) {
                     trackScreen(route.name, route.params as Record<string, unknown> | undefined);
                   }
